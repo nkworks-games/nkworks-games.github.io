@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>めぐれ！赤血球</title>
+<meta name="description" content="赤血球になって血管を駆けぬけ、体を1周しながら酸素を届ける3Dブラウザゲーム。ばい菌は白血球の所まで連れていって退治してもらおう。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<meta property="og:type" content="website">
+<meta property="og:title" content="めぐれ！赤血球">
+<meta property="og:description" content="赤血球になって体を1周！酸素を届けて、ばい菌は白血球へ。">
+<meta property="og:url" content="https://nkworks-games.com/megure-sekkekkyu/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#1c0306">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350" crossorigin="anonymous"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<style>
+:root{--bg:#1c0306;--red:#e8283a;--deep:#5a0812;--cream:#fff3ea;--ink:#3a0710;--o2:#8fdcff;--gold:#ffd45c;--white:#ffffff;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);overflow:hidden;font-family:'M PLUS Rounded 1c',system-ui,-apple-system,'Hiragino Maru Gothic ProN',sans-serif;color:var(--cream);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;}
+button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer;}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;}
+#game{position:relative;flex:1 1 auto;width:100%;max-width:520px;min-height:0;overflow:hidden;touch-action:none;background:#2a0508;}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;}
+#ad-gap{flex:0 0 75px;width:100%;}
+#ad-wrap{flex:0 0 auto;width:100%;height:calc(50px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);display:flex;justify-content:center;align-items:flex-start;overflow:hidden;}
+#ad-wrap ins{display:inline-block;width:320px;height:50px;}
+
+/* HUD */
+#hud{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 8px) 12px 0;z-index:10;pointer-events:none;display:none;}
+#hud.show{display:block;}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.pill{background:rgba(30,2,6,.55);border:1.5px solid rgba(255,220,210,.22);border-radius:999px;padding:4px 12px;font-weight:800;font-size:13px;white-space:nowrap;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+#hud-time{font-size:24px;font-weight:800;letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.35);font-variant-numeric:tabular-nums;}
+.hrow2{margin-top:6px;}
+#hud-o2{display:flex;align-items:center;gap:6px;font-size:15px;}
+.o2ico{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0 18%,#bdeeff 22%,#5cc4f2 70%,#2a8fc4);box-shadow:0 0 8px rgba(140,220,255,.8);}
+#hud-o2 b{font-size:19px;}
+#hud-o2 small{opacity:.7;font-size:12px;}
+#hud-o2.bump{animation:bump .35s ease;}
+#hud-o2.lost{animation:lost .45s ease;}
+@keyframes bump{40%{transform:scale(1.25);}}
+@keyframes lost{25%{transform:translateX(-5px);background:rgba(200,20,30,.7);}50%{transform:translateX(5px);}75%{transform:translateX(-3px);}}
+#hud-heart{width:30px;height:30px;color:#ff4a5c;filter:drop-shadow(0 0 6px rgba(255,60,80,.7));}
+#hud-heart svg{width:100%;height:100%;fill:currentColor;transform-origin:50% 55%;}
+#hud-score{font-size:12px;}
+#hud-score small{font-size:11px;opacity:.85;}
+#hud-score b{font-size:19px;font-variant-numeric:tabular-nums;}
+#hud-chain{position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 86px);display:none;align-items:center;gap:5px;font-size:13px;color:#d8ffb0;border-color:rgba(190,255,120,.4);}
+#hud-chain.show{display:flex;}
+.gico{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e8ffb8,#86d33c 55%,#3f8a16);box-shadow:0 0 6px rgba(150,255,80,.6);}
+#btn-mute{pointer-events:auto;width:38px;height:38px;border-radius:50%;background:rgba(30,2,6,.55);border:1.5px solid rgba(255,220,210,.22);display:flex;align-items:center;justify-content:center;position:absolute;right:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:30;}
+#btn-mute svg{width:20px;height:20px;fill:var(--cream);}
+#btn-mute .off{display:none;}
+#btn-mute.muted .on{display:none;}
+#btn-mute.muted .off{display:block;}
+
+/* banners and messages */
+#banner{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 92px);transform:translate(-50%,-10px);opacity:0;z-index:11;pointer-events:none;text-align:center;transition:opacity .3s,transform .3s;white-space:nowrap;}
+#banner.show{opacity:1;transform:translate(-50%,0);}
+#banner .bn-name{display:inline-block;font-weight:800;font-size:20px;background:var(--cream);color:var(--ink);border-radius:999px;padding:3px 16px;box-shadow:0 3px 0 rgba(0,0,0,.3);}
+#banner .bn-sub{margin-top:6px;font-size:13px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.8);}
+#banner .bn-split{margin-top:5px;font-size:15px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.8);font-variant-numeric:tabular-nums;}
+#banner .bn-split:empty{display:none;}
+.minus{color:#7dff9a;}
+.plus{color:#ff8a8a;}
+#flow{position:absolute;left:50%;bottom:66px;transform:translateX(-50%);z-index:10;pointer-events:none;display:none;align-items:center;gap:7px;white-space:nowrap;font-weight:800;font-size:12px;text-shadow:0 1px 3px rgba(0,0,0,.8);}
+#flow.show{display:flex;}
+#flow .bar{width:132px;height:9px;border-radius:999px;background:rgba(30,2,6,.6);border:1.5px solid rgba(255,230,220,.35);overflow:hidden;}
+#flow i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#8fdcff,#fff2b0);box-shadow:0 0 8px rgba(160,230,255,.9);}
+#flow.max i{background:linear-gradient(90deg,#ffe27a,#fff);}
+#flow b{min-width:42px;font-variant-numeric:tabular-nums;}
+#center-msg{position:absolute;left:0;right:0;top:38%;text-align:center;z-index:12;pointer-events:none;font-weight:800;font-size:64px;color:var(--cream);text-shadow:0 4px 0 rgba(90,6,16,.9),0 0 24px rgba(255,80,90,.6);opacity:0;}
+#center-msg.pop{animation:cpop .7s ease-out forwards;}
+#center-msg.big{font-size:56px;}
+#center-msg.gold{color:var(--gold);}
+@keyframes cpop{0%{opacity:0;transform:scale(1.8);}20%{opacity:1;transform:scale(1);}75%{opacity:1;}100%{opacity:0;transform:scale(.96);}}
+#hint{position:absolute;left:50%;bottom:98px;transform:translateX(-50%);z-index:12;pointer-events:none;background:rgba(255,243,234,.94);color:var(--ink);font-weight:800;font-size:14px;border-radius:14px;padding:8px 14px;white-space:nowrap;opacity:0;transition:opacity .25s;box-shadow:0 3px 0 rgba(0,0,0,.25);}
+#hint.show{opacity:1;}
+#popups{position:absolute;inset:0;pointer-events:none;z-index:11;overflow:hidden;}
+.pop{position:absolute;transform:translate(-50%,-50%);font-weight:800;font-size:20px;white-space:nowrap;text-shadow:0 2px 0 rgba(0,0,0,.45);animation:popup 1s ease-out forwards;}
+.pop.o2{color:#bff0ff;}
+.pop.gold{color:var(--gold);font-size:24px;}
+.pop.eat{color:#fff;font-size:24px;}
+.pop.bad{color:#ffb3b3;}
+.pop.dash{color:#ffe27a;font-size:16px;}
+@keyframes popup{0%{opacity:0;transform:translate(-50%,-30%) scale(.6);}15%{opacity:1;transform:translate(-50%,-60%) scale(1.1);}100%{opacity:0;transform:translate(-50%,-190%) scale(1);}}
+#flash{position:absolute;inset:0;pointer-events:none;z-index:9;opacity:0;}
+#speedfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7;}
+#danger{position:absolute;inset:0;pointer-events:none;z-index:8;opacity:0;background:radial-gradient(ellipse at 50% 55%,transparent 45%,rgba(90,200,40,.35) 78%,rgba(30,90,10,.75) 100%);}
+#goo{position:absolute;inset:0;pointer-events:none;z-index:9;opacity:0;transition:opacity .15s;background:radial-gradient(circle at 8% 20%,rgba(120,210,60,.85) 0 9%,transparent 10%),radial-gradient(circle at 92% 30%,rgba(140,220,70,.8) 0 11%,transparent 12%),radial-gradient(circle at 15% 85%,rgba(110,200,50,.85) 0 12%,transparent 13%),radial-gradient(circle at 88% 82%,rgba(150,90,220,.8) 0 10%,transparent 11%),radial-gradient(ellipse at 50% 50%,transparent 40%,rgba(60,140,20,.7) 100%);}
+#goo.show{opacity:1;}
+#shake-msg{position:absolute;left:0;right:0;top:56%;text-align:center;z-index:13;pointer-events:none;display:none;font-weight:800;font-size:22px;color:#fff;text-shadow:0 3px 0 rgba(30,80,10,.9),0 0 14px rgba(0,0,0,.6);}
+#shake-msg.show{display:block;}
+#shake-msg .arw{display:inline-block;font-size:34px;animation:wig .25s ease-in-out infinite alternate;}
+#shake-msg .cnt{display:block;font-size:15px;margin-top:2px;}
+@keyframes wig{from{transform:translateX(-14px);}to{transform:translateX(14px);}}
+#center-msg.bad{color:#c8ff8a;text-shadow:0 4px 0 rgba(30,80,10,.9),0 0 24px rgba(80,200,40,.6);font-size:50px;}
+#vignette{position:absolute;inset:0;pointer-events:none;z-index:8;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(120,0,10,.55) 100%);opacity:.5;}
+
+/* map */
+#map-wrap{position:absolute;left:0;right:0;bottom:0;height:60px;z-index:10;pointer-events:none;display:none;background:linear-gradient(to top,rgba(20,2,5,.75),rgba(20,2,5,0));}
+#map-wrap.show{display:block;}
+#map{width:100%;height:100%;display:block;}
+
+/* screens */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20;padding:calc(env(safe-area-inset-top) + 16px) 18px 16px;}
+.screen.show{display:flex;}
+#screen-title{background:radial-gradient(ellipse at 50% 26%,rgba(60,4,10,0) 0,rgba(28,3,7,.5) 45%,rgba(18,2,5,.92) 100%);justify-content:flex-end;}
+.logo{text-align:center;margin-bottom:auto;margin-top:2vh;}
+.logo-sub{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.12em;background:rgba(255,243,234,.14);border-radius:999px;padding:3px 12px;}
+.logo h1{font-weight:800;font-size:46px;line-height:1.05;margin-top:8px;color:var(--cream);text-shadow:0 4px 0 #7a0a18,0 8px 18px rgba(0,0,0,.5);}
+.logo h1 em{font-style:normal;font-size:60px;color:#ff5466;-webkit-text-stroke:2px var(--cream);paint-order:stroke fill;}
+#course-list{width:100%;max-width:400px;display:flex;flex-direction:column;gap:9px;}
+.course{display:block;width:100%;text-align:left;background:var(--cream);color:var(--ink);border-radius:18px;padding:10px 14px 9px;box-shadow:0 4px 0 #8a1a26;position:relative;transition:transform .08s;}
+.course:active{transform:translateY(3px);box-shadow:0 1px 0 #8a1a26;}
+.c-top{display:flex;align-items:center;gap:8px;}
+.c-name{font-size:19px;font-weight:800;}
+.c-bpm{font-size:12px;font-weight:800;color:#d01c30;background:#ffe0e2;border-radius:999px;padding:1px 8px;}
+.c-best{margin-left:auto;font-size:12px;font-weight:800;color:#8a3a44;}
+.c-desc{font-size:12px;margin-top:3px;color:#6a2a32;}
+.course.locked{background:#5a2a30;color:#c9a0a6;box-shadow:0 4px 0 #2a0a0e;}
+.course.locked .c-bpm{background:#7a3a42;color:#e0b0b6;}
+.course.locked .c-desc,.course.locked .c-best{color:#c9a0a6;}
+.lock{width:14px;height:14px;fill:currentColor;vertical-align:-2px;}
+.title-foot{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:400px;margin-top:12px;font-size:12px;opacity:.85;}
+.link{font-weight:800;font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:6px 2px;}
+
+#howto{background:rgba(18,2,5,.86);z-index:25;}
+.card{width:100%;max-width:380px;background:var(--cream);color:var(--ink);border-radius:22px;padding:18px 18px 16px;box-shadow:0 6px 0 #8a1a26,0 14px 30px rgba(0,0,0,.4);max-height:100%;overflow:auto;}
+.card h2{font-size:20px;font-weight:800;text-align:center;margin-bottom:10px;}
+.howrow{display:flex;gap:12px;align-items:center;margin:9px 0;}
+.howrow .ic{flex:0 0 46px;height:46px;border-radius:14px;background:#ffe2e2;display:flex;align-items:center;justify-content:center;}
+.howrow .ic svg{width:30px;height:30px;}
+.howrow p{font-size:13px;line-height:1.5;}
+.howrow b{color:#c8142a;}
+.btn{display:block;width:100%;font-weight:800;font-size:17px;border-radius:999px;padding:12px;background:var(--red);color:#fff;box-shadow:0 4px 0 #8a0a18;margin-top:10px;}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #8a0a18;}
+.btn.sub{background:#fff;color:var(--ink);box-shadow:0 4px 0 #c9a3a8;border:2px solid #f0d0d4;}
+.btn.x{background:#111;color:#fff;box-shadow:0 4px 0 #444;}
+.btn-row{display:flex;gap:10px;}
+.btn-row .btn{flex:1;}
+
+#ready{position:absolute;inset:0;z-index:15;display:none;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+#ready.show{display:flex;}
+#ready .tut{background:rgba(255,243,234,.95);color:var(--ink);border-radius:20px;padding:14px 16px;max-width:320px;width:86%;box-shadow:0 5px 0 rgba(0,0,0,.25);}
+#ready .tut .howrow{margin:6px 0;}
+#ready .tap{margin-top:16px;font-weight:800;font-size:20px;text-shadow:0 2px 0 rgba(0,0,0,.5);animation:blink 1.1s ease-in-out infinite;}
+@keyframes blink{50%{opacity:.35;}}
+
+#screen-result{background:rgba(18,2,5,.72);}
+.r-course{text-align:center;font-size:13px;font-weight:800;color:#a0303e;}
+.r-title{text-align:center;font-size:24px;font-weight:800;margin-top:2px;color:#c8142a;}
+.r-score{text-align:center;font-size:18px;font-weight:800;}
+.r-score b{font-size:50px;font-variant-numeric:tabular-nums;color:var(--ink);}
+.r-best{text-align:center;font-size:13px;font-weight:800;color:#8a4a52;min-height:18px;}
+.r-best.new{color:#e0861a;}
+.r-break{width:100%;border-collapse:collapse;margin:10px 0 6px;font-size:13px;}
+.r-break td{padding:5px 2px;border-bottom:1.5px dashed #f0cfd3;}
+.r-break td:last-child{text-align:right;font-weight:800;font-variant-numeric:tabular-nums;}
+.r-trivia{background:#fff0e6;border-radius:14px;padding:9px 12px;margin-top:8px;font-size:13px;line-height:1.55;}
+.r-trivia span{display:inline-block;font-size:11px;font-weight:800;background:var(--red);color:#fff;border-radius:999px;padding:1px 8px;margin-bottom:3px;}
+#r-unlock{text-align:center;font-weight:800;color:#e0861a;font-size:14px;margin-top:8px;display:none;}
+#share-view{background:rgba(10,1,3,.92);z-index:30;}
+#share-view img{width:100%;max-width:400px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+#share-view p{margin:10px 0 0;font-size:13px;text-align:center;}
+
+#rotate{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-weight:800;font-size:18px;text-align:center;}
+#rotate.show{display:flex;}
+#rotate svg{width:64px;height:64px;fill:none;stroke:var(--cream);stroke-width:2.5;}
+#pause{position:absolute;inset:0;z-index:18;display:none;align-items:center;justify-content:center;background:rgba(18,2,5,.6);font-weight:800;font-size:22px;}
+#pause.show{display:flex;}
+#loading{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:var(--bg);font-weight:800;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <canvas id="c"></canvas>
+    <canvas id="speedfx"></canvas>
+    <div id="vignette"></div>
+    <div id="danger"></div>
+    <div id="goo"></div>
+    <div id="shake-msg"><span class="arw">⇦ ⇨</span><br>指を左右にふって<br>ふりほどけ！<span class="cnt" id="shake-cnt"></span></div>
+    <div id="flash"></div>
+    <div id="hud">
+      <div class="hrow">
+        <div id="hud-course" class="pill">ふつうの日</div>
+        <div id="hud-time">0:00.0</div>
+        <div style="width:38px"></div>
+      </div>
+      <div class="hrow hrow2">
+        <div id="hud-o2" class="pill"><span class="o2ico"></span><b id="o2n">0</b><small>/10</small></div>
+        <div id="hud-heart"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg></div>
+        <div id="hud-score" class="pill"><small>ボーナス</small> <b id="score">0.0</b><small>秒</small></div>
+      </div>
+    </div>
+    <div id="hud-chain" class="pill"><span class="gico"></span>うしろに <b id="chain-n">0</b>匹</div>
+    <div id="banner"><div class="bn-name"></div><div class="bn-split"></div><div class="bn-sub"></div></div>
+    <div id="flow"><span>流れ</span><div class="bar"><i id="flow-fill"></i></div><b id="flow-x">×1.00</b></div>
+    <div id="center-msg"></div>
+    <div id="hint"></div>
+    <div id="popups"></div>
+    <div id="map-wrap"><canvas id="map"></canvas></div>
+
+    <div id="ready">
+      <div class="tut" id="tut">
+        <div class="howrow"><div class="ic"><svg viewBox="0 0 32 32"><circle cx="16" cy="12" r="6" fill="#e8283a"/><path d="M4 12h5M23 12h5M16 0v4M16 20v4" stroke="#3a0710" stroke-width="2.5" stroke-linecap="round"/><path d="M13 30v-7a3 3 0 0 1 6 0v7" fill="#f6c9a8" stroke="#3a0710" stroke-width="1.5"/></svg></div><p><b>指を置いて動かす</b><br>赤血球が上下左右に動く</p></div>
+        <div class="howrow"><div class="ic"><svg viewBox="0 0 32 32"><path d="M8 14q8 10 16 0" fill="none" stroke="#e8283a" stroke-width="5" stroke-linecap="round"/><path d="M16 28v-6" stroke="#3a0710" stroke-width="2" stroke-dasharray="2 2"/></svg></div><p><b>指を離す</b>と体を折りたたむ<br>細い血管や光る輪はこれで通る</p></div>
+        <div class="howrow"><div class="ic"><svg viewBox="0 0 24 24"><path fill="#e8283a" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg></div><p><b>ドクンに合わせて離す</b>とダッシュ<br>まん中を走ると流れメーターで加速</p></div>
+      </div>
+      <div class="tap">画面にふれてスタート</div>
+    </div>
+    <div id="pause">タップで再開</div>
+
+    <div id="screen-title" class="screen show">
+      <div class="logo">
+        <span class="logo-sub">体をめぐる3Dレース</span>
+        <h1>めぐれ！<br><em>赤血球</em></h1>
+      </div>
+      <div id="course-list"></div>
+      <div class="title-foot"><button class="link" id="btn-howto">あそびかた</button><span>N.K. Works</span></div>
+    </div>
+
+    <div id="howto" class="screen">
+      <div class="card">
+        <h2>あそびかた</h2>
+        <div class="howrow"><div class="ic"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="#e8283a"/><circle cx="16" cy="16" r="3.5" fill="#b0101e"/></svg></div><p>あなたは<b>赤血球</b>。体を1周して心臓に帰る<b>タイムレース</b>。酸素を届けたり、ばい菌を退治すると<b>記録が縮みます</b>。</p></div>
+        <div class="howrow"><div class="ic"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="8" fill="#8fdcff" stroke="#2a8fc4" stroke-width="2"/></svg></div><p><b>肺</b>で酸素の泡を拾って（最大10個）、<b>光る輪</b>を折りたたんで通ると酸素を届けられます。</p></div>
+        <div class="howrow"><div class="ic"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="8" fill="#86d33c"/><circle cx="16" cy="7" r="2.5" fill="#86d33c"/><circle cx="25" cy="16" r="2.5" fill="#86d33c"/><circle cx="7" cy="16" r="2.5" fill="#86d33c"/><circle cx="16" cy="25" r="2.5" fill="#86d33c"/></svg></div><p><b>ばい菌</b>は追ってくる・前から来る・回る・分裂する（黄色）の4種類。つかまったら<b>指を左右にふって</b>ふりほどこう。</p></div>
+        <div class="howrow"><div class="ic"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="#fff" stroke="#d8d0f0" stroke-width="2"/></svg></div><p><b>白血球</b>のそばを通ると、ついてきたばい菌をまとめて食べてくれます。1匹−0.5秒、3匹以上まとめてなら1匹−0.6秒。</p></div>
+        <div class="howrow"><div class="ic"><svg viewBox="0 0 24 24"><path fill="#e8283a" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg></div><p><b>ドクンに合わせて指を離す</b>とダッシュ！血管の<b>まん中</b>に乗り続けると流れメーターがたまって最大1.5倍速。かべにぶつかると0にもどる。</p></div>
+        <div class="howrow"><div class="ic"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="#30c060" stroke-width="3"/><path d="M8 10l8 7 8-7" fill="none" stroke="#e8283a" stroke-width="3" stroke-linecap="round"/></svg></div><p><b>弁</b>は開いている時（緑）に通ろう。<b>ケガの穴</b>には吸いこまれないように離れて。</p></div>
+        <button class="btn" id="btn-howto-close">わかった</button>
+      </div>
+    </div>
+
+    <div id="screen-result" class="screen">
+      <div class="card">
+        <div class="r-course" id="r-course"></div>
+        <div class="r-title" id="r-title"></div>
+        <div class="r-score"><small>記録</small> <b id="r-score">0:00.0</b></div>
+        <div class="r-best" id="r-best"></div>
+        <table class="r-break" id="r-break"></table>
+        <div class="r-trivia"><span>豆知識</span><p id="r-trivia"></p></div>
+        <div id="r-unlock"></div>
+        <div class="btn-row"><button class="btn" id="btn-retry">もう一度</button><button class="btn sub" id="btn-select">コースを選ぶ</button></div>
+        <button class="btn x" id="btn-share">結果をXでシェア</button>
+      </div>
+    </div>
+
+    <div id="share-view" class="screen">
+      <img id="share-img" alt="結果の画像">
+      <p>画像を長押し（パソコンは右クリック）で保存して、Xの投稿に付けてください</p>
+      <div class="btn-row" style="width:100%;max-width:400px;margin-top:6px"><button class="btn x" id="btn-share-x">Xを開く</button><button class="btn sub" id="btn-share-close">閉じる</button></div>
+    </div>
+
+    <button id="btn-mute" aria-label="音のオン・オフ"><svg class="on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg><svg class="off" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3zm13.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z"/></svg></button>
+    <div id="loading">よみこみ中…</div>
+  </div>
+  <div id="ad-gap"></div>
+  <div id="ad-wrap">
+    <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>
+  </div>
+</div>
+<div id="rotate"><svg viewBox="0 0 64 64"><rect x="20" y="6" width="24" height="44" rx="4"/><path d="M50 40a18 18 0 0 1-14 16M36 56l4-4M36 56l5 2"/></svg>スマホを縦にして遊んでください</div>
+<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* ===== 小さな道具 ===== */
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (e0, e1, x) => { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); };
+function mulberry(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('megure_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('megure_' + k, JSON.stringify(v)); } catch (e) { } }
+};
+
+/* ===== 音（Web Audioで合成） ===== */
+const Snd = {
+  ctx: null, out: null, muted: store.get('muted', false), amb: null, nb: null,
+  init() {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    if (!this.ctx) {
+      try {
+        this.ctx = new AC();
+        this.out = this.ctx.createGain(); this.out.gain.value = this.muted ? 0 : 1;
+        const comp = this.ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4;
+        this.out.connect(comp); comp.connect(this.ctx.destination);
+        const len = this.ctx.sampleRate; const b = this.ctx.createBuffer(1, len, this.ctx.sampleRate); const d = b.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+        this.nb = b; this.startAmb();
+      } catch (e) { this.ctx = null; return; }
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  setMuted(m) { this.muted = m; store.set('muted', m); if (this.out) this.out.gain.setTargetAtTime(m ? 0 : 1, this.ctx.currentTime, 0.02); },
+  tone(f, dur, { type = 'sine', vol = 0.3, f2 = null, at = 0, attack = 0.005 } = {}) {
+    const c = this.ctx; if (!c || vol <= 0) return; const t = c.currentTime + at;
+    const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.out); o.start(t); o.stop(t + dur + 0.05);
+  },
+  noise(dur, { vol = 0.2, freq = 800, q = 1, type = 'lowpass', at = 0, f2 = null } = {}) {
+    const c = this.ctx; if (!c || vol <= 0) return; const t = c.currentTime + at;
+    const s = c.createBufferSource(); s.buffer = this.nb;
+    const fl = c.createBiquadFilter(); fl.type = type; fl.frequency.setValueAtTime(freq, t); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t + dur); fl.Q.value = q;
+    const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(fl); fl.connect(g); g.connect(this.out); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
+  },
+  startAmb() {
+    const c = this.ctx; const s = c.createBufferSource(); s.buffer = this.nb; s.loop = true;
+    const fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = 240;
+    const g = c.createGain(); g.gain.value = 0.05; s.connect(fl); fl.connect(g); g.connect(this.out); s.start(); this.amb = { g, fl };
+  },
+  doku(k = 1) {
+    k = clamp(k, 0.15, 1.4);
+    this.tone(74, 0.22, { vol: 0.9 * k, f2: 36 }); this.noise(0.12, { vol: 0.32 * k, freq: 170 });
+    this.tone(64, 0.18, { vol: 0.55 * k, f2: 34, at: 0.14 }); this.noise(0.1, { vol: 0.18 * k, freq: 140, at: 0.14 });
+    if (this.amb) { const t = this.ctx.currentTime; const g = this.amb.g.gain; g.cancelScheduledValues(t); g.setValueAtTime(0.12, t); g.setTargetAtTime(0.05, t + 0.05, 0.15); }
+  },
+  pre(k = 1) { this.tone(58, 0.09, { vol: 0.26 * clamp(k, 0.3, 1.2), f2: 42 }); },
+  pickup(n) { const f = 520 + n * 45; this.tone(f, 0.12, { vol: 0.22, f2: f * 1.8 }); this.tone(f * 2, 0.08, { type: 'triangle', vol: 0.07, at: 0.05 }); },
+  deliver(just) {
+    const base = just ? 784 : 659;
+    [1, 1.26, 1.5].forEach((m, i) => this.tone(base * m, 0.35, { type: 'triangle', vol: 0.17, at: i * 0.07 }));
+    if (just) { this.tone(2093, 0.4, { vol: 0.07, at: 0.18 }); this.tone(2637, 0.45, { vol: 0.06, at: 0.25 }); }
+  },
+  fold() { this.tone(420, 0.1, { vol: 0.1, f2: 200 }); this.noise(0.06, { vol: 0.04, freq: 2200, type: 'bandpass', q: 2 }); },
+  unfold() { this.tone(240, 0.08, { vol: 0.07, f2: 420 }); },
+  bounce() { this.tone(300, 0.25, { vol: 0.28, f2: 120 }); this.tone(180, 0.2, { vol: 0.2, f2: 340, at: 0.08 }); },
+  hit() { this.noise(0.25, { vol: 0.4, freq: 900, f2: 200, q: 3, type: 'bandpass' }); this.tone(160, 0.25, { type: 'sawtooth', vol: 0.1, f2: 60 }); },
+  notice() { this.tone(900, 0.06, { type: 'square', vol: 0.04, f2: 1300 }); },
+  lunge() { this.tone(140, 0.14, { type: 'sawtooth', vol: 0.07, f2: 260 }); },
+  eat(n) {
+    const m = Math.min(n, 6);
+    for (let i = 0; i < m; i++) { this.noise(0.08, { vol: 0.3, freq: 500, q: 1.5, type: 'bandpass', at: i * 0.09 }); this.tone(110, 0.07, { type: 'square', vol: 0.05, f2: 70, at: i * 0.09 }); }
+    this.tone(523, 0.3, { type: 'triangle', vol: 0.12, at: m * 0.09 }); this.tone(784, 0.35, { type: 'triangle', vol: 0.12, at: m * 0.09 + 0.08 });
+  },
+  suck() { this.noise(0.45, { vol: 0.12, freq: 300, f2: 2400, type: 'bandpass', q: 2 }); },
+  goal() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.5, { type: 'triangle', vol: 0.15, at: i * 0.11 })); this.tone(1319, 0.8, { type: 'triangle', vol: 0.12, at: 0.48 }); },
+  click() { this.tone(660, 0.06, { type: 'triangle', vol: 0.09 }); },
+  count(go) { this.tone(go ? 880 : 440, go ? 0.35 : 0.15, { type: 'triangle', vol: 0.15 }); },
+  full() { this.tone(330, 0.1, { type: 'triangle', vol: 0.07 }); },
+  whoosh(k = 1) { this.noise(0.35, { vol: 0.16 * k, freq: 500, f2: 2600, type: 'bandpass', q: 0.8 }); },
+  shake() { this.tone(180 + Math.random() * 60, 0.09, { type: 'square', vol: 0.06, f2: 90 }); this.noise(0.08, { vol: 0.12, freq: 700, type: 'bandpass', q: 2 }); },
+  squelch() { this.noise(0.18, { vol: 0.22, freq: 380, f2: 160, type: 'bandpass', q: 4 }); this.tone(90, 0.15, { type: 'sawtooth', vol: 0.06, f2: 60 }); },
+  freed() { this.tone(520, 0.12, { type: 'triangle', vol: 0.13, f2: 900 }); this.whoosh(0.8); },
+  valve(open) { this.tone(open ? 140 : 100, 0.1, { vol: 0.18, f2: open ? 200 : 70 }); this.noise(0.06, { vol: 0.1, freq: 900, type: 'bandpass', q: 3 }); },
+  pump() { this.tone(220, 0.25, { type: 'triangle', vol: 0.1, f2: 440 }); this.whoosh(0.7); },
+  ambush() { this.tone(1200, 0.08, { type: 'square', vol: 0.05, f2: 600 }); this.noise(0.15, { vol: 0.1, freq: 1500, type: 'bandpass', q: 3 }); },
+  hiya() { this.tone(1400, 0.25, { type: 'sine', vol: 0.08, f2: 700 }); },
+  dash(n) { const f = 440 * Math.pow(1.12, Math.min(n, 6)); this.tone(f, 0.18, { type: 'triangle', vol: 0.16, f2: f * 2 }); this.tone(f * 1.5, 0.22, { type: 'sine', vol: 0.08, at: 0.04 }); this.whoosh(1.1); },
+  miss() { this.tone(300, 0.08, { type: 'square', vol: 0.04, f2: 250 }); },
+  flowUp(lv) { const f = 660 + lv * 160; this.tone(f, 0.12, { type: 'sine', vol: 0.1 }); this.tone(f * 1.5, 0.16, { type: 'sine', vol: 0.07, at: 0.06 }); },
+  wallHit() { this.noise(0.1, { vol: 0.16, freq: 300, type: 'lowpass' }); this.tone(120, 0.1, { type: 'square', vol: 0.05, f2: 70 }); },
+  splitPop() { this.tone(700, 0.1, { type: 'sine', vol: 0.12, f2: 1300 }); this.noise(0.08, { vol: 0.1, freq: 2000, type: 'bandpass', q: 3 }); },
+  incoming() { this.tone(900, 0.1, { type: 'square', vol: 0.05 }); this.tone(900, 0.1, { type: 'square', vol: 0.05, at: 0.14 }); },
+  split(lead) { this.tone(lead ? 988 : 784, 0.16, { type: 'triangle', vol: 0.12 }); this.tone(lead ? 1319 : 659, 0.2, { type: 'triangle', vol: 0.09, at: 0.08 }); },
+  startLoops() {
+    const c = this.ctx; if (!c || this.chaseG) return;
+    const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 52;
+    const o2 = c.createOscillator(); o2.type = 'sawtooth'; o2.frequency.value = 52 * 1.5 + 1.3;
+    const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 380; f.Q.value = 6;
+    const g = c.createGain(); g.gain.value = 0; o.connect(f); o2.connect(f); f.connect(g); g.connect(this.out); o.start(); o2.start();
+    this.chaseG = g; this.chaseF = f;
+    const w = c.createBufferSource(); w.buffer = this.nb; w.loop = true;
+    const wf = c.createBiquadFilter(); wf.type = 'bandpass'; wf.frequency.value = 600; wf.Q.value = 0.7;
+    const wg = c.createGain(); wg.gain.value = 0; w.connect(wf); wf.connect(wg); wg.connect(this.out); w.start();
+    this.windG = wg; this.windF = wf;
+  },
+  loops(chase, wind) {
+    if (!this.ctx) return; this.startLoops(); const t = this.ctx.currentTime;
+    this.chaseG.gain.setTargetAtTime(chase * 0.07, t, 0.15); this.chaseF.frequency.setTargetAtTime(300 + chase * 900, t, 0.2);
+    this.windG.gain.setTargetAtTime(wind * 0.09, t, 0.1); this.windF.frequency.setTargetAtTime(400 + wind * 1800, t, 0.1);
+  }
+};
+
+/* ===== コースと体の区間 ===== */
+const COURSES = [
+  { id: 'normal', name: 'ふつうの日', bpm: 75, speed: 15, oncoming: 6, orbits: 3, titles: [22, 30, 40], germs: 16, wallWbc: 2, detect: 2.6, lungeBase: 0.08, deliv: { brain: 2, arm: 2, gut: 2, foot: 2 }, desc: 'まずはここから。操作と折りたたみに慣れよう' },
+  { id: 'exercise', name: '運動中', bpm: 130, speed: 15.5, oncoming: 9, orbits: 4, titles: [18, 25, 34], germs: 24, wallWbc: 2, detect: 2.6, lungeBase: 0.16, deliv: { brain: 1, arm: 2, gut: 1, foot: 4 }, desc: 'ドクンが速い！足の筋肉へ酸素をたくさん届けよう' },
+  { id: 'cold', name: 'かぜの日', bpm: 95, speed: 15.5, oncoming: 9, orbits: 4, titles: [12, 22, 32], germs: 38, wallWbc: 7, detect: 3.0, lungeBase: 0.16, deliv: { brain: 2, arm: 2, gut: 2, foot: 2 }, desc: 'ばい菌だらけ。白血球へ大行列で連れていこう' },
+];
+const SECTIONS = [
+  { key: 'heart1', name: '心臓', len: 50, R: 7.2, col: 0xc81a2c, fog: 0x3a0408, pulse: 1.0, spd: 1.05, sub: 'ドクンで出発！弁が開いた時に通りぬけよう' },
+  { key: 'lung', name: '肺', len: 230, R: 6.2, col: 0xf27a8a, fog: 0x5a1822, pulse: 0.8, spd: 1.0, sub: '酸素の泡にさわって拾おう' },
+  { key: 'heart2', name: '心臓', len: 50, R: 7.2, col: 0xc81a2c, fog: 0x3a0408, pulse: 1.0, spd: 1.05, sub: 'ここからが本番！' },
+  { key: 'aorta', name: '大動脈', len: 200, R: 8.0, col: 0xe2283a, fog: 0x44060e, pulse: 1.25, spd: 1.55, sub: '超高速ゾーン！体で一番速い流れ' },
+  { key: 'brain', name: '脳', len: 210, R: 5.2, col: 0xbc3c8c, fog: 0x360a2a, pulse: 0.85, spd: 0.95, sub: '細い血管は指を離して折りたたむ' },
+  { key: 'arm', name: '腕と手', len: 220, R: 5.8, col: 0xea623a, fog: 0x421208, pulse: 0.75, spd: 1.0, sub: '白く光る道に白血球がいる。ケガの穴に注意' },
+  { key: 'gut', name: '胃と腸', len: 210, R: 5.4, col: 0xf28c6a, fog: 0x4a1a10, pulse: 0.7, spd: 1.0, sub: 'くねくね道' },
+  { key: 'foot', name: '足の先', len: 220, R: 4.4, col: 0xc23252, fog: 0x36081a, pulse: 0.55, spd: 0.92, sub: '一番遠くて、一番細い' },
+  { key: 'vein', name: '静脈', len: 200, R: 6.0, col: 0x6e1a44, fog: 0x1e0614, pulse: 0.4, spd: 1.0, sub: '弁が開いている間に通りぬけよう' },
+  { key: 'heart3', name: '心臓', len: 45, R: 7.2, col: 0xc81a2c, fog: 0x3a0408, pulse: 1.0, spd: 1.0, sub: '' },
+];
+const SEC = {}; const secStart = []; let TOTAL = 0;
+SECTIONS.forEach((s, i) => { secStart.push(TOTAL); s.start = TOTAL; s.idx = i; SEC[s.key] = s; TOTAL += s.len; s.colC = new THREE.Color(s.col); s.fogC = new THREE.Color(s.fog); });
+const GOAL_S = SEC.heart3.start + 12;
+const START_S = 14;
+function secIndex(s) { for (let i = SECTIONS.length - 1; i >= 0; i--) if (s >= secStart[i]) return i; return 0; }
+
+/* ===== 道のつくり（どのコースも同じ体の1周） ===== */
+const CONSTRICT = [
+  { s: SEC.brain.start + 50, len: 7 }, { s: SEC.brain.start + 110, len: 7 }, { s: SEC.brain.start + 170, len: 7 },
+  { s: SEC.gut.start + 120, len: 6 },
+  { s: SEC.foot.start + 60, len: 8 }, { s: SEC.foot.start + 150, len: 8 },
+];
+const CAP_R = 0.85;
+const SPLITS = [
+  { s1: SEC.aorta.start + 120, s2: SEC.aorta.start + 170 },
+  { s1: SEC.arm.start + 40, s2: SEC.arm.start + 85 },
+  { s1: SEC.arm.start + 140, s2: SEC.arm.start + 185 },
+  { s1: SEC.gut.start + 40, s2: SEC.gut.start + 80 },
+  { s1: SEC.vein.start + 80, s2: SEC.vein.start + 125 },
+];
+const SEPT_W = 0.3;
+const VALVES = [
+  { s: SEC.heart1.start + 44, kind: 'heart', name: '肺動脈弁' },
+  { s: SEC.heart2.start + 44, kind: 'heart', name: '大動脈弁' },
+  { s: SEC.vein.start + 22, kind: 'vein' }, { s: SEC.vein.start + 50, kind: 'vein' },
+  { s: SEC.vein.start + 145, kind: 'vein' }, { s: SEC.vein.start + 172, kind: 'vein' },
+];
+const WOUNDS = [{ s: SEC.arm.start + 125, a: -0.85 }, { s: SEC.foot.start + 88, a: Math.PI + 0.85 }];
+{ const r = mulberry(77); SPLITS.forEach(sp => sp.side = r() < 0.5 ? -1 : 1); }
+const RING_SLOTS = { brain: [30, 80, 140, 192], arm: [20, 110, 125, 205], gut: [20, 95, 155, 190], foot: [20, 40, 100, 120, 185, 205] };
+
+function yawRate(s) {
+  const i = secIndex(s), k = SECTIONS[i].key, t = s - secStart[i];
+  switch (k) {
+    case 'lung': return 0.006 * Math.sin(t * 0.025);
+    case 'aorta': return t < 110 ? 0.013 * Math.sin(Math.PI * t / 110) : -0.003;
+    case 'brain': return 0.016 * Math.sin(t * 0.045);
+    case 'arm': return -0.006 + 0.01 * Math.sin(t * 0.03);
+    case 'gut': return 0.03 * Math.sin(t * 0.055) * smooth(0, 30, t) * (1 - smooth(180, 210, t));
+    case 'foot': return 0.007 * Math.sin(t * 0.02);
+    case 'vein': return 0.006;
+    default: return 0.004;
+  }
+}
+function pitchAt(s) { return 0.16 * Math.sin(s * 0.0062) + 0.07 * Math.sin(s * 0.017 + 1.3); }
+
+const NS = Math.ceil(TOTAL) + 80;
+const P = new Float32Array(NS * 3), TG = new Float32Array(NS * 3), RT = new Float32Array(NS * 3), UPV = new Float32Array(NS * 3), RAD = new Float32Array(NS);
+(function buildTrack() {
+  let yaw = 0; const pos = new THREE.Vector3(), t = new THREE.Vector3(), r = new THREE.Vector3(), u = new THREE.Vector3(), wu = new THREE.Vector3(0, 1, 0);
+  for (let i = 0; i < NS; i++) {
+    const p = pitchAt(i);
+    t.set(Math.sin(yaw) * Math.cos(p), Math.sin(p), -Math.cos(yaw) * Math.cos(p));
+    r.crossVectors(t, wu).normalize(); u.crossVectors(r, t).normalize();
+    P.set([pos.x, pos.y, pos.z], i * 3); TG.set([t.x, t.y, t.z], i * 3); RT.set([r.x, r.y, r.z], i * 3); UPV.set([u.x, u.y, u.z], i * 3);
+    pos.add(t); yaw += yawRate(i);
+    // 太さ
+    const si = secIndex(Math.min(i, TOTAL - 1)), sec = SECTIONS[si], tt = i - secStart[si];
+    let R = sec.R;
+    if (si > 0 && tt < 28) R = lerp(SECTIONS[si - 1].R, sec.R, smooth(0, 28, tt));
+    if (sec.key.startsWith('heart')) R += 2.6 * Math.sin(Math.PI * clamp(tt / sec.len, 0, 1));
+    for (const c of CONSTRICT) {
+      const k = smooth(c.s - 6, c.s, i) * (1 - smooth(c.s + c.len, c.s + c.len + 6, i));
+      if (k > 0) R = Math.min(R, lerp(R, CAP_R, k));
+    }
+    RAD[i] = R;
+  }
+})();
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
+function sampleArr(arr, s, out) {
+  s = clamp(s, 0, NS - 1.001); const i = Math.floor(s), f = s - i, j = i * 3, k = j + 3;
+  return out.set(arr[j] + (arr[k] - arr[j]) * f, arr[j + 1] + (arr[k + 1] - arr[j + 1]) * f, arr[j + 2] + (arr[k + 2] - arr[j + 2]) * f);
+}
+function frameAt(s, right, up, fwd) { sampleArr(RT, s, right).normalize(); sampleArr(UPV, s, up).normalize(); if (fwd) sampleArr(TG, s, fwd).normalize(); }
+function toWorld(s, x, y, out) {
+  sampleArr(P, s, out); sampleArr(RT, s, _v1); sampleArr(UPV, s, _v2);
+  return out.addScaledVector(_v1, x).addScaledVector(_v2, y);
+}
+function radius(s) { s = clamp(s, 0, NS - 1.001); const i = Math.floor(s), f = s - i; return RAD[i] + (RAD[i + 1] - RAD[i]) * f; }
+function splitAt(s) { for (const sp of SPLITS) if (s >= sp.s1 && s <= sp.s2) return sp; return null; }
+function septHalf(s, sp) { return SEPT_W * smooth(sp.s1, sp.s1 + 4, s) * (1 - smooth(sp.s2 - 4, sp.s2, s)); }
+function nearConstrict(s, m) { for (const c of CONSTRICT) if (s > c.s - 6 - m && s < c.s + c.len + 6 + m) return true; return false; }
+
+/* ===== コースごとの配置（酸素の泡・届け先・ばい菌・白血球） ===== */
+function buildLayout(ci) {
+  const course = COURSES[ci];
+  const rTrack = mulberry(42);
+  const L = { bubbles: [], rings: [], germs: [], wbcs: [] };
+  // 肺の酸素の泡：くねる列で16個
+  for (let k = 0; k < 16; k++) {
+    const s = SEC.lung.start + 26 + k * 12;
+    const R = radius(s) - 1.4;
+    const a = k * 0.9, b = k * 0.7 + 0.8;
+    L.bubbles.push({ s, x: Math.cos(a) * R * 0.62, y: Math.sin(b) * R * 0.5, taken: false });
+  }
+  // 届け先：区間ごとのわく
+  const ringOffsets = []; for (let k = 0; k < 24; k++) { const ang = rTrack() * Math.PI * 2, rr = Math.sqrt(rTrack()); ringOffsets.push([ang, rr]); }
+  let ro = 0;
+  for (const key of ['brain', 'arm', 'gut', 'foot']) {
+    const slots = RING_SLOTS[key], n = course.deliv[key];
+    const chosen = [];
+    for (let k = 0; k < n; k++) chosen.push(slots[clamp(Math.round((k + 0.5) * slots.length / n - 0.5), 0, slots.length - 1)]);
+    const uniq = [...new Set(chosen)];
+    // 重なった時は空いているわくで埋める
+    for (const sl of slots) { if (uniq.length >= n) break; if (!uniq.includes(sl)) uniq.push(sl); }
+    uniq.sort((a, b) => a - b);
+    for (const off of uniq) {
+      const s = SEC[key].start + off; const R = radius(s);
+      const [ang, rr] = ringOffsets[ro++ % ringOffsets.length];
+      const rad = rr * Math.max(0, R - 2.0);
+      L.rings.push({ s, x: Math.cos(ang) * rad, y: Math.sin(ang) * rad, state: 'wait', sec: key });
+    }
+  }
+  // 分かれ道の白血球
+  for (const sp of SPLITS) {
+    const s = lerp(sp.s1, sp.s2, 0.62), R = radius(s);
+    L.wbcs.push({ s, x: sp.side * (R * 0.62), y: -R * 0.18, lane: sp, rest: 0 });
+  }
+  // かべの白血球
+  const rC = mulberry(1000 + ci * 97);
+  const wallCands = [SEC.aorta.start + 60, SEC.brain.start + 140, SEC.arm.start + 115, SEC.gut.start + 160, SEC.foot.start + 110, SEC.foot.start + 195, SEC.vein.start + 30, SEC.vein.start + 160, SEC.brain.start + 20, SEC.gut.start + 20];
+  const order = [0, 3, 7, 1, 5, 2, 6, 4, 8, 9];
+  for (let k = 0; k < course.wallWbc && k < order.length; k++) {
+    const s = wallCands[order[k]], R = radius(s), ang = rC() * Math.PI * 2;
+    L.wbcs.push({ s, x: Math.cos(ang) * R * 0.5, y: Math.sin(ang) * R * 0.5, lane: null, rest: 0 });
+  }
+  L.wbcs.sort((a, b) => a.s - b.s);
+  // ばい菌
+  const a0 = SEC.aorta.start + 30, a1 = SEC.heart3.start - 18;
+  let tries = 0;
+  while (L.germs.length < course.germs && tries < 4000) {
+    tries++;
+    const s = lerp(a0, a1, rC());
+    if (nearConstrict(s, 6)) continue;
+    if (L.rings.some(r => Math.abs(r.s - s) < 7)) continue;
+    if (SPLITS.some(sp => Math.abs(sp.s1 - s) < 5)) continue;
+    if (L.wbcs.some(w => Math.abs(w.s - s) < 10)) continue;
+    if (L.germs.some(g => Math.abs(g.s - s) < (ci === 2 ? 2.5 : 9))) continue;
+    if (VALVES.some(v => Math.abs(v.s - s) < 6) || WOUNDS.some(w => Math.abs(w.s - s) < 9)) continue;
+    const center = rC() < 0.22;
+    const R = radius(s), ang = rC() * Math.PI * 2, rr = (center ? lerp(0.0, 0.22, rC()) : lerp(0.42, 0.72, rC())) * (R - 0.6);
+    let x = Math.cos(ang) * rr, y = Math.sin(ang) * rr;
+    const sp = splitAt(s); if (sp && Math.abs(x) < SEPT_W + 0.8) x = (x < 0 ? -1 : 1) * (SEPT_W + 0.9);
+    const split = !center && rC() < 0.25;
+    L.germs.push({ s, x, y, ang, kind: split ? 3 : (rC() < 0.5 ? 0 : 1), type: split ? 'split' : 'chase', amb: !split && !center && rC() < 0.3 });
+  }
+  // ケガの穴から入ってくるばい菌
+  for (const w of WOUNDS) for (const off of [3, 7]) {
+    const s = w.s + off, R = radius(s);
+    L.germs.push({ s, x: Math.cos(w.a) * R * 0.55, y: Math.sin(w.a) * R * 0.55, ang: w.a, kind: off === 3 ? 0 : 1, type: 'chase', amb: true, fromWound: true });
+  }
+  const busy = (s, m) => nearConstrict(s, m) || VALVES.some(v => Math.abs(v.s - s) < 8) || WOUNDS.some(w => Math.abs(w.s - s) < 12) || SPLITS.some(sp => s > sp.s1 - 6 && s < sp.s2 + 2) || L.wbcs.some(w => Math.abs(w.s - s) < 10);
+  // 前から来る菌
+  tries = 0; let onc = 0;
+  while (onc < course.oncoming && tries < 4000) {
+    tries++;
+    const s = lerp(SEC.aorta.start + 40, SEC.heart3.start - 10, rC());
+    let bad = busy(s, 4); for (let k = 0; k <= 60 && !bad; k += 5) if (radius(s - k) < 3) bad = true;
+    if (bad || L.germs.some(g => g.type === 'oncoming' && Math.abs(g.s - s) < 45)) continue;
+    L.germs.push({ s, x: 0, y: 0, ang: 0, kind: 2, type: 'oncoming' }); onc++;
+  }
+  // かべを回る菌（3匹で1組）
+  tries = 0; let orb = 0;
+  while (orb < course.orbits && tries < 4000) {
+    tries++;
+    const s = lerp(SEC.aorta.start + 60, SEC.heart3.start - 20, rC());
+    if (busy(s, 6) || radius(s) < 4 || L.germs.some(g => g.type === 'orbit' && Math.abs(g.s - s) < 70) || L.germs.some(g => Math.abs(g.s - s) < 4)) continue;
+    const ring = lerp(0.42, 0.66, rC()), dir = rC() < 0.5 ? -1 : 1, a0 = rC() * 6.28;
+    for (let k = 0; k < 3; k++) L.germs.push({ s, x: 0, y: 0, ang: a0 + k * Math.PI * 2 / 3, kind: 4, type: 'orbit', orbR: ring, orbW: 1.5 * dir });
+    orb++;
+  }
+  L.germs.sort((a, b) => a.s - b.s);
+  return L;
+}
+
+/* ===== 描画の準備 ===== */
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12;
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x3a0408, 9, 72);
+scene.background = new THREE.Color(0x3a0408);
+const camera = new THREE.PerspectiveCamera(68, 1, 0.06, 220);
+scene.add(camera);
+scene.add(new THREE.HemisphereLight(0xffe6e6, 0x52000e, 1.15));
+const camLight = new THREE.DirectionalLight(0xfff2ea, 1.1);
+const camLightTgt = new THREE.Object3D(); camLightTgt.position.set(0, -0.5, -6);
+camLight.position.set(0.2, 0.8, 1.0); camera.add(camLight); camera.add(camLightTgt); camLight.target = camLightTgt;
+const headLight = new THREE.PointLight(0xffd6c4, 18, 26, 1.6); scene.add(headLight);
+
+/* ===== テクスチャ ===== */
+function canvasTex(w, h, draw, srgb = true) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const wallTex = canvasTex(256, 256, (g, W) => {
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, W);
+  const r = mulberry(9);
+  const wrap = fn => { for (const dx of [-W, 0, W]) for (const dy of [-W, 0, W]) fn(dx, dy); };
+  for (let i = 0; i < 60; i++) {
+    const x = r() * W, y = r() * W, rad = 12 + r() * 46, a = 0.07 + r() * 0.12;
+    wrap((dx, dy) => { const gr = g.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, rad); gr.addColorStop(0, `rgba(110,30,45,${a})`); gr.addColorStop(1, 'rgba(110,30,45,0)'); g.fillStyle = gr; g.fillRect(x + dx - rad, y + dy - rad, rad * 2, rad * 2); });
+  }
+  for (let i = 0; i < 16; i++) {
+    let x = r() * W, y = r() * W, ang = r() * Math.PI * 2; const pts = [[x, y]]; const w = 1 + r() * 2.2;
+    for (let k = 0; k < 26; k++) { ang += (r() - 0.5) * 0.9; x += Math.cos(ang) * 6; y += Math.sin(ang) * 6; pts.push([x, y]); }
+    wrap((dx, dy) => { g.strokeStyle = 'rgba(120,8,30,0.32)'; g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); pts.forEach(([px, py], k) => k ? g.lineTo(px + dx, py + dy) : g.moveTo(px + dx, py + dy)); g.stroke(); });
+  }
+  for (let i = 0; i < 90; i++) { const x = r() * W, y = r() * W; g.fillStyle = `rgba(255,255,255,${0.25 + r() * 0.3})`; g.beginPath(); g.arc(x, y, 0.8 + r() * 1.6, 0, 7); g.fill(); }
+});
+wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping; wallTex.anisotropy = 4;
+const glowTex = canvasTex(128, 128, (g, W) => { const gr = g.createRadialGradient(W / 2, W / 2, 0, W / 2, W / 2, W / 2); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, W); });
+const dotTex = canvasTex(32, 32, (g, W) => { const gr = g.createRadialGradient(W / 2, W / 2, 0, W / 2, W / 2, W / 2); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, W); });
+
+/* ===== 血管のトンネル ===== */
+const tubeU = { uPulse: { value: 0 }, uTime: { value: 0 } };
+const tubeMat = new THREE.MeshStandardMaterial({ vertexColors: true, map: wallTex, roughness: 0.42, metalness: 0.0, side: THREE.BackSide, emissive: 0x2a0306, emissiveIntensity: 1 });
+tubeMat.onBeforeCompile = sh => {
+  sh.uniforms.uPulse = tubeU.uPulse; sh.uniforms.uTime = tubeU.uTime;
+  sh.vertexShader = 'attribute float aS;\nattribute float aR;\nuniform float uPulse;\nuniform float uTime;\n' +
+    sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += objectNormal * (aR * (uPulse * 0.065 + 0.016 * sin(aS * 0.35 - uTime * 2.4)));');
+};
+const septMat = new THREE.MeshStandardMaterial({ vertexColors: true, map: wallTex, roughness: 0.8, side: THREE.DoubleSide, emissive: 0x2a0306 });
+const _col = new THREE.Color(), _col2 = new THREE.Color();
+function wallColor(s, out) {
+  const i = secIndex(Math.min(s, TOTAL - 1)), sec = SECTIONS[i], t = s - secStart[i];
+  out.copy(sec.colC);
+  if (i > 0 && t < 30) out.lerpColors(SECTIONS[i - 1].colC, sec.colC, smooth(0, 30, t));
+  return out;
+}
+const tubeGroup = new THREE.Group(); scene.add(tubeGroup);
+(function buildTube() {
+  const SEG = 40, CH = 64, rn = mulberry(3);
+  const c = new THREE.Vector3(), rt = new THREE.Vector3(), up = new THREE.Vector3(), d = new THREE.Vector3();
+  for (let c0 = 0; c0 < NS - 1; c0 += CH) {
+    const c1 = Math.min(NS - 1, c0 + CH), rings = c1 - c0 + 1, nv = rings * (SEG + 1);
+    const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), col = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), aS = new Float32Array(nv), aR = new Float32Array(nv);
+    let v = 0;
+    for (let i = c0; i <= c1; i++) {
+      c.fromArray(P, i * 3); rt.fromArray(RT, i * 3); up.fromArray(UPV, i * 3);
+      const R = RAD[i]; wallColor(i, _col);
+      const key = SECTIONS[secIndex(Math.min(i, TOTAL - 1))].key;
+      const rid = key.startsWith('heart') || R < 2 ? 0 : Math.pow(0.5 + 0.5 * Math.cos(i * Math.PI * 2 / 5), 4);
+      const Rv = R * (1 - 0.04 * rid);
+      for (let j = 0; j <= SEG; j++) {
+        const a = j / SEG * Math.PI * 2;
+        d.copy(rt).multiplyScalar(Math.cos(a)).addScaledVector(up, Math.sin(a));
+        pos[v * 3] = c.x + d.x * Rv; pos[v * 3 + 1] = c.y + d.y * Rv; pos[v * 3 + 2] = c.z + d.z * Rv;
+        nor[v * 3] = d.x; nor[v * 3 + 1] = d.y; nor[v * 3 + 2] = d.z;
+        let br = 0.9 + rn() * 0.12 + 0.07 * Math.sin(a * 3 + i * 0.21);
+        if (key.startsWith('heart')) br *= 0.86 + 0.18 * Math.max(0, Math.sin(a * 7 + i * 0.05));
+        if (R < 2) br *= 1.12;
+        br *= 1 + 0.22 * rid;
+        col[v * 3] = _col.r * br; col[v * 3 + 1] = _col.g * br; col[v * 3 + 2] = _col.b * br;
+        uv[v * 2] = j / SEG * 4; uv[v * 2 + 1] = i / 7;
+        aS[v] = i; aR[v] = R; v++;
+      }
+    }
+    const idx = [];
+    for (let i = 0; i < rings - 1; i++) for (let j = 0; j < SEG; j++) {
+      const a = i * (SEG + 1) + j, b = a + SEG + 1;
+      idx.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    g.setAttribute('aS', new THREE.BufferAttribute(aS, 1)); g.setAttribute('aR', new THREE.BufferAttribute(aR, 1));
+    g.setIndex(idx); g.computeBoundingSphere(); g.boundingSphere.radius += 2;
+    tubeGroup.add(new THREE.Mesh(g, tubeMat));
+  }
+})();
+// 分かれ道のしきり
+function placeOnTrackStatic(obj, s, x, y) {
+  toWorld(s, x, y, obj.position); const r = new THREE.Vector3(), u = new THREE.Vector3(), f = new THREE.Vector3();
+  frameAt(s, r, u, f); obj.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(r, u, f.negate()));
+}
+function makeSignTex(right) {
+  return canvasTex(256, 128, (g, W, H) => {
+    g.fillStyle = 'rgba(255,250,246,0.95)'; g.beginPath(); g.roundRect ? g.roundRect(6, 10, W - 12, H - 20, 26) : g.rect(6, 10, W - 12, H - 20); g.fill();
+    g.fillStyle = '#c8142a'; g.font = '800 30px "M PLUS Rounded 1c",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('白血球', W / 2 + (right ? -22 : 22), H / 2 - 14); g.fillText('はこっち', W / 2 + (right ? -22 : 22), H / 2 + 20);
+    g.beginPath(); const ax = right ? W - 44 : 44, d = right ? 1 : -1;
+    g.moveTo(ax + 22 * d, H / 2); g.lineTo(ax - 8 * d, H / 2 - 26); g.lineTo(ax - 8 * d, H / 2 + 26); g.closePath(); g.fill();
+  });
+}
+const signTexR = makeSignTex(true), signTexL = makeSignTex(false);
+const laneGlows = [];
+(function buildSepta() {
+  const c = new THREE.Vector3(), rt = new THREE.Vector3(), up = new THREE.Vector3();
+  for (const sp of SPLITS) {
+    const pos = [], col = [], uv = [], idx = []; let n = 0;
+    for (let s = sp.s1; s <= sp.s2 + 0.01; s += 0.5) {
+      const w = Math.max(0.002, septHalf(s, sp)), Rt = radius(s) + 0.5;
+      sampleArr(P, s, c); sampleArr(RT, s, rt); sampleArr(UPV, s, up);
+      wallColor(s, _col); _col.multiplyScalar(0.92);
+      for (const [x, y] of [[-w, Rt], [-w, -Rt], [w, Rt], [w, -Rt]]) {
+        pos.push(c.x + rt.x * x + up.x * y, c.y + rt.y * x + up.y * y, c.z + rt.z * x + up.z * y);
+        col.push(_col.r, _col.g, _col.b); uv.push(y / 4, s / 7);
+      }
+      if (n > 0) { const a = (n - 1) * 4, b = n * 4; idx.push(a, b, a + 1, b, b + 1, a + 1, a + 2, a + 3, b + 2, b + 2, a + 3, b + 3); }
+      n++;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setIndex(idx); g.computeVertexNormals();
+    scene.add(new THREE.Mesh(g, septMat));
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffffff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+    const R = radius(sp.s1 + 3); toWorld(sp.s1 + 3, sp.side * R * 0.55, 0, glow.position); glow.scale.setScalar(R * 1.05);
+    scene.add(glow);
+    // 分かれ目の白い線と「白血球はこっち」の看板
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(0.12, radius(sp.s1) * 2.1, 0.12), new THREE.MeshBasicMaterial({ color: 0xfff4f0, transparent: true, opacity: 0.8 }));
+    placeOnTrackStatic(edge, sp.s1 + 0.6, 0, 0); scene.add(edge);
+    const sign = new THREE.Sprite(new THREE.SpriteMaterial({ map: sp.side > 0 ? signTexR : signTexL, transparent: true, depthWrite: false }));
+    const Rs = radius(sp.s1 - 6); toWorld(sp.s1 - 6, sp.side * Rs * 0.38, Rs * 0.42, sign.position); sign.scale.set(3.4, 1.7, 1);
+    scene.add(sign);
+    laneGlows.push({ sp, glow, sign, edge });
+  }
+})();
+
+/* ===== ジオメトリの合体（小物用） ===== */
+function mergeGeos(list) {
+  const pos = [], nor = [], idx = []; let off = 0;
+  for (const g0 of list) {
+    const g = g0.index ? g0 : g0; const p = g.attributes.position, nn = g.attributes.normal;
+    for (let i = 0; i < p.count; i++) { pos.push(p.getX(i), p.getY(i), p.getZ(i)); nor.push(nn.getX(i), nn.getY(i), nn.getZ(i)); }
+    if (g.index) for (let i = 0; i < g.index.count; i++) idx.push(g.index.getX(i) + off); else for (let i = 0; i < p.count; i++) idx.push(i + off);
+    off += p.count;
+  }
+  const m = new THREE.BufferGeometry(); m.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); m.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); m.setIndex(idx); return m;
+}
+const geoAt = (g, x, y, z, sx = 1, sy = 1, sz = 1, rz = 0) => { const m = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, rz)), new THREE.Vector3(sx, sy, sz)); return g.clone().applyMatrix4(m); };
+
+/* ===== 赤血球（主人公） ===== */
+const RBC_H = 0.55;
+const rbcH = p => RBC_H * Math.sqrt(Math.max(0, 1 - p * p)) * (0.207 + 2.003 * p * p - 1.123 * p * p * p * p);
+function rbcProfile() {
+  const pts = [], n = 26;
+  for (let k = 0; k <= n; k++) { const p = Math.sin(k / n * Math.PI / 2); pts.push(new THREE.Vector2(Math.max(p, 0.0001), -rbcH(Math.min(p, 0.985)))); }
+  for (let k = n; k >= 0; k--) { const p = Math.sin(k / n * Math.PI / 2); pts.push(new THREE.Vector2(Math.max(p, 0.0001), rbcH(Math.min(p, 0.985)))); }
+  return pts;
+}
+const FOLD_RB = 0.5;
+function bendPos(x, y, z) { const th = x / FOLD_RB, rr = FOLD_RB + y; return [rr * Math.sin(th), -FOLD_RB + rr * Math.cos(th), z * 0.92]; }
+function addFoldMorph(g) {
+  const p = g.attributes.position, arr = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) { const b = bendPos(p.getX(i), p.getY(i), p.getZ(i)); arr[i * 3] = b[0]; arr[i * 3 + 1] = b[1]; arr[i * 3 + 2] = b[2]; }
+  const tmp = new THREE.BufferGeometry(); tmp.setAttribute('position', new THREE.BufferAttribute(arr, 3)); if (g.index) tmp.setIndex(g.index);
+  tmp.computeVertexNormals();
+  g.morphAttributes.position = [new THREE.BufferAttribute(arr, 3)];
+  if (g.attributes.normal) g.morphAttributes.normal = [tmp.attributes.normal];
+}
+const rbcGeo = new THREE.LatheGeometry(rbcProfile(), 44); addFoldMorph(rbcGeo);
+const rbcGeoPlain = new THREE.LatheGeometry(rbcProfile(), 24);
+const rbcMat = new THREE.MeshPhysicalMaterial({ color: 0xe8182c, roughness: 0.3, clearcoat: 0.7, clearcoatRoughness: 0.25, emissive: 0x4a0008, emissiveIntensity: 1 });
+
+function drawFace(g, W, kind) {
+  g.clearRect(0, 0, W, W);
+  const ink = '#2b0409';
+  g.fillStyle = 'rgba(255,150,170,0.55)';
+  g.beginPath(); g.ellipse(58, 150, 22, 13, 0, 0, 7); g.fill(); g.beginPath(); g.ellipse(198, 150, 22, 13, 0, 0, 7); g.fill();
+  g.strokeStyle = ink; g.fillStyle = ink; g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = 9;
+  const eye = (x) => {
+    if (kind === 'normal') { g.fillStyle = ink; g.beginPath(); g.ellipse(x, 112, 15, 21, 0, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(x + 5, 104, 6, 0, 7); g.fill(); g.beginPath(); g.arc(x - 5, 121, 3, 0, 7); g.fill(); }
+    else if (kind === 'happy') { g.beginPath(); g.arc(x, 120, 16, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); }
+    else if (kind === 'hurt') { const s = x < 128 ? 1 : -1; g.beginPath(); g.moveTo(x - 14 * s, 98); g.lineTo(x + 12 * s, 112); g.lineTo(x - 14 * s, 126); g.stroke(); }
+    else { g.beginPath(); g.arc(x, 106, 15, Math.PI * 0.15, Math.PI * 0.85); g.stroke(); }
+  };
+  eye(88); eye(168);
+  g.lineWidth = 7;
+  if (kind === 'normal') { g.beginPath(); g.arc(128, 142, 13, Math.PI * 0.15, Math.PI * 0.85); g.stroke(); }
+  else if (kind === 'happy') { g.fillStyle = ink; g.beginPath(); g.arc(128, 140, 20, 0, Math.PI); g.closePath(); g.fill(); g.fillStyle = '#ff6b80'; g.beginPath(); g.ellipse(128, 152, 10, 6, 0, 0, 7); g.fill(); }
+  else if (kind === 'hurt') { g.beginPath(); g.moveTo(108, 156); for (let k = 0; k <= 4; k++) g.lineTo(108 + k * 10, k % 2 ? 148 : 158); g.stroke(); }
+  else { g.fillStyle = ink; g.beginPath(); g.ellipse(128, 150, 8, 10, 0, 0, 7); g.fill(); }
+}
+const faceTex = {}; for (const k of ['normal', 'happy', 'hurt', 'fold']) faceTex[k] = canvasTex(256, 256, (g, W) => drawFace(g, W, k));
+const faceGeo = (() => {
+  const g = new THREE.RingGeometry(0.001, 0.74, 48, 10); g.rotateX(-Math.PI / 2);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), r = Math.hypot(x, z); p.setY(i, rbcH(Math.min(r, 0.985)) + 0.014); }
+  g.computeVertexNormals(); addFoldMorph(g); return g;
+})();
+const faceMat = new THREE.MeshBasicMaterial({ map: faceTex.normal, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+const player = new THREE.Group(); scene.add(player);
+const pPivot = new THREE.Group(); pPivot.rotation.x = 0.8; player.add(pPivot);
+const pSpin = new THREE.Group(); pPivot.add(pSpin);
+const rbcMesh = new THREE.Mesh(rbcGeo, rbcMat); pSpin.add(rbcMesh);
+const faceMesh = new THREE.Mesh(faceGeo, faceMat); faceMesh.renderOrder = 2; pSpin.add(faceMesh);
+const o2Mat = new THREE.MeshStandardMaterial({ color: 0xbdefff, emissive: 0x35a8e8, emissiveIntensity: 0.8, roughness: 0.12, transparent: true, opacity: 0.9 });
+const o2SmallGeo = new THREE.SphereGeometry(0.17, 14, 10);
+const carried = []; for (let i = 0; i < 10; i++) { const m = new THREE.Mesh(o2SmallGeo, o2Mat); m.visible = false; pPivot.add(m); carried.push(m); }
+let faceKind = 'normal', faceTimer = 0;
+function setFace(k, t = 0) { faceKind = k; faceTimer = t; faceMat.map = faceTex[k]; }
+
+/* ===== ばい菌 ===== */
+const germGeo = (() => {
+  const g = new THREE.SphereGeometry(0.55, 28, 20); const p = g.attributes.position, r = mulberry(5), v = new THREE.Vector3(), dirs = [];
+  for (let k = 0; k < 10; k++) dirs.push(new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5).normalize());
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i).normalize(); let b = 0;
+    for (const d of dirs) if (d.z < 0.6) b = Math.max(b, Math.pow(Math.max(0, v.dot(d)), 16));
+    const rad = 0.55 * (1 + 0.34 * b + 0.025 * Math.sin(v.x * 11) * Math.sin(v.y * 9));
+    p.setXYZ(i, v.x * rad, v.y * rad, v.z * rad);
+  }
+  g.computeVertexNormals(); return g;
+})();
+const sphLow = new THREE.SphereGeometry(1, 14, 10);
+const germWhiteGeo = mergeGeos([geoAt(sphLow, -0.2, 0.13, 0.42, 0.16, 0.18, 0.13), geoAt(sphLow, 0.2, 0.13, 0.42, 0.16, 0.18, 0.13)]);
+const boxG = new THREE.BoxGeometry(1, 1, 1);
+const germDarkGeo = mergeGeos([
+  geoAt(sphLow, -0.18, 0.11, 0.53, 0.075, 0.085, 0.05), geoAt(sphLow, 0.18, 0.11, 0.53, 0.075, 0.085, 0.05),
+  geoAt(boxG, -0.2, 0.34, 0.47, 0.24, 0.06, 0.06, -0.5), geoAt(boxG, 0.2, 0.34, 0.47, 0.24, 0.06, 0.06, 0.5),
+  geoAt(new THREE.TorusGeometry(0.13, 0.03, 6, 14, Math.PI), 0, -0.12, 0.5, 1, 1, 1, Math.PI)
+]);
+const germMats = [
+  new THREE.MeshStandardMaterial({ color: 0x86d33c, emissive: 0x2a5a08, emissiveIntensity: 0.9, roughness: 0.55 }),
+  new THREE.MeshStandardMaterial({ color: 0xa463e0, emissive: 0x3a1460, emissiveIntensity: 0.9, roughness: 0.55 }),
+  new THREE.MeshStandardMaterial({ color: 0xff7a3a, emissive: 0x6a1a00, emissiveIntensity: 0.9, roughness: 0.5 }),
+  new THREE.MeshStandardMaterial({ color: 0xf5cf3a, emissive: 0x6a4a00, emissiveIntensity: 0.85, roughness: 0.5 }),
+  new THREE.MeshStandardMaterial({ color: 0x3cc9c0, emissive: 0x0a4a48, emissiveIntensity: 0.9, roughness: 0.5 })
+];
+const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, emissive: 0x404040 });
+const darkMat = new THREE.MeshBasicMaterial({ color: 0x1a0306 });
+function makeGerm(kind) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(germGeo, germMats[kind])); g.add(new THREE.Mesh(germWhiteGeo, whiteMat)); g.add(new THREE.Mesh(germDarkGeo, darkMat));
+  scene.add(g); return g;
+}
+
+/* ===== 白血球 ===== */
+const wbcGeo = (() => {
+  const g = new THREE.SphereGeometry(1.4, 36, 26); const p = g.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i).normalize();
+    const b = 0.07 * Math.sin(v.x * 5 + 1) * Math.sin(v.y * 4 + 2) * Math.sin(v.z * 5) + 0.05 * Math.sin(v.x * 9 + v.y * 7) * Math.sin(v.z * 8 + 1);
+    const r = 1.4 * (1 + b); p.setXYZ(i, v.x * r, v.y * r, v.z * r);
+  }
+  g.computeVertexNormals(); return g;
+})();
+const wbcMat = new THREE.MeshStandardMaterial({ color: 0xf6f2ff, roughness: 0.62, emissive: 0x9c98c8, emissiveIntensity: 0.42 });
+const blushMat = new THREE.MeshBasicMaterial({ color: 0xffb0c0, transparent: true, opacity: 0.75 });
+const blushGeo = mergeGeos([geoAt(sphLow, -0.68, -0.05, 1.18, 0.22, 0.13, 0.05), geoAt(sphLow, 0.68, -0.05, 1.18, 0.22, 0.13, 0.05)]);
+function makeWbc() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(wbcGeo, wbcMat); g.add(body);
+  const eyes = [-0.4, 0.4].map(x => { const e = new THREE.Mesh(sphLow, darkMat); e.position.set(x, 0.25, 1.3); e.scale.set(0.11, 0.16, 0.06); g.add(e); return e; });
+  const mouth = new THREE.Mesh(sphLow, darkMat); mouth.position.set(0, -0.2, 1.36); mouth.scale.set(0.16, 0.06, 0.05); g.add(mouth);
+  g.add(new THREE.Mesh(blushGeo, blushMat));
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffffff, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }));
+  halo.scale.setScalar(7.5); g.add(halo);
+  scene.add(g);
+  return { g, body, eyes, mouth, halo };
+}
+
+/* ===== 届け先（毛細血管の入口） ===== */
+const ringTorusGeo = new THREE.TorusGeometry(CAP_R, 0.15, 12, 40);
+const ringTubeGeo = (() => { const g = new THREE.CylinderGeometry(CAP_R + 0.05, CAP_R * 0.7, 2.8, 24, 1, true); g.rotateX(Math.PI / 2); g.translate(0, 0, -1.4); return g; })();
+const ringDiscGeo = new THREE.CircleGeometry(CAP_R, 32);
+function makeRing() {
+  const g = new THREE.Group();
+  const tmat = new THREE.MeshStandardMaterial({ color: 0xffe27a, emissive: 0xffc030, emissiveIntensity: 1.3, roughness: 0.3 });
+  const torus = new THREE.Mesh(ringTorusGeo, tmat); g.add(torus);
+  const tube = new THREE.Mesh(ringTubeGeo, new THREE.MeshStandardMaterial({ color: 0xff9aa8, emissive: 0x802030, transparent: true, opacity: 0.55, side: THREE.DoubleSide, roughness: 0.4 })); g.add(tube);
+  const disc = new THREE.Mesh(ringDiscGeo, new THREE.MeshBasicMaterial({ color: 0xfff0a0, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); g.add(disc);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffd860, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }));
+  halo.scale.setScalar(4.2); g.add(halo);
+  scene.add(g);
+  return { g, torus, tmat, disc, halo };
+}
+
+/* ===== 肺の酸素の泡 ===== */
+const bubbleGeo = new THREE.SphereGeometry(0.55, 22, 16);
+const bubbleMat = new THREE.MeshStandardMaterial({ color: 0xc8f2ff, emissive: 0x3ab0ee, emissiveIntensity: 0.75, roughness: 0.08, transparent: true, opacity: 0.82 });
+const shineGeo = new THREE.SphereGeometry(0.13, 10, 8);
+function makeBubble() {
+  const g = new THREE.Group(); g.add(new THREE.Mesh(bubbleGeo, bubbleMat));
+  const sh = new THREE.Mesh(shineGeo, whiteMat); sh.position.set(-0.2, 0.22, 0.32); g.add(sh);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0x8fdcff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
+  halo.scale.setScalar(2.6); g.add(halo);
+  scene.add(g); return g;
+}
+
+/* ===== まわりを流れる仲間の赤血球と血しょうのつぶ ===== */
+const DECOR_N = 34;
+const decorMat = new THREE.MeshStandardMaterial({ color: 0xd8202e, roughness: 0.4, emissive: 0x3a0006 });
+const decorMesh = new THREE.InstancedMesh(rbcGeoPlain, decorMat, DECOR_N); decorMesh.frustumCulled = false; scene.add(decorMesh);
+const decor = []; { const r = mulberry(11); for (let i = 0; i < DECOR_N; i++) decor.push({ s: 0, a: r() * 6.28, rr: 0.5 + r() * 0.35, rx: r() * 6, ry: r() * 6, spd: 0.55 + r() * 0.25, sc: 0.5 + r() * 0.35 }); }
+const PLASMA_N = 260;
+const plasmaGeo = new THREE.BufferGeometry(); plasmaGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(PLASMA_N * 3), 3));
+const plasma = new THREE.Points(plasmaGeo, new THREE.PointsMaterial({ map: dotTex, color: 0xffd0a8, size: 0.16, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false }));
+plasma.frustumCulled = false; scene.add(plasma);
+const plasmaD = []; { const r = mulberry(12); for (let i = 0; i < PLASMA_N; i++) plasmaD.push({ s: 0, a: r() * 6.28, rr: Math.sqrt(r()) * 0.92, v: r() }); }
+
+/* ===== まん中の速い流れ（光の筋） ===== */
+const STREAK_N = 46;
+const streakMat = new THREE.MeshBasicMaterial({ color: 0xfff0d8, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false });
+const streakMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.05, 0.05, 1), streakMat, STREAK_N); streakMesh.frustumCulled = false; scene.add(streakMesh);
+const streaks = []; { const r = mulberry(21); for (let i = 0; i < STREAK_N; i++) streaks.push({ s: 0, a: r() * 6.28, rr: Math.sqrt(r()), len: 1.6 + r() * 2.4, spd: 1.35 + r() * 0.4 }); }
+const warnGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xff2a2a, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+warnGlow.scale.setScalar(3.2); scene.add(warnGlow);
+
+/* ===== 光のつぶ（演出用） ===== */
+const parts = [];
+for (let i = 0; i < 90; i++) {
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: dotTex, color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  sp.visible = false; scene.add(sp); parts.push({ sp, life: 0, max: 1, vel: new THREE.Vector3(), size: 0.3 });
+}
+let partIdx = 0;
+function burst(pos, color, n = 12, speed = 4, size = 0.35, life = 0.7) {
+  for (let i = 0; i < n; i++) {
+    const p = parts[partIdx++ % parts.length];
+    p.sp.visible = true; p.sp.position.copy(pos); p.sp.material.color.set(color); p.life = p.max = life * (0.7 + Math.random() * 0.6); p.size = size * (0.6 + Math.random() * 0.8);
+    p.vel.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(speed * (0.4 + Math.random() * 0.8));
+  }
+}
+function updateParts(dt) {
+  for (const p of parts) {
+    if (p.life <= 0) continue;
+    p.life -= dt; if (p.life <= 0) { p.sp.visible = false; continue; }
+    p.sp.position.addScaledVector(p.vel, dt); p.vel.multiplyScalar(Math.exp(-dt * 3));
+    const k = p.life / p.max; p.sp.material.opacity = k; p.sp.scale.setScalar(p.size * (0.5 + k * 0.7));
+  }
+}
+
+/* ===== 部品の用意（使い回し） ===== */
+const germPool = [], wbcPool = [], ringPool = [], bubblePool = [];
+for (let i = 0; i < 110; i++) { const o = makeGerm(0); o.visible = false; germPool.push(o); }
+for (let i = 0; i < 12; i++) { const o = makeWbc(); o.g.visible = false; wbcPool.push(o); }
+for (let i = 0; i < 8; i++) { const o = makeRing(); o.g.visible = false; ringPool.push(o); }
+for (let i = 0; i < 16; i++) { const o = makeBubble(); o.visible = false; bubblePool.push(o); }
+
+/* ===== ゲームの状態 ===== */
+const G = { state: 'title', prevState: null, ci: 0, course: COURSES[0], L: null, t: 0, gt: 0, period: 0.8, nextBeat: 0.8, lastBeat: -10, preDone: false, ts: 1, slowT: 0, secIdx: -1, countN: 3, lastCountAt: -9, finishT: 0, goalTimer: 0, shake: 0, fovKick: 0, flashA: 0, flashCol: '255,255,255', hintRings: 0, demo: false, beatK: 1, danger: 0, caughtN: 0 };
+const pl = {};
+let germs = [], wbcs = [], rings = [], bubbles = [], chain = [];
+let eatAnim = null;
+const touch = { on: false, id: null, x: 0, y: 0 };
+const camPos = new THREE.Vector3(), lookPos = new THREE.Vector3();
+const _w = new THREE.Vector3(), _r = new THREE.Vector3(), _u = new THREE.Vector3(), _f = new THREE.Vector3(), _m = new THREE.Matrix4(), _tmp = new THREE.Vector3();
+const PR_OPEN = 1.0, PR_FOLD = 0.42, GERM_R = 0.5;
+const playerR = () => lerp(PR_OPEN, PR_FOLD, pl.fold);
+
+function resetPlayer(s) {
+  Object.assign(pl, { s, prevS: s, x: 0, y: -0.4, tx: 0, ty: -0.4, vx: 0, vy: 0, v: 0, boost: 0, fold: 1, o2: 0, deliv: 0, just: 0, killed: 0, o2Sec: 0, germSec: 0, flow: 0, flowLv: 0, dashBeat: -1, dashCombo: 0, lastDashBeat: -99, dashN: 0, prevTouch: false, wallCD: 0, invuln: 0, slowMul: 1, bounceCD: 0, spin: 0, squash: 0, laneSide: 0, bounceN: 0, fullShown: false, caught: null, stuck: null, lam: 0, waitValve: null });
+}
+function pulseAt(s) { const i = secIndex(Math.min(s, TOTAL - 1)), sec = SECTIONS[i], t = s - secStart[i]; return i > 0 && t < 30 ? lerp(SECTIONS[i - 1].pulse, sec.pulse, smooth(0, 30, t)) : sec.pulse; }
+function snapCamera() { updateCamera(1, true); }
+
+function startCourse(ci) {
+  G.ci = ci; G.course = COURSES[ci]; G.L = buildLayout(ci); G.period = 60 / G.course.bpm;
+  G.gt = 0; G.t = 0; G.nextBeat = G.period; G.lastBeat = -10; G.preDone = false; G.ts = 1; G.slowT = 0; G.secIdx = -1; G.countN = 3; G.lastCountAt = -9; G.goalTimer = 0; G.hintRings = 0; G.demo = false;
+  resetPlayer(START_S);
+  chain = []; eatAnim = null; resetValves(); resetWounds(); G.caughtN = 0; G.danger = 0;
+  G.ghostRec = []; G.recT = 0; G.splits = []; G.seen = {}; loadGhost(ci); resetAmbient();
+  germPool.forEach(o => o.visible = false); wbcPool.forEach(o => o.g.visible = false); ringPool.forEach(o => o.g.visible = false); bubblePool.forEach(o => o.visible = false);
+  germs = G.L.germs.map((d, i) => { const obj = germPool[i]; obj.children[0].material = germMats[d.kind]; return { ...d, obj, state: 'hidden', pop: 0, v: 0, lungeT: 0, recoilT: 0, safeT: 0, ax: 0, ay: 0, wob: Math.random() * 6, hx: d.x, hy: d.y, eatK: 0, scale: 1, minD: 99, type: d.type || 'chase', splitT: 0, gen: 0 }; });
+  G.poolNext = germs.length;
+  wbcs = G.L.wbcs.map((d, i) => ({ ...d, o: wbcPool[i], rest: 0, done: false, chomp: 0, wave: 0 }));
+  rings = G.L.rings.map((d, i) => ({ ...d, o: ringPool[i], fx: 0 }));
+  bubbles = G.L.bubbles.map((d, i) => ({ ...d, obj: bubblePool[i] }));
+  rings.forEach(r => { r.o.g.visible = true; r.o.tmat.emissive.set(0xffc030); r.o.tmat.color.set(0xffe27a); r.o.tmat.emissiveIntensity = 1.3; r.o.halo.material.color.set(0xffd860); });
+  wbcs.forEach(w => w.o.g.visible = true);
+  bubbles.forEach(b => b.obj.visible = true);
+  rbcMat.color.set(0xe8182c); rbcMat.emissive.set(0x4a0008);
+  setFace('fold');
+  G.state = 'ready';
+  snapCamera();
+  UI.enterReady();
+}
+
+/* ===== ドクン ===== */
+function updateBeat() {
+  const k = pulseAt(pl.s);
+  if (!G.preDone && G.gt >= G.nextBeat - 0.17) { G.preDone = true; Snd.pre(k); }
+  if (G.gt >= G.nextBeat) { G.lastBeat = G.nextBeat; G.nextBeat += G.period; G.preDone = false; onBeat(k); }
+}
+function onBeat(k) {
+  const loud = G.state === 'title' ? 0.35 : 1;
+  Snd.doku(k * loud);
+  G.beatK = k;
+  if (G.state === 'title') return;
+  G.shake = Math.max(G.shake, 0.16 * k); G.fovKick = 5 * k;
+  if (G.state === 'run') {
+    if (!pl.stuck) pl.boost += 10 * k; pl.squash = 0.12;
+    if (speedMulAt(pl.s) > 1.3) Snd.whoosh(0.6);
+    if (chain.length && chain[0].recoilT <= 0 && chain[0].lungeT <= 0 && chain[0].windT <= 0 && radius(chain[0].s) > 2.2) {
+      const n = chain.length;
+      const p = Math.min(0.6, G.course.lungeBase + 0.045 * n) * Math.min(1, G.period / 0.8);
+      if (Math.random() < p) startLunge();
+    }
+  } else if (G.state === 'count') {
+    if (G.gt - G.lastCountAt >= 0.55) {
+      G.lastCountAt = G.gt;
+      if (G.countN > 0) { UI.center(String(G.countN)); Snd.count(false); G.countN--; }
+      else { UI.center('GO!'); Snd.count(true); G.state = 'run'; pl.boost = 16; pl.squash = 0.2; G.shake = 0.35; }
+    }
+  }
+}
+function startLunge() { const h = chain[0]; if (pl.caught) return; h.windT = 0.16; h.lungeT = 0; h.ax = pl.x; h.ay = pl.y; h.scale = 1.45; h.minD = 99; Snd.lunge(); flash('255,40,40', 0.12); }
+
+/* ===== プレイヤーの動き ===== */
+function bounce(msg) {
+  pl.s = pl.prevS - 0.9; pl.v = 1.2; pl.boost = 0; pl.squash = 0.35; pl.bounceCD = 0.3; pl.bounceN++; resetFlow();
+  Snd.bounce(); G.shake = Math.max(G.shake, 0.25);
+  toWorld(pl.s + 0.8, pl.x, pl.y, _w); UI.popAt(_w, 'ぽよん', 'bad');
+  if (msg) UI.hint(msg, 1.6);
+  if (chain.length && chain[0].lungeT <= 0 && chain[0].windT <= 0 && chain[0].recoilT <= 0 && Math.random() < 0.5) startLunge();
+}
+function hitPlayer(g) {
+  if (pl.invuln > 0 || pl.caught || pl.stuck) return;
+  G.caughtN++;
+  startCaught(g);
+}
+function joinChain(g) {
+  g.state = 'chase'; g.v = pl.v; g.windT = 0; g.lungeT = 0; g.scale = 1.3; chain.push(g);
+  g.obj.getWorldPosition(_w); _w.add(_tmp.set(0, 0.9, 0)); UI.popAt(_w, '！', 'bad'); Snd.notice();
+}
+function deliverAt(r) {
+  toWorld(r.s, r.x, r.y, _w);
+  if (pl.o2 <= 0) { r.state = 'empty'; UI.popAt(_w, '酸素がない…', 'bad'); Snd.full(); return; }
+  pl.o2--; pl.deliv++;
+  const since = G.gt - G.lastBeat, toNext = G.nextBeat - G.gt;
+  const just = since < 0.11 || toNext < 0.07;
+  const sec = just ? 3 : 2; pl.o2Sec += sec; if (just) pl.just++;
+  r.state = 'done'; r.fx = 1;
+  r.o.tmat.emissive.set(0x50c8ff); r.o.tmat.color.set(0xd8f6ff); r.o.halo.material.color.set(0x8fdcff);
+  burst(_w, just ? 0xffe070 : 0x9fe6ff, just ? 26 : 16, 6, 0.45, 0.9);
+  setFace('happy', 1.0); pl.spin = 1; Snd.deliver(just);
+  if (just) { UI.center('ジャスト！', 'gold'); UI.popAt(_w, `-${sec}秒`, 'gold'); flash('255,220,120', 0.3); }
+  else UI.popAt(_w, `-${sec}秒`, 'o2');
+  UI.o2Anim('bump');
+}
+function eat(w) {
+  const n = chain.length; const sec = Math.round((n >= 3 ? 0.6 : 0.5) * n * 10) / 10;
+  pl.germSec += sec; pl.killed += n;
+  const wp = w.o.g.position.clone();
+  eatAnim = { w, t: 0, n, sec, wp, list: chain.map(g => ({ g, from: g.obj.position.clone(), d: Math.random() * 0.12 })) };
+  chain.forEach(g => g.state = 'eaten'); chain = [];
+  w.rest = 5; w.chomp = 1.3;
+  Snd.suck(); flash('255,255,255', 0.35);
+  setFace('happy', 1.2);
+}
+function updatePlayer(dt) {
+  const touching = touch.on;
+  const tf = G.state === 'title' ? (Math.sin(G.gt * 0.9) > 0.6 ? 1 : 0) : (touching ? 0 : 1);
+  const wasFold = pl.fold > 0.5;
+  pl.fold += (tf - pl.fold) * Math.min(1, dt * 16);
+  if (pl.fold > 0.5 && !wasFold) setFace(faceTimer > 0 ? faceKind : 'fold', faceTimer);
+  if (pl.fold <= 0.5 && wasFold && faceTimer <= 0) setFace('normal');
+  if (faceTimer > 0) { faceTimer -= dt; if (faceTimer <= 0) setFace(pl.fold > 0.5 ? 'fold' : 'normal'); }
+  pl.invuln = Math.max(0, pl.invuln - dt); pl.bounceCD = Math.max(0, pl.bounceCD - dt);
+  pl.squash *= Math.exp(-dt * 8); pl.spin = Math.max(0, pl.spin - dt * 1.8);
+  const run = G.state === 'run' || G.state === 'goal';
+  if (G.state === 'run' && pl.stuck) updateStuck(dt);
+  else if (G.state === 'run' && waitValve()) { }
+  else if (G.state === 'run') {
+    pl.slowMul = Math.min(1, pl.slowMul + dt * 0.35);
+    const Rn = radius(pl.s), q = clamp(Math.hypot(pl.x, pl.y) / Math.max(0.5, Rn - playerR()), 0, 1);
+    pl.lam = 1 - q * q;
+    const lamMul = 0.84 + 0.42 * pl.lam, capMul = lerp(0.6, 1, smooth(1.0, 2.6, Rn));
+    updateFlow(dt);
+    const target = ((G.course.speed * speedMulAt(pl.s) * capMul) * pl.slowMul * (1 + 0.5 * pl.flow) + pl.boost) * lamMul * (pl.caught ? 0.3 : 1);
+    pl.v += (target - pl.v) * Math.min(1, dt * (pl.v < target ? 3.2 : 6));
+    pl.boost *= Math.exp(-dt * 2.8);
+  } else if (G.state === 'goal') { pl.v *= Math.exp(-dt * 1.4); pl.boost = 0; }
+  else if (G.state === 'title') { pl.v = 9; }
+  else pl.v = 0;
+  pl.prevS = pl.s; pl.s += pl.v * dt;
+  const pr = playerR();
+  // 細い血管：折りたたまないと入れない
+  if (G.state === 'run' && pl.bounceCD <= 0) {
+    const Rn = radius(pl.s + 0.7);
+    if (Rn < pr + 0.05) bounce('指を離して折りたたもう！');
+  }
+  // 上下左右
+  const ox = pl.x, oy = pl.y;
+  if (pl.fold < 0.5) { pl.x += (pl.tx - pl.x) * Math.min(1, dt * 14); pl.y += (pl.ty - pl.y) * Math.min(1, dt * 14); }
+  // 届け先へ少し吸いこまれる
+  if (pl.fold > 0.6 && run) for (const r of rings) {
+    if (r.state !== 'wait') continue; const ds = r.s - pl.s; if (ds < 0 || ds > 5) continue;
+    const dx = r.x - pl.x, dy = r.y - pl.y, d = Math.hypot(dx, dy);
+    if (d < 1.5 && d > 0.001) { const m = Math.min(d, 2.6 * dt); pl.x += dx / d * m; pl.y += dy / d * m; }
+  }
+  if (G.state === 'run') applyWounds(dt);
+  // かべにそってすべる
+  const R = radius(pl.s), maxR = Math.max(0, R - pr - 0.04), rr = Math.hypot(pl.x, pl.y);
+  if (rr > maxR) { pl.x *= maxR / rr; pl.y *= maxR / rr; if (G.state === 'run' && pl.fold < 0.5 && maxR > 0.8 && Math.hypot(pl.tx, pl.ty) > maxR + 0.25) wallBump(); }
+  pl.wallCD = Math.max(0, pl.wallCD - dt);
+  // 分かれ道のしきり
+  const sp = splitAt(pl.s);
+  if (sp) {
+    if (!pl.laneSide) pl.laneSide = pl.x === 0 ? sp.side : Math.sign(pl.x);
+    const w = septHalf(pl.s, sp);
+    if (w > 0.005) { const mn = w + pr; if (pl.x * pl.laneSide < mn) pl.x = pl.laneSide * mn; }
+  } else pl.laneSide = 0;
+  if (pl.fold >= 0.5) { pl.tx = pl.x; pl.ty = pl.y; }
+  else { const tr = Math.hypot(pl.tx, pl.ty); if (tr > maxR + 0.4) { pl.tx *= (maxR + 0.4) / tr; pl.ty *= (maxR + 0.4) / tr; } }
+  pl.vx = dt > 0 ? (pl.x - ox) / dt : 0; pl.vy = dt > 0 ? (pl.y - oy) / dt : 0;
+  if (G.state === 'run' && pl.prevTouch && !touch.on) tryDash();
+  pl.prevTouch = touch.on;
+  if (!run) return;
+  if (G.state === 'run') { checkValves(); updateCaught(dt); recordGhost(); }
+  // 酸素の泡
+  for (const b of bubbles) {
+    if (b.taken || Math.abs(b.s - pl.s) > 1.6) continue;
+    const d = Math.hypot(b.s - pl.s, b.x - pl.x, b.y - pl.y);
+    if (d < pr + 0.55 + 0.25) {
+      if (pl.o2 >= 10) { if (!pl.fullShown) { pl.fullShown = true; toWorld(b.s, b.x, b.y, _w); UI.popAt(_w, '満タン！', 'o2'); Snd.full(); } continue; }
+      b.taken = true; b.obj.visible = false; pl.o2++;
+      toWorld(b.s, b.x, b.y, _w); burst(_w, 0x9fe6ff, 12, 4, 0.35, 0.6); UI.popAt(_w, 'O₂', 'o2');
+      Snd.pickup(pl.o2); UI.o2Anim('bump'); if (faceTimer <= 0) setFace('happy', 0.5);
+    }
+  }
+  // 届け先を通る
+  for (const r of rings) {
+    if (r.state !== 'wait') continue;
+    if (pl.prevS < r.s && pl.s >= r.s) {
+      const d = Math.hypot(pl.x - r.x, pl.y - r.y);
+      if (pl.fold > 0.6) { if (d < 0.78) deliverAt(r); else if (d < 1.35) { pl.s = r.s - 0.1; bounce('輪のまん中をねらおう'); } else r.state = 'missed'; }
+      else { if (d < CAP_R + 1.1) { pl.s = r.s - 0.1; bounce('指を離して折りたたむと通れる'); } else r.state = 'missed'; }
+    }
+  }
+  // 白血球のそばを通る
+  for (const w of wbcs) {
+    if (w.done) continue;
+    const ds = w.s - pl.s;
+    if (ds <= -1) { w.done = true; continue; }
+    if (ds < 5.5 && Math.hypot(pl.x - w.x, pl.y - w.y) < 3.8) {
+      if (chain.length && w.rest <= 0) { w.done = true; eat(w); }
+      else if (!w.waved) { w.waved = true; w.wave = 1; }
+    }
+  }
+}
+
+/* ===== ばい菌の動き ===== */
+function clampGerm(g) {
+  const R = radius(g.s), m = Math.max(0, R - GERM_R - 0.05), r = Math.hypot(g.x, g.y);
+  if (r > m) { g.x *= m / r; g.y *= m / r; }
+  const sp = splitAt(g.s); if (sp) { const w = septHalf(g.s, sp); if (w > 0.005) { const side = g.x === 0 ? sp.side : Math.sign(g.x); if (Math.abs(g.x) < w + GERM_R) g.x = side * (w + GERM_R); } }
+}
+function moveLat(g, ax, ay, max) { const dx = ax - g.x, dy = ay - g.y, d = Math.hypot(dx, dy); if (d > 1e-4) { const m = Math.min(d, max); g.x += dx / d * m; g.y += dy / d * m; } }
+function updateGerms(dt) {
+  const run = G.state === 'run';
+  const pr = playerR();
+  for (const g of germs) {
+    g.scale += (1 - g.scale) * Math.min(1, dt * 6);
+    if (g.state === 'latched' || g.state === 'gone' || g.state === 'eaten') continue;
+    if (g.type === 'oncoming' && g.state !== 'chase') { updOncoming(g, dt, run, pr); continue; }
+    if (g.type === 'orbit' && g.state !== 'chase') { updOrbit(g, dt, run, pr); continue; }
+    if (g.state === 'hidden') {
+      if (run && g.s - pl.s < (g.amb ? 16 : 42)) {
+        g.state = 'emerge'; g.pop = 0;
+        if (g.amb) { g.hx = lerp(g.hx, pl.x, 0.6); g.hy = lerp(g.hy, pl.y, 0.6); Snd.ambush(); toWorld(g.s, g.hx, g.hy, _w); UI.popAt(_w, '飛び出し！', 'bad'); }
+      }
+      continue;
+    }
+    if (g.state === 'emerge') { g.pop += dt * (g.amb ? 3.2 : 1.6); if (g.pop >= 1) { g.pop = 1; g.state = 'idle'; } }
+    if (g.state === 'idle' || g.state === 'emerge') {
+      g.wob += dt * 2;
+      const R = radius(g.s), k = smooth(0, 1, g.pop);
+      const wall = (R + 0.4) / Math.max(0.01, Math.hypot(g.hx, g.hy));
+      const ex = g.hx * lerp(wall, 1, k), ey = g.hy * lerp(wall, 1, k);
+      g.x = ex + Math.sin(g.wob) * 0.25; g.y = ey + Math.cos(g.wob * 1.3) * 0.2;
+      if (run && g.state === 'idle') {
+        const ds = g.s - pl.s;
+        if (ds > -1.2 && ds < 3.5) {
+          const d = Math.hypot(g.x - pl.x, g.y - pl.y);
+          if (Math.abs(ds) < 0.9 && d < pr + GERM_R) hitPlayer(g);
+          else if (d < G.course.detect + pr) joinChain(g);
+        }
+      }
+    }
+  }
+  if (!run || !chain.length) return;
+  const n = chain.length, h = chain[0];
+  if (pl.caught) { for (const g of chain) { g.v = pl.v; g.s += g.v * dt + (pl.s - 3.2 - Math.min(4, chain.indexOf(g)) * 0.35 - g.s) * Math.min(1, dt * 3); clampGerm(g); } return; }
+  let gap = 2.3;
+  if (h.windT > 0) { h.windT -= dt; h.scale = Math.max(h.scale, 1.3); if (h.windT <= 0) h.lungeT = 0.4; }
+  if (h.recoilT > 0) { h.recoilT -= dt; gap = 8; }
+  else if (h.lungeT > 0) {
+    h.lungeT -= dt; gap = -0.4;
+    if (Math.abs(h.s - pl.s) < 1.6) h.minD = Math.min(h.minD, Math.hypot(h.x - pl.x, h.y - pl.y));
+    if (h.s > pl.s - 0.3 && Math.hypot(h.x - pl.x, h.y - pl.y) > pr + GERM_R + 0.3) h.lungeT = 0;
+    if (h.lungeT <= 0) { h.safeT = 0.8; if (!pl.caught && h.minD < pr + GERM_R + 1.0) nearMiss(h); }
+  }
+  h.safeT = Math.max(0, h.safeT - dt);
+  const desired = pl.v + clamp((pl.s - gap - h.s) * 4, -14, h.lungeT > 0 ? 22 : 12);
+  h.v += (desired - h.v) * Math.min(1, dt * (h.lungeT > 0 ? 14 : 9));
+  h.s += h.v * dt;
+  if (h.s > pl.s - 1.8 && h.lungeT <= 0) { /* 前にいる間は横から回りこむ */ }
+  else moveLat(h, h.lungeT > 0 ? h.ax : pl.x, h.lungeT > 0 ? h.ay : pl.y, (h.lungeT > 0 ? Math.min(9, 5.5 + 0.2 * n) : 1.8) * dt);
+  clampGerm(h);
+  if (h.lungeT > 0 && Math.abs(h.s - pl.s) < 0.9 && Math.hypot(h.x - pl.x, h.y - pl.y) < pr + GERM_R) { h.minD = 99; hitPlayer(h); return; }
+  updateSplitters(dt);
+  const sway = Math.min(1, n / 6);
+  for (let i = 1; i < n; i++) {
+    const f = chain[i], p = chain[i - 1];
+    let tS = p.s - 0.8, bunch = false;
+    if (pl.s - tS > 3.6) { tS = pl.s - 3.6 - (i % 3) * 0.25; bunch = true; }
+    f.v = p.v; f.s += f.v * dt + (tS - f.s) * Math.min(1, dt * 8);
+    if (f.s < pl.s - 1.8) {
+      if (bunch) { const a = Math.PI * 1.12 + ((i * 0.9 + G.gt * 0.7) % (Math.PI * 0.76)), rr = 1.2 + (i % 2) * 0.5; moveLat(f, chain[0].x + Math.cos(a) * rr, chain[0].y + Math.sin(a) * rr * 0.8 - 0.3, 6 * dt); }
+      else moveLat(f, p.x + Math.sin(G.gt * 3 + i) * 0.4 * sway, p.y + Math.cos(G.gt * 2.6 + i * 1.7) * 0.3 * sway, 7 * dt);
+    }
+    clampGerm(f);
+  }
+}
+
+/* ===== カメラ ===== */
+function updateCamera(rdt, snap) {
+  const back = G.state === 'title' ? 6.4 : 6.6;
+  const cs = Math.max(0, pl.s - back), Rc = radius(cs);
+  let cx = pl.x * 0.55, cy = pl.y * 0.55 + Math.min(2.6, Rc * 0.42);
+  const rr = Math.hypot(cx, cy), lim = Math.max(0, Rc - 0.35); if (rr > lim) { cx *= lim / rr; cy *= lim / rr; }
+  toWorld(cs, cx, cy, _w);
+  toWorld(pl.s + 4.5, pl.x * 0.75, pl.y * 0.75 + 0.15, _tmp);
+  if (snap) { camPos.copy(_w); lookPos.copy(_tmp); }
+  else { camPos.lerp(_w, 1 - Math.exp(-rdt * 12)); lookPos.lerp(_tmp, 1 - Math.exp(-rdt * 14)); }
+  camera.position.copy(camPos);
+  if (G.shake > 0.001) { camera.position.x += (Math.random() - 0.5) * G.shake; camera.position.y += (Math.random() - 0.5) * G.shake; camera.position.z += (Math.random() - 0.5) * G.shake; G.shake *= Math.exp(-rdt * 7); }
+  frameAt(cs, _r, _u); camera.up.copy(_u);
+  const look = _tmp.copy(lookPos);
+  camera.lookAt(look);
+  G.fovKick *= Math.exp(-rdt * 6);
+  const fovT = 69 + clamp((pl.v - G.course.speed) * 0.6, -4, 22) + G.fovKick + pl.flow * 6;
+  camera.fov += (fovT - camera.fov) * Math.min(1, rdt * 8); camera.updateProjectionMatrix();
+}
+
+/* ===== 見た目の更新 ===== */
+function placeOnTrack(obj, s, x, y) { toWorld(s, x, y, obj.position); frameAt(s, _r, _u, _f); _m.makeBasis(_r, _u, _f.negate()); obj.quaternion.setFromRotationMatrix(_m); }
+function updateVisuals(dt, rdt) {
+  // 血管の脈うち
+  const tb = G.gt - G.lastBeat, tn = G.nextBeat - G.gt;
+  const k = pulseAt(pl.s);
+  tubeU.uPulse.value = (Math.exp(-Math.max(0, tb) * 7) + (tn < 0.2 ? 0.3 * (1 - tn / 0.2) : 0)) * k;
+  tubeU.uTime.value = G.gt;
+  // 霧の色
+  const si = secIndex(Math.min(pl.s, TOTAL - 1)), sec = SECTIONS[si], ts = pl.s - secStart[si];
+  _col.copy(sec.fogC); if (si > 0 && ts < 30) _col.lerpColors(SECTIONS[si - 1].fogC, sec.fogC, smooth(0, 30, ts));
+  scene.fog.color.copy(_col); scene.background.copy(_col);
+  // 静脈では色が暗い赤に
+  const vein = G.state === 'title' ? 0 : smooth(SEC.vein.start, SEC.vein.start + 25, pl.s);
+  rbcMat.color.setHex(0xe8182c).lerp(_col2.setHex(0x8a1834), vein);
+  // 主人公
+  placeOnTrack(player, pl.s, pl.x, pl.y);
+  player.rotateZ(clamp(-pl.vx * 0.05, -0.45, 0.45)); player.rotateX(clamp(pl.vy * 0.035, -0.35, 0.35));
+  rbcMesh.morphTargetInfluences[0] = pl.fold; faceMesh.morphTargetInfluences[0] = pl.fold;
+  const sq = pl.squash; pSpin.scale.set(1 + sq, 1 - sq * 0.8, 1 + sq * 0.5);
+  pSpin.rotation.y = pl.spin > 0 ? (1 - pl.spin * pl.spin) * Math.PI * 2 : 0;
+  const blink = pl.invuln > 0 && Math.floor(pl.invuln * 14) % 2 === 0;
+  rbcMesh.visible = faceMesh.visible = !blink;
+  for (let i = 0; i < 10; i++) {
+    const m = carried[i]; m.visible = i < pl.o2;
+    if (!m.visible) continue;
+    const a = i / 10 * Math.PI * 2 + G.gt * 1.3, rr = lerp(1.14, 0.62, pl.fold);
+    m.position.set(Math.cos(a) * rr, 0.08 + Math.sin(G.gt * 3 + i) * 0.06 - pl.fold * 0.35, Math.sin(a) * rr);
+  }
+  { let lx = pl.x * 0.7, ly = pl.y * 0.7 + 1.2; const Rl = Math.max(0, radius(pl.s + 3) - 1.2), rl = Math.hypot(lx, ly); if (rl > Rl) { lx *= Rl / rl; ly *= Rl / rl; }
+    if (pl.laneSide) lx = pl.laneSide * Math.max(Math.abs(lx), 1.7);
+    toWorld(pl.s + 3, lx, ly, headLight.position); headLight.intensity = 2 + 16 * smooth(1.2, 4.2, radius(pl.s + 3)); }
+  // ばい菌
+  for (const g of germs) {
+    const o = g.obj;
+    if (g.state === 'hidden' || g.state === 'gone') { o.visible = false; continue; }
+    if (g.state === 'eaten') continue;
+    if (g.state === 'latched') {
+      o.visible = true; const t = G.gt; g.scale += (1 - g.scale) * Math.min(1, dt * 6); player.updateMatrixWorld();
+      o.position.copy(player.localToWorld(_tmp.set(0.62 + Math.sin(t * 23) * 0.08, 0.5 + Math.cos(t * 19) * 0.06, 0.45)));
+      o.lookAt(camera.position); o.scale.setScalar(0.85 * g.scale); continue;
+    }
+    const near = g.s - pl.s;
+    o.visible = near > -14 && near < 90;
+    if (!o.visible) continue;
+    toWorld(g.s, g.x, g.y, o.position);
+    o.lookAt(camera.position);
+    const br = 1 + Math.sin(G.gt * 6 + g.wob) * 0.05;
+    const nearCam = smooth(1.8, 4.6, o.position.distanceTo(camera.position));
+    const sc = (g.state === 'emerge' || g.state === 'orbit' || g.state === 'come' ? smooth(0, 1, g.pop) : 1) * g.scale * br * (g.state === 'chase' ? (chain.indexOf(g) >= 3 ? 0.62 : 0.75) : 1) * nearCam;
+    o.scale.setScalar(Math.max(0.001, sc));
+  }
+  // 白血球
+  for (const w of wbcs) {
+    const o = w.o;
+    w.rest = Math.max(0, w.rest - dt); w.wave = Math.max(0, w.wave - dt);
+    o.g.visible = Math.abs(w.s - pl.s) < 100 && w.s - (pl.s - 6.6) > 1.5;
+    if (!o.g.visible) continue;
+    toWorld(w.s, w.x, w.y + Math.sin(G.gt * 1.6 + w.s) * 0.15 + w.wave * Math.sin(w.wave * 20) * 0.2, o.g.position);
+    o.g.lookAt(camera.position);
+    const resting = w.rest > 0;
+    const blinkE = !resting && (G.gt * 0.7 + w.s) % 3 < 0.12;
+    o.eyes.forEach(e => e.scale.y = resting || blinkE ? 0.025 : 0.16);
+    let mo = 0.06; if (w.chomp > 0) { w.chomp -= rdt; mo = 0.1 + 0.3 * Math.abs(Math.sin(w.chomp * 12)); }
+    o.mouth.scale.y = mo;
+    o.halo.material.opacity = resting ? 0.1 : 0.4 + 0.15 * Math.sin(G.gt * 4);
+    wbcMat.emissiveIntensity = 0.42;
+  }
+  for (const lg of laneGlows) {
+    const w = wbcs.find(x => x.lane === lg.sp);
+    lg.glow.visible = G.state !== 'title';
+    const near = smooth(3, 14, lg.sp.s1 + 3 - (pl.s - 7.2));
+    lg.glow.material.opacity = (w && w.rest <= 0 && !w.done ? 0.42 + 0.2 * Math.sin(G.gt * 4) : 0.06) * near;
+  }
+  // 届け先
+  for (const r of rings) {
+    const o = r.o; placeOnTrack(o.g, r.s, r.x, r.y);
+    const dcam = r.s - (pl.s - 6.6); o.g.visible = Math.abs(r.s - pl.s) < 100 && dcam > 2.2; o.g.scale.setScalar(Math.max(0.001, smooth(2.2, 5, dcam)));
+    o.torus.rotation.z += dt * 0.8;
+    const beat = Math.exp(-Math.max(0, tb) * 6);
+    if (r.state === 'wait') { o.halo.material.opacity = 0.6 + 0.35 * beat; o.halo.scale.setScalar(4 + beat * 1.2); o.disc.material.opacity = 0.2 + 0.25 * beat; }
+    else if (r.state === 'done') { r.fx = Math.max(0, r.fx - dt); o.halo.material.opacity = 0.35 + r.fx; o.halo.scale.setScalar(4 + r.fx * 6); o.disc.material.opacity = 0.15; }
+    else { o.tmat.emissiveIntensity = 0.15; o.halo.material.opacity = 0.06; o.disc.material.opacity = 0.03; }
+  }
+  // 肺の泡
+  for (const b of bubbles) {
+    if (b.taken) continue; const o = b.obj; o.visible = Math.abs(b.s - pl.s) < 90;
+    if (!o.visible) continue;
+    toWorld(b.s, b.x + Math.sin(G.gt * 1.5 + b.s) * 0.12, b.y + Math.sin(G.gt * 2 + b.s * 0.3) * 0.18, o.position);
+    o.rotation.y += dt;
+  }
+  // 白血球が食べる
+  if (eatAnim) {
+    eatAnim.t += rdt;
+    const W = eatAnim.wp;
+    for (const it of eatAnim.list) {
+      const k = clamp((eatAnim.t - it.d) / 0.5, 0, 1), e = k * k;
+      const o = it.g.obj;
+      o.position.lerpVectors(it.from, W, e);
+      o.position.y += Math.sin(k * Math.PI) * 0.8;
+      o.scale.setScalar(Math.max(0.001, (1 - e * 0.9) * 0.75 * smooth(1.4, 4.2, o.position.distanceTo(camera.position))));
+      o.rotation.z += rdt * 10;
+      if (k >= 1 && o.visible) { o.visible = false; it.g.state = 'gone'; }
+    }
+    if (!eatAnim.ate && eatAnim.t > 0.5) {
+      eatAnim.ate = true; Snd.eat(eatAnim.n);
+      burst(W, 0xffffff, 18, 6, 0.5, 0.8); burst(W, 0x9be05a, 10, 5, 0.3, 0.6);
+      UI.popAt(W, eatAnim.n >= 3 ? `${eatAnim.n}匹まとめて退治！ -${eatAnim.sec.toFixed(1)}秒` : `退治！ -${eatAnim.sec.toFixed(1)}秒`, 'eat');
+      if (eatAnim.n >= 3) UI.center(`×${eatAnim.n}`, 'big');
+    }
+    if (eatAnim.t > 1.2) eatAnim = null;
+  }
+  // 流れる仲間と血しょう
+  for (let i = 0; i < DECOR_N; i++) {
+    const d = decor[i];
+    if (d.s < pl.s - 10 || d.s > pl.s + 120 || d.s === 0) d.s = pl.s + (d.s === 0 ? Math.random() * 100 : 60 + Math.random() * 55);
+    d.s += pl.v * d.spd * dt + 4 * dt;
+    const R = radius(d.s);
+    if (R < 2.6) { _m.makeScale(0, 0, 0); decorMesh.setMatrixAt(i, _m); continue; }
+    d.a += dt * 0.15;
+    const rr = d.rr * (R - 0.9);
+    toWorld(d.s, Math.cos(d.a) * rr, Math.sin(d.a) * rr, _w);
+    const nc = smooth(1.5, 5, _w.distanceTo(camera.position)) * smooth(1.6, 3.4, _w.distanceTo(player.position));
+    const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(G.gt * 0.3 + d.rx, G.gt * 0.2 + d.ry, 0));
+    _m.compose(_w, q, _tmp.setScalar(Math.max(0.0001, d.sc * nc))); decorMesh.setMatrixAt(i, _m);
+  }
+  decorMesh.instanceMatrix.needsUpdate = true;
+  const pa = plasmaGeo.attributes.position.array;
+  for (let i = 0; i < PLASMA_N; i++) {
+    const p = plasmaD[i];
+    if (p.s < pl.s - 8 || p.s > pl.s + 70 || p.s === 0) p.s = pl.s + (p.s === 0 ? Math.random() * 70 - 6 : 30 + Math.random() * 40);
+    p.s += (pl.v * 0.25 + 1 + p.v) * dt;
+    const R = radius(p.s) - 0.2, a = p.a + p.s * 0.02;
+    if (R < 2.2) { pa[i * 3] = 0; pa[i * 3 + 1] = -9999; pa[i * 3 + 2] = 0; continue; }
+    toWorld(p.s, Math.cos(a) * p.rr * R, Math.sin(a) * p.rr * R, _w);
+    pa[i * 3] = _w.x; pa[i * 3 + 1] = _w.y; pa[i * 3 + 2] = _w.z;
+  }
+  plasmaGeo.attributes.position.needsUpdate = true;
+  updateParts(rdt);
+}
+function flash(rgb, a) { G.flashCol = rgb; G.flashA = Math.max(G.flashA, a); }
+
+/* ===== 区間ごとの速さ（大動脈は超高速） ===== */
+function speedMulAt(s) { const i = secIndex(Math.min(s, TOTAL - 1)), sec = SECTIONS[i], t = s - secStart[i]; return i > 0 && t < 25 ? lerp(SECTIONS[i - 1].spd, sec.spd, smooth(0, 25, t)) : sec.spd; }
+
+/* ===== 弁の門（心臓の弁・脚の静脈の弁） ===== */
+function flapGeo(R, half) {
+  const pos = [0, R * 0.99, 0.18], idx = [], n = 14;
+  for (let k = 0; k <= n; k++) { const d = -half + (2 * half) * k / n; pos.push(R * Math.sin(d) * 0.99, R * (1 - Math.cos(d)) * 0.99, 0); }
+  for (let k = 0; k < n; k++) idx.push(0, k + 1, k + 2);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+const valveObjs = VALVES.map(v => {
+  const g = new THREE.Group(), n = v.kind === 'heart' ? 3 : 2, R = radius(v.s) - 0.05;
+  const mat = new THREE.MeshStandardMaterial({ color: v.kind === 'heart' ? 0xffd2d8 : 0xf0c4dc, emissive: 0x3a0a14, roughness: 0.45, transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false });
+  const hinges = [];
+  for (let k = 0; k < n; k++) {
+    const a = k * Math.PI * 2 / n + Math.PI / 2;
+    const pivot = new THREE.Group(); pivot.position.set(Math.cos(a) * R, Math.sin(a) * R, 0); pivot.rotation.z = a + Math.PI / 2;
+    const hinge = new THREE.Group(); hinge.add(new THREE.Mesh(flapGeo(R, Math.PI / n * 0.98), mat)); pivot.add(hinge); g.add(pivot); hinges.push(hinge);
+  }
+  const rimMat = new THREE.MeshStandardMaterial({ color: 0xff6070, emissive: 0xff2030, emissiveIntensity: 0.8, roughness: 0.4 });
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(R, 0.16, 8, 56), rimMat); g.add(rim);
+  placeOnTrackStatic(g, v.s, 0, 0); g.visible = false; scene.add(g);
+  return { g, hinges, rim, rimMat };
+});
+const vstate = VALVES.map(() => ({ open: 1, wasOpen: 1 }));
+function valveTarget(v, i) {
+  if (v.kind === 'heart') { const tb = G.gt - G.lastBeat; return tb >= 0 && tb < G.period * 0.55 ? 1 : 0; }
+  const P = 1.7, ph = (G.gt + i * 0.53) % P; return ph < 0.95 ? 1 : 0;
+}
+function resetValves() { vstate.forEach(st => { st.open = 1; st.wasOpen = 1; }); }
+function updateValves(dt) {
+  VALVES.forEach((v, i) => {
+    const st = vstate[i], o = valveObjs[i];
+    o.g.visible = Math.abs(v.s - pl.s) < 110 && G.state !== 'title' && v.s - (pl.s - 6.6) > 2.0;
+    const tgt = valveTarget(v, i);
+    st.open += (tgt - st.open) * Math.min(1, dt * (tgt > st.open ? 16 : 11));
+    const isOpen = st.open > 0.55;
+    if (isOpen !== (st.wasOpen > 0.55)) { if (G.state === 'run' && Math.abs(v.s - pl.s) < 25) Snd.valve(isOpen); }
+    st.wasOpen = st.open;
+    o.hinges.forEach(h => h.rotation.x = -st.open * 1.38);
+    o.rimMat.emissive.setHex(isOpen ? 0x30e070 : 0xff2030); o.rimMat.color.setHex(isOpen ? 0x80ffb0 : 0xff6070);
+    const squeeze = v.kind === 'vein' ? 1 - 0.06 * st.open : 1; o.rim.scale.set(squeeze, squeeze, 1);
+  });
+}
+function waitValve() {
+  const i = pl.waitValve; if (i == null) return false;
+  pl.v = 0; pl.boost = 0;
+  if (vstate[i].open > 0.6) { pl.waitValve = null; pl.boost = 9; Snd.whoosh(1); toWorld(pl.s, pl.x, pl.y, _w); UI.popAt(_w, '開いた！', 'o2'); }
+  return true;
+}
+function checkValves() {
+  VALVES.forEach((v, i) => {
+    const gate = v.s - 0.4;
+    if (!(pl.prevS < gate && pl.s >= gate)) return;
+    toWorld(v.s, pl.x, pl.y, _w);
+    if (vstate[i].open < 0.55) {
+      pl.boost = 0; pl.squash = 0.35; G.shake = Math.max(G.shake, 0.3); pl.bounceN++; resetFlow();
+      if (v.kind === 'heart') { pl.s = v.s - 1.3; pl.v = 0; pl.waitValve = i; Snd.bounce(); UI.popAt(_w, '弁が閉じてる！', 'bad'); UI.hint('ドクンで弁が開くのを待とう', 1.2); }
+      else { pl.s = v.s - 1.0; pl.v = -6; Snd.squelch(); UI.popAt(_w, '押しもどされた！', 'bad'); UI.hint('弁が開いている間に通りぬけよう', 1.6); }
+      if (chain.length && chain[0].lungeT <= 0 && chain[0].windT <= 0 && chain[0].recoilT <= 0 && Math.random() < 0.5) startLunge();
+    } else {
+      if (v.kind === 'vein') { pl.boost += 6; Snd.pump(); UI.popAt(_w, '筋肉ポンプ！', 'o2'); }
+      else { pl.boost += 3; Snd.whoosh(1); }
+      G.fovKick = Math.max(G.fovKick, 4);
+    }
+  });
+}
+
+/* ===== ケガの穴（血がもれる穴・血小板がふさぐ） ===== */
+const holeTex = canvasTex(128, 128, (g, W) => {
+  const gr = g.createRadialGradient(W / 2, W / 2, 4, W / 2, W / 2, W / 2);
+  gr.addColorStop(0, '#060001'); gr.addColorStop(0.55, '#2a0206'); gr.addColorStop(0.85, '#7a0a16'); gr.addColorStop(1, 'rgba(120,10,20,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, W, W);
+  g.strokeStyle = 'rgba(255,120,120,0.35)'; g.lineWidth = 3;
+  for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; g.beginPath(); g.moveTo(W / 2 + Math.cos(a) * 18, W / 2 + Math.sin(a) * 18); g.lineTo(W / 2 + Math.cos(a + 0.5) * 52, W / 2 + Math.sin(a + 0.5) * 52); g.stroke(); }
+});
+const plateletMat = new THREE.MeshStandardMaterial({ color: 0xf7e2a0, emissive: 0x5a4010, roughness: 0.5 });
+const plateletGeo = new THREE.SphereGeometry(0.24, 12, 8);
+const woundObjs = WOUNDS.map(w => {
+  const g = new THREE.Group(), R = radius(w.s);
+  toWorld(w.s, Math.cos(w.a) * (R - 0.08), Math.sin(w.a) * (R - 0.08), g.position);
+  toWorld(w.s, 0, 0, _v3); g.lookAt(_v3);
+  const hole = new THREE.Mesh(new THREE.CircleGeometry(2.0, 32), new THREE.MeshBasicMaterial({ map: holeTex, transparent: true, depthWrite: false }));
+  hole.position.z = 0.02; g.add(hole);
+  const swirl = new THREE.Mesh(new THREE.RingGeometry(0.5, 1.3, 32, 1, 0, Math.PI * 1.4), new THREE.MeshBasicMaterial({ color: 0xff4050, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  swirl.position.z = 0.05; g.add(swirl);
+  const pls = [];
+  for (let k = 0; k < 16; k++) {
+    const m = new THREE.Mesh(plateletGeo, plateletMat); m.scale.set(1, 1, 0.45);
+    const a = k / 16 * Math.PI * 2 + Math.random() * 0.3; m.userData = { a, r0: 1.55 + Math.random() * 0.35, r1: Math.random() * 0.9, ph: Math.random() * 6 };
+    g.add(m); pls.push(m);
+  }
+  const warn = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xff2040, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+  warn.scale.setScalar(5); warn.position.z = 0.4; g.add(warn);
+  g.visible = false; scene.add(g);
+  return { g, hole, swirl, pls, warn };
+});
+const wstate = WOUNDS.map(() => ({ plug: 0, done: false }));
+function resetWounds() { wstate.forEach(st => { st.plug = 0; st.done = false; }); }
+function woundPoint(w) { const R = radius(w.s); return [Math.cos(w.a) * (R - 0.25), Math.sin(w.a) * (R - 0.25)]; }
+function applyWounds(dt) {
+  if (pl.stuck) return;
+  WOUNDS.forEach((w, i) => {
+    const st = wstate[i]; if (st.done) return;
+    const ds = w.s - pl.s;
+    if (ds < -2) { st.done = true; return; }
+    if (ds > 16) return;
+    const [hx, hy] = woundPoint(w), dx = hx - pl.x, dy = hy - pl.y, d = Math.hypot(dx, dy);
+    const R = radius(w.s);
+    const F = 8 * smooth(16, 1, Math.abs(ds)) * clamp(1.35 - d / (2 * R), 0.45, 1) * (1 - st.plug);
+    if (d > 0.01) { const m = Math.min(d, F * dt); pl.x += dx / d * m; pl.y += dy / d * m; pl.tx += dx / d * m; pl.ty += dy / d * m; }
+    if (Math.abs(ds) < 1.0 && d < playerR() + 0.85) {
+      pl.stuck = { i, t: 0 }; resetFlow();
+      const lost = Math.min(1, pl.o2); pl.o2 -= lost;
+      toWorld(pl.s, pl.x, pl.y, _w); UI.popAt(_w, lost ? '吸いこまれた！ 酸素 -1' : '吸いこまれた！', 'bad'); UI.o2Anim('lost');
+      setFace('hurt', 1.5); Snd.squelch(); G.shake = 0.5; flash('120,0,10', 0.45);
+    }
+  });
+}
+function updateStuck(dt) {
+  const st = pl.stuck; if (!st) return;
+  st.t += dt; const w = WOUNDS[st.i], [hx, hy] = woundPoint(w);
+  pl.v = 0; pl.boost = 0; pl.x += (hx * 0.92 - pl.x) * Math.min(1, dt * 8); pl.y += (hy * 0.92 - pl.y) * Math.min(1, dt * 8); pl.tx = pl.x; pl.ty = pl.y;
+  if (st.t > 1.3) {
+    pl.stuck = null; wstate[st.i].plug = 1; wstate[st.i].done = true;
+    pl.x *= 0.4; pl.y *= 0.4; pl.tx = pl.x; pl.ty = pl.y; pl.slowMul = Math.min(pl.slowMul, 0.6); pl.invuln = Math.max(pl.invuln, 0.8);
+    toWorld(pl.s, pl.x, pl.y, _w); UI.popAt(_w, '血小板が穴をふさいだ！', 'o2'); Snd.freed();
+  }
+}
+function updateWoundVisuals(dt) {
+  WOUNDS.forEach((w, i) => {
+    const o = woundObjs[i], st = wstate[i];
+    o.g.visible = Math.abs(w.s - pl.s) < 100 && G.state !== 'title';
+    if (!o.g.visible) return;
+    if (st.done && st.plug < 1) st.plug = Math.min(1, st.plug + dt * 0.8);
+    o.swirl.rotation.z -= dt * (4 - st.plug * 3.5); o.swirl.material.opacity = 0.35 * (1 - st.plug);
+    o.hole.scale.setScalar(1 - st.plug * 0.6);
+    o.warn.material.opacity = (0.35 + 0.25 * Math.sin(G.gt * 8)) * (1 - st.plug);
+    for (const m of o.pls) { const u = m.userData, r = lerp(u.r0, u.r1, st.plug); m.position.set(Math.cos(u.a) * r, Math.sin(u.a) * r, 0.12 + Math.sin(G.gt * 5 + u.ph) * 0.05); m.rotation.z += dt; }
+    // 血がもれる流れ（近い時だけ）
+    const ds = w.s - pl.s;
+    if (!st.done && ds < 14 && ds > -1 && Math.random() < 0.6) {
+      const p = parts[partIdx++ % parts.length], [hx, hy] = woundPoint(w);
+      const a = Math.random() * 6.28, rr = 1.5 + Math.random() * 2.5;
+      toWorld(w.s - 2 + Math.random() * 4, hx * 0.5 + Math.cos(a) * rr * 0.4, hy * 0.5 + Math.sin(a) * rr * 0.4, p.sp.position);
+      toWorld(w.s, hx, hy, _v3);
+      p.sp.visible = true; p.sp.material.color.setHex(0xff3a48); p.life = p.max = 0.6; p.size = 0.3;
+      p.vel.copy(_v3).sub(p.sp.position).multiplyScalar(2.2);
+    }
+  });
+}
+
+/* ===== つかまる → 指を左右に振ってふりほどく ===== */
+function startCaught(g) {
+  const lost = Math.min(2, pl.o2); pl.o2 -= lost;
+  const ci = chain.indexOf(g); if (ci >= 0) chain.splice(ci, 1);
+  g.state = 'latched'; g.lungeT = 0; g.windT = 0;
+  resetFlow();
+  pl.caught = { g, t: 0, shakes: 0, need: 4, dir: 0, acc: 0 };
+  pl.invuln = 99; pl.squash = 0.35;
+  setFace('hurt', 99); G.shake = 0.65; flash('70,200,40', 0.4); Snd.hit(); Snd.squelch();
+  toWorld(pl.s, pl.x, pl.y, _w); burst(_w, 0x8fdcff, lost * 7, 6, 0.4, 1.0); burst(_w, 0x9be05a, 12, 5, 0.35, 0.6);
+  UI.center('つかまった！', 'bad'); if (lost) UI.popAt(_w, `酸素 -${lost}`, 'bad'); UI.o2Anim('lost');
+  if (chain.length) { const h = chain[0]; h.recoilT = Math.max(h.recoilT, 0.6); h.lungeT = 0; h.windT = 0; }
+}
+function shakeInput(dx) {
+  const c = pl.caught; if (!c || !dx) return;
+  const d = Math.sign(dx);
+  if (d !== c.dir) {
+    if (c.dir !== 0 && c.acc > 18) { c.shakes++; pl.squash = 0.3; Snd.shake(); G.shake = Math.max(G.shake, 0.22); c.g.scale = 1.35; }
+    c.dir = d; c.acc = 0;
+  }
+  c.acc += Math.abs(dx);
+}
+function updateCaught(dt) {
+  const c = pl.caught; if (!c) return;
+  c.t += dt;
+  if (c.shakes >= c.need || c.t > 3.2) releaseCaught(c.shakes >= c.need);
+}
+function releaseCaught(byShake) {
+  const c = pl.caught; if (!c) return; pl.caught = null;
+  const g = c.g; g.state = 'chase'; g.s = pl.s - 7.5; g.v = pl.v; g.recoilT = 1.2; g.windT = 0; g.lungeT = 0; g.safeT = 0; g.scale = 1.2;
+  chain.unshift(g);
+  pl.invuln = 1.2; pl.slowMul = Math.min(pl.slowMul, byShake ? 0.75 : 0.55);
+  setFace(byShake ? 'happy' : 'normal', 0.6);
+  toWorld(pl.s, pl.x, pl.y, _w); UI.popAt(_w, byShake ? 'ふりほどいた！' : 'やっと離れた…', byShake ? 'gold' : 'bad'); Snd.freed();
+}
+function nearMiss(h) {
+  toWorld(pl.s, pl.x, pl.y, _w); UI.popAt(_w, 'ヒヤッ！', 'gold'); Snd.hiya(); Snd.whoosh(0.8);
+  flash('255,255,255', 0.15);
+}
+
+/* ===== 疾走感の演出（集中線・流れの筋） ===== */
+const speedC = $('speedfx'), sctx = speedC.getContext('2d');
+const slines = []; for (let i = 0; i < 44; i++) slines.push({ a: Math.random() * 6.28, r: Math.random(), w: 1 + Math.random() * 2 });
+let speedK = 0;
+const _pp = new THREE.Vector3();
+function drawBeatRing(g, W, H, rdt) {
+  G.dashFx = Math.max(0, (G.dashFx || 0) - rdt * 2.5);
+  if (G.state !== 'run' || pl.caught || pl.stuck) return;
+  _pp.copy(player.position).project(camera);
+  if (_pp.z > 1) return;
+  const x = (_pp.x * 0.5 + 0.5) * W, y = (-_pp.y * 0.5 + 0.5) * H;
+  const ph = clamp((G.nextBeat - G.gt) / G.period, 0, 1), base = Math.min(W, H) * 0.15;
+  const r = base * (1 + 1.3 * ph);
+  g.lineWidth = 3; g.strokeStyle = `rgba(255,240,230,${(0.12 + 0.45 * (1 - ph)).toFixed(3)})`;
+  g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.stroke();
+  const since = G.gt - G.lastBeat;
+  if (since < 0.11) { g.lineWidth = 4; g.strokeStyle = `rgba(255,230,140,${(0.7 * (1 - since / 0.11)).toFixed(3)})`; g.beginPath(); g.arc(x, y, base, 0, Math.PI * 2); g.stroke(); }
+  if (G.dashFx > 0) { g.lineWidth = 6 * G.dashFx; g.strokeStyle = `rgba(255,214,90,${G.dashFx.toFixed(3)})`; g.beginPath(); g.arc(x, y, base * (1 + (1 - G.dashFx) * 1.6), 0, Math.PI * 2); g.stroke(); }
+}
+function drawSpeedFX(rdt) {
+  const W = speedC.clientWidth, H = speedC.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  if (speedC.width !== Math.round(W * dpr) || speedC.height !== Math.round(H * dpr)) { speedC.width = Math.round(W * dpr); speedC.height = Math.round(H * dpr); }
+  const g = sctx; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const run = G.state === 'run' || G.state === 'goal';
+  const base = G.course.speed;
+  const tb = G.gt - G.lastBeat;
+  const target = run ? clamp((pl.v - base * 0.95) / (base * 0.9), 0, 1) * 0.75 + pl.flow * 0.25 + 0.3 * Math.exp(-Math.max(0, tb) * 6) * (pl.v > base ? 1 : 0) : 0;
+  speedK += (target - speedK) * Math.min(1, rdt * 6);
+  drawBeatRing(g, W, H, rdt);
+  if (speedK < 0.02) return;
+  const cx = W / 2, cy = H * 0.45, rad = Math.hypot(W, H) * 0.55;
+  for (const l of slines) {
+    l.r += rdt * (0.6 + speedK * 2.4);
+    if (l.r > 1) { l.r = 0.3 + Math.random() * 0.2; l.a = Math.random() * 6.28; l.w = 1 + Math.random() * 2.2; }
+    const r0 = l.r * rad, r1 = r0 + (0.06 + speedK * 0.22) * rad;
+    const al = speedK * smooth(0.3, 0.6, l.r) * 0.55;
+    g.strokeStyle = `rgba(255,236,228,${al.toFixed(3)})`; g.lineWidth = l.w;
+    g.beginPath(); g.moveTo(cx + Math.cos(l.a) * r0, cy + Math.sin(l.a) * r0); g.lineTo(cx + Math.cos(l.a) * r1, cy + Math.sin(l.a) * r1); g.stroke();
+  }
+}
+const _q = new THREE.Quaternion(), _sc = new THREE.Vector3();
+function updateStreaks(dt) {
+  const show = G.state !== 'title';
+  for (let i = 0; i < STREAK_N; i++) {
+    const st = streaks[i];
+    if (st.s === 0 || st.s > pl.s + 55 || st.s < pl.s - 3) st.s = pl.s + (st.s === 0 ? Math.random() * 55 : -2 + Math.random() * 3);
+    st.s += (pl.v * st.spd + 6) * dt;
+    const R = radius(st.s), core = Math.min(1.7, R * 0.28);
+    if (!show || R < 2.4) { _m.makeScale(0, 0, 0); streakMesh.setMatrixAt(i, _m); continue; }
+    const a = st.a + st.s * 0.01, sc = st.s + st.len / 2;
+    toWorld(sc, Math.cos(a) * st.rr * core, Math.sin(a) * st.rr * core, _w);
+    frameAt(sc, _r, _u, _f); _m.makeBasis(_r, _u, _f.negate()); _q.setFromRotationMatrix(_m);
+    const fade = smooth(-1, 3, st.s - pl.s);
+    _m.compose(_w, _q, _sc.set(fade, fade, st.len * fade + 0.001)); streakMesh.setMatrixAt(i, _m);
+  }
+  streakMesh.instanceMatrix.needsUpdate = true;
+  streakMat.opacity = 0.35 + 0.4 * speedK;
+}
+
+/* ===== 追われている度合い ===== */
+function updateDanger(rdt) {
+  let d = 0;
+  if (pl.caught || pl.stuck) d = 1;
+  else if (chain.length && G.state === 'run') {
+    const h = chain[0], gap = pl.s - h.s;
+    d = clamp(0.25 + chain.length * 0.05 + (h.recoilT > 0 ? -0.15 : clamp((3 - gap) * 0.25, 0, 0.35)) + (h.windT > 0 || h.lungeT > 0 ? 0.45 : 0), 0, 1);
+  }
+  G.danger += (d - G.danger) * Math.min(1, rdt * 6);
+  const wind = (G.state === 'run' || G.state === 'goal') ? clamp((pl.v - 8) / 26, 0, 1) : 0;
+  Snd.loops(G.state === 'run' ? G.danger : 0, wind);
+  // 飛びかかりの赤い光
+  const h = chain[0];
+  if (h && (h.windT > 0 || h.lungeT > 0) && G.state === 'run') { warnGlow.position.copy(h.obj.position); warnGlow.material.opacity = 0.75 + 0.25 * Math.sin(G.gt * 40); }
+  else warnGlow.material.opacity = Math.max(0, warnGlow.material.opacity - rdt * 4);
+}
+
+/* ===== 流れメーター（まん中に乗り続けると加速） ===== */
+function updateFlow(dt) {
+  if (pl.caught || pl.stuck || pl.waitValve != null) { resetFlow(); return; }
+  if (pl.lam > 0.55) pl.flow = Math.min(1, pl.flow + dt * 0.16);
+  else pl.flow = Math.max(0, pl.flow - dt * 0.3);
+  const lv = Math.floor(pl.flow * 4 + 1e-6);
+  if (lv > pl.flowLv) {
+    pl.flowLv = lv; Snd.flowUp(lv);
+    if (lv >= 4) { toWorld(pl.s + 1, pl.x, pl.y + 1.2, _w); UI.popAt(_w, '流れ MAX！', 'o2'); G.fovKick = Math.max(G.fovKick, 5); flash('180,230,255', 0.15); }
+  } else if (lv < pl.flowLv) pl.flowLv = lv;
+}
+function resetFlow(msg) {
+  if (msg && pl.flow > 0.12) { toWorld(pl.s + 1, pl.x, pl.y + 1.2, _w); UI.popAt(_w, msg, 'bad'); }
+  pl.flow = 0; pl.flowLv = 0;
+}
+function wallBump() {
+  if (pl.wallCD > 0) return; pl.wallCD = 0.6;
+  if (pl.flow > 0.08) { Snd.wallHit(); G.shake = Math.max(G.shake, 0.18); }
+  resetFlow('かべ！');
+}
+
+/* ===== ジャストダッシュ（ドクンに合わせて指を離す） ===== */
+function tryDash() {
+  if (pl.caught || pl.stuck || pl.waitValve != null) return;
+  const toPrev = G.gt - G.lastBeat, toNext = G.nextBeat - G.gt;
+  const nearPrev = toPrev <= toNext, d = nearPrev ? toPrev : -toNext;
+  const id = Math.round((nearPrev ? G.lastBeat : G.nextBeat) / G.period);
+  if (id === pl.dashBeat) return;
+  const ad = Math.abs(d);
+  toWorld(pl.s + 1.5, pl.x, pl.y + 1.0, _w);
+  if (ad <= 0.11) {
+    pl.dashBeat = id;
+    pl.dashCombo = id - pl.lastDashBeat <= 2 ? pl.dashCombo + 1 : 1; pl.lastDashBeat = id; pl.dashN++;
+    pl.boost += 8 + 1.5 * Math.min(pl.dashCombo - 1, 4);
+    G.fovKick = Math.max(G.fovKick, 7); G.dashFx = 1; pl.squash = 0.25;
+    Snd.dash(pl.dashCombo); flash('255,225,140', 0.12);
+    toWorld(pl.s + 1, pl.x, pl.y - 1.6, _w); UI.popAt(_w, pl.dashCombo > 1 ? `ダッシュ ×${pl.dashCombo}` : 'ダッシュ！', 'dash');
+    toWorld(pl.s - 0.6, pl.x, pl.y, _v3); burst(_v3, 0xffe080, 10, 5, 0.3, 0.45);
+  } else if (ad <= 0.22) {
+    pl.dashBeat = id; pl.dashCombo = 0; Snd.miss();
+    UI.popAt(_w, d < 0 ? 'はやい' : 'おそい', 'bad');
+  }
+}
+
+/* ===== 区間タイムとゴースト ===== */
+let ghostData = null;
+function loadGhost(ci) { ghostData = store.get('ghost_' + COURSES[ci].id, null); if (ghostData && !(ghostData.g && ghostData.g.length > 8)) ghostData = null; }
+function recordGhost() {
+  while (G.recT <= G.t) { G.ghostRec.push(Math.round(pl.s * 100) / 100, Math.round(pl.x * 100) / 100, Math.round(pl.y * 100) / 100, Math.round(pl.fold * 100) / 100); G.recT += 0.1; }
+}
+function recordSplit(idx) {
+  G.splits[idx] = Math.round(G.t * 100) / 100;
+  const best = ghostData && ghostData.splits ? ghostData.splits[idx] : null;
+  if (best == null) return '';
+  const diff = G.t - best;
+  return `<span class="${diff <= 0 ? 'minus' : 'plus'}">${diff <= 0 ? '−' : '+'}${Math.abs(diff).toFixed(1)}</span>`;
+}
+const ghostMat = new THREE.MeshBasicMaterial({ color: 0x9fe4ff, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+const ghost = new THREE.Group(), gPivot = new THREE.Group(); gPivot.rotation.x = 0.8; ghost.add(gPivot);
+const ghostMesh = new THREE.Mesh(rbcGeo, ghostMat); gPivot.add(ghostMesh);
+const ghostLabel = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTex(128, 64, (g, W, H) => {
+  g.fillStyle = 'rgba(190,232,255,0.9)'; g.beginPath(); g.roundRect ? g.roundRect(14, 12, W - 28, H - 24, 18) : g.rect(14, 12, W - 28, H - 24); g.fill();
+  g.fillStyle = '#123a52'; g.font = '800 26px "M PLUS Rounded 1c",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('ベスト', W / 2, H / 2 + 1);
+}), transparent: true, depthWrite: false, sizeAttenuation: false, fog: false }));
+ghostLabel.scale.set(0.13, 0.065, 1); ghostLabel.position.y = 1.35; ghostLabel.material.depthTest = false; ghostLabel.renderOrder = 5; ghost.add(ghostLabel);
+const ghostGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0x7fd8ff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+ghostGlow.scale.setScalar(3.4); ghost.add(ghostGlow);
+ghost.visible = false; scene.add(ghost);
+function updateGhost() {
+  if (!ghostData || !['count', 'run', 'goal'].includes(G.state)) { ghost.visible = false; return; }
+  const g = ghostData.g, n = g.length / 4, f = G.t / 0.1;
+  let i = Math.floor(f), k = f - i; if (i >= n - 1) { i = n - 2; k = 1; }
+  const L = (o) => lerp(g[i * 4 + o], g[i * 4 + 4 + o], k);
+  const s = L(0);
+  const ahead = s - (pl.s - 6.6);
+  ghost.visible = Math.abs(s - pl.s) < 90 && ahead > 2.5 && s < GOAL_S + 2;
+  if (!ghost.visible) return;
+  placeOnTrack(ghost, s, L(1), L(2));
+  ghostMesh.morphTargetInfluences[0] = L(3);
+  const near = smooth(0.6, 2.6, Math.hypot(s - pl.s, L(1) - pl.x, L(2) - pl.y));
+  ghostMat.opacity = 0.55 * near; ghostGlow.material.opacity = 0.55 * near; ghostLabel.material.opacity = Math.min(1, near * 1.2);
+}
+
+/* ===== 前から来る菌 ===== */
+function updOncoming(g, dt, run, pr) {
+  if (g.state === 'hidden') {
+    if (run && g.s - pl.s < Math.max(48, pl.v * 1.7)) {
+      g.state = 'come'; g.pop = 0; g.v = -9; g.passed = false; g.minD = 99;
+      g.x = pl.x + (Math.random() - 0.5) * 0.6; g.y = pl.y + (Math.random() - 0.5) * 0.6; clampGerm(g);
+      Snd.incoming(); toWorld(g.s, g.x, g.y + 1, _w); UI.popAt(_w, '前から！', 'bad');
+      if (!G.seen.onc) { G.seen.onc = 1; UI.hint('前から来る菌！よけよう', 1.8); }
+    }
+    return;
+  }
+  g.pop = Math.min(1, g.pop + dt * 3); g.wob += dt * 3;
+  g.s += g.v * dt;
+  g.x += Math.sin(g.wob) * 0.4 * dt; g.y += Math.cos(g.wob * 1.2) * 0.3 * dt; clampGerm(g);
+  if (radius(g.s) < 1.8 || g.s < pl.s - 12) { g.state = 'gone'; return; }
+  if (!run) return;
+  const ds = g.s - pl.s, d = Math.hypot(g.x - pl.x, g.y - pl.y);
+  if (Math.abs(ds) < 1.6) g.minD = Math.min(g.minD, d);
+  if (Math.abs(ds) < 0.9 && d < pr + GERM_R) { hitPlayer(g); return; }
+  if (!g.passed && ds < -1) { g.passed = true; if (!pl.caught && g.minD < pr + GERM_R + 0.9) nearMiss(g); }
+}
+
+/* ===== かべを回る菌 ===== */
+function updOrbit(g, dt, run, pr) {
+  if (g.state === 'hidden') {
+    if (run && g.s - pl.s < 60) { g.state = 'orbit'; g.pop = 0; if (!G.seen.orb) { G.seen.orb = 1; UI.hint('回る菌のすき間を通りぬけよう', 1.8); } }
+    else if (!run) return;
+  }
+  if (g.state !== 'orbit') return;
+  g.pop = Math.min(1, g.pop + dt * 2.5);
+  g.ang += g.orbW * dt;
+  const r = g.orbR * (radius(g.s) - 0.6);
+  g.x = Math.cos(g.ang) * r; g.y = Math.sin(g.ang) * r;
+  if (run && Math.abs(g.s - pl.s) < 0.9 && Math.hypot(g.x - pl.x, g.y - pl.y) < pr + GERM_R) hitPlayer(g);
+}
+
+/* ===== 分裂する菌 ===== */
+function updateSplitters(dt) {
+  for (let i = 0; i < chain.length; i++) {
+    const g = chain[i];
+    if (g.type !== 'split' || g.gen > 0) continue;
+    g.splitT += dt;
+    if (g.splitT > 3.7) g.scale = 1 + 0.25 * Math.abs(Math.sin(g.splitT * 14));
+    if (g.splitT < 4.5) continue;
+    g.gen = 1;
+    if (chain.length >= 14 || G.poolNext >= germPool.length) continue;
+    const obj = germPool[G.poolNext++]; obj.children[0].material = germMats[3];
+    const c = { ...g, obj, gen: 1, splitT: 0, scale: 1.4, lungeT: 0, windT: 0, recoilT: 0, s: g.s - 0.6, x: g.x + 0.6, y: g.y - 0.3, pop: 1 };
+    germs.push(c); chain.splice(i + 1, 0, c); i++;
+    g.scale = 1.4; Snd.splitPop();
+    toWorld(g.s, g.x, g.y + 1, _w); UI.popAt(_w, '分裂！', 'bad');
+    if (!G.seen.split) { G.seen.split = 1; UI.hint('黄色い菌は分裂して増える！早く白血球へ', 1.8); }
+  }
+}
+
+function resetAmbient() { decor.forEach(d => d.s = 0); plasmaD.forEach(p => p.s = 0); streaks.forEach(st => st.s = 0); }
+
+/* ===== 画面（HUD・地図・結果） ===== */
+const gameEl = $('game'), popupsEl = $('popups'), mapC = $('map'), mctx = mapC.getContext('2d');
+const SHARE_URL = 'https://nkworks-games.com/megure-sekkekkyu/';
+const TITLE_NAMES = ['伝説の赤血球', 'ベテラン赤血球', '一人前の赤血球', '新人赤血球'];
+const titleFor = (c, rec) => { const i = c.titles.findIndex(th => rec <= th); return TITLE_NAMES[i < 0 ? 3 : i]; };
+const fmtRec = t => (t < 0 ? '-' : '') + fmtTime(Math.abs(t));
+const TRIVIA = [
+  '赤血球の寿命は約120日。古くなった赤血球は、主にひぞうでこわされます。',
+  '血が赤いのは、赤血球の中の「ヘモグロビン」という、鉄をふくむたんぱく質の色です。',
+  '静脈の血は酸素が少ないので、動脈の血より少し暗い赤色をしています。',
+  '赤血球の直径は約7〜8マイクロメートル。1ミリの約130分の1の小ささです。',
+  '毛細血管には赤血球より細いものもあり、赤血球は体を曲げて通りぬけます。',
+  '大人の体には、赤血球がおよそ20兆個以上あると言われています。',
+  '赤血球には「核」がありません。そのぶん、酸素を運ぶヘモグロビンをたくさんつめこめます。',
+  '赤血球は、骨の中にある「骨髄」で毎日たくさん作られています。',
+  '白血球の中には、体に入ったばい菌を食べてやっつけるものがいます。',
+  '体中の血管をすべてつなげると、約10万キロメートル（地球2周半）になると言われています。',
+  '心臓は1日に約10万回もドクンと動いています。',
+  '運動すると心臓のドクンが速くなり、動かしている筋肉へたくさん酸素を運びます。',
+  '赤血球のまん中がへこんだ形は、酸素を出し入れしやすく、曲がりやすい形です。',
+  '血液の量は、体重の約13分の1と言われています。',
+  '肺では、血液が二酸化炭素を出して、新しい酸素を受け取ります。',
+  '血管の中では、まん中ほど流れが速く、かべぎわは遅くなっています。赤血球もまん中に集まります。',
+  '大動脈の血は、速い瞬間には1秒に1.5m以上も進みます。毛細血管ではその約1000分の1です。',
+  '脚の静脈には、血が逆もどりしないための「弁」があります。筋肉がしぼると血が押し上げられます。',
+  '「ドッ・クン」という心臓の音は、心臓の弁が閉じる音です。',
+  'ケガをすると、血小板が集まって穴をふさぎます。そのあと「フィブリン」の網が血を固めます。',
+  '体を1周する時間は、休んでいる時で約1分、激しい運動中は11〜15秒ほどです。',
+  '赤血球1個には、酸素を運ぶヘモグロビンが約2.7億個入っています。',
+];
+const ROUTE = {
+  heart1: [[24, 22]], lung: [[24, 22], [18, 19], [16, 25], [22, 24], [29, 19], [31, 25], [24, 22]], heart2: [[24, 22]],
+  aorta: [[24, 22], [25, 17], [22, 15]], brain: [[22, 15], [22, 11], [18, 7], [26, 7], [22, 12]],
+  arm: [[22, 15], [15, 18], [11, 26], [7, 35], [12, 24], [19, 19]], gut: [[21, 25], [17, 29], [27, 30], [18, 33], [25, 34]],
+  foot: [[22, 36], [18, 41], [16, 48], [16, 54]], vein: [[16, 54], [18, 44], [21, 36], [23, 28], [24, 22]], heart3: [[24, 22]]
+};
+const fmtTime = t => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, '0')}`;
+const _pv = new THREE.Vector3();
+
+const UI = {
+  hintT: 0, hintTxt: '', shownHint: '', hud: { t: '', o2: -1, sc: -1, ch: -1 }, bannerTO: 0,
+  center(text, cls = '') { const el = $('center-msg'); el.className = ''; void el.offsetWidth; el.textContent = text; el.className = 'pop ' + cls; },
+  popAt(wp, text, cls) {
+    _pv.copy(wp).project(camera); if (_pv.z > 1 || _pv.z < -1) return;
+    const W = gameEl.clientWidth, H = gameEl.clientHeight;
+    const d = document.createElement('div'); d.className = 'pop ' + cls; d.textContent = text;
+    d.style.left = clamp((_pv.x * 0.5 + 0.5) * W, 60, W - 60) + 'px'; d.style.top = clamp((-_pv.y * 0.5 + 0.5) * H, 110, H - 90) + 'px';
+    popupsEl.appendChild(d); setTimeout(() => d.remove(), 1000);
+  },
+  hint(text, dur) { this.hintTxt = text; this.hintT = dur; },
+  o2Anim(cls) { const el = $('hud-o2'); el.classList.remove('bump', 'lost'); void el.offsetWidth; el.classList.add(cls); },
+  banner(name, sub, split) {
+    const el = $('banner'); el.querySelector('.bn-name').textContent = name; el.querySelector('.bn-sub').textContent = sub;
+    el.querySelector('.bn-split').innerHTML = split || '';
+    el.classList.add('show'); clearTimeout(this.bannerTO); this.bannerTO = setTimeout(() => el.classList.remove('show'), 2400);
+  },
+  showScreen(id) { for (const s of ['screen-title', 'screen-result', 'howto', 'share-view']) $(s).classList.toggle('show', s === id); },
+  enterReady() {
+    this.showScreen(null);
+    $('hud').classList.add('show'); $('map-wrap').classList.add('show'); $('flow').classList.add('show');
+    $('hud-course').textContent = G.course.name;
+    $('tut').style.display = store.get('tut', 0) ? 'none' : 'block';
+    $('ready').classList.add('show'); $('pause').classList.remove('show');
+    $('banner').classList.remove('show'); this.hintT = 0; this.hud = { t: '', o2: -1, sc: -1, ch: -1 };
+    resize();
+  },
+  toTitle() {
+    G.state = 'title'; G.demo = true; warnGlow.material.opacity = 0; G.danger = 0; G.course = COURSES[0]; G.period = 60 / 70; G.resultShown = false;
+    resetPlayer(20); chain = []; eatAnim = null; resetAmbient(); germs = []; wbcs = []; rings = []; bubbles = [];
+    germPool.forEach(o => o.visible = false); wbcPool.forEach(o => o.g.visible = false); ringPool.forEach(o => o.g.visible = false); bubblePool.forEach(o => o.visible = false);
+    rbcMat.color.set(0xe8182c); setFace('normal');
+    $('hud').classList.remove('show'); $('map-wrap').classList.remove('show'); $('flow').classList.remove('show'); ghost.visible = false; $('ready').classList.remove('show'); $('hud-chain').classList.remove('show'); $('hint').classList.remove('show');
+    buildCourseList(); this.showScreen('screen-title'); snapCamera();
+  },
+  contextHint() {
+    if (G.state !== 'run' || pl.caught) return '';
+    if (pl.stuck) return '';
+    for (let i = 0; i < WOUNDS.length; i++) { const ds = WOUNDS[i].s - pl.s; if (!wstate[i].done && ds > 0 && ds < 16) return 'ケガの穴！吸いこまれないように離れて'; }
+    for (let i = 0; i < VALVES.length; i++) { const ds = VALVES[i].s - pl.s; if (ds > 0 && ds < 14 && vstate[i].open < 0.55) return '弁が閉じている。開いたら通ろう'; }
+    const key = SECTIONS[secIndex(Math.min(pl.s, TOTAL - 1))].key;
+    if (touch.on) for (const c of CONSTRICT) { const ds = c.s - 6 - pl.s; if (ds > -3 && ds < 12) return '細い血管！指を離して折りたたもう'; }
+    const passed = rings.filter(r => r.state !== 'wait').length;
+    if (passed < 2) for (const r of rings) { if (r.state !== 'wait') continue; const ds = r.s - pl.s; if (ds > 0 && ds < 22) return touch.on ? '光る輪をねらって、指を離して通りぬけよう' : '光る輪に酸素を届けよう'; break; }
+    if (chain.length) for (const w of wbcs) { if (w.done || w.rest > 0) continue; const ds = w.s - pl.s; if (ds > 0 && ds < 32) return '白血球のそばを通って退治してもらおう！'; }
+    if (key === 'lung' && pl.o2 < 3 && pl.s < SEC.lung.start + 120) return '青い泡にさわって酸素を拾おう';
+    if (key === 'aorta' && pl.s < SEC.aorta.start + 70 && pl.lam < 0.6) return 'まん中に乗り続けると流れメーターがたまる！';
+    if ((key === 'lung' || key === 'heart2') && pl.dashN < 2 && pl.s > SEC.lung.start + 60) return 'ドクンに合わせて指を離すとダッシュ！';
+    return '';
+  },
+  frame(rdt) {
+    const tb = G.gt - G.lastBeat;
+    if (G.state !== 'title') {
+      const h = this.hud;
+      const tt = fmtTime(G.state === 'goal' || G.state === 'result' ? G.finishT : G.t); if (tt !== h.t) { h.t = tt; $('hud-time').textContent = tt; }
+      if (pl.o2 !== h.o2) { h.o2 = pl.o2; $('o2n').textContent = pl.o2; }
+      const sc = pl.o2Sec + pl.germSec; if (sc !== h.sc) { h.sc = sc; $('score').textContent = (sc > 0 ? '−' : '') + sc.toFixed(1); }
+      const fl = Math.round(pl.flow * 100); if (fl !== h.fl) { h.fl = fl; $('flow-fill').style.width = fl + '%'; $('flow-x').textContent = '×' + (1 + pl.flow * 0.5).toFixed(2); $('flow').classList.toggle('max', fl >= 100); }
+      if (chain.length !== h.ch) { h.ch = chain.length; $('chain-n').textContent = h.ch; $('hud-chain').classList.toggle('show', h.ch > 0 && G.state === 'run'); }
+      $('hud-heart').firstElementChild.style.transform = `scale(${1 + 0.38 * Math.exp(-Math.max(0, tb) * 9)})`;
+      let txt = '';
+      if (this.hintT > 0) { this.hintT -= rdt; txt = this.hintTxt; } else txt = this.contextHint();
+      if (txt !== this.shownHint) { this.shownHint = txt; const el = $('hint'); if (txt) { el.textContent = txt; el.classList.add('show'); } else el.classList.remove('show'); }
+      drawMap();
+    }
+    if (G.state !== 'ready' && $('ready').classList.contains('show')) $('ready').classList.remove('show');
+    $('danger').style.opacity = (G.danger * (0.75 + 0.25 * Math.exp(-Math.max(0, tb) * 6))).toFixed(3);
+    $('goo').classList.toggle('show', !!pl.caught);
+    const sm = $('shake-msg'); sm.classList.toggle('show', !!pl.caught);
+    if (pl.caught) $('shake-cnt').textContent = '●'.repeat(pl.caught.shakes) + '○'.repeat(Math.max(0, pl.caught.need - pl.caught.shakes));
+    $('vignette').style.opacity = (0.42 + Math.min(0.4, chain.length * 0.035) + 0.18 * Math.exp(-Math.max(0, tb) * 7) * G.beatK).toFixed(3);
+    G.flashA *= Math.exp(-rdt * 5);
+    $('flash').style.background = `rgba(${G.flashCol},${G.flashA.toFixed(3)})`;
+  }
+};
+
+/* 体の1周の地図 */
+function routePoint(s) {
+  const i = secIndex(Math.min(s, TOTAL - 0.01)), sec = SECTIONS[i], pts = ROUTE[sec.key];
+  if (pts.length === 1) return pts[0];
+  const t = clamp((s - sec.start) / sec.len, 0, 1) * (pts.length - 1), k = Math.min(pts.length - 2, Math.floor(t)), f = t - k;
+  return [lerp(pts[k][0], pts[k + 1][0], f), lerp(pts[k][1], pts[k + 1][1], f)];
+}
+function drawMap() {
+  const dpr = mapC.width / Math.max(1, mapC.clientWidth), W = mapC.clientWidth, H = mapC.clientHeight;
+  const g = mctx; g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  // 体
+  const sc = (H - 6) / 56, ox = 10, oy = 3;
+  g.save(); g.translate(ox, oy); g.scale(sc, sc);
+  g.fillStyle = 'rgba(255,240,235,0.16)'; g.strokeStyle = 'rgba(255,240,235,0.55)'; g.lineWidth = 1.2;
+  g.beginPath(); g.arc(22, 8, 6.5, 0, 7); g.fill(); g.stroke();
+  g.beginPath(); g.roundRect ? g.roundRect(13, 15, 18, 22, 5) : g.rect(13, 15, 18, 22); g.fill(); g.stroke();
+  g.lineCap = 'round'; g.lineWidth = 4; g.strokeStyle = 'rgba(255,240,235,0.3)';
+  for (const [a, b, c, d] of [[14, 18, 7, 35], [30, 18, 37, 35], [18, 37, 16, 54], [26, 37, 28, 54]]) { g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); }
+  g.lineWidth = 1; g.strokeStyle = 'rgba(255,120,130,0.8)'; g.beginPath();
+  let first = true; for (let s = 0; s < TOTAL; s += 6) { const p = routePoint(s); if (first) { g.moveTo(p[0], p[1]); first = false; } else g.lineTo(p[0], p[1]); } g.stroke();
+  const pp = routePoint(Math.min(pl.s, TOTAL - 1));
+  g.fillStyle = '#ff3346'; g.strokeStyle = '#fff'; g.lineWidth = 1.2; g.beginPath(); g.arc(pp[0], pp[1], 2.6, 0, 7); g.fill(); g.stroke();
+  g.restore();
+  // 区間のバー
+  const x0 = ox + 46 * sc + 10, x1 = W - 14, y = H * 0.6, bw = x1 - x0;
+  const X = s => x0 + clamp(s / TOTAL, 0, 1) * bw;
+  g.font = '800 10px "M PLUS Rounded 1c",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'bottom';
+  for (const sec of SECTIONS) {
+    const a = X(sec.start), b = X(sec.start + sec.len);
+    g.fillStyle = '#' + sec.colC.getHexString(THREE.SRGBColorSpace); g.globalAlpha = pl.s >= sec.start ? 0.95 : 0.45;
+    g.fillRect(a + 0.5, y - 3, b - a - 1, 6); g.globalAlpha = 1;
+    const lab = { heart1: '', heart2: '', heart3: '', lung: '肺', aorta: '大動脈', brain: '脳', arm: '腕', gut: '胃腸', foot: '足', vein: '静脈' }[sec.key];
+    if (lab && b - a > 18) { g.fillStyle = 'rgba(255,243,234,0.85)'; g.fillText(lab, (a + b) / 2, y - 6); }
+  }
+  for (const r of rings) { g.fillStyle = r.state === 'done' ? '#8fdcff' : r.state === 'wait' ? '#ffd45c' : 'rgba(255,255,255,0.25)'; g.beginPath(); g.arc(X(r.s), y + 8, 2.2, 0, 7); g.fill(); }
+  for (const w of wbcs) { g.fillStyle = '#ffffff'; g.globalAlpha = w.done ? 0.3 : 0.9; g.beginPath(); g.arc(X(w.s), y + 14, 2, 0, 7); g.fill(); g.globalAlpha = 1; }
+  g.fillStyle = '#fff'; g.fillRect(X(GOAL_S) - 1, y - 7, 2, 14);
+  const px = X(pl.s); g.fillStyle = '#ff2a3e'; g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.arc(px, y, 5.5, 0, 7); g.fill(); g.stroke();
+}
+
+/* コースえらび */
+function buildCourseList() {
+  const unlocked = store.get('unlocked', 0), list = $('course-list'); list.innerHTML = '';
+  COURSES.forEach((c, i) => {
+    const locked = i > unlocked, best = store.get('rec_' + c.id, null);
+    const b = document.createElement('button'); b.className = 'course' + (locked ? ' locked' : '');
+    b.innerHTML = `<div class="c-top"><span class="c-name">${c.name}</span><span class="c-bpm">♥ ${c.bpm}</span><span class="c-best">${locked ? '<svg class="lock" viewBox="0 0 24 24"><path d="M6 10V8a6 6 0 1 1 12 0v2h1v12H5V10h1zm2 0h8V8a4 4 0 1 0-8 0v2z"/></svg>' : best != null ? 'ベスト ' + fmtRec(best) : ''}</span></div><div class="c-desc">${locked ? '前のコースをゴールすると開きます' : c.desc}</div>`;
+    b.addEventListener('click', () => { Snd.init(); if (locked) { Snd.full(); b.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }], { duration: 250 }); return; } Snd.click(); startCourse(i); });
+    list.appendChild(b);
+  });
+}
+
+/* ゴールと結果 */
+function finishRace() {
+  G.state = 'goal'; G.finishT = G.t; G.goalTimer = 0; G.resultShown = false;
+  recordGhost(); const sp = recordSplit(SECTIONS.length); UI.banner('ゴール ' + fmtTime(G.t), '', sp);
+  Snd.goal(); UI.center('ゴール！', 'big'); flash('255,230,200', 0.4); setFace('happy', 3); pl.spin = 1;
+  $('hud-chain').classList.remove('show'); $('hint').classList.remove('show'); UI.shownHint = '';
+}
+let lastTrivia = -1, lastResult = null;
+function showResult() {
+  const t = G.finishT, bonus = Math.round((pl.o2Sec + pl.germSec) * 10) / 10;
+  const rec = Math.round((t - bonus) * 10) / 10;
+  const c = G.course, title = titleFor(c, rec);
+  const best = store.get('rec_' + c.id, null), isNew = best == null || rec < best;
+  if (isNew) { store.set('rec_' + c.id, rec); store.set('ghost_' + c.id, { rec, splits: G.splits, g: G.ghostRec }); }
+  const un = store.get('unlocked', 0); let unlockMsg = '';
+  if (G.ci >= un && G.ci < COURSES.length - 1) { store.set('unlocked', G.ci + 1); unlockMsg = `「${COURSES[G.ci + 1].name}」コースが開きました！`; }
+  $('r-course').textContent = c.name + ' コース';
+  $('r-title').textContent = title; $('r-score').textContent = fmtRec(rec);
+  const rb = $('r-best');
+  if (isNew) rb.innerHTML = best == null ? 'はじめての記録！' : `自己ベスト更新！ <span class="minus" style="color:#1a9a40">−${(best - rec).toFixed(1)}秒</span>`;
+  else rb.innerHTML = `自己ベスト ${fmtRec(best)} <span style="color:#c0303e">+${(rec - best).toFixed(1)}秒</span>`;
+  rb.classList.toggle('new', isNew);
+  const nx = c.titles.find(th => rec > th);
+  $('r-break').innerHTML =
+    `<tr><td>ゴールタイム</td><td>${fmtTime(t)}</td></tr>` +
+    `<tr><td>届けた酸素 ${pl.deliv}個${pl.just ? `（ジャスト${pl.just}）` : ''}</td><td>−${pl.o2Sec.toFixed(1)}秒</td></tr>` +
+    `<tr><td>退治したばい菌 ${pl.killed}匹</td><td>−${pl.germSec.toFixed(1)}秒</td></tr>` +
+    `<tr><td>ダッシュ ${pl.dashN}回</td><td></td></tr>` +
+    (nx != null ? `<tr><td>次の称号まで</td><td>あと${(rec - nx).toFixed(1)}秒</td></tr>` : '');
+  let k; do { k = Math.floor(Math.random() * TRIVIA.length); } while (k === lastTrivia); lastTrivia = k;
+  $('r-trivia').textContent = TRIVIA[k];
+  const ul = $('r-unlock'); ul.textContent = unlockMsg; ul.style.display = unlockMsg ? 'block' : 'none';
+  lastResult = { course: c.name, rec: fmtRec(rec), title, deliv: pl.deliv, killed: pl.killed, time: fmtTime(t) };
+  G.state = 'result';
+  $('hint').classList.remove('show');
+  UI.showScreen('screen-result');
+}
+function shareText(r) { return `「めぐれ！赤血球」${r.course}コースの記録 ${r.rec}！\n称号「${r.title}」\n#めぐれ赤血球\n${SHARE_URL}`; }
+async function makeShareImage(r) {
+  try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) { }
+  const c = document.createElement('canvas'); c.width = 1200; c.height = 675; const g = c.getContext('2d');
+  const bg = g.createRadialGradient(360, 330, 40, 600, 340, 820); bg.addColorStop(0, '#b0142a'); bg.addColorStop(0.55, '#5a0812'); bg.addColorStop(1, '#1c0306');
+  g.fillStyle = bg; g.fillRect(0, 0, 1200, 675);
+  g.strokeStyle = 'rgba(255,200,200,0.08)'; g.lineWidth = 24; for (let i = 1; i < 7; i++) { g.beginPath(); g.ellipse(360, 340, 120 * i, 95 * i, 0, 0, 7); g.stroke(); }
+  for (let i = 0; i < 9; i++) { const x = 90 + Math.random() * 560, y = 60 + Math.random() * 560, rr = 10 + Math.random() * 16; const gg = g.createRadialGradient(x - rr * 0.3, y - rr * 0.3, 1, x, y, rr); gg.addColorStop(0, '#ffffff'); gg.addColorStop(0.3, '#bdeeff'); gg.addColorStop(1, '#3aa0d8'); g.fillStyle = gg; g.beginPath(); g.arc(x, y, rr, 0, 7); g.fill(); }
+  const rg = g.createRadialGradient(330, 300, 30, 360, 340, 200); rg.addColorStop(0, '#ff5a6a'); rg.addColorStop(0.7, '#e01428'); rg.addColorStop(1, '#a00818');
+  g.fillStyle = rg; g.beginPath(); g.ellipse(360, 345, 205, 190, 0, 0, 7); g.fill();
+  const dg = g.createRadialGradient(360, 345, 10, 360, 345, 140); dg.addColorStop(0, 'rgba(120,0,15,0.55)'); dg.addColorStop(1, 'rgba(120,0,15,0)');
+  g.fillStyle = dg; g.beginPath(); g.ellipse(360, 345, 140, 130, 0, 0, 7); g.fill();
+  const fc = document.createElement('canvas'); fc.width = fc.height = 256; drawFace(fc.getContext('2d'), 256, 'happy');
+  g.drawImage(fc, 360 - 150, 345 - 150, 300, 300);
+  g.textAlign = 'left'; g.fillStyle = '#fff3ea';
+  g.font = '800 64px "M PLUS Rounded 1c",sans-serif'; g.fillText('めぐれ！赤血球', 640, 140);
+  g.font = '800 34px "M PLUS Rounded 1c",sans-serif'; g.fillStyle = '#ffb8c0'; g.fillText(r.course + ' コース', 644, 205);
+  g.fillStyle = '#ffb8c0'; g.font = '800 40px "M PLUS Rounded 1c",sans-serif'; g.fillText('記録', 644, 270);
+  g.fillStyle = '#ffffff'; g.font = '800 120px "M PLUS Rounded 1c",sans-serif'; g.fillText(r.rec, 636, 380);
+  g.fillStyle = '#ffd45c'; g.font = '800 50px "M PLUS Rounded 1c",sans-serif'; g.fillText(r.title, 642, 450);
+  g.fillStyle = '#fff3ea'; g.font = '800 30px "M PLUS Rounded 1c",sans-serif'; g.fillText(`ゴール ${r.time} ・ 酸素 ${r.deliv}個 ・ 退治 ${r.killed}匹`, 644, 510);
+  g.fillStyle = 'rgba(255,243,234,0.7)'; g.font = '800 26px "M PLUS Rounded 1c",sans-serif'; g.fillText('nkworks-games.com/megure-sekkekkyu', 644, 610);
+  return c;
+}
+async function shareResult() {
+  if (!lastResult) return; Snd.click();
+  const text = shareText(lastResult);
+  const c = await makeShareImage(lastResult);
+  const blob = await new Promise(res => c.toBlob(res, 'image/png'));
+  if (blob && navigator.canShare) {
+    const file = new File([blob], 'megure-sekkekkyu.png', { type: 'image/png' });
+    if (navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  }
+  $('share-img').src = blob ? URL.createObjectURL(blob) : c.toDataURL('image/png');
+  UI.showScreen('share-view');
+}
+
+/* ===== 操作 ===== */
+gameEl.addEventListener('pointerdown', e => {
+  if (e.target.closest('button') || e.target.closest('.screen.show')) return;
+  Snd.init();
+  if (G.state === 'paused') { resume(); return; }
+  if (!['ready', 'count', 'run'].includes(G.state)) return;
+  touch.on = true; touch.id = e.pointerId; touch.x = e.clientX; touch.y = e.clientY;
+  try { gameEl.setPointerCapture(e.pointerId); } catch (_) { }
+  if (G.state === 'ready') { G.state = 'count'; G.lastCountAt = G.gt - 1; $('ready').classList.remove('show'); store.set('tut', 1); }
+  if (G.state === 'run') Snd.unfold();
+  e.preventDefault();
+});
+gameEl.addEventListener('pointermove', e => {
+  if (!touch.on || e.pointerId !== touch.id) return;
+  const dx = e.clientX - touch.x, dy = e.clientY - touch.y; touch.x = e.clientX; touch.y = e.clientY;
+  const k = Math.max(1.5, radius(pl.s) - PR_OPEN) / (gameEl.clientWidth * 0.42);
+  pl.tx += dx * k; pl.ty -= dy * k;
+  if (pl.caught) shakeInput(dx);
+});
+const endTouch = e => { if (e.pointerId !== touch.id) return; touch.on = false; touch.id = null; if (G.state === 'run') Snd.fold(); };
+gameEl.addEventListener('pointerup', endTouch); gameEl.addEventListener('pointercancel', endTouch);
+gameEl.addEventListener('contextmenu', e => e.preventDefault());
+function pause() { if (G.state === 'run' || G.state === 'count') { G.prevState = G.state; G.state = 'paused'; touch.on = false; touch.id = null; Snd.loops(0, 0); $('pause').classList.add('show'); } }
+function resume() { if (G.state !== 'paused' || G.blocked) return; G.state = G.prevState; $('pause').classList.remove('show'); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+
+$('btn-mute').classList.toggle('muted', Snd.muted);
+$('btn-mute').addEventListener('click', () => { Snd.init(); Snd.setMuted(!Snd.muted); $('btn-mute').classList.toggle('muted', Snd.muted); });
+$('btn-howto').addEventListener('click', () => { Snd.init(); Snd.click(); UI.showScreen('howto'); });
+$('btn-howto-close').addEventListener('click', () => { Snd.click(); UI.showScreen('screen-title'); });
+$('btn-retry').addEventListener('click', () => { Snd.click(); startCourse(G.ci); });
+$('btn-select').addEventListener('click', () => { Snd.click(); UI.toTitle(); });
+$('btn-share').addEventListener('click', shareResult);
+$('btn-share-x').addEventListener('click', () => { if (lastResult) window.open('https://x.com/intent/post?text=' + encodeURIComponent(shareText(lastResult)), '_blank', 'noopener'); });
+$('btn-share-close').addEventListener('click', () => UI.showScreen('screen-result'));
+
+/* ===== 画面サイズ ===== */
+function resize() {
+  const w = Math.max(1, gameEl.clientWidth), h = Math.max(1, gameEl.clientHeight);
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2); mapC.width = Math.max(1, mapC.clientWidth * dpr); mapC.height = Math.max(1, mapC.clientHeight * dpr);
+  const coarse = window.matchMedia && matchMedia('(pointer:coarse)').matches;
+  const land = !!coarse && window.innerWidth > window.innerHeight;
+  G.blocked = land; $('rotate').classList.toggle('show', land);
+  if (land) pause();
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+
+/* ===== メインループ ===== */
+let lastNow = performance.now();
+function frame(now) {
+  requestAnimationFrame(frame);
+  const rdt = Math.min(0.05, Math.max(0, (now - lastNow) / 1000)); lastNow = now;
+  if (G.blocked || G.state === 'paused') { renderer.render(scene, camera); return; }
+  tick(rdt);
+  renderer.render(scene, camera);
+}
+function tick(rdt) {
+  if (G.slowT > 0) { G.slowT -= rdt; G.ts = G.slowT > 0.3 ? 0.22 : lerp(1, 0.22, G.slowT / 0.3); } else G.ts = 1;
+  const dt = rdt * G.ts;
+  G.gt += dt;
+  if (G.state === 'run') G.t += dt;
+  if (G.state === 'title') {
+    pl.tx = Math.sin(G.gt * 0.7) * 2; pl.ty = Math.cos(G.gt * 0.5) * 1.2 - 0.3;
+    if (pl.s > SEC.aorta.start + 100) { pl.s = pl.prevS = 20; snapCamera(); }
+  }
+  updateBeat();
+  updatePlayer(dt);
+  updateGerms(dt);
+  if (G.state === 'run') {
+    const si = secIndex(Math.min(pl.s, TOTAL - 1));
+    if (si !== G.secIdx) { const first = G.secIdx < 0; G.secIdx = si; const sec = SECTIONS[si]; const sp = first ? '' : `${fmtTime(G.t)} ` + recordSplit(si); if (sec.sub || sp) UI.banner(sec.name, sec.sub, sp); }
+    if (pl.s >= GOAL_S) finishRace();
+  }
+  if (G.state === 'goal') { G.goalTimer += rdt; if (G.goalTimer > 1.9 && !G.resultShown) { G.resultShown = true; showResult(); } }
+  updateValves(dt);
+  updateGhost();
+  updateVisuals(dt, rdt);
+  updateWoundVisuals(dt);
+  updateStreaks(dt);
+  updateDanger(rdt);
+  updateCamera(rdt);
+  drawSpeedFX(rdt);
+  UI.frame(rdt);
+}
+resize();
+UI.toTitle();
+$('loading').style.display = 'none';
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
