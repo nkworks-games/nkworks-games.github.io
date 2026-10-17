@@ -445,25 +445,20 @@ class FirebaseBackend {
   }
   async stab(b, h, nm, cur, user) {
     await this.authP;
-    const { runTransaction, serverTimestamp, arrayUnion, increment } = this.fs, first = !user || user.b !== b, curRef = this.d('taru', 'cur');
+    // 読みこみ（read）を 使わずに 1回で 書く（速い・サーバーが 混んでいても 刺せる）
+    const { writeBatch, serverTimestamp, arrayUnion, increment } = this.fs;
+    const bt = writeBatch(this.db), first = !user || user.b !== b;
+    // 混み具合（heat）は 見えている 樽の 数字から 計算（時計の ずれに そなえて 3秒 さかのぼる＝少し 多めに 数える）
+    const heat = L.heatAt(cur, clock.now() - 3000) + 1;
+    bt.set(this.d('taruSwords', b + '_' + h), { u: this.uid, nm, t: serverTimestamp() });
+    bt.set(this.d('taruUsers', this.uid), { last: serverTimestamp(), b, h, nm });
+    bt.set(this.d('taruChunks', b + '_' + L.chunkOf(h)), { f: arrayUnion(h) }, { merge: true });
+    bt.update(this.d('taru', 'cur'), { n: increment(1), p: increment(first ? 1 : 0), heat, ht: serverTimestamp() });
     try {
-      // 混み具合（heat）は 最新の 樽を 読んでから 書く（ほぼ同時に 刺されても 自動で 読み直す）
-      const r0 = await runTransaction(this.db, async tx => {
-        const s = await tx.get(curRef); if (!s.exists()) return 'none';
-        const c = s.data(); if (c.b !== b) return 'moved';
-        // 時計の ずれに そなえて 3秒 さかのぼって 計算（少し 多めに 数える＝サーバーの 決まりで 通る側）
-        const heat = L.heatAt({ heat: c.heat || 0, ht: this.ms(c.ht), start: this.ms(c.start) }, clock.now() - 3000) + 1;
-        tx.set(this.d('taruSwords', b + '_' + h), { u: this.uid, nm, t: serverTimestamp() });
-        tx.set(this.d('taruUsers', this.uid), { last: serverTimestamp(), b, h, nm });
-        tx.set(this.d('taruChunks', b + '_' + L.chunkOf(h)), { f: arrayUnion(h) }, { merge: true });
-        tx.update(curRef, { n: increment(1), p: increment(first ? 1 : 0), heat, ht: serverTimestamp() });
-        return 'sent';
-      }, { maxAttempts: 6 });
-      if (r0 === 'moved') return { ok: false, reason: 'moved' };
-      if (r0 !== 'sent') return { ok: false, reason: 'offline' };
-      let t = null; try { const u = await this.getUser(); t = u && u.last; } catch (e) { }
-      return { ok: true, t };
+      await bt.commit();
+      return { ok: true, t: clock.now() + 1000 };   // 刺した時刻（サーバーの 時計に あわせた 見つもり。少し あとに して 待ち時間を 短く 見せない）
     } catch (e) {
+      if (e && e.code === 'resource-exhausted') return { ok: false, reason: 'busy', err: e.code };
       if (e && e.code === 'permission-denied') {
         // 理由を調べる（取られた穴か・待ち時間か・樽が変わったか）
         try {
@@ -1493,7 +1488,7 @@ function updatePush(dt) {
   if (P.stab && !P.stab.ok) { // 刺せなかった
     P.k = Math.max(0, P.k - dt * 3); stage.showMine(P.h, P.k);
     if (P.k <= 0) {
-      const why = { taken: 'ひと足先に、だれかがその穴に刺しました', cool: '待ち時間がまだ残っています', moved: 'その前に、樽が飛びました！', offline: 'つながりませんでした。もう一度ためしてね', bad: 'その穴には刺せません' }[P.stab.reason] || '刺せませんでした';
+      const why = { taken: 'ひと足先に、だれかがその穴に刺しました', cool: '待ち時間がまだ残っています', moved: 'その前に、樽が飛びました！', offline: 'つながりませんでした。もう一度ためしてね', busy: 'サーバーが混み合っています。少し待ってからためしてね', bad: 'その穴には刺せません' }[P.stab.reason] || '刺せませんでした';
       A.push = null; A.sel = null; stage.select(null); stage.showMine(null); $('sword').classList.remove('press'); stage.lidShake = 0; renderTop(); renderSword(); renderHint(); toast(why); Snd.ng();
       if (A.pendingFly) { const pv = A.pendingFly; A.pendingFly = null; onBarrelChanged(pv, A.cur); }
     }
@@ -1511,16 +1506,17 @@ function updatePush(dt) {
       if (P.claim.ok) { A.push = null; A.pendingFly = null; doFlight({ me: true, b: P.b, h: P.h }); }
       else if (P.claim.done === false) finishUnknown(P);
       else { finishSafe(P); if (A.pendingFly) { const pv = A.pendingFly; A.pendingFly = null; setTimeout(() => onBarrelChanged(pv, A.cur), 900); } }
-    } else if (P.waitT > 40) finishUnknown(P);
+    } else if (P.stab && P.stab.ok && P.waitT > 4) finishUnknown(P, 'claim');   // 刺さったのに 当たりの返事が 来ない → 待たせずに 先へ（あとで 自動で 聞き直す）
+    else if (!P.stab && P.waitT > 10) finishUnknown(P, 'stab');                  // 刺した 返事が 来ない → 待たせずに 先へ（届いたら 自動で 当たりも 聞く）
     else if (P.waitT > 2.5 && !P.slow) { P.slow = true; $('hint').textContent = '結果を確認中…'; }
   }
 }
 // 電波が 弱くて 結果が 分からない時（セーフとは 言わない。あとで 自動で 聞き直す）
-function finishUnknown(P) {
+function finishUnknown(P, why) {
   A.push = null; A.sel = null; stage.select(null); stage.showMine(null); stage.forceSw = true; stage.swordDirty = true;
   $('sword').classList.remove('press'); $('sw-fill').style.width = '0'; stage.lidShake = 0;
   renderTop(); renderSword(); renderHint();
-  toast('電波が弱くて、結果がまだ分かりません。<br>つながったら自動で確認します', 4200);
+  toast(why === 'claim' ? '刺さりました！<br>当たりかどうかは、自動で確認します' : why === 'stab' ? 'サーバーの返事が おそいです。<br>届いたら 自動で 刺さります' : '電波が弱くて、結果がまだ分かりません。<br>つながったら自動で確認します', 4200);
   if (A.pendingFly) { const pv = A.pendingFly; A.pendingFly = null; setTimeout(() => onBarrelChanged(pv, A.cur), 900); }
 }
 function finishSafe(P) {
