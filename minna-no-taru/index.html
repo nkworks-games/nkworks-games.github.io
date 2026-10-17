@@ -175,7 +175,7 @@ body.solo #sw-txt small{display:block;font-size:10px;opacity:.85;}
       <div class="how"><div class="ic">👆</div><p>樽を<b>指で回して</b>空いている穴を探し、<b>タップ</b>でえらぶ。「空き穴へ」でおまかせもできます。</p></div>
       <div class="how"><div class="ic">🗡️</div><p>下の剣を<b>長押し</b>して押しこむ。押しはじめたら<b>やり直しはできません</b>。</p></div>
       <div class="how"><div class="ic">💥</div><p>飛ぶ穴は<b>1つだけ</b>。当てて樽を飛ばした人が、<b>その樽の主役</b>として名前を残します。次の樽は穴が10倍、樽も大きくなります。</p></div>
-      <div class="how"><div class="ic">⏳</div><p>1本刺したら<b>1分待つ</b>。待っている間は「自分の樽」でも遊べます。</p></div>
+      <div class="how"><div class="ic">⏳</div><p>1本刺したら<b>10秒待つ</b>。何回でも刺したい人は「自分の樽」へ。</p></div>
       <button class="btn" id="how-close">わかった</button>
     </div></div>
 
@@ -274,9 +274,9 @@ function heightOfM(m) {
 const CHUNK = 1000; // 1000穴ずつまとめて保存
 const chunkOf = h => Math.floor(h / CHUNK);
 
-// 待ち時間：いつでも1分（樽の 何日目でも 同じ）
+// 待ち時間：いつでも10秒（樽の 何日目でも 同じ）
 const DAY = 86400000;
-const COOL_MS = 60000;
+const COOL_MS = 10000;
 function coolMs(startMs, nowMs) { return COOL_MS; }
 const dayOf = (startMs, nowMs) => Math.floor(Math.max(0, nowMs - startMs) / DAY) + 1;
 
