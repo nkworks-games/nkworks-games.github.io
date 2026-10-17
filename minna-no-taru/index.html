@@ -632,6 +632,7 @@ const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const BH = 2.0, R_MID = 0.88, R_END = 0.74, Y0 = -0.78, Y1 = 0.78; // 穴があるのは Y0〜Y1
 const radiusAt = y => R_MID - (R_MID - R_END) * Math.pow(2 * y / BH, 2);
 const SILVER = new THREE.Color(0xc9ced6), GOLD = new THREE.Color(0xffc23a);
+const SHOW_NEW = 48, SINK_MS = 900, SOLO_NEW = 40;   // みんなの樽で 外に 出して 見せる 新しい剣の 本数（ほかは 奥まで 沈む）
 
 function texFrom(b64, srgb, repeat) {
   const img = new Image(); img.src = 'data:image/jpeg;base64,' + b64;
@@ -727,7 +728,7 @@ class Stage {
     vec3 base = diffuseColor.rgb, col = base;
     if (d < 1.0) {
       vec3 hole = base * (0.24 + 0.1 * d);   // 中は こげ茶（真っ黒に しない）
-      if (fill > 0.3) hole = (fill > 0.75 ? vec3(1.0, 0.76, 0.23) : vec3(0.78, 0.8, 0.84)) * 0.55;
+      if (fill > 0.3) hole = fill > 0.75 ? vec3(1.0, 0.76, 0.23) * 0.55 : vec3(0.74, 0.74, 0.76) * 0.42;   // 奥まで 沈んだ剣（自分のは 金色）
       col = hole;
     } else if (d < 1.7) col *= 0.8 + 0.2 * (d - 1.0) / 0.7;   // ふちに うすい かげ
     float area = (4.0 * sa * sb + 3.14159 * sb * sb) / (uCW * uCH);
@@ -828,7 +829,7 @@ class Stage {
     U.uCW.value = this.cw; U.uCH.value = this.ch;
     this.holeR = Math.min(0.3 * Math.min(this.cw, this.ch), 0.028);
     this.swordScale = clamp(this.holeR / 0.0187, 0.0001, 1.4);
-    this.filled = new Set(); this.mineSet = new Set(); this.swordDirty = true;
+    this.filled = new Set(); this.mineSet = new Set(); this.swordDirty = true; this.sinkK = new Map(); this.shownPrev = new Set();
     this.mine.visible = false; this.lid.position.set(0, this.lidBaseY, 0); this.lid.rotation.set(0, 0, 0);
     this.group.position.set(0, 0, 0); this.group.visible = true;
     this.nearDist = clamp(Math.min(this.cw, this.ch) * 719 / (34 * 2 * Math.tan(25 * Math.PI / 180)), 0.0005, 2.5) + R_MID;
@@ -838,8 +839,8 @@ class Stage {
     if (h < 0 || h >= this.grid.H) return;
     if (this.fillData[h] === (v === 2 ? 255 : v ? 140 : 0)) return;
     this.fillData[h] = v === 2 ? 255 : v ? 140 : 0; this.fillTex.needsUpdate = true;
-    if (v) { this.filled.add(h); if (v === 2) this.mineSet.add(h); } else { this.filled.delete(h); this.mineSet.delete(h); }
-    this.swordDirty = true;
+    if (v) { this.filled.add(h); if (v === 2) this.mineSet.add(h); } else { this.filled.delete(h); this.mineSet.delete(h); this.sinkK.delete(h); }
+    this.swordDirty = true; this.forceSw = true;
   }
   select(h) { this.U.uSel.value = h == null ? -1 : h; this.sel = h; }
 
@@ -866,7 +867,9 @@ class Stage {
     const inc = new Set((this.incoming || []).map(o => o.h));
     for (let r = Math.max(0, r0 - nr); r <= Math.min(g.R - 1, r0 + nr); r++) for (let dc = -nc; dc <= nc; dc++) {
       const c = ((c0 + dc) % g.C + g.C) % g.C, h = r * g.C + c;
-      if (!inc.has(h) && S.filled(h)) list.push([Math.abs(dc) * this.cw + Math.abs(r - r0) * this.ch, h]);
+      if (inc.has(h)) continue;
+      const lq = S.local(h), cn = S.cnt[lq.b];   // 区画ごとに 新しい 40本だけ 外に出す（ほかは 奥まで 沈んで 銀色の しるし）
+      if (lq.i < cn && lq.i >= cn - SOLO_NEW) list.push([Math.abs(dc) * this.cw + Math.abs(r - r0) * this.ch, h]);
     }
     return list;
   }
@@ -875,7 +878,15 @@ class Stage {
     const g = this.grid, list = this.solo ? this.soloSwordList() : [];
     const vis = this.view === 'far' ? Math.PI * 0.62 : Math.PI * 0.45;
     const cy = this.camY;
-    if (!this.solo) for (const h of this.filled) {
+    // ぎっしり 刺さった剣が 並ぶと 気持ち悪いので、外に 出ている剣は「新しい剣」と「自分の剣」だけ。
+    // 古い剣は 奥まで 沈んで、切れ込みの 銀色（自分のは 金色）の しるしだけに なる
+    const show = this.solo ? null : this.showSet();
+    if (show) {
+      for (const h of this.shownPrev) if (!show.has(h) && this.filled.has(h) && !this.sinkK.has(h)) this.sinkK.set(h, performance.now());
+      for (const h of show) this.sinkK.delete(h);
+      this.shownPrev = show;
+    }
+    if (!this.solo) for (const h of [...show, ...this.sinkK.keys()]) {
       const c = h % g.C, r = Math.floor(h / g.C);
       const phi = (c + 0.5) / g.C * Math.PI * 2 + camDir;
       let a = Math.atan2(Math.sin(phi), Math.cos(phi)); if (Math.abs(a) > vis) continue;
@@ -887,12 +898,29 @@ class Stage {
     for (let i = 0; i < n; i++) {
       const h = list[i][1]; this.holePose(h, P);
       q.setFromUnitVectors(Z, P.nrm);
+      const sk = this.sinkK.get(h); if (sk !== undefined) P.pos.addScaledVector(P.nrm, -0.13 * this.swordScale * ease((performance.now() - sk) / SINK_MS));   // 沈んでいく剣
       m.compose(P.pos, q, s); this.swords.setMatrixAt(i, m);
       this.swords.setColorAt(i, !this.solo && this.mineSet.has(h) ? GOLD : SILVER);
       this.swordIdx = this.swordIdx || []; this.swordIdx[i] = h;
     }
     this.swords.count = n; this.swords.instanceMatrix.needsUpdate = true; if (this.swords.instanceColor) this.swords.instanceColor.needsUpdate = true;
     this.swordDirty = false; this.lastSwordRot = this.rotY; this.lastSwordY = this.camY;
+  }
+  // 外に 出して 見せる剣：いちばん 新しい 48本と、自分の 新しい 10本（filled は 刺された 順に 並んでいる）
+  showSet() {
+    const all = [...this.filled], s = new Set(all.length > SHOW_NEW ? all.slice(-SHOW_NEW) : all);
+    const mine = [...this.mineSet]; for (const h of mine.slice(-10)) s.add(h);
+    return s;
+  }
+  // 飛ぶ時に はじけ飛ぶ剣：見えている所の 刺さった剣 ぜんぶ（沈んでいた剣も 抜けて 飛ぶ）
+  allSwordList() {
+    const g = this.grid, vis = this.view === 'far' ? Math.PI * 0.62 : Math.PI * 0.45, list = [];
+    for (const h of this.filled) {
+      const c = h % g.C, r = Math.floor(h / g.C), phi = (c + 0.5) / g.C * Math.PI * 2 + this.rotY;
+      const a = Math.atan2(Math.sin(phi), Math.cos(phi)); if (Math.abs(a) > vis) continue;
+      list.push([Math.abs(a) * 2 + Math.abs(Y1 - (r + 0.5) * this.ch - this.camY), h]);
+    }
+    return list.sort((p, q) => p[0] - q[0]).slice(0, 3000).map(x => x[1]);
   }
 
   /* ===== カメラ ===== */
@@ -994,12 +1022,17 @@ class Stage {
     // 抜けて 落ちる剣
     const m = new THREE.Matrix4(), p = V3(), q = new THREE.Quaternion(), s = V3();
     if (this.dSwords.parent !== Din) Din.add(this.dSwords);
-    for (let i = 0; i < this.swords.count; i++) {
-      this.swords.getMatrixAt(i, m); m.decompose(p, q, s); this.dSwords.setMatrixAt(i, m);
+    const flyList = this.solo ? null : this.allSwordList(), P0 = { pos: V3(), nrm: V3() }, Z0 = V3(0, 0, 1), S0 = V3(1, 1, 1).multiplyScalar(this.swordScale);
+    const nFly = flyList ? flyList.length : this.swords.count;
+    for (let i = 0; i < nFly; i++) {
+      if (flyList) { this.holePose(flyList[i], P0); q.setFromUnitVectors(Z0, P0.nrm); m.compose(P0.pos, q, S0); this.dSwords.setColorAt(i, this.mineSet.has(flyList[i]) ? GOLD : SILVER); }
+      else { this.swords.getMatrixAt(i, m); this.dSwords.setColorAt(i, SILVER); }
+      m.decompose(p, q, s); this.dSwords.setMatrixAt(i, m);
       const n = V3(0, 0, 1).applyQuaternion(q);
       fx.swords.push({ p: p.clone(), q: q.clone(), s: s.clone(), v: n.clone().multiplyScalar(1.2 + Math.random() * 1.6).add(V3(0, 1.5 + Math.random() * 2, 0)), w: V3(Math.random() * 8, Math.random() * 8, Math.random() * 8), delay: Math.random() * 0.35 });
     }
-    this.dSwords.count = this.swords.count; this.dSwords.instanceMatrix.needsUpdate = true;
+    this.dSwords.count = nFly; this.dSwords.instanceMatrix.needsUpdate = true; if (this.dSwords.instanceColor) this.dSwords.instanceColor.needsUpdate = true;
+    this.sinkK.clear();
     // りんご
     if (this.appleGeo) {
       const n = Math.round(26 * more), im = new THREE.InstancedMesh(this.appleGeo, this.appleMat, n); im.frustumCulled = false; Din.add(im); fx.appleMesh = im;
@@ -1101,6 +1134,7 @@ class Stage {
     if (this.drop) { const d = this.drop; d.t += dt; const k = Math.min(1, d.t / 0.7); this.group.position.y = 6 * (1 - k * k); if (k >= 1) { const b = d.t - 0.7; this.group.position.y = Math.abs(Math.sin(b * 14)) * 0.12 * Math.exp(-b * 6); if (b > 0.8) { this.group.position.y = 0; this.drop = null; } } }
     if (this.reveal && !this.drop) { this.reveal.t += dt; if (this.reveal.t > 0.9) this.setView('far', 0.15); }
     this.group.rotation.y = this.rotY;
+    if (this.sinkK && this.sinkK.size && !this.fx) { const now = performance.now(); for (const [h, t0] of this.sinkK) if (now - t0 > SINK_MS + 50) this.sinkK.delete(h); this.swordDirty = true; this.forceSw = true; }   // 時計で 進める（重い端末でも 同じ速さ）
     // フタのゆれ
     if (!this.fx) {
       const sh = this.lidShake; this.lid.position.set(0, this.lidBaseY + (sh > 0 ? Math.abs(Math.sin(this.t * 40)) * 0.012 * sh : 0), 0);
