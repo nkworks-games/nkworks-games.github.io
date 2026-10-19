@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>こっそりスライド</title>
+<meta name="description" content="間取りをスライドパズルみたいにずらして、見張りに見つからずに目的のものを回収し、建物から脱出するパズルゲーム。">
+<meta property="og:title" content="こっそりスライド">
+<meta property="og:description" content="部屋ごとずらして、見つからずに脱出しろ！ 家・学校・病院・美術館の20ステージ。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nkworks-games.com/kossori-slide/">
+<meta property="og:image" content="https://nkworks-games.com/kossori-slide/card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b1230">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ad:50px; --gap:75px; --safeB:env(safe-area-inset-bottom,0px); --safeT:env(safe-area-inset-top,0px);
+  --gameH:calc(100vh - var(--ad) - var(--gap) - var(--safeB));
+  --gold:#ffcc4d; --mint:#62e3c4; --red:#ff5a5a; --ink:#0b1230; --glass:rgba(10,14,34,.66); --line:rgba(255,255,255,.16);
+}
+@supports (height:100dvh){ :root{ --gameH:calc(100dvh - var(--ad) - var(--gap) - var(--safeB)); } }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#070b1c;overflow:hidden;overscroll-behavior:none}
+body{font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color:#fff;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button{font-family:inherit;-webkit-tap-highlight-color:transparent;cursor:pointer}
+#game{position:fixed;top:0;left:50%;transform:translateX(-50%);height:var(--gameH);width:min(100vw,calc(var(--gameH) * .66));overflow:hidden;background:#0b1230;touch-action:none}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#adGap{position:fixed;left:0;right:0;bottom:calc(var(--ad) + var(--safeB));height:var(--gap);background:#070b1c}
+#adArea{position:fixed;left:0;right:0;bottom:0;height:calc(var(--ad) + var(--safeB));padding-bottom:var(--safeB);display:flex;justify-content:center;align-items:center;background:#070b1c}
+#adArea .slot{width:320px;height:50px;overflow:hidden}
+
+/* HUD */
+#hud{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s}
+#hud.on{opacity:1}
+.top{position:absolute;left:10px;right:10px;top:calc(var(--safeT) + 10px);display:flex;gap:8px;align-items:stretch}
+.chip{background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px}
+.sinfo{flex:1;min-width:0;padding:6px 11px}
+.sinfo .sl{font-size:11.5px;color:#bfe9ff;font-weight:700;white-space:nowrap}
+.sinfo .st{font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.moves{padding:6px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:58px}
+.moves small{font-size:10.5px;opacity:.8}
+.moves b{font-size:22px;line-height:1.05;font-variant-numeric:tabular-nums}
+.ibtns{display:flex;flex-direction:column;gap:6px}
+.ibtn{pointer-events:auto;width:38px;flex:1;min-height:30px;display:grid;place-items:center;color:#fff;padding:0}
+.ibtn svg{width:18px;height:18px}
+.itemsBar{position:absolute;left:10px;right:10px;top:calc(var(--safeT) + 70px);display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.itemChip{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 6px;font-size:12.5px;font-weight:700;border-radius:999px;background:var(--glass);border:1px solid var(--line);transition:all .3s}
+.itemChip i{font-style:normal;font-size:16px;filter:grayscale(1) opacity(.5)}
+.itemChip.got{background:rgba(98,227,196,.22);border-color:rgba(98,227,196,.6)}
+.itemChip.got i{filter:none}
+.itemChip.got span::after{content:" ✓";color:var(--mint)}
+.itemChip.exit i{filter:none}
+.bottom{position:absolute;left:10px;right:10px;bottom:10px;display:flex;flex-direction:column;align-items:center;gap:8px}
+#hint{max-width:100%;padding:7px 14px;font-size:13px;font-weight:700;line-height:1.5;text-align:center;opacity:0;transition:opacity .3s}
+#hint.on{opacity:1}
+.btnrow{display:flex;gap:8px;width:100%;justify-content:center}
+.pbtn{pointer-events:auto;flex:1;max-width:150px;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-weight:800;font-size:14px;padding:10px 6px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:6px}
+.pbtn:disabled{opacity:.35}
+.pbtn svg{width:17px;height:17px;flex:none}
+#hintBtn{color:#ffe08a}
+#toast{position:absolute;left:0;right:0;top:40%;text-align:center;font-weight:800;font-size:15px;opacity:0;pointer-events:none;text-shadow:0 2px 8px #000,0 0 2px #000;padding:0 20px;line-height:1.5}
+#toast.go{animation:toast 1.8s ease-out}
+@keyframes toast{0%{opacity:0;transform:translateY(8px)}12%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0}}
+#flash{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,40,40,0) 40%,rgba(255,40,40,.55));opacity:0;transition:opacity .25s}
+#flash.on{opacity:1}
+
+/* screens */
+.screen{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:16px;z-index:5}
+.screen.on{display:flex}
+.panel{width:100%;max-width:370px;background:rgba(9,13,32,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:22px;padding:18px 16px 16px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:rise .3s ease-out;max-height:100%;overflow:auto}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:13px 10px;font-size:17px;font-weight:800;color:#1a1300;background:linear-gradient(180deg,#ffe07a,#ffb931);box-shadow:0 4px 0 #b97a12;margin-top:10px}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #b97a12}
+.btn.sub{color:#fff;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);font-size:15px;padding:11px 10px}
+.btn.mint{background:linear-gradient(180deg,#8ff3db,#3fcfae);box-shadow:0 4px 0 #1f8f74;color:#062a22}
+.row{display:flex;gap:8px}.row .btn{flex:1}
+.kicker{font-size:12px;letter-spacing:2px;color:var(--mint);font-weight:800}
+h2{margin:4px 0 8px;font-size:26px;font-weight:800}
+.story{font-size:14px;line-height:1.7;margin:4px 0 10px;opacity:.95}
+.goalBox{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0 4px}
+.goalBox .itemChip{font-size:13.5px}
+.rule{font-size:13px;line-height:1.6;text-align:left;background:rgba(98,227,196,.09);border:1px solid rgba(98,227,196,.25);border-radius:12px;padding:8px 11px;margin:8px 0 2px}
+.rule b{color:var(--mint)}
+.rule .r{color:#ff8a8a}.rule .o{color:#ffb24d}
+.gList{display:flex;flex-direction:column;gap:5px;margin:8px 0 2px;text-align:left}
+.gRow{display:flex;gap:8px;align-items:center;font-size:12.5px;line-height:1.4;background:rgba(255,255,255,.05);border-radius:10px;padding:6px 9px}
+.gRow .gi{font-size:20px;flex:none}
+.gRow b{display:block;font-size:13px}
+.stars{display:flex;justify-content:center;gap:6px;margin:6px 0 4px}
+.stars svg{width:46px;height:46px}
+.stars svg.on{animation:pop .45s cubic-bezier(.3,1.7,.5,1) backwards}
+@keyframes pop{from{transform:scale(0) rotate(-40deg)}}
+.muted{font-size:13px;opacity:.78;line-height:1.6}
+.big{font-size:44px;font-weight:800;line-height:1.05}
+.big small{font-size:16px;opacity:.75;margin-left:3px}
+.line{font-size:17px;font-weight:800;margin:4px 0 6px;color:#ffd0d0}
+
+/* title */
+#title{align-items:flex-end;padding-bottom:18px}
+.logo{margin:0 0 6px;line-height:1.05}
+.logo .a{display:block;font-size:13px;letter-spacing:4px;color:var(--mint);font-weight:800}
+.logo .b{display:block;font-size:min(36px,8.6vw);font-weight:800;letter-spacing:0;white-space:nowrap;background:linear-gradient(180deg,#fff,#ffe08a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 10px rgba(0,0,0,.5))}
+.lead{font-size:13.5px;line-height:1.7;opacity:.92;margin:4px 0 6px}
+.best{font-size:13px;margin-top:10px;opacity:.9}
+.best b{color:var(--gold)}
+.credit{font-size:11px;opacity:.5;margin-top:10px;letter-spacing:1px}
+
+/* select */
+.bsec{margin:10px 0 0;text-align:left}
+.bsec h3{margin:0 0 6px;font-size:15px;display:flex;align-items:center;gap:6px}
+.bsec h3 small{font-size:11.5px;opacity:.7;font-weight:500}
+.sgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.sgrid button{border:1px solid var(--line);background:rgba(255,255,255,.07);color:#fff;border-radius:12px;padding:8px 0 6px;font-weight:800;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.sgrid button:disabled{opacity:.28}
+.sgrid button .ss{font-size:9px;letter-spacing:-1px;color:var(--gold);min-height:11px}
+.sgrid button.cur{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+#rotate{position:fixed;left:0;right:0;top:0;bottom:calc(var(--ad) + var(--gap) + var(--safeB));display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#070b1c;z-index:20;font-weight:800;font-size:17px;text-align:center}
+#rotate svg{width:54px;height:54px}
+#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;opacity:.85;z-index:9;background:#0b1230}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<div id="game">
+  <canvas id="cv"></canvas>
+  <div id="flash"></div>
+  <div id="hud">
+    <div class="top">
+      <div class="chip sinfo"><div class="sl" id="hStage"></div><div class="st" id="hTitle"></div></div>
+      <div class="chip moves"><small>手数</small><b id="hMoves">0</b></div>
+      <div class="ibtns">
+        <button class="chip ibtn" id="muteBtn" aria-label="音のオン・オフ"></button>
+        <button class="chip ibtn" id="menuBtn" aria-label="メニュー"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="5" width="16" height="2.6" rx="1.3"/><rect x="4" y="10.7" width="16" height="2.6" rx="1.3"/><rect x="4" y="16.4" width="16" height="2.6" rx="1.3"/></svg></button>
+      </div>
+    </div>
+    <div class="itemsBar" id="hItems"></div>
+    <div id="toast"></div>
+    <div class="bottom">
+      <div class="chip" id="hint"></div>
+      <div class="btnrow">
+        <button class="pbtn" id="undoBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>1手もどす</button>
+        <button class="pbtn" id="hintBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z" fill="rgba(255,204,77,.35)"/></svg>ヒント</button>
+        <button class="pbtn" id="resetBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>最初から</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="title"><div class="panel">
+    <div class="logo"><span class="a">SNEAK &amp; SLIDE</span><span class="b">こっそりスライド</span></div>
+    <p class="lead">部屋を<b>スライドパズル</b>みたいにずらして道をつなげよう。<br>見張りに見つからずに目的のものを回収して、<br>出口から脱出！</p>
+    <button class="btn" id="playBtn">はじめる</button>
+    <button class="btn sub" id="selectBtn">ステージをえらぶ</button>
+    <div class="best" id="bestLine"></div>
+    <div class="credit">N.K. Works</div>
+  </div></div>
+
+  <div class="screen" id="select"><div class="panel">
+    <div class="kicker">STAGE SELECT</div>
+    <h2 style="font-size:22px">ステージをえらぶ</h2>
+    <div id="selList"></div>
+    <button class="btn sub" id="selBack">もどる</button>
+  </div></div>
+
+  <div class="screen" id="card"><div class="panel" id="cardBody"></div></div>
+
+  <div class="screen" id="menu"><div class="panel">
+    <div class="kicker">MENU</div>
+    <h2 style="font-size:22px">一時停止</h2>
+    <button class="btn" id="mResume">つづける</button>
+    <button class="btn sub" id="mRule">遊び方を見る</button>
+    <button class="btn sub" id="mSelect">ステージをえらぶ</button>
+    <button class="btn sub" id="mTitle">タイトルへ</button>
+  </div></div>
+
+  <div id="loading">よみこみ中…</div>
+</div>
+<div id="rotate">
+  <svg viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><rect x="15" y="6" width="18" height="34" rx="3"/><path d="M6 30a18 18 0 0 0 9 12M42 18a18 18 0 0 0-9-12"/></svg>
+  スマホを縦にして遊んでください
+</div>
+<div id="adGap"></div>
+<div id="adArea"><div class="slot">
+  <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>
+</div></div>
+<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
+
+<script type="module">
+import * as THREE from 'three';
+const DEBUG=/[?&]debug/.test(location.search);
+
+// こっそりスライド — ルール（ゲーム本体と解答プログラムで共通）
+// 方向: 0=北(奥) 1=東(右) 2=南(手前) 3=西(左)
+var KS = (function(){
+  const DX=[0,1,0,-1], DY=[-1,0,1,0];
+  const opp=d=>(d+2)&3;
+
+  function initState(L){
+    const cells=L.cells.slice();
+    const pos=new Array(L.tiles.length).fill(-1);
+    cells.forEach((t,c)=>{ if(t>=0) pos[t]=c; });
+    return {cells,pos,pT:L.player,g:L.guards.map(g=>({t:g.t,d:g.d,k:0})),got:0};
+  }
+  function cloneS(S){ return {cells:S.cells.slice(),pos:S.pos.slice(),pT:S.pT,g:S.g.map(x=>({t:x.t,d:x.d,k:x.k})),got:S.got}; }
+  function nb(L,c,d){ const x=c%L.w+DX[d], y=Math.floor(c/L.w)+DY[d]; if(x<0||y<0||x>=L.w||y>=L.h) return -1; return y*L.w+x; }
+  function door(L,t,d){ return (L.tiles[t].doors>>d)&1; }
+  // ドアどうしがつながっていれば、となりのマスを返す
+  function link(L,S,c,d){
+    const t=S.cells[c]; if(t<0||!door(L,t,d)) return -1;
+    const n=nb(L,c,d); if(n<0) return -1; const u=S.cells[n]; if(u<0||!door(L,u,opp(d))) return -1; return n;
+  }
+  // 見張りに見られているマス（-1=見られていない、それ以外=見ている見張りの番号）
+  function vision(L,S){
+    const seen=new Array(L.w*L.h).fill(-1);
+    S.g.forEach((g,i)=>{ let cur=S.pos[g.t]; if(seen[cur]<0) seen[cur]=i;
+      for(let n=0;n<20;n++){ const nx=link(L,S,cur,g.d); if(nx<0) break; if(seen[nx]<0) seen[nx]=i; cur=nx; } });
+    return seen;
+  }
+  function actions(L,S){
+    const out=[]; const W=L.w*L.h;
+    for(let e=0;e<W;e++){ if(S.cells[e]>=0) continue;
+      for(let d=0;d<4;d++){ const c=nb(L,e,d); if(c<0) continue; const t=S.cells[c]; if(t<0||L.tiles[t].fixed) continue; out.push({k:'slide',from:c,to:e}); } }
+    const pc=S.pos[S.pT];
+    for(let d=0;d<4;d++){ const n=link(L,S,pc,d); if(n>=0) out.push({k:'step',d,from:pc,to:n}); }
+    return out;
+  }
+  // 見張り1人の次の動き（盤面がこのままなら）
+  function guardNext(L,S,i){
+    const g=S.g[i], G=L.guards[i];
+    if(G.kind==='turn'){ const k=(g.k+1)%G.pat.length; return {t:g.t,d:G.pat[k],k,turn:true}; }
+    if(G.kind==='patrol'||G.kind==='patrolR'){
+      const c=S.pos[g.t]; const n=link(L,S,c,g.d); const nt=n>=0?S.cells[n]:-1;
+      if(n>=0 && !S.g.some((o,j)=>j!==i&&o.t===nt)) return {t:nt,d:g.d,k:g.k,move:true};
+      return {t:g.t,d:G.kind==='patrol'?opp(g.d):(g.d+1)&3,k:g.k,turn:true};
+    }
+    return {t:g.t,d:g.d,k:g.k,stay:true};
+  }
+  // 1手すすめる
+  function apply(L,S0,a){
+    const S=cloneS(S0); const ev=[];
+    if(a.k==='slide'){ const t=S.cells[a.from]; S.cells[a.to]=t; S.cells[a.from]=-1; S.pos[t]=a.to; ev.push({k:'slide',t,from:a.from,to:a.to}); }
+    else {
+      const nt=S.cells[a.to]; ev.push({k:'step',fromT:S.pT,toT:nt,d:a.d}); S.pT=nt;
+      const gi=S.g.findIndex(g=>g.t===nt); if(gi>=0){ ev.push({k:'caught',gi,why:'bump'}); return {S,ev,res:'caught',gi}; }
+    }
+    L.items.forEach((it,i)=>{ if(!((S.got>>i)&1) && it.t===S.pT){ S.got|=1<<i; ev.push({k:'pick',i}); } });
+    let seen=vision(L,S);
+    if(seen[S.pos[S.pT]]>=0){ const gi=seen[S.pos[S.pT]]; ev.push({k:'caught',gi,why:'see'}); return {S,ev,res:'caught',gi}; }
+    if(S.pT===L.exit && S.got===(1<<L.items.length)-1){ ev.push({k:'win'}); return {S,ev,res:'win'}; }
+    for(let i=0;i<S.g.length;i++){
+      const nx=guardNext(L,S,i), g=S.g[i];
+      if(nx.move){ ev.push({k:'gmove',gi:i,fromT:g.t,toT:nx.t,d:g.d}); g.t=nx.t;
+        if(nx.t===S.pT){ ev.push({k:'caught',gi:i,why:'walk'}); return {S,ev,res:'caught',gi:i}; } }
+      else if(nx.turn){ ev.push({k:'gturn',gi:i,d0:g.d,d1:nx.d}); g.d=nx.d; g.k=nx.k; }
+    }
+    seen=vision(L,S);
+    if(seen[S.pos[S.pT]]>=0){ const gi=seen[S.pos[S.pT]]; ev.push({k:'caught',gi,why:'see'}); return {S,ev,res:'caught',gi}; }
+    return {S,ev,res:'ok'};
+  }
+  function prepare(L){
+    L.sig=L.tiles.map((t,i)=>{ let s=t.doors+(t.fixed?16:0); if(i===L.exit) s+=32; const it=L.items.findIndex(x=>x.t===i); if(it>=0) s+=64*(it+1); return String.fromCharCode(48+s); });
+    return L;
+  }
+  // 同じ形の部屋は入れかえても同じとみなす
+  function key(L,S){
+    let s=''; for(let c=0;c<S.cells.length;c++){ const t=S.cells[c]; s+= t<0?'.':L.sig[t]; }
+    s+='|'+S.pos[S.pT]; for(const g of S.g) s+=','+S.pos[g.t]+':'+g.d+':'+g.k; return s+'|'+S.got;
+  }
+  return {DX,DY,opp,initState,cloneS,nb,door,link,vision,actions,guardNext,apply,prepare,key};
+})();
+
+
+
+const LEVELS=[{"b":0,"title":"夜食のプリン","story":"冷蔵庫のプリンが食べたい。台所から取ってきて、外のベンチで食べよう！","items":[{"kind":"pudding"}],"opt":5,"path":[{"k":"slide","from":1,"to":2},{"k":"step","from":2,"to":5,"d":2},{"k":"slide","from":4,"to":1},{"k":"slide","from":5,"to":4},{"k":"step","from":4,"to":7,"d":2}],"L":{"w":3,"h":3,"tiles":[{"doors":11,"fixed":1,"type":"genkan"},{"doors":1,"fixed":0,"type":"hallH"},{"doors":6,"fixed":0,"type":"kid"},{"doors":15,"fixed":0,"type":"living"},{"doors":4,"fixed":0,"type":"bedroom"},{"doors":15,"fixed":0,"type":"kitchen"},{"doors":3,"fixed":0,"type":"storage"},{"doors":6,"fixed":0,"type":"washitsu"}],"cells":[1,2,-1,3,4,5,6,0,7],"player":2,"exit":0,"items":[{"t":5}],"guards":[]}},{"b":0,"title":"ゲーム機を取りかえせ","story":"没収されたゲーム機を取り返して、友だちの家へ。自分の部屋ごと動いてみよう。","items":[{"kind":"game"}],"opt":8,"path":[{"k":"slide","from":2,"to":1},{"k":"step","from":1,"to":4,"d":2},{"k":"slide","from":5,"to":2},{"k":"slide","from":4,"to":5},{"k":"step","from":5,"to":8,"d":2},{"k":"step","from":8,"to":5,"d":0},{"k":"slide","from":5,"to":4},{"k":"step","from":4,"to":7,"d":2}],"L":{"w":3,"h":3,"tiles":[{"doors":1,"fixed":1,"type":"genkan"},{"doors":15,"fixed":0,"type":"kitchen"},{"doors":6,"fixed":0,"type":"kid"},{"doors":13,"fixed":0,"type":"bath"},{"doors":15,"fixed":0,"type":"storage"},{"doors":3,"fixed":0,"type":"washitsu"},{"doors":12,"fixed":0,"type":"toilet"},{"doors":1,"fixed":0,"type":"bedroom"}],"cells":[1,-1,2,3,4,5,6,0,7],"player":2,"exit":0,"items":[{"t":7}],"guards":[]}},{"b":0,"title":"テレビの前のお母さん","story":"お母さんがテレビを見ている。マンガを取って、見つからないように玄関へ。","items":[{"kind":"manga"}],"opt":10,"path":[{"k":"slide","from":2,"to":1},{"k":"step","from":1,"to":4,"d":2},{"k":"slide","from":5,"to":2},{"k":"step","from":4,"to":1,"d":0},{"k":"slide","from":4,"to":5},{"k":"slide","from":1,"to":4},{"k":"slide","from":0,"to":1},{"k":"slide","from":3,"to":0},{"k":"slide","from":6,"to":3},{"k":"step","from":4,"to":7,"d":2}],"L":{"w":3,"h":3,"tiles":[{"doors":9,"fixed":1,"type":"genkan"},{"doors":9,"fixed":0,"type":"study"},{"doors":6,"fixed":0,"type":"kid"},{"doors":13,"fixed":0,"type":"toilet"},{"doors":13,"fixed":0,"type":"bedroom"},{"doors":5,"fixed":0,"type":"kitchen"},{"doors":6,"fixed":0,"type":"living"},{"doors":3,"fixed":0,"type":"storage"}],"cells":[1,-1,2,3,4,5,6,0,7],"player":2,"exit":0,"items":[{"t":4}],"guards":[{"t":6,"kind":"watch","who":"mom","d":1}]}},{"b":0,"title":"きょろきょろお父さん","story":"お父さんが何かを探して、きょろきょろ。懐中電灯を持って外へ。","items":[{"kind":"flashlight"}],"opt":12,"path":[{"k":"slide","from":4,"to":3},{"k":"slide","from":5,"to":4},{"k":"slide","from":2,"to":5},{"k":"slide","from":1,"to":2},{"k":"slide","from":0,"to":1},{"k":"step","from":1,"to":4,"d":2},{"k":"slide","from":3,"to":0},{"k":"slide","from":4,"to":3},{"k":"slide","from":7,"to":4},{"k":"step","from":3,"to":4,"d":1},{"k":"slide","from":4,"to":7},{"k":"step","from":7,"to":6,"d":3}],"L":{"w":3,"h":3,"tiles":[{"doors":3,"fixed":1,"type":"genkan"},{"doors":6,"fixed":0,"type":"kid"},{"doors":2,"fixed":0,"type":"hallH"},{"doors":15,"fixed":0,"type":"laundry"},{"doors":9,"fixed":0,"type":"bedroom"},{"doors":11,"fixed":0,"type":"washitsu"},{"doors":12,"fixed":0,"type":"storage"},{"doors":7,"fixed":0,"type":"living"}],"cells":[1,2,3,-1,4,5,0,6,7],"player":1,"exit":0,"items":[{"t":6}],"guards":[{"t":4,"kind":"turn","who":"dad","pat":[2,3],"d":2}]}},{"b":0,"title":"流星群の夜","story":"今夜は流星群！ 望遠鏡を持って、お父さんとお母さんの目をかいくぐれ。","items":[{"kind":"telescope"}],"opt":14,"path":[{"k":"step","from":2,"to":5,"d":2},{"k":"slide","from":1,"to":0},{"k":"slide","from":2,"to":1},{"k":"slide","from":5,"to":2},{"k":"slide","from":2,"to":5},{"k":"slide","from":5,"to":2},{"k":"slide","from":4,"to":5},{"k":"slide","from":5,"to":4},{"k":"slide","from":2,"to":5},{"k":"slide","from":1,"to":2},{"k":"step","from":5,"to":2,"d":0},{"k":"slide","from":2,"to":1},{"k":"step","from":1,"to":4,"d":2},{"k":"step","from":4,"to":7,"d":2}],"L":{"w":3,"h":3,"tiles":[{"doors":1,"fixed":1,"type":"genkan"},{"doors":10,"fixed":0,"type":"kitchen"},{"doors":6,"fixed":0,"type":"kid"},{"doors":12,"fixed":0,"type":"living"},{"doors":7,"fixed":0,"type":"washitsu"},{"doors":3,"fixed":0,"type":"bath"},{"doors":12,"fixed":0,"type":"toilet"},{"doors":11,"fixed":0,"type":"hallH"}],"cells":[-1,1,2,3,4,5,6,0,7],"player":2,"exit":0,"items":[{"t":4}],"guards":[{"t":3,"kind":"watch","who":"mom","d":3},{"t":4,"kind":"patrol","who":"dad","d":2}]}},{"b":1,"title":"体操服をわすれた","story":"明日は体育なのに、体操服を学校に忘れた！ 見回りの先生に気をつけて。","items":[{"kind":"shirt"}],"opt":14,"path":[{"k":"step","from":4,"to":3,"d":3},{"k":"slide","from":1,"to":0},{"k":"slide","from":4,"to":1},{"k":"slide","from":5,"to":4},{"k":"slide","from":8,"to":5},{"k":"slide","from":11,"to":8},{"k":"slide","from":10,"to":11},{"k":"slide","from":7,"to":10},{"k":"slide","from":6,"to":7},{"k":"slide","from":7,"to":6},{"k":"step","from":3,"to":4,"d":1},{"k":"slide","from":4,"to":7},{"k":"step","from":7,"to":6,"d":3},{"k":"step","from":6,"to":9,"d":2}],"L":{"w":3,"h":4,"tiles":[{"doors":1,"fixed":1,"type":"shoko"},{"doors":10,"fixed":1,"type":"stairsS"},{"doors":9,"fixed":0,"type":"science"},{"doors":12,"fixed":0,"type":"hallS"},{"doors":12,"fixed":0,"type":"classroom"},{"doors":10,"fixed":0,"type":"classroom2"},{"doors":14,"fixed":0,"type":"gymstore"},{"doors":13,"fixed":0,"type":"music"},{"doors":9,"fixed":0,"type":"staff"},{"doors":10,"fixed":0,"type":"library"},{"doors":9,"fixed":0,"type":"nurseroom"}],"cells":[-1,2,3,1,4,5,6,7,8,0,9,10],"player":4,"exit":0,"items":[{"t":6}],"guards":[{"t":6,"kind":"patrol","who":"teacher","d":2}]}},{"b":1,"title":"宿題と筆箱","story":"宿題のプリントと筆箱。2つとも持って帰らないと。","items":[{"kind":"paper"},{"kind":"pencil"}],"opt":15,"path":[{"k":"slide","from":3,"to":6},{"k":"slide","from":4,"to":3},{"k":"slide","from":7,"to":4},{"k":"slide","from":4,"to":7},{"k":"slide","from":3,"to":4},{"k":"slide","from":6,"to":3},{"k":"slide","from":7,"to":6},{"k":"step","from":3,"to":6,"d":2},{"k":"slide","from":10,"to":7},{"k":"step","from":6,"to":7,"d":1},{"k":"slide","from":7,"to":10},{"k":"step","from":10,"to":9,"d":3},{"k":"slide","from":10,"to":7},{"k":"slide","from":9,"to":10},{"k":"step","from":10,"to":11,"d":1}],"L":{"w":3,"h":4,"tiles":[{"doors":9,"fixed":1,"type":"shoko"},{"doors":15,"fixed":1,"type":"stairsS"},{"doors":11,"fixed":0,"type":"staff"},{"doors":14,"fixed":0,"type":"science"},{"doors":11,"fixed":0,"type":"music"},{"doors":6,"fixed":0,"type":"classroom"},{"doors":3,"fixed":0,"type":"library"},{"doors":3,"fixed":0,"type":"classroom2"},{"doors":2,"fixed":0,"type":"nurseroom"},{"doors":2,"fixed":0,"type":"artroom"},{"doors":9,"fixed":0,"type":"gymstore"}],"cells":[2,3,4,5,6,1,-1,7,8,9,10,0],"player":5,"exit":0,"items":[{"t":7},{"t":9}],"guards":[{"t":7,"kind":"patrol","who":"teacher","d":1}]}},{"b":1,"title":"用務員さんの目","story":"用務員さんが、ほうきを持ってきょろきょろ。リコーダーを取り返そう。","items":[{"kind":"recorder"}],"opt":18,"path":[{"k":"slide","from":3,"to":0},{"k":"slide","from":4,"to":3},{"k":"slide","from":7,"to":4},{"k":"slide","from":8,"to":7},{"k":"slide","from":5,"to":8},{"k":"step","from":8,"to":7,"d":3},{"k":"slide","from":8,"to":5},{"k":"step","from":7,"to":6,"d":3},{"k":"slide","from":7,"to":8},{"k":"slide","from":4,"to":7},{"k":"slide","from":1,"to":4},{"k":"slide","from":0,"to":1},{"k":"slide","from":3,"to":0},{"k":"slide","from":4,"to":3},{"k":"step","from":6,"to":3,"d":0},{"k":"slide","from":3,"to":4},{"k":"step","from":4,"to":7,"d":2},{"k":"step","from":7,"to":10,"d":2}],"L":{"w":3,"h":4,"tiles":[{"doors":3,"fixed":1,"type":"shoko"},{"doors":11,"fixed":1,"type":"stairsS"},{"doors":5,"fixed":0,"type":"hallS"},{"doors":8,"fixed":0,"type":"classroom2"},{"doors":7,"fixed":0,"type":"gymstore"},{"doors":10,"fixed":0,"type":"classroom3"},{"doors":10,"fixed":0,"type":"classroom"},{"doors":5,"fixed":0,"type":"music"},{"doors":10,"fixed":0,"type":"artroom"},{"doors":3,"fixed":0,"type":"nurseroom"},{"doors":15,"fixed":0,"type":"staff"}],"cells":[-1,2,3,4,5,6,1,7,8,9,0,10],"player":6,"exit":0,"items":[{"t":7}],"guards":[{"t":4,"kind":"turn","who":"janitor","pat":[3,1],"d":3},{"t":10,"kind":"patrol","who":"teacher","d":0}]}},{"b":1,"title":"先生がふたり","story":"先生が2人で見回り中。上ばきを持って帰ろう。","items":[{"kind":"shoes","name":"上ばき"}],"opt":19,"path":[{"k":"slide","from":1,"to":0},{"k":"slide","from":2,"to":1},{"k":"slide","from":5,"to":2},{"k":"slide","from":8,"to":5},{"k":"slide","from":7,"to":8},{"k":"slide","from":6,"to":7},{"k":"step","from":0,"to":3,"d":2},{"k":"slide","from":3,"to":6},{"k":"step","from":6,"to":7,"d":1},{"k":"step","from":7,"to":10,"d":2},{"k":"slide","from":6,"to":3},{"k":"slide","from":7,"to":6},{"k":"slide","from":8,"to":7},{"k":"step","from":10,"to":7,"d":0},{"k":"slide","from":7,"to":8},{"k":"step","from":8,"to":11,"d":2},{"k":"step","from":11,"to":8,"d":0},{"k":"slide","from":8,"to":7},{"k":"step","from":7,"to":10,"d":2}],"L":{"w":3,"h":4,"tiles":[{"doors":3,"fixed":1,"type":"shoko"},{"doors":14,"fixed":1,"type":"stairsS"},{"doors":12,"fixed":0,"type":"classroom"},{"doors":3,"fixed":0,"type":"classroom2"},{"doors":15,"fixed":0,"type":"staff"},{"doors":7,"fixed":0,"type":"science"},{"doors":12,"fixed":0,"type":"gymstore"},{"doors":15,"fixed":0,"type":"hallS"},{"doors":14,"fixed":0,"type":"music"},{"doors":15,"fixed":0,"type":"library"},{"doors":5,"fixed":0,"type":"nurseroom"}],"cells":[-1,2,3,4,1,5,6,7,8,9,0,10],"player":2,"exit":0,"items":[{"t":10}],"guards":[{"t":4,"kind":"patrol","who":"teacher","d":3},{"t":9,"kind":"patrol","who":"teacher2","d":1}]}},{"b":1,"title":"自由研究の提出日","story":"自由研究と絵の具セット。今夜中に持ち帰って仕上げる！","items":[{"kind":"book"},{"kind":"paints"}],"opt":21,"path":[{"k":"slide","from":6,"to":9},{"k":"slide","from":3,"to":6},{"k":"slide","from":4,"to":3},{"k":"slide","from":7,"to":4},{"k":"slide","from":6,"to":7},{"k":"slide","from":7,"to":6},{"k":"slide","from":4,"to":7},{"k":"slide","from":3,"to":4},{"k":"slide","from":0,"to":3},{"k":"slide","from":3,"to":0},{"k":"slide","from":4,"to":3},{"k":"slide","from":7,"to":4},{"k":"slide","from":6,"to":7},{"k":"slide","from":3,"to":6},{"k":"step","from":7,"to":6,"d":3},{"k":"slide","from":6,"to":3},{"k":"slide","from":7,"to":6},{"k":"slide","from":8,"to":7},{"k":"step","from":3,"to":4,"d":1},{"k":"step","from":4,"to":7,"d":2},{"k":"step","from":7,"to":10,"d":2}],"L":{"w":3,"h":4,"tiles":[{"doors":11,"fixed":1,"type":"shoko"},{"doors":15,"fixed":1,"type":"stairsS"},{"doors":5,"fixed":0,"type":"staff"},{"doors":12,"fixed":0,"type":"hallS"},{"doors":6,"fixed":0,"type":"gymstore"},{"doors":8,"fixed":0,"type":"classroom"},{"doors":3,"fixed":0,"type":"classroom2"},{"doors":1,"fixed":0,"type":"science"},{"doors":12,"fixed":0,"type":"artroom"},{"doors":5,"fixed":0,"type":"library"},{"doors":5,"fixed":0,"type":"nurseroom"}],"cells":[2,3,4,5,6,1,7,8,9,-1,0,10],"player":5,"exit":0,"items":[{"t":9},{"t":8}],"guards":[{"t":4,"kind":"turn","who":"janitor","pat":[1,3],"d":1},{"t":8,"kind":"patrol","who":"teacher","d":3}]}},{"b":2,"title":"注射がこわい","story":"もうすぐ注射の時間…いやだ！ くつを取って、病院から逃げ出そう。","items":[{"kind":"shoes"}],"opt":11,"path":[{"k":"slide","from":3,"to":0},{"k":"slide","from":4,"to":3},{"k":"slide","from":3,"to":4},{"k":"slide","from":0,"to":3},{"k":"slide","from":1,"to":0},{"k":"slide","from":4,"to":1},{"k":"slide","from":3,"to":4},{"k":"step","from":4,"to":7,"d":2},{"k":"slide","from":8,"to":5},{"k":"slide","from":7,"to":8},{"k":"step","from":8,"to":11,"d":2}],"L":{"w":3,"h":4,"tiles":[{"doors":1,"fixed":1,"type":"exitH"},{"doors":13,"fixed":1,"type":"elevator"},{"doors":9,"fixed":0,"type":"exam"},{"doors":10,"fixed":0,"type":"lab"},{"doors":12,"fixed":0,"type":"ward"},{"doors":3,"fixed":0,"type":"xray"},{"doors":5,"fixed":0,"type":"waiting"},{"doors":10,"fixed":0,"type":"hallP"},{"doors":11,"fixed":0,"type":"station"},{"doors":3,"fixed":0,"type":"ward2"}],"cells":[-1,2,3,4,5,-1,1,6,7,8,9,0],"player":4,"exit":0,"items":[{"t":6}],"guards":[{"t":8,"kind":"patrolR","who":"nurse","d":3}]}},{"b":2,"title":"診察室のお医者さん","story":"ぼうしと水筒も忘れずに。お医者さんは診察室でずっと待っている。","items":[{"kind":"cap"},{"kind":"bottle"}],"opt":13,"path":[{"k":"slide","from":4,"to":3},{"k":"slide","from":5,"to":2},{"k":"slide","from":7,"to":4},{"k":"slide","from":10,"to":7},{"k":"slide","from":2,"to":5},{"k":"slide","from":1,"to":2},{"k":"slide","from":4,"to":1},{"k":"slide","from":5,"to":4},{"k":"step","from":4,"to":7,"d":2},{"k":"step","from":7,"to":6,"d":3},{"k":"step","from":6,"to":7,"d":1},{"k":"slide","from":7,"to":10},{"k":"step","from":10,"to":9,"d":3}],"L":{"w":3,"h":4,"tiles":[{"doors":3,"fixed":1,"type":"exitH"},{"doors":5,"fixed":1,"type":"elevator"},{"doors":11,"fixed":0,"type":"xray"},{"doors":10,"fixed":0,"type":"lab"},{"doors":14,"fixed":0,"type":"shopH"},{"doors":4,"fixed":0,"type":"ward"},{"doors":10,"fixed":0,"type":"pharmacy"},{"doors":15,"fixed":0,"type":"exam"},{"doors":9,"fixed":0,"type":"waiting"},{"doors":5,"fixed":0,"type":"station"}],"cells":[2,3,-1,-1,4,5,6,7,1,0,8,9],"player":5,"exit":0,"items":[{"t":8},{"t":6}],"guards":[{"t":9,"kind":"patrolR","who":"nurse","d":2},{"t":7,"kind":"watch","who":"doctor","d":0}]}},{"b":2,"title":"看護師さんがふたり","story":"ランドセルを取り返して出口へ。看護師さんが2人で見回っている。","items":[{"kind":"randoseru"}],"opt":15,"path":[{"k":"slide","from":4,"to":7},{"k":"slide","from":1,"to":4},{"k":"slide","from":7,"to":6},{"k":"slide","from":4,"to":1},{"k":"step","from":2,"to":1,"d":3},{"k":"slide","from":1,"to":4},{"k":"step","from":4,"to":3,"d":3},{"k":"slide","from":4,"to":1},{"k":"slide","from":6,"to":7},{"k":"slide","from":7,"to":4},{"k":"slide","from":10,"to":7},{"k":"slide","from":11,"to":10},{"k":"slide","from":7,"to":6},{"k":"step","from":3,"to":6,"d":2},{"k":"step","from":6,"to":9,"d":2}],"L":{"w":3,"h":4,"tiles":[{"doors":1,"fixed":1,"type":"exitH"},{"doors":15,"fixed":1,"type":"elevator"},{"doors":10,"fixed":0,"type":"hallP"},{"doors":10,"fixed":0,"type":"xray"},{"doors":9,"fixed":0,"type":"ward"},{"doors":12,"fixed":0,"type":"ward2"},{"doors":7,"fixed":0,"type":"waiting"},{"doors":12,"fixed":0,"type":"shopH"},{"doors":5,"fixed":0,"type":"station"},{"doors":9,"fixed":0,"type":"lab"}],"cells":[2,3,4,1,5,6,-1,-1,7,0,8,9],"player":4,"exit":0,"items":[{"t":8}],"guards":[{"t":5,"kind":"patrolR","who":"nurse","d":2},{"t":2,"kind":"patrolR","who":"nurse2","d":3}]}},{"b":2,"title":"消灯のあと","story":"消灯時間をすぎた病院。ゲーム機とマンガを回収しよう。","items":[{"kind":"game"},{"kind":"manga"}],"opt":16,"path":[{"k":"slide","from":6,"to":9},{"k":"slide","from":3,"to":6},{"k":"step","from":1,"to":2,"d":1},{"k":"slide","from":4,"to":3},{"k":"step","from":2,"to":5,"d":2},{"k":"step","from":5,"to":2,"d":0},{"k":"slide","from":5,"to":4},{"k":"step","from":2,"to":1,"d":3},{"k":"step","from":1,"to":2,"d":1},{"k":"slide","from":2,"to":5},{"k":"slide","from":5,"to":8},{"k":"step","from":8,"to":11,"d":2},{"k":"step","from":11,"to":10,"d":3},{"k":"step","from":10,"to":9,"d":3},{"k":"step","from":9,"to":10,"d":1},{"k":"step","from":10,"to":11,"d":1}],"L":{"w":3,"h":4,"tiles":[{"doors":9,"fixed":1,"type":"exitH"},{"doors":5,"fixed":1,"type":"elevator"},{"doors":11,"fixed":0,"type":"exam"},{"doors":2,"fixed":0,"type":"ward"},{"doors":13,"fixed":0,"type":"shopH"},{"doors":5,"fixed":0,"type":"xray"},{"doors":14,"fixed":0,"type":"hallP"},{"doors":11,"fixed":0,"type":"station"},{"doors":6,"fixed":0,"type":"waiting"},{"doors":15,"fixed":0,"type":"lab"}],"cells":[2,3,4,5,6,7,8,1,-1,-1,9,0],"player":3,"exit":0,"items":[{"t":7},{"t":8}],"guards":[{"t":7,"kind":"patrol","who":"nurse","d":1},{"t":1,"kind":"turn","who":"doctor","pat":[0,1],"d":0}]}},{"b":2,"title":"さらば病院","story":"最後の荷物、上着とくつ。みんなの目をかいくぐって外へ！","items":[{"kind":"shirt","name":"上着"},{"kind":"shoes"}],"opt":19,"path":[{"k":"slide","from":1,"to":0},{"k":"slide","from":0,"to":1},{"k":"slide","from":8,"to":11},{"k":"slide","from":1,"to":0},{"k":"slide","from":2,"to":1},{"k":"step","from":3,"to":0,"d":0},{"k":"slide","from":1,"to":2},{"k":"slide","from":0,"to":1},{"k":"slide","from":3,"to":0},{"k":"slide","from":6,"to":3},{"k":"slide","from":7,"to":6},{"k":"slide","from":11,"to":8},{"k":"slide","from":8,"to":7},{"k":"slide","from":5,"to":8},{"k":"step","from":1,"to":4,"d":2},{"k":"step","from":4,"to":7,"d":2},{"k":"step","from":7,"to":6,"d":3},{"k":"step","from":6,"to":7,"d":1},{"k":"step","from":7,"to":10,"d":2}],"L":{"w":3,"h":4,"tiles":[{"doors":11,"fixed":1,"type":"exitH"},{"doors":15,"fixed":1,"type":"elevator"},{"doors":5,"fixed":0,"type":"hallP"},{"doors":15,"fixed":0,"type":"xray"},{"doors":1,"fixed":0,"type":"ward"},{"doors":8,"fixed":0,"type":"exam"},{"doors":12,"fixed":0,"type":"station"},{"doors":14,"fixed":0,"type":"waiting"},{"doors":13,"fixed":0,"type":"ward2"},{"doors":10,"fixed":0,"type":"pharmacy"}],"cells":[-1,2,3,4,1,5,6,7,8,9,0,-1],"player":4,"exit":0,"items":[{"t":8},{"t":7}],"guards":[{"t":7,"kind":"patrolR","who":"nurse","d":2},{"t":2,"kind":"patrolR","who":"nurse2","d":0},{"t":5,"kind":"watch","who":"doctor","d":3}]}},{"b":3,"title":"閉館のチャイム","story":"見学中にねむってしまい、気づけば閉館後…。落としたぼうしを拾って出口へ。","items":[{"kind":"cap"}],"opt":18,"path":[{"k":"slide","from":7,"to":6},{"k":"step","from":6,"to":2,"d":0},{"k":"step","from":2,"to":1,"d":3},{"k":"slide","from":6,"to":7},{"k":"slide","from":7,"to":11},{"k":"slide","from":5,"to":6},{"k":"slide","from":6,"to":7},{"k":"slide","from":1,"to":5},{"k":"slide","from":7,"to":6},{"k":"step","from":5,"to":6,"d":1},{"k":"step","from":6,"to":5,"d":3},{"k":"slide","from":0,"to":1},{"k":"slide","from":4,"to":0},{"k":"slide","from":8,"to":4},{"k":"slide","from":3,"to":7},{"k":"slide","from":9,"to":8},{"k":"slide","from":5,"to":9},{"k":"step","from":9,"to":13,"d":2}],"L":{"w":4,"h":4,"tiles":[{"doors":1,"fixed":1,"type":"exitM"},{"doors":14,"fixed":1,"type":"case"},{"doors":11,"fixed":1,"type":"case"},{"doors":3,"fixed":0,"type":"office"},{"doors":6,"fixed":0,"type":"hallM"},{"doors":3,"fixed":0,"type":"gallery2"},{"doors":14,"fixed":0,"type":"vase"},{"doors":12,"fixed":0,"type":"sculpture"},{"doors":9,"fixed":0,"type":"gallery"},{"doors":2,"fixed":0,"type":"modern"},{"doors":14,"fixed":0,"type":"dino"},{"doors":6,"fixed":0,"type":"shopM"},{"doors":15,"fixed":0,"type":"mummy"},{"doors":14,"fixed":0,"type":"modern"}],"cells":[3,4,1,5,6,7,-1,8,9,10,2,-1,11,0,12,13],"player":8,"exit":0,"items":[{"t":7}],"guards":[{"t":2,"kind":"turn","who":"camera","pat":[0,1,2,3],"d":0},{"t":7,"kind":"patrol","who":"guard","d":2}]}},{"b":3,"title":"カメラがいっぱい","story":"名札とパンフレットを落としてしまった。監視カメラに気をつけて。","items":[{"kind":"nametag"},{"kind":"paper","name":"パンフレット"}],"opt":20,"path":[{"k":"slide","from":12,"to":13},{"k":"slide","from":8,"to":12},{"k":"step","from":13,"to":12,"d":3},{"k":"slide","from":12,"to":8},{"k":"slide","from":13,"to":12},{"k":"slide","from":9,"to":13},{"k":"slide","from":11,"to":7},{"k":"slide","from":5,"to":9},{"k":"slide","from":4,"to":5},{"k":"slide","from":8,"to":4},{"k":"step","from":4,"to":0,"d":0},{"k":"step","from":0,"to":4,"d":2},{"k":"slide","from":9,"to":8},{"k":"slide","from":5,"to":9},{"k":"slide","from":4,"to":5},{"k":"slide","from":8,"to":4},{"k":"slide","from":9,"to":8},{"k":"slide","from":5,"to":9},{"k":"step","from":9,"to":10,"d":1},{"k":"step","from":10,"to":14,"d":2}],"L":{"w":4,"h":4,"tiles":[{"doors":3,"fixed":1,"type":"exitM"},{"doors":5,"fixed":1,"type":"case"},{"doors":13,"fixed":1,"type":"case"},{"doors":12,"fixed":0,"type":"gallery"},{"doors":13,"fixed":0,"type":"shopM"},{"doors":15,"fixed":0,"type":"gallery2"},{"doors":5,"fixed":0,"type":"dino"},{"doors":15,"fixed":0,"type":"sculpture"},{"doors":3,"fixed":0,"type":"mummy"},{"doors":3,"fixed":0,"type":"hallM"},{"doors":11,"fixed":0,"type":"modern"},{"doors":12,"fixed":0,"type":"office"},{"doors":13,"fixed":0,"type":"vase"},{"doors":12,"fixed":0,"type":"mummy"}],"cells":[12,1,4,8,6,7,2,-1,9,10,11,5,3,-1,0,13],"player":3,"exit":0,"items":[{"t":12},{"t":11}],"guards":[{"t":7,"kind":"turn","who":"camera","pat":[1,2,3,0],"d":1},{"t":10,"kind":"turn","who":"camera","pat":[1,2,3,0],"d":1},{"t":6,"kind":"patrol","who":"guard","d":1}]}},{"b":3,"title":"恐竜の部屋","story":"水筒とスケッチブックを回収しよう。警備員さんが2人で見回り中。","items":[{"kind":"bottle"},{"kind":"sketch"}],"opt":22,"path":[{"k":"slide","from":3,"to":7},{"k":"slide","from":2,"to":3},{"k":"slide","from":1,"to":2},{"k":"slide","from":5,"to":1},{"k":"slide","from":4,"to":5},{"k":"slide","from":8,"to":4},{"k":"step","from":4,"to":0,"d":0},{"k":"slide","from":4,"to":8},{"k":"slide","from":0,"to":4},{"k":"step","from":4,"to":5,"d":1},{"k":"step","from":5,"to":6,"d":1},{"k":"slide","from":4,"to":0},{"k":"slide","from":5,"to":4},{"k":"slide","from":1,"to":5},{"k":"slide","from":2,"to":1},{"k":"slide","from":3,"to":2},{"k":"step","from":6,"to":2,"d":0},{"k":"step","from":2,"to":6,"d":2},{"k":"step","from":6,"to":5,"d":3},{"k":"step","from":5,"to":9,"d":2},{"k":"step","from":9,"to":10,"d":1},{"k":"step","from":10,"to":14,"d":2}],"L":{"w":4,"h":4,"tiles":[{"doors":3,"fixed":1,"type":"exitM"},{"doors":11,"fixed":1,"type":"case"},{"doors":15,"fixed":1,"type":"case"},{"doors":11,"fixed":0,"type":"sculpture"},{"doors":7,"fixed":0,"type":"office"},{"doors":7,"fixed":0,"type":"shopM"},{"doors":6,"fixed":0,"type":"dino"},{"doors":1,"fixed":0,"type":"gallery"},{"doors":7,"fixed":0,"type":"mummy"},{"doors":7,"fixed":0,"type":"gallery2"},{"doors":4,"fixed":0,"type":"modern"},{"doors":15,"fixed":0,"type":"hallM"},{"doors":14,"fixed":0,"type":"vase"},{"doors":13,"fixed":0,"type":"modern"}],"cells":[6,8,5,4,3,9,1,-1,7,2,12,-1,11,10,0,13],"player":7,"exit":0,"items":[{"t":5},{"t":9}],"guards":[{"t":9,"kind":"patrolR","who":"guard","d":3},{"t":13,"kind":"turn","who":"camera","pat":[1,2,3,0],"d":1},{"t":11,"kind":"patrol","who":"guard2","d":2}]}},{"b":3,"title":"暗やみの美術館","story":"色えんぴつとガイドブック…。見回りがどんどんきびしくなる。","items":[{"kind":"pencil","name":"色えんぴつ"},{"kind":"manga","name":"ガイドブック"}],"opt":26,"path":[{"k":"slide","from":1,"to":0},{"k":"slide","from":11,"to":15},{"k":"slide","from":7,"to":11},{"k":"slide","from":3,"to":7},{"k":"slide","from":2,"to":3},{"k":"slide","from":5,"to":1},{"k":"slide","from":4,"to":5},{"k":"slide","from":3,"to":2},{"k":"slide","from":0,"to":4},{"k":"step","from":2,"to":1,"d":3},{"k":"slide","from":1,"to":0},{"k":"slide","from":5,"to":1},{"k":"slide","from":4,"to":5},{"k":"slide","from":0,"to":4},{"k":"slide","from":2,"to":3},{"k":"slide","from":1,"to":2},{"k":"slide","from":5,"to":1},{"k":"slide","from":4,"to":5},{"k":"slide","from":8,"to":4},{"k":"slide","from":4,"to":0},{"k":"slide","from":5,"to":4},{"k":"step","from":4,"to":0,"d":0},{"k":"slide","from":4,"to":5},{"k":"slide","from":0,"to":4},{"k":"slide","from":4,"to":8},{"k":"step","from":8,"to":12,"d":2}],"L":{"w":4,"h":4,"tiles":[{"doors":3,"fixed":1,"type":"exitM"},{"doors":5,"fixed":1,"type":"case"},{"doors":15,"fixed":1,"type":"case"},{"doors":1,"fixed":0,"type":"office"},{"doors":7,"fixed":0,"type":"hallM"},{"doors":8,"fixed":0,"type":"gallery"},{"doors":15,"fixed":0,"type":"gallery2"},{"doors":3,"fixed":0,"type":"vase"},{"doors":6,"fixed":0,"type":"sculpture"},{"doors":13,"fixed":0,"type":"dino"},{"doors":11,"fixed":0,"type":"shopM"},{"doors":9,"fixed":0,"type":"modern"},{"doors":5,"fixed":0,"type":"mummy"},{"doors":15,"fixed":0,"type":"sculpture"}],"cells":[-1,4,5,13,3,10,1,11,9,2,6,8,0,12,7,-1],"player":5,"exit":0,"items":[{"t":10},{"t":9}],"guards":[{"t":3,"kind":"patrol","who":"guard","d":2},{"t":4,"kind":"patrol","who":"guard2","d":3},{"t":2,"kind":"turn","who":"camera","pat":[1,2,3,0],"d":1}]}},{"b":3,"title":"ぼくの絵","story":"コンクールで展示されていた自分の絵も持って帰ろう。最後はぼうしをかぶって出口へ！","items":[{"kind":"painting"},{"kind":"cap"}],"opt":33,"path":[{"k":"slide","from":8,"to":12},{"k":"slide","from":4,"to":8},{"k":"slide","from":5,"to":4},{"k":"slide","from":1,"to":5},{"k":"slide","from":11,"to":15},{"k":"slide","from":0,"to":1},{"k":"slide","from":7,"to":11},{"k":"slide","from":3,"to":7},{"k":"slide","from":2,"to":3},{"k":"step","from":5,"to":1,"d":0},{"k":"slide","from":1,"to":2},{"k":"step","from":2,"to":6,"d":2},{"k":"slide","from":2,"to":1},{"k":"slide","from":3,"to":2},{"k":"slide","from":7,"to":3},{"k":"slide","from":1,"to":0},{"k":"slide","from":2,"to":1},{"k":"slide","from":3,"to":2},{"k":"slide","from":11,"to":7},{"k":"slide","from":7,"to":3},{"k":"slide","from":15,"to":11},{"k":"slide","from":11,"to":7},{"k":"step","from":6,"to":7,"d":1},{"k":"slide","from":7,"to":11},{"k":"slide","from":11,"to":15},{"k":"slide","from":10,"to":11},{"k":"slide","from":11,"to":7},{"k":"slide","from":7,"to":11},{"k":"slide","from":11,"to":10},{"k":"step","from":15,"to":14,"d":3},{"k":"slide","from":15,"to":11},{"k":"step","from":14,"to":10,"d":0},{"k":"step","from":10,"to":14,"d":2}],"L":{"w":4,"h":4,"tiles":[{"doors":3,"fixed":1,"type":"exitM"},{"doors":11,"fixed":1,"type":"case"},{"doors":15,"fixed":1,"type":"case"},{"doors":4,"fixed":0,"type":"shopM"},{"doors":13,"fixed":0,"type":"hallM"},{"doors":7,"fixed":0,"type":"mummy"},{"doors":6,"fixed":0,"type":"vase"},{"doors":1,"fixed":0,"type":"gallery"},{"doors":8,"fixed":0,"type":"dino"},{"doors":5,"fixed":0,"type":"modern"},{"doors":12,"fixed":0,"type":"sculpture"},{"doors":8,"fixed":0,"type":"gallery2"},{"doors":1,"fixed":0,"type":"shopM"},{"doors":3,"fixed":0,"type":"office"}],"cells":[9,7,12,5,6,4,1,3,8,2,10,11,-1,13,0,-1],"player":7,"exit":0,"items":[{"t":11},{"t":10}],"guards":[{"t":13,"kind":"patrolR","who":"guard","d":3},{"t":2,"kind":"turn","who":"camera","pat":[3,0,1,2],"d":3},{"t":10,"kind":"patrol","who":"guard2","d":3}]}}];
+
+/* ---------- ヒント：今の状態からの最短の次の1手 ---------- */
+const HintSolver=(()=>{
+  class Heap{ constructor(){this.a=[];} push(x){const a=this.a;a.push(x);let i=a.length-1;while(i>0){const p=(i-1)>>1;if(a[p].f<=x.f)break;a[i]=a[p];i=p;}a[i]=x;}
+    pop(){const a=this.a;const top=a[0];const x=a.pop();if(a.length){let i=0;for(;;){let l=2*i+1,r=l+1,m=i;let mv=x;if(l<a.length&&a[l].f<mv.f){m=l;mv=a[l];}if(r<a.length&&a[r].f<mv.f){m=r;}if(m===i)break;a[i]=a[m];i=m;}a[i]=x;}return top;} get size(){return this.a.length;} }
+  const cxy=(L,c)=>[c%L.w,Math.floor(c/L.w)];
+  function heur(L,S){ const p=cxy(L,S.pos[S.pT]), e=cxy(L,S.pos[L.exit]); let h=Math.abs(p[0]-e[0])+Math.abs(p[1]-e[1]);
+    L.items.forEach((it,i)=>{ if((S.got>>i)&1) return; const q=cxy(L,S.pos[it.t]); const xs=[p[0],q[0],e[0]], ys=[p[1],q[1],e[1]]; h=Math.max(h,Math.max(...xs)-Math.min(...xs)+Math.max(...ys)-Math.min(...ys)); }); return h; }
+  function solveFrom(L,S0,cap=150000){
+    const k0=KS.key(L,S0); const seen=new Map([[k0,{g:0,prev:null,a:null}]]); const open=new Heap(); open.push({f:heur(L,S0),g:0,S:S0,k:k0}); let ex=0;
+    while(open.size){ const n=open.pop(); const rec=seen.get(n.k); if(rec.g<n.g) continue; if(++ex>cap) return {ok:false,why:'cap'};
+      for(const a of KS.actions(L,n.S)){ const r=KS.apply(L,n.S,a); if(r.res==='caught') continue; const g=n.g+1; const A={k:a.k,from:a.from,to:a.to,d:a.d};
+        if(r.res==='win'){ const path=[A]; let cur=n.k; for(;;){ const rr=seen.get(cur); if(!rr.prev) break; path.push(rr.a); cur=rr.prev; } path.reverse(); return {ok:true,path}; }
+        const k=KS.key(L,r.S); const old=seen.get(k); if(old&&old.g<=g) continue; seen.set(k,{g,prev:n.k,a:A}); open.push({f:g+heur(L,r.S),g,S:r.S,k}); } }
+    return {ok:false,why:'nosol'};
+  }
+  return {solveFrom};
+})();
+
+/* =========================================================
+   建物・部屋・もの・見張り
+   ========================================================= */
+const BUILD=[
+ {id:'house',name:'家',sub:'夜の家',exit:'genkan',start:'kid',fixed:'stairs',exitName:'玄関',
+  pool:['living','kitchen','washitsu','bath','toilet','hallH','bedroom','storage','study','laundry'],
+  sky:'#101a44',fog:'#1a2656',ground:'#26402c',hemi:['#a9b8ff','#3b3a2c'],moon:true,
+  intro:'夜中に、こっそり家をぬけ出そう。お父さんとお母さんに見つかったらおしまい！'},
+ {id:'school',name:'学校',sub:'放課後の学校',exit:'shoko',start:'classroom',fixed:'stairsS',exitName:'昇降口',
+  pool:['classroom2','staff','science','music','library','nurseroom','hallS','artroom','gymstore','classroom3'],
+  sky:'#2b1d4a',fog:'#3a2a5c',ground:'#4b3f36',hemi:['#ffc9a8','#4a3a30'],moon:false,
+  intro:'忘れ物を取りに、夜の学校へ。見回りの先生に見つかったら、お説教！'},
+ {id:'hospital',name:'病院',sub:'夜の病院',exit:'exitH',start:'ward',fixed:'elevator',exitName:'出口',
+  pool:['station','exam','waiting','xray','shopH','hallP','ward2','pharmacy','lab'],
+  sky:'#0d2333',fog:'#163346',ground:'#3a4148',hemi:['#bfe6ff','#2b3238'],moon:true,
+  intro:'注射がこわくて病室をぬけ出した！ 荷物を回収して、病院の外へ。'},
+ {id:'museum',name:'美術館',sub:'閉館後の美術館',exit:'exitM',start:'gallery',fixed:'case',exitName:'出口',
+  pool:['sculpture','dino','vase','gallery2','hallM','office','shopM','modern','mummy'],
+  sky:'#120d24',fog:'#1f1838',ground:'#4a4752',hemi:['#d8c9ff','#2c2836'],moon:true,
+  intro:'社会科見学でねむってしまい、閉館後の美術館に取り残された！ 落とし物を拾って出口へ。'},
+];
+const ITEMK={
+ pudding:{name:'プリン',e:'🍮',room:['kitchen']}, game:{name:'ゲーム機',e:'🎮',room:['living','bedroom','station','office']},
+ manga:{name:'マンガ',e:'📕',room:['study','bedroom','library','waiting']}, flashlight:{name:'懐中電灯',e:'🔦',room:['storage','laundry']},
+ telescope:{name:'望遠鏡',e:'🔭',room:['study','washitsu','storage']}, shirt:{name:'体操服',e:'👕',room:['classroom2','classroom3','gymstore']},
+ paper:{name:'宿題プリント',e:'📄',room:['staff','classroom2']}, pencil:{name:'筆箱',e:'✏️',room:['classroom3','library','artroom']},
+ recorder:{name:'リコーダー',e:'🎵',room:['music']}, shoes:{name:'くつ',e:'👟',room:['gymstore','ward2','nurseroom','waiting']},
+ book:{name:'自由研究',e:'📘',room:['science','library']}, paints:{name:'絵の具セット',e:'🎨',room:['artroom']},
+ cap:{name:'ぼうし',e:'🧢',room:['waiting','shopH','sculpture','hallM']}, bottle:{name:'水筒',e:'🧴',room:['shopH','pharmacy','shopM','dino']},
+ randoseru:{name:'ランドセル',e:'🎒',room:['ward2','station','exam']}, nametag:{name:'名札',e:'🏷️',room:['office','vase','modern']},
+ sketch:{name:'スケッチブック',e:'📓',room:['gallery2','modern','dino']}, painting:{name:'自分の絵',e:'🖼️',room:['gallery2','modern']},
+};
+const GK={
+ mom:{name:'お母さん',e:'👩',line:'こら！ まだ起きてたの！？'}, dad:{name:'お父さん',e:'👨',line:'こんな夜中に、どこへ行くんだ？'},
+ teacher:{name:'先生',e:'🧑‍🏫',line:'こんな時間に何してる！'}, teacher2:{name:'教頭先生',e:'👨‍🏫',line:'職員室まで来なさい！'},
+ janitor:{name:'用務員さん',e:'🧹',line:'おや？ だれだい、そこにいるのは'},
+ nurse:{name:'看護師さん',e:'👩‍⚕️',line:'あら、どこ行くの？ 注射の時間よ'}, nurse2:{name:'看護師さん',e:'👩‍⚕️',line:'みーつけた！'},
+ doctor:{name:'お医者さん',e:'🧑‍⚕️',line:'ちょうどよかった、注射しようね'},
+ guard:{name:'警備員さん',e:'👮',line:'そこで何をしている！'}, guard2:{name:'警備員さん',e:'👮',line:'止まりなさい！'},
+ camera:{name:'監視カメラ',e:'📹',line:'ピピーッ！ 映っちゃった…'},
+};
+const KIND_TEXT={
+ watch:'その場から動かず、ずっと同じ向きを見ている',
+ turn:'その場で首をふる。オレンジの矢印が次に見る向き',
+ patrol:'まっすぐ歩く。進めない時はその場で回れ右。足あとが次に行く部屋',
+ patrolR:'まっすぐ歩く。進めない時はその場で右を向く。足あとが次に行く部屋',
+ cam:'ぐるっと時計回りに向きを変える。動かない部屋に付いていることも'
+};
+const DIRN=['奥','右','手前','左'];
+
+/* =========================================================
+   小道具
+   ========================================================= */
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const easeOutBack=t=>{const c1=1.5,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);};
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const store={ get(k,d){ try{ const v=localStorage.getItem('ks.'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} }, set(k,v){ try{ localStorage.setItem('ks.'+k,JSON.stringify(v)); }catch(e){} } };
+let muted=store.get('mute',false);
+let prog=store.get('prog',{stars:{}});
+const FONT='"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif';
+
+/* =========================================================
+   音
+   ========================================================= */
+const Sfx=(()=>{
+  let ctx=null,master,nb;
+  function init(){ if(ctx){ if(ctx.state==='suspended') ctx.resume(); return; } const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; ctx=new AC();
+    master=ctx.createGain(); master.gain.value=muted?0:.8; master.connect(ctx.destination);
+    nb=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate); const d=nb.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; }
+  function tone(f,dur,vol,type='sine',delay=0,f1=null){ if(!ctx) return; const t=ctx.currentTime+delay; const o=ctx.createOscillator(); o.type=type; o.frequency.setValueAtTime(f,t); if(f1) o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+    const g=ctx.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.008); g.gain.exponentialRampToValueAtTime(.0008,t+dur); o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+.05); }
+  function noise(dur,vol,f0,f1,q=1,type='bandpass',delay=0,attack=.005){ if(!ctx) return; const t=ctx.currentTime+delay; const s=ctx.createBufferSource(); s.buffer=nb; const f=ctx.createBiquadFilter(); f.type=type; f.Q.value=q;
+    f.frequency.setValueAtTime(f0,t); f.frequency.exponentialRampToValueAtTime(Math.max(40,f1),t+dur); const g=ctx.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+attack); g.gain.exponentialRampToValueAtTime(.0008,t+dur);
+    s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t+dur+.05); }
+  return { init, setMute(m){ if(ctx) master.gain.setTargetAtTime(m?0:.8,ctx.currentTime,.03); },
+    slide(){ noise(.28,.35,220,90,.8,'lowpass',0,.03); tone(70,.22,.25,'sine',0,50); tone(420,.05,.12,'triangle',.24); },
+    step(){ tone(520,.05,.12,'triangle'); tone(390,.05,.1,'triangle',.17); },
+    gstep(){ tone(160,.07,.18,'sine'); tone(140,.07,.15,'sine',.17); },
+    gturn(){ noise(.12,.08,1800,900,2,'bandpass'); },
+    pick(){ [784,988,1319].forEach((f,i)=>tone(f,.22,.18,'triangle',i*.07)); tone(2637,.3,.05,'sine',.2); },
+    caught(){ tone(880,.16,.28,'square',0); tone(660,.2,.28,'square',.17); noise(.4,.3,900,200,.7,'lowpass'); tone(110,.4,.35,'sine',0,60); },
+    clear(){ [523,659,784,1047,1319].forEach((f,i)=>tone(f,.42,.2,'triangle',i*.09)); },
+    star(i){ tone(988+i*220,.25,.16,'triangle'); tone(1976+i*440,.25,.05,'sine'); },
+    tick(){ tone(880,.05,.12,'triangle'); },
+    nope(){ tone(220,.09,.14,'triangle'); tone(180,.12,.12,'triangle',.07); },
+    undo(){ tone(600,.06,.12,'triangle',0,420); },
+  };
+})();
+
+/* =========================================================
+   3Dの土台
+   ========================================================= */
+const canvas=$('cv');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(32,1,.1,200);
+const hemi=new THREE.HemisphereLight(0xffffff,0x444444,1.0); scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff1dd,2.2); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:1,far:40}); sun.shadow.bias=-.0008; sun.shadow.normalBias=.02;
+scene.add(sun); scene.add(sun.target);
+const TS=2, HS=.95, WH=.42, WT=.07, FLOOR=.08, GAP=.6;
+
+const matCache=new Map();
+function M(color,o={}){ const k=color+JSON.stringify(o); if(matCache.has(k)) return matCache.get(k); const m=new THREE.MeshStandardMaterial({color,roughness:o.r??.75,metalness:o.m??0,emissive:o.e||0x000000,emissiveIntensity:o.ei??1,transparent:!!o.t,opacity:o.t??1,map:o.map||null}); matCache.set(k,m); return m; }
+function box(w,h,d,color,o){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(color,o)); m.castShadow=true; m.receiveShadow=true; return m; }
+function cyl(rt,rb,h,color,seg=16,o){ const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),M(color,o)); m.castShadow=true; m.receiveShadow=true; return m; }
+function sph(r,color,o,ws=16,hs=12){ const m=new THREE.Mesh(new THREE.SphereGeometry(r,ws,hs),M(color,o)); m.castShadow=true; return m; }
+function at(m,x,y,z,ry=0){ m.position.set(x,y,z); m.rotation.y=ry; return m; }
+function tex(w,h,draw){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t; }
+const DOT=tex(64,64,(x)=>{const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.4,'rgba(255,255,255,.5)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);});
+
+/* ---------- 床の模様 ---------- */
+const FLOORS={};
+function floorTex(kind){
+  if(FLOORS[kind]) return FLOORS[kind];
+  const R=rng(kind.length*977+kind.charCodeAt(0));
+  const t=tex(256,256,(x,w,h)=>{
+    const noise=(a)=>{ for(let i=0;i<900;i++){ x.fillStyle=`rgba(0,0,0,${R()*a})`; x.fillRect(R()*w,R()*h,1+R()*2,1+R()*2); } };
+    if(kind==='wood'||kind==='wood2'){ const base=kind==='wood'?[196,140,86]:[170,112,66];
+      for(let i=0;i<8;i++){ const v=(R()-.5)*26; x.fillStyle=`rgb(${base[0]+v},${base[1]+v*.8},${base[2]+v*.6})`; x.fillRect(0,i*32,w,32); x.fillStyle='rgba(60,30,10,.35)'; x.fillRect(0,i*32,w,2); const o=R()*w; x.fillRect(o,i*32,2,32); }
+      noise(.08); }
+    else if(kind==='tatami'){ x.fillStyle='#b8c07a'; x.fillRect(0,0,w,h); for(let i=0;i<h;i+=3){ x.fillStyle=`rgba(90,100,40,${.12+R()*.08})`; x.fillRect(0,i,w,1);} x.fillStyle='#4b5a2c'; x.fillRect(0,0,w,10); x.fillRect(0,h-10,w,10); x.fillRect(w/2-5,0,10,h); }
+    else if(kind==='tile'){ x.fillStyle='#e8eef0'; x.fillRect(0,0,w,h); x.strokeStyle='#b9c6cc'; x.lineWidth=3; for(let i=0;i<=w;i+=32){ x.beginPath();x.moveTo(i,0);x.lineTo(i,h);x.stroke(); x.beginPath();x.moveTo(0,i);x.lineTo(w,i);x.stroke(); } noise(.04); }
+    else if(kind==='checker'){ for(let j=0;j<8;j++)for(let i=0;i<8;i++){ x.fillStyle=(i+j)%2?'#f2e4c4':'#c9a978'; x.fillRect(i*32,j*32,32,32);} noise(.05); }
+    else if(kind==='carpet'||kind==='carpet2'||kind==='green'){ x.fillStyle=kind==='carpet'?'#6f8fb8':kind==='green'?'#2e6a5c':'#8a6fa8'; x.fillRect(0,0,w,h); for(let i=0;i<4000;i++){ x.fillStyle=`rgba(${R()<.5?255:0},${R()<.5?255:0},${R()<.5?255:0},.05)`; x.fillRect(R()*w,R()*h,2,2);} x.strokeStyle='rgba(255,255,255,.18)'; x.lineWidth=6; x.strokeRect(14,14,w-28,h-28); }
+    else if(kind==='lino'){ x.fillStyle='#a9cdb0'; x.fillRect(0,0,w,h); for(let i=0;i<1600;i++){ x.fillStyle=`rgba(${R()<.5?255:40},${R()<.5?255:80},60,.14)`; x.fillRect(R()*w,R()*h,2,2);} x.fillStyle='rgba(0,0,0,.08)'; x.fillRect(0,h/2-1,w,2); }
+    else if(kind==='hosp'){ x.fillStyle='#dfe9ec'; x.fillRect(0,0,w,h); for(let i=0;i<1400;i++){ x.fillStyle=`rgba(80,120,140,${R()*.12})`; x.fillRect(R()*w,R()*h,2,2);} x.fillStyle='#8fd0c8'; x.fillRect(0,h-26,w,8); }
+    else if(kind==='marble'){ x.fillStyle='#ebe5da'; x.fillRect(0,0,w,h); x.strokeStyle='rgba(120,110,100,.25)'; for(let i=0;i<14;i++){ x.lineWidth=1+R()*2; x.beginPath(); let px=R()*w,py=R()*h; x.moveTo(px,py); for(let k=0;k<6;k++){ px+=(R()-.5)*90; py+=(R()-.5)*90; x.lineTo(px,py);} x.stroke(); } x.strokeStyle='rgba(0,0,0,.12)'; x.lineWidth=2; x.strokeRect(1,1,w/2,h/2); x.strokeRect(w/2,h/2,w/2,h/2); }
+    else if(kind==='concrete'){ x.fillStyle='#a9adb3'; x.fillRect(0,0,w,h); noise(.12); }
+    else { x.fillStyle='#ccc'; x.fillRect(0,0,w,h); }
+  });
+  FLOORS[kind]=t; return t;
+}
+
+/* ---------- 家具 ---------- */
+const F={
+  bed(c='#e86b6b'){ const g=new THREE.Group(); g.add(at(box(.46,.12,.66,'#8b5a3c'),0,.06,0)); g.add(at(box(.44,.08,.62,'#fafafa'),0,.15,0)); g.add(at(box(.45,.06,.42,c),0,.2,.1)); g.add(at(box(.3,.06,.12,'#ffffff'),0,.21,-.22)); g.add(at(box(.46,.22,.04,'#8b5a3c'),0,.15,-.33)); return g; },
+  desk(c='#c99a62'){ const g=new THREE.Group(); g.add(at(box(.46,.04,.3,c),0,.3,0)); for(const [x,z] of [[-.2,-.12],[.2,-.12],[-.2,.12],[.2,.12]]) g.add(at(box(.03,.3,.03,'#6b4a32'),x,.15,z)); g.add(at(box(.2,.03,.2,'#4f7fd0'),0,.18,.24)); g.add(at(box(.2,.2,.03,'#4f7fd0'),0,.28,.33)); g.add(at(box(.14,.1,.02,'#ffffff',{e:'#9fd8ff',ei:.5}),-.08,.37,-.08)); return g; },
+  sofa(c='#7a8cc7'){ const g=new THREE.Group(); g.add(at(box(.6,.14,.3,c),0,.1,0)); g.add(at(box(.6,.2,.08,c),0,.2,-.13)); g.add(at(box(.08,.16,.3,c),-.3,.16,0)); g.add(at(box(.08,.16,.3,c),.3,.16,0)); g.add(at(box(.18,.06,.12,'#ffd166'),-.12,.2,.02)); return g; },
+  tv(){ const g=new THREE.Group(); g.add(at(box(.5,.12,.2,'#5a4232'),0,.06,0)); g.add(at(box(.5,.3,.03,'#111'),0,.3,0)); g.add(at(box(.46,.26,.01,'#4fb6ff',{e:'#3aa0ff',ei:.9}),0,.3,.02)); return g; },
+  lowtable(c='#9b6b42'){ const g=new THREE.Group(); g.add(at(box(.44,.04,.32,c),0,.14,0)); for(const [x,z] of [[-.18,-.12],[.18,-.12],[-.18,.12],[.18,.12]]) g.add(at(box(.03,.12,.03,c),x,.06,z)); return g; },
+  fridge(){ const g=new THREE.Group(); g.add(at(box(.34,.66,.3,'#f4f6f8',{r:.4}),0,.33,0)); g.add(at(box(.02,.16,.02,'#9aa4ad',{m:.6}),.12,.42,.16)); g.add(at(box(.32,.01,.01,'#c8d0d6'),0,.44,.151)); return g; },
+  counter(){ const g=new THREE.Group(); g.add(at(box(.6,.3,.3,'#e9dcc6'),0,.15,0)); g.add(at(box(.62,.04,.32,'#9aa3ab',{m:.4,r:.4}),0,.32,0)); g.add(at(box(.2,.02,.16,'#5c6670'),-.12,.341,0)); g.add(at(cyl(.06,.06,.02,'#333'),.16,.35,0)); return g; },
+  tub(){ const g=new THREE.Group(); g.add(at(box(.6,.24,.38,'#f2f6f8',{r:.3}),0,.12,0)); g.add(at(box(.52,.02,.3,'#7fd0f0',{t:.85,r:.1}),0,.21,0)); g.add(at(sph(.05,'#ffd34d'),.1,.24,.02)); return g; },
+  toilet(){ const g=new THREE.Group(); g.add(at(cyl(.1,.08,.16,'#fafafa',16),0,.08,.04)); g.add(at(cyl(.12,.12,.03,'#e9eef2',16),0,.17,.04)); g.add(at(box(.24,.2,.08,'#fafafa'),0,.2,-.12)); return g; },
+  shelf(){ const g=new THREE.Group(); g.add(at(box(.5,.5,.18,'#8b5a3c'),0,.25,0)); const R=rng(7); for(let r=0;r<3;r++) for(let i=0;i<5;i++) g.add(at(box(.07,.12,.12,['#e85d5d','#4f8fe0','#f2c14e','#5cbf7a','#9b6ad6'][Math.floor(R()*5)]),-.18+i*.09,.1+r*.15,.04)); return g; },
+  plant(){ const g=new THREE.Group(); g.add(at(cyl(.08,.06,.12,'#c96a3d'),0,.06,0)); g.add(at(sph(.13,'#4f9a4a'),0,.24,0)); g.add(at(sph(.09,'#5fb058'),.06,.32,.03)); return g; },
+  boxes(){ const g=new THREE.Group(); g.add(at(box(.26,.2,.26,'#c9a06a'),-.06,.1,0,.2)); g.add(at(box(.22,.18,.22,'#b8905c'),.08,.29,.02,-.3)); g.add(at(box(.18,.14,.18,'#d4ad78'),.14,.07,.14,.5)); return g; },
+  futon(){ const g=new THREE.Group(); g.add(at(box(.44,.06,.62,'#f5f0e6'),0,.03,0)); g.add(at(box(.44,.05,.4,'#5a7fc7'),0,.08,.1)); g.add(at(box(.24,.05,.1,'#fff'),0,.08,-.22)); return g; },
+  zabuton(){ const g=new THREE.Group(); g.add(at(box(.18,.04,.18,'#c74b4b'),-.14,.02,0)); g.add(at(box(.18,.04,.18,'#c74b4b'),.14,.02,0)); return g; },
+  washer(){ const g=new THREE.Group(); g.add(at(box(.34,.4,.32,'#f4f6f8',{r:.4}),0,.2,0)); g.add(at(cyl(.1,.1,.02,'#7fb6d6',24,{t:.8}),0,.22,.165).rotateX(Math.PI/2)); return g; },
+  piano(){ const g=new THREE.Group(); g.add(at(box(.6,.42,.24,'#14161c',{r:.25}),0,.21,0)); g.add(at(box(.56,.03,.08,'#f8f8f8'),0,.26,.15)); return g; },
+  blackboard(){ const g=new THREE.Group(); g.add(at(box(.66,.32,.04,'#2f5d43'),0,.34,0)); g.add(at(box(.7,.04,.07,'#a0794e'),0,.17,.02)); g.add(at(box(.03,.18,.03,'#a0794e'),-.3,.08,0)); g.add(at(box(.03,.18,.03,'#a0794e'),.3,.08,0)); return g; },
+  schooldesk(){ const g=new THREE.Group(); for(const x of [-.14,.14]){ g.add(at(box(.2,.03,.16,'#d8b27a'),x,.22,0)); g.add(at(box(.02,.22,.02,'#8a929a'),x,.11,0)); g.add(at(box(.14,.02,.12,'#d8b27a'),x,.13,.16)); } return g; },
+  lockers(){ const g=new THREE.Group(); g.add(at(box(.6,.5,.2,'#8f9aa6',{m:.3,r:.5}),0,.25,0)); for(let i=0;i<4;i++) g.add(at(box(.005,.46,.005,'#5f6873'),-.22+i*.15,.25,.101)); return g; },
+  bench(c='#5f7fb0'){ const g=new THREE.Group(); g.add(at(box(.62,.08,.2,c),0,.16,0)); g.add(at(box(.62,.16,.05,c),0,.26,-.08)); for(const x of [-.26,.26]) g.add(at(box(.04,.14,.16,'#555'),x,.07,0)); return g; },
+  labtable(){ const g=new THREE.Group(); g.add(at(box(.56,.04,.36,'#22252a'),0,.3,0)); g.add(at(box(.5,.28,.3,'#e8e2d4'),0,.14,0)); g.add(at(cyl(.02,.06,.1,'#9fe8ff',12,{t:.7}),.12,.37,0)); g.add(at(cyl(.03,.03,.12,'#ff9f6e',12,{t:.7}),-.1,.38,.05)); return g; },
+  skeleton(){ const g=new THREE.Group(); const w='#f3efe2'; g.add(at(cyl(.01,.01,.46,'#888'),0,.23,0)); g.add(at(sph(.07,w),0,.56,0)); g.add(at(box(.14,.16,.06,w),0,.4,0)); g.add(at(box(.03,.2,.03,w),-.05,.18,0)); g.add(at(box(.03,.2,.03,w),.05,.18,0)); g.add(at(box(.03,.16,.03,w),-.1,.38,0)); g.add(at(box(.03,.16,.03,w),.1,.38,0)); return g; },
+  deskpc(){ const g=F.desk('#b7a48a'); g.add(at(box(.18,.13,.02,'#222'),.06,.4,-.06)); g.add(at(box(.16,.11,.01,'#7fe0ff',{e:'#5fc8ff',ei:.8}),.06,.4,-.048)); return g; },
+  hospbed(){ const g=F.bed('#9fd6e8'); g.add(at(box(.46,.06,.04,'#c8d0d6',{m:.4}),0,.28,-.33)); g.add(at(cyl(.01,.01,.6,'#c8d0d6'),.26,.3,-.26)); g.add(at(box(.08,.1,.03,'#dff6ff',{t:.8}),.26,.56,-.26)); return g; },
+  curtain(){ const g=new THREE.Group(); g.add(at(box(.02,.5,.6,'#bfe3d8',{t:.9}),0,.25,0)); return g; },
+  xray(){ const g=new THREE.Group(); g.add(at(box(.5,.12,.3,'#e6ebef'),0,.18,0)); g.add(at(box(.08,.5,.08,'#c8d0d6'),-.2,.25,-.1)); g.add(at(box(.24,.1,.16,'#9aa4ad'),-.06,.5,-.06)); return g; },
+  shelfShop(){ const g=new THREE.Group(); g.add(at(box(.56,.44,.18,'#f2f2f2'),0,.22,0)); const R=rng(11); for(let r=0;r<3;r++) for(let i=0;i<6;i++) g.add(at(box(.06,.07,.08,`hsl(${Math.floor(R()*360)},70%,60%)`),-.2+i*.08,.08+r*.14,.06)); return g; },
+  counterDesk(){ const g=new THREE.Group(); g.add(at(box(.62,.3,.22,'#9fd6e8'),0,.15,0)); g.add(at(box(.64,.03,.26,'#f2f2f2'),0,.31,0)); g.add(at(box(.14,.1,.02,'#222'),.12,.38,-.04)); return g; },
+  pedestal(top){ const g=new THREE.Group(); g.add(at(box(.28,.3,.28,'#f2efe8'),0,.15,0)); if(top) g.add(top); return g; },
+  statue(){ const t=new THREE.Group(); t.add(at(sph(.08,'#c9c3b8'),0,.56,0)); t.add(at(cyl(.06,.09,.22,'#c9c3b8'),0,.4,0)); return F.pedestal(t); },
+  vase(){ const t=new THREE.Group(); const pts=[]; for(let i=0;i<=10;i++){ const y=i/10; pts.push(new THREE.Vector2(.04+.06*Math.sin(y*Math.PI*1.1)+.02*(1-y),y*.24)); }
+    const m=new THREE.Mesh(new THREE.LatheGeometry(pts,20),M('#3f74c8',{r:.3})); m.position.y=.3; m.castShadow=true; t.add(m); return F.pedestal(t); },
+  frame(c='#e8b84a',seed=1){ const g=new THREE.Group(); const R=rng(seed); const art=tex(64,48,(x,w,h)=>{ x.fillStyle=`hsl(${R()*360},50%,75%)`; x.fillRect(0,0,w,h); for(let i=0;i<5;i++){ x.fillStyle=`hsl(${R()*360},70%,${40+R()*30}%)`; x.beginPath(); x.arc(R()*w,R()*h,4+R()*12,0,7); x.fill(); } });
+    g.add(at(box(.5,.38,.04,c,{m:.4,r:.4}),0,.42,0)); const p=new THREE.Mesh(new THREE.PlaneGeometry(.42,.3),new THREE.MeshStandardMaterial({map:art})); p.position.set(0,.42,.021); g.add(p);
+    g.add(at(box(.03,.25,.03,'#5a4232'),-.15,.12,0)); g.add(at(box(.03,.25,.03,'#5a4232'),.15,.12,0)); return g; },
+  dino(){ const g=new THREE.Group(); const w='#e9e1cc'; for(let i=0;i<6;i++) g.add(at(box(.07,.05,.06,w),-.22+i*.08,.36+Math.sin(i*.7)*.04,0)); g.add(at(box(.12,.08,.08,w),.28,.42,0)); for(const x of [-.12,.1]) g.add(at(box(.03,.32,.03,w),x,.16,0)); return g; },
+  monitors(){ const g=F.desk('#5a5f6a'); for(const [x,y] of [[-.12,.42],[.12,.42],[0,.56]]){ g.add(at(box(.18,.12,.02,'#222'),x,y,-.08)); g.add(at(box(.16,.1,.01,'#7dffb2',{e:'#3fe08a',ei:.7}),x,y,-.068)); } return g; },
+  mummy(){ const g=new THREE.Group(); g.add(at(box(.24,.12,.6,'#c9a24a',{m:.3}),0,.06,0)); g.add(at(box(.18,.06,.5,'#e8c96a',{m:.4}),0,.15,0)); return g; },
+  shoebox(){ const g=new THREE.Group(); g.add(at(box(.6,.3,.2,'#8b5a3c'),0,.15,0)); g.add(at(box(.1,.04,.16,'#e85d5d'),-.14,.32,0)); g.add(at(box(.1,.04,.16,'#333'),.08,.32,0)); return g; },
+  modern(){ const g=new THREE.Group(); g.add(at(sph(.12,'#ff6b8a',{r:.3}),0,.4,0)); g.add(at(box(.08,.3,.08,'#ffd166'),0,.15,0,.6)); g.add(at(box(.3,.04,.3,'#222'),0,.02,0)); return g; },
+  case(){ const g=new THREE.Group(); g.add(at(box(.7,.3,.5,'#3b3346'),0,.15,0)); g.add(at(box(.66,.32,.46,'#d6f2ff',{t:.28,r:.05}),0,.46,0)); g.add(at(sph(.08,'#ffcc4d',{m:.8,r:.25,e:'#664400',ei:.4}),0,.42,0)); return g; },
+  stairs(c='#b98a5a'){ const g=new THREE.Group(); for(let i=0;i<5;i++) g.add(at(box(.6,.08+i*.08,.16,c),0,(.08+i*.08)/2,.32-i*.16)); g.add(at(box(.04,.5,.8,'#7a5a3c'),-.32,.25,0)); return g; },
+  elevator(){ const g=new THREE.Group(); g.add(at(box(.8,.6,.5,'#b9c3cc',{m:.6,r:.35}),0,.3,-.1)); g.add(at(box(.36,.5,.02,'#d9e1e8',{m:.8,r:.2}),-.09,.27,.16)); g.add(at(box(.36,.5,.02,'#d9e1e8',{m:.8,r:.2}),.28,.27,.16)); g.add(at(box(.06,.1,.02,'#ffcc4d',{e:'#ffaa00',ei:.8}),0,.58,.16)); return g; },
+};
+// 部屋の種類：[名前, 床, 壁の色, [家具, 角(0奥左 1奥右 2手前右 3手前左), 向き]]
+const ROOMS={
+ kid:['子ども部屋','wood',' #ffe8b8',[['bed',0],['desk',1],['shelf',2]]],
+ living:['リビング','wood','#f6e0c8',[['sofa',0],['tv',1],['lowtable',3],['plant',2]]],
+ kitchen:['台所','checker','#fff4dc',[['fridge',0],['counter',1],['lowtable',3]]],
+ washitsu:['和室','tatami','#efe3c2',[['zabuton',0],['lowtable',1],['futon',3]]],
+ bath:['お風呂','tile','#d9f0f6',[['tub',0],['plant',2]]],
+ toilet:['トイレ','tile','#f0f4f6',[['toilet',0],['plant',2]]],
+ hallH:['ろうか','wood2','#f3e6d2',[['plant',0],['shoebox',2]]],
+ bedroom:['寝室','carpet','#e8e0f4',[['bed',0],['bed',1],['plant',3]]],
+ storage:['物置','concrete','#d8d0c0',[['boxes',0],['boxes',1],['shelf',2]]],
+ study:['書斎','carpet2','#eadcc8',[['shelf',0],['desk',1],['shelf',3]]],
+ laundry:['洗面所','tile','#e2f2f7',[['washer',0],['counter',1]]],
+ genkan:['玄関','tile','#efe2cc',[['shoebox',0],['plant',1]]],
+ stairs:['階段','wood2','#eadcc8',[['stairs',-1]]],
+ classroom:['教室','wood','#f4ecd8',[['blackboard',0],['schooldesk',2],['schooldesk',3]]],
+ classroom2:['2組','wood','#f4ecd8',[['blackboard',1],['schooldesk',2],['schooldesk',3]]],
+ classroom3:['3組','wood','#f0e8d8',[['blackboard',0],['schooldesk',2],['lockers',1]]],
+ staff:['職員室','lino','#eef2e8',[['deskpc',0],['deskpc',1],['shelf',3]]],
+ science:['理科室','lino','#e8f2ee',[['labtable',0],['skeleton',1],['shelf',3]]],
+ music:['音楽室','wood','#f4ecf4',[['piano',0],['bench',3]]],
+ library:['図書室','carpet','#efe6d6',[['shelf',0],['shelf',1],['lowtable',3]]],
+ nurseroom:['保健室','lino','#f2f8f8',[['hospbed',0],['curtain',1],['desk',3]]],
+ hallS:['ろうか','lino','#eef0e6',[['lockers',0],['plant',2]]],
+ artroom:['図工室','wood2','#f6eee0',[['frame',0],['labtable',1],['shelf',3]]],
+ gymstore:['体育倉庫','concrete','#d8d8d0',[['boxes',0],['bench',1],['boxes',3]]],
+ stairsS:['階段','lino','#e6e8de',[['stairs',-1]]],
+ shoko:['昇降口','concrete','#e6e2d6',[['lockers',0],['lockers',1]]],
+ ward:['病室','hosp','#eef8fa',[['hospbed',0],['curtain',1],['plant',3]]],
+ ward2:['病室','hosp','#eef8fa',[['hospbed',0],['hospbed',1]]],
+ station:['ナースステーション','hosp','#e6f4f2',[['counterDesk',0],['shelf',1],['deskpc',3]]],
+ exam:['診察室','hosp','#f2f6fa',[['deskpc',0],['hospbed',1],['curtain',3]]],
+ waiting:['待合室','hosp','#f4f2ea',[['bench',0],['bench',1],['plant',3]]],
+ xray:['レントゲン室','hosp','#e8eef4',[['xray',0],['shelf',1]]],
+ shopH:['売店','tile','#fff6e4',[['shelfShop',0],['shelfShop',1],['counterDesk',3]]],
+ hallP:['ろうか','hosp','#eef6f6',[['bench',0],['plant',2]]],
+ pharmacy:['薬局','tile','#f0f8ff',[['shelf',0],['shelf',1],['counterDesk',3]]],
+ lab:['検査室','tile','#eef6f8',[['labtable',0],['deskpc',1]]],
+ elevator:['エレベーター','concrete','#d6dde2',[['elevator',-1]]],
+ exitH:['出口','tile','#eaf2ef',[['bench',0],['plant',1]]],
+ gallery:['展示室','marble','#f4efe6',[['frame',0],['frame',1],['bench',3]]],
+ gallery2:['展示室','marble','#f4efe6',[['frame',0],['frame',1],['statue',3]]],
+ sculpture:['彫刻の部屋','marble','#efeae2',[['statue',0],['statue',1],['statue',3]]],
+ dino:['恐竜の部屋','concrete','#e6dfd0',[['dino',0],['plant',2]]],
+ vase:['つぼの部屋','green','#f2e6d6',[['vase',0],['vase',1],['bench',3]]],
+ hallM:['ホール','marble','#f2ede4',[['bench',0],['plant',1]]],
+ office:['警備室','lino','#e6ece8',[['monitors',0],['shelf',1]]],
+ shopM:['ショップ','wood','#fff0e6',[['shelfShop',0],['shelfShop',1],['counterDesk',3]]],
+ modern:['現代アート','marble','#f6f6f6',[['modern',0],['frame',1],['modern',3]]],
+ mummy:['ミイラの部屋','concrete','#e8dcc0',[['mummy',0],['vase',1]]],
+ case:['展示ケース','green','#e6dcd0',[['case',-1]]],
+ exitM:['出口','marble','#efeae2',[['bench',0],['plant',1]]],
+};
+/* ---------- 回収するもの ---------- */
+function itemMesh(kind){
+  const g=new THREE.Group(); const add=(m,x,y,z,ry=0)=>{ g.add(at(m,x,y,z,ry)); return m; };
+  switch(kind){
+    case 'pudding': add(cyl(.07,.09,.09,'#f6d77a'),0,.05,0); add(cyl(.06,.07,.025,'#7a3e12'),0,.105,0); add(cyl(.1,.1,.01,'#ffffff'),0,.005,0); break;
+    case 'game': add(box(.22,.03,.11,'#2d3448'),0,.03,0); add(box(.07,.005,.06,'#7fe0ff',{e:'#5fc8ff',ei:.8}),0,.047,0); add(sph(.015,'#ff5a5a'),.07,.05,0); add(sph(.015,'#5ad06a'),-.07,.05,0); break;
+    case 'manga': case 'book': case 'sketch': add(box(.16,.04,.2,kind==='manga'?'#e85d5d':kind==='book'?'#4f8fe0':'#f2c14e'),0,.02,0,.2); add(box(.15,.03,.19,'#fff8ec'),.006,.022,0,.2); break;
+    case 'flashlight': { const c=add(cyl(.03,.03,.18,'#3d6fd6',12),0,.04,0); c.rotation.z=Math.PI/2; const h=add(cyl(.05,.035,.06,'#cfd6dd',12,{m:.6}),.11,.04,0); h.rotation.z=Math.PI/2; const l=add(cyl(.045,.045,.005,'#fff6c8',12,{e:'#fff0a0',ei:1}),.14,.04,0); l.rotation.z=Math.PI/2; } break;
+    case 'telescope': { const t=add(cyl(.035,.045,.26,'#2f3a6a',12),0,.2,0); t.rotation.z=1.0; for(const a of [0,2.1,4.2]){ const l=add(cyl(.008,.008,.2,'#555'),Math.cos(a)*.05,.09,Math.sin(a)*.05); l.rotation.set(Math.sin(a)*.3,0,-Math.cos(a)*.3); } } break;
+    case 'shirt': add(box(.18,.025,.16,'#ffffff'),0,.015,0); add(box(.3,.024,.06,'#ffffff'),0,.015,-.05); add(box(.18,.026,.03,'#e85d5d'),0,.016,-.08); break;
+    case 'paper': { const p=add(box(.15,.006,.2,'#ffffff'),0,.01,0,.3); const p2=add(box(.15,.006,.2,'#f4f4f4'),.02,.004,.02,-.1); } break;
+    case 'pencil': add(box(.2,.04,.06,'#5ab0e0'),0,.025,0,.2); add(box(.04,.045,.062,'#ff8a5a'),.06,.026,0,.2); break;
+    case 'recorder': { const r=add(cyl(.016,.02,.28,'#f2e8d0',10),0,.025,0); r.rotation.z=Math.PI/2; r.rotation.y=.4; } break;
+    case 'shoes': for(const s of [-1,1]){ add(box(.08,.05,.15,'#ffffff'),s*.05,.03,0,s*.15); add(box(.08,.012,.15,'#e85d5d'),s*.05,.006,0,s*.15); } break;
+    case 'cap': add(sph(.08,'#3d6fd6',{},16,8),0,.0,0).scale.set(1,.7,1); add(cyl(.09,.09,.01,'#3d6fd6'),0,.005,.07).scale.set(1,1,.6); break;
+    case 'bottle': add(cyl(.045,.045,.16,'#5ad0b0',14),0,.08,0); add(cyl(.035,.035,.04,'#ffffff',14),0,.18,0); break;
+    case 'randoseru': add(box(.18,.16,.1,'#d23a3a',{r:.4}),0,.08,0); add(box(.18,.04,.11,'#b02a2a'),0,.16,0); add(box(.03,.03,.005,'#ffd166',{m:.6}),0,.1,.052); break;
+    case 'nametag': add(box(.12,.008,.08,'#ffffff'),0,.01,0,.3); add(box(.12,.009,.02,'#e85d5d'),0,.011,-.03,.3); break;
+    case 'painting': { const f=F.frame('#e8b84a',99); f.scale.setScalar(.45); g.add(f); } break;
+    case 'paints': add(box(.2,.04,.13,'#3d6fd6'),0,.02,0); for(let i=0;i<4;i++) add(cyl(.012,.012,.08,['#e85d5d','#f2c14e','#5cbf7a','#4f8fe0'][i]),-.06+i*.04,.05,.02).rotation.z=Math.PI/2; break;
+    default: add(sph(.06,'#ffcc4d'),0,.06,0);
+  }
+  const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:DOT,color:0xfff1a0,transparent:true,opacity:.75,depthWrite:false,blending:THREE.AdditiveBlending}));
+  glow.scale.set(.6,.6,1); glow.position.y=.1; g.add(glow); g.userData.glow=glow;
+  const ring=new THREE.Mesh(new THREE.RingGeometry(.15,.19,32),new THREE.MeshBasicMaterial({color:0xffe27a,transparent:true,opacity:.8,depthWrite:false}));
+  ring.rotation.x=-Math.PI/2; ring.position.y=.004; g.add(ring); g.userData.ring=ring;
+  return g;
+}
+/* ---------- 人 ---------- */
+function person(o){
+  const g=new THREE.Group(); const s=o.h||1;
+  const legC=o.leg||'#3a4466', bodyC=o.body||'#6aa0e8', skin=o.skin||'#f5cfa8', hairC=o.hair||'#2b1d14';
+  for(const x of [-.055,.055]){ const l=cyl(.04,.04,.2*s,legC,10); l.position.set(x*s,.1*s,0); g.add(l); const f=box(.07*s,.04,.1*s,o.shoe||'#2b2b2b'); f.position.set(x*s,.02,.02*s); g.add(f); }
+  const b=new THREE.Mesh(new THREE.CapsuleGeometry(.11*s,.16*s,4,12),M(bodyC)); b.position.y=.33*s; b.castShadow=true; g.add(b);
+  for(const x of [-1,1]){ const a=new THREE.Mesh(new THREE.CapsuleGeometry(.035*s,.16*s,4,8),M(bodyC)); a.position.set(x*.14*s,.34*s,0); a.rotation.z=x*.18; a.castShadow=true; g.add(a); const hd=sph(.04*s,skin); hd.position.set(x*.16*s,.22*s,0); g.add(hd); }
+  const head=sph(.13*s*(o.kid?1.25:1),skin,{},20,14); head.position.y=(.56+(o.kid?.03:0))*s; g.add(head);
+  const hs=.13*s*(o.kid?1.25:1);
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(hs*1.06,20,12,0,Math.PI*2,0,Math.PI*.55),M(hairC)); hair.position.copy(head.position); hair.rotation.x=-.25; hair.castShadow=true; g.add(hair);
+  for(const x of [-1,1]){ const e=sph(hs*.12,'#1a1a1a'); e.position.set(x*hs*.38,head.position.y+hs*.05,hs*.9); g.add(e); }
+  const cheek=sph(hs*.12,'#ff9a9a',{t:.6}); cheek.position.set(hs*.6,head.position.y-hs*.25,hs*.75); g.add(cheek); const ch2=cheek.clone(); ch2.position.x*=-1; g.add(ch2);
+  if(o.extra) o.extra(g,s,head.position.y,hs);
+  g.userData.head=head.position.y+hs;
+  return g;
+}
+const PEOPLE={
+  kid:()=>person({kid:1,h:.82,body:'#ffcf5a',leg:'#4f7fd0',hair:'#3a2a1c',extra:(g,s,hy,hs)=>{ const c=new THREE.Mesh(new THREE.SphereGeometry(hs*.35,10,8),M('#ff8a3d')); c.position.set(0,hy+hs*1.05,0); g.add(c); }}),
+  mom:()=>person({h:1.12,body:'#f08aa8',leg:'#6a5a7a',hair:'#5a3424',extra:(g,s,hy,hs)=>{ g.add(at(sph(hs*.45,'#5a3424'),0,hy+hs*.5,-hs*.9)); g.add(at(box(.2*s,.2*s,.02,'#ffffff'),0,.3*s,.115*s)); }}),
+  dad:()=>person({h:1.2,body:'#5a7fc7',leg:'#3a4a7a',hair:'#222',extra:(g,s,hy,hs)=>{ g.add(at(box(hs*1.3,hs*.22,.02,'#222'),0,hy+hs*.05,hs*1.02)); }}),
+  teacher:()=>person({h:1.16,body:'#3fae6a',leg:'#2f7a4e',hair:'#222',extra:(g,s,hy,hs)=>{ g.add(at(box(.02,.16*s,.02,'#fff'),0,.36*s,.12*s)); }}),
+  teacher2:()=>person({h:1.18,body:'#7a5a3c',leg:'#3a3a3a',hair:'#999',extra:(g,s,hy,hs)=>{ g.add(at(box(hs*1.3,hs*.22,.02,'#222'),0,hy+hs*.05,hs*1.02)); g.add(at(box(.05,.18*s,.02,'#c83a3a'),0,.38*s,.115*s)); }}),
+  janitor:()=>person({h:1.12,body:'#7f8f9a',leg:'#5a6a74',hair:'#cfcfcf',extra:(g,s,hy,hs)=>{ const b=cyl(.012,.012,.7*s,'#a0794e',8); b.position.set(.2*s,.36*s,.05); b.rotation.z=-.15; g.add(b); g.add(at(box(.14*s,.06*s,.05,'#e8c25a'),.25*s,.05,.05)); g.add(at(cyl(hs*1.1,hs*1.1,hs*.35,'#3a6a8a',16),0,hy+hs*.6,0)); }}),
+  nurse:()=>person({h:1.1,body:'#ffffff',leg:'#f2f2f2',hair:'#3a2a1c',shoe:'#fff',extra:(g,s,hy,hs)=>{ g.add(at(box(hs*1.0,hs*.35,hs*.6,'#ff9ab8'),0,hy+hs*.95,0)); g.add(at(box(.08,.08,.01,'#ff5a8a'),.05*s,.42*s,.115*s)); }}),
+  nurse2:()=>PEOPLE.nurse(),
+  doctor:()=>person({h:1.2,body:'#f6f8fa',leg:'#3a4a6a',hair:'#444',extra:(g,s,hy,hs)=>{ const t=new THREE.Mesh(new THREE.TorusGeometry(.06*s,.008,6,16,Math.PI),M('#333')); t.position.set(0,.42*s,.11*s); t.rotation.z=Math.PI; g.add(t); g.add(at(box(hs*1.3,hs*.22,.02,'#222'),0,hy+hs*.05,hs*1.02)); }}),
+  guard:()=>person({h:1.18,body:'#2f3f6a',leg:'#1f2a48',hair:'#222',extra:(g,s,hy,hs)=>{ g.add(at(cyl(hs*1.1,hs*1.1,hs*.4,'#1f2a48',16),0,hy+hs*.65,0)); g.add(at(box(hs*1.3,.02,hs*.7,'#111'),0,hy+hs*.45,hs*.5)); g.add(at(box(.06,.06,.01,'#ffcc4d',{m:.7}),-.05*s,.42*s,.115*s));
+    const fl=cyl(.02,.025,.12,'#333',8); fl.rotation.x=Math.PI/2; fl.position.set(.16*s,.24*s,.1); g.add(fl); }}),
+  guard2:()=>PEOPLE.guard(),
+  camera:()=>{ const g=new THREE.Group(); g.add(at(cyl(.025,.025,.62,'#8a929a',10),0,.31,0)); const head=new THREE.Group(); head.position.y=.64; g.add(head);
+    head.add(at(box(.16,.13,.26,'#f4f6f8',{r:.35}),0,0,.04)); head.add(at(box(.17,.03,.27,'#3a4250'),0,.075,.04)); head.add(at(cyl(.045,.045,.03,'#222',16),0,0,.17).rotateX(Math.PI/2)); head.add(at(sph(.018,'#ff3a3a',{e:'#ff2020',ei:1}),.05,.05,.12));
+    g.userData.head=.8; return g; },
+};
+
+/* =========================================================
+   ステージを組み立てる
+   ========================================================= */
+let L=null, S=null, hist=[], LI=0, B=null, LP=null, usedHint=false, plan=null;
+let board=null;          // 建物のグループ
+let tiles=[];            // 部屋の3D
+let gMesh=[], pMesh=null, iMesh=[];
+let overlays=[], markers=[];
+let busy=false, mode='title';
+const view={pT:0,g:[],got:0};
+const anims=[]; let clock=0;
+function tween(dur,fn){ return new Promise(res=>{ anims.push({t0:clock,dur,fn,res}); }); }
+const cellXZ=(c)=>({x:((c%L.w)-(L.w-1)/2)*TS, z:(Math.floor(c/L.w)-(L.h-1)/2)*TS});
+const dirRot=d=>[Math.PI,Math.PI/2,0,-Math.PI/2][d];
+
+function labelTex(text){ return tex(256,64,(x,w,h)=>{ x.fillStyle='rgba(255,252,244,.96)'; const r=14; x.beginPath(); x.moveTo(r,2);x.arcTo(w-2,2,w-2,h-2,r);x.arcTo(w-2,h-2,2,h-2,r);x.arcTo(2,h-2,2,2,r);x.arcTo(2,2,w-2,2,r); x.fill(); x.strokeStyle='#6b4a32'; x.lineWidth=4; x.stroke();
+  x.fillStyle='#4a3020'; let fs=34; x.font=`800 ${fs}px ${FONT}`; while(x.measureText(text).width>w-24&&fs>14){ fs-=2; x.font=`800 ${fs}px ${FONT}`; } x.textAlign='center'; x.textBaseline='middle'; x.fillText(text,w/2,h/2+2); }); }
+
+function buildRoom(t){
+  const T=L.tiles[t]; const R=ROOMS[T.type]||ROOMS.hallH; const g=new THREE.Group();
+  const wallC=R[2].trim(), cap='#6b4a32';
+  const fl=new THREE.Mesh(new THREE.BoxGeometry(HS*2,FLOOR,HS*2),[M('#8b6a4a'),M('#8b6a4a'),new THREE.MeshStandardMaterial({map:floorTex(R[1]),roughness:.85}),M('#8b6a4a'),M('#8b6a4a'),M('#8b6a4a')]);
+  fl.position.y=FLOOR/2; fl.receiveShadow=true; g.add(fl);
+  const outerS=(t===L.exit);
+  for(let d=0;d<4;d++){
+    const hasDoor=(T.doors>>d)&1 || (outerS&&d===2);
+    const segs=hasDoor?[[-HS,-GAP/2],[GAP/2,HS]]:[[-HS,HS]];
+    for(const [a,b] of segs){ const len=b-a, mid=(a+b)/2;
+      const w=new THREE.Mesh(new THREE.BoxGeometry(len,WH,WT),M(wallC)); const c=new THREE.Mesh(new THREE.BoxGeometry(len,.03,WT+.012),M(cap));
+      w.castShadow=true; w.receiveShadow=true;
+      const place=(m,y)=>{ if(d===0) m.position.set(mid,y,-HS+WT/2); else if(d===2) m.position.set(mid,y,HS-WT/2); else { m.rotation.y=Math.PI/2; m.position.set(d===1?HS-WT/2:-HS+WT/2,y,mid); } };
+      place(w,FLOOR+WH/2); place(c,FLOOR+WH+.015); g.add(w,c); }
+    if(hasDoor){ // 開いたドア
+      const leaf=box(.27,WH*.92,.025,outerS&&d===2?'#7a4a2a':'#c9a06a'); const hinge=new THREE.Group(); hinge.add(at(leaf,.135,FLOOR+WH*.46,0));
+      const ang=-1.25; const side=GAP/2;
+      if(d===0){ hinge.position.set(-side,0,-HS+WT); hinge.rotation.y=ang; }
+      else if(d===2){ hinge.position.set(side,0,HS-WT); hinge.rotation.y=Math.PI+ang; }
+      else if(d===1){ hinge.position.set(HS-WT,0,-side); hinge.rotation.y=-Math.PI/2+ang; }
+      else { hinge.position.set(-HS+WT,0,side); hinge.rotation.y=Math.PI/2+ang; }
+      g.add(hinge);
+      const th=box(d%2?.06:GAP,.012,d%2?GAP:.06,'#a0794e'); th.position.set(d===1?HS-.03:d===3?-HS+.03:0,FLOOR+.006,d===0?-HS+.03:d===2?HS-.03:0); g.add(th);
+    }
+  }
+  const C=[[-.6,-.6],[.6,-.6],[.6,.6],[-.6,.6]], ROT=[Math.PI*.75,-Math.PI*.75,-Math.PI*.25,Math.PI*.25];
+  const R2=rng(t*31+7);
+  for(const [name,corner] of R[3]){
+    const f=F[name](undefined,Math.floor(R2()*1000)); f.position.y=FLOOR;
+    if(corner<0){ f.position.x=0; f.position.z=0; }
+    else { f.position.x=C[corner][0]; f.position.z=C[corner][1];
+      // 壁に背を向けて、部屋の中を向ける
+      f.rotation.y = corner===0||corner===1 ? 0 : Math.PI; if(name==='blackboard'||name==='frame'||name==='tv'||name==='shelf'||name==='lockers'||name==='piano'||name==='shelfShop'||name==='fridge') f.rotation.y = corner<=1?0:Math.PI;
+      if(name==='bed'||name==='hospbed'||name==='futon') f.rotation.y = corner<=1?0:Math.PI; }
+    f.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } });
+    g.add(f);
+  }
+  // 名前の札（奥の壁の上）
+  const lab=new THREE.Mesh(new THREE.PlaneGeometry(1.0,.25),new THREE.MeshBasicMaterial({map:labelTex(R[0]),transparent:true}));
+  lab.position.set(-.4,FLOOR+WH+.14,-HS+.03); lab.rotation.x=-.75; lab.renderOrder=4; g.add(lab);
+  if(T.fixed){ // 動かせない印
+    const lock=new THREE.Mesh(new THREE.CircleGeometry(.13,24),new THREE.MeshBasicMaterial({map:lockTex,transparent:true})); lock.position.set(.66,FLOOR+WH+.14,-HS+.03); lock.rotation.x=-.75; lock.scale.setScalar(1.25); g.add(lock); }
+  if(t===L.exit){ // 外の玄関マットと看板
+    const mat=box(.7,.02,.34,'#6b8f4a'); mat.position.set(0,.01,HS+.22); g.add(mat);
+    const sg=new THREE.Mesh(new THREE.PlaneGeometry(.66,.2),new THREE.MeshBasicMaterial({map:exitTex,transparent:true})); sg.position.set(0,FLOOR+WH+.2,HS+.02); sg.rotation.x=-.5; g.add(sg); }
+  return g;
+}
+const lockTex=tex(64,64,(x)=>{ x.fillStyle='#ffcc4d'; x.beginPath(); x.arc(32,32,30,0,7); x.fill(); x.strokeStyle='#5a3a10'; x.lineWidth=5; x.beginPath(); x.arc(32,26,9,Math.PI,0); x.stroke(); x.fillStyle='#5a3a10'; x.fillRect(20,26,24,18); });
+const exitTex=tex(256,80,(x,w,h)=>{ x.fillStyle='#1f9d55'; x.fillRect(0,0,w,h); x.fillStyle='#fff'; x.font=`800 44px ${FONT}`; x.textAlign='center'; x.textBaseline='middle'; x.fillText('EXIT 出口',w/2,h/2+3); });
+
+function buildWorld(){
+  if(board){ scene.remove(board); board.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); }
+  board=new THREE.Group(); scene.add(board);
+  scene.background=new THREE.Color(B.sky); scene.fog=new THREE.Fog(B.fog,22,60);
+  hemi.color.set(B.hemi[0]); hemi.groundColor.set(B.hemi[1]); hemi.intensity=1.15;
+  const W=L.w*TS, H=L.h*TS;
+  // 地面
+  const gr=new THREE.Mesh(new THREE.PlaneGeometry(80,80),M(B.ground,{r:1})); gr.rotation.x=-Math.PI/2; gr.position.y=-.3; gr.receiveShadow=true; board.add(gr);
+  // 土台
+  const base=box(W+.4,.3,H+.4,'#8d8a86',{r:.9}); base.position.y=-.15; board.add(base);
+  const inner=new THREE.Mesh(new THREE.PlaneGeometry(W,H),M('#3c3a38',{r:1})); inner.rotation.x=-Math.PI/2; inner.position.y=.002; inner.receiveShadow=true; board.add(inner);
+  // マス目の線（空きマスで見える）
+  const lines=new THREE.Group(); const lm=new THREE.MeshBasicMaterial({color:0x5c5955});
+  for(let i=0;i<=L.w;i++){ const b=new THREE.Mesh(new THREE.PlaneGeometry(.04,H),lm); b.rotation.x=-Math.PI/2; b.position.set(-W/2+i*TS,.004,0); lines.add(b); }
+  for(let j=0;j<=L.h;j++){ const b=new THREE.Mesh(new THREE.PlaneGeometry(W,.04),lm); b.rotation.x=-Math.PI/2; b.position.set(0,.004,-H/2+j*TS); lines.add(b); }
+  board.add(lines);
+  decorate(W,H);
+  // 部屋
+  tiles=L.tiles.map((T,t)=>{ const g=buildRoom(t); board.add(g); return g; });
+  // もの
+  iMesh=L.items.map(it=>{ const m=itemMesh(it.kind); board.add(m); return m; });
+  // 人
+  pMesh=PEOPLE.kid(); pMesh.scale.setScalar(1.45); board.add(pMesh);
+  gMesh=L.guards.map(G=>{ const m=(PEOPLE[G.who]||PEOPLE.mom)(); m.scale.setScalar(G.who==='camera'?1.7:1.32); board.add(m); const bubble=new THREE.Sprite(new THREE.SpriteMaterial({map:bangTex,transparent:true,depthTest:false})); bubble.scale.set(.42,.42,1); bubble.position.y=(m.userData.head||.8)+.3; bubble.visible=false; bubble.renderOrder=10; m.add(bubble); m.userData.bang=bubble; return m; });
+  // 見られている床
+  overlays=[]; for(let c=0;c<L.w*L.h;c++){ const o=new THREE.Mesh(new THREE.PlaneGeometry(HS*2-.1,HS*2-.1),new THREE.MeshBasicMaterial({map:seenTex,color:0xffffff,transparent:true,opacity:0,depthWrite:false})); o.rotation.x=-Math.PI/2; o.renderOrder=2; board.add(o); overlays.push(o); }
+  markers=[];
+  fitCamera();
+}
+const seenTex=tex(128,128,(x,w,h)=>{ x.fillStyle='rgba(255,40,40,.55)'; x.fillRect(0,0,w,h); x.strokeStyle='rgba(255,20,20,.9)'; x.lineWidth=10; for(let i=-h;i<w;i+=26){ x.beginPath(); x.moveTo(i,h); x.lineTo(i+h,0); x.stroke(); } x.strokeStyle='#ff1a1a'; x.lineWidth=10; x.strokeRect(5,5,w-10,h-10); });
+const bangTex=tex(128,128,(x)=>{ x.fillStyle='#fff'; x.beginPath(); x.arc(64,60,52,0,7); x.fill(); x.beginPath(); x.moveTo(40,100); x.lineTo(30,124); x.lineTo(64,104); x.fill(); x.strokeStyle='#d22'; x.lineWidth=6; x.beginPath(); x.arc(64,60,52,0,7); x.stroke(); x.fillStyle='#e22'; x.font='900 84px Arial'; x.textAlign='center'; x.textBaseline='middle'; x.fillText('!',64,64); });
+function decorate(W,H){
+  const R=rng(LI*13+5); const id=B.id;
+  if(B.moon){ const m=new THREE.Mesh(new THREE.SphereGeometry(1.6,24,16),new THREE.MeshBasicMaterial({color:0xfff6d8,fog:false})); m.position.set(-W/2-4,9,-H/2-14); board.add(m);
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:DOT,color:0xfff2c0,transparent:true,opacity:.5,fog:false,depthWrite:false})); gl.scale.set(9,9,1); gl.position.copy(m.position); board.add(gl); }
+  const star=new THREE.BufferGeometry(); const pts=[]; for(let i=0;i<260;i++){ pts.push((R()-.5)*90,6+R()*20,-30-R()*20); } star.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
+  board.add(new THREE.Points(star,new THREE.PointsMaterial({size:.12,color:0xffffff,transparent:true,opacity:.8,fog:false})));
+  const ring=(n,rad,fn)=>{ for(let i=0;i<n;i++){ const a=R()*Math.PI*2; const r=rad+R()*6; const x=Math.cos(a)*r*(W/2+2)/(rad), z=Math.sin(a)*r*(H/2+2)/(rad); if(z>H/2+1.2&&Math.abs(x)<W/2+2) continue; fn(x,z); } };
+  if(id==='house'||id==='school'){
+    ring(26,5,(x,z)=>{ const t=new THREE.Group(); t.add(at(cyl(.12,.16,.6,'#5a3d28',8),0,0,0)); t.add(at(new THREE.Mesh(new THREE.ConeGeometry(.6,1.3,8),M(id==='house'?'#2f5a3a':'#4a6a3a',{r:1})),0,.9,0)); t.position.set(x,-.0,z); t.traverse(o=>{if(o.isMesh)o.castShadow=true;}); board.add(t); });
+    // へい
+    const fc=id==='house'?'#cfc6b4':'#9aa2a8'; for(const s of [-1,1]){ const f=box(.12,.4,H+3,fc); f.position.set(s*(W/2+1.2),-.1,0); board.add(f); } const fb=box(W+2.5,.4,.12,fc); fb.position.set(0,-.1,-H/2-1.5); board.add(fb);
+  }
+  if(id==='hospital'||id==='museum'){
+    ring(10,5,(x,z)=>{ const p=new THREE.Group(); p.add(at(cyl(.04,.05,1.6,'#555',8),0,.5,0)); p.add(at(sph(.12,'#fff8d0',{e:'#ffe9a0',ei:1}),0,1.32,0)); p.position.set(x,-.3,z); board.add(p); });
+    const c=box(W+3,.06,1.4,id==='hospital'?'#6a7076':'#8a8392'); c.position.set(0,-.27,H/2+1.2); board.add(c);
+  }
+  if(id==='house'){ const gate=box(1,.05,1.2,'#bfb6a4'); gate.position.set(cellXZ(L.cells.indexOf(L.exit)).x,-.27,H/2+.9); board.add(gate); }
+}
+function fitCamera(){
+  const el=$('game'); const w=el.clientWidth||390, h=el.clientHeight||720; renderer.setSize(w,h,false); camera.aspect=w/h;
+  const W=L?L.w*TS:6, H=L?L.h*TS:6;
+  const pitch=63*Math.PI/180; camera.fov=28; camera.clearViewOffset(); camera.updateProjectionMatrix();
+  const target=new THREE.Vector3(0,0,.25*TS);
+  const corners=[]; for(const x of [-W/2-.08,W/2+.08]) for(const z of [-H/2-.1,H/2+.45]) for(const y of [0,FLOOR+WH+.3]) corners.push(new THREE.Vector3(x,y,z));
+  const topPx=(mode==='play'?118:40), botPx=(mode==='play'?96:40);
+  const yTop=1-2*topPx/h, yBot=-1+2*botPx/h;
+  let lo=4,hi=80;
+  for(let i=0;i<30;i++){ const d=(lo+hi)/2; camera.position.set(0,target.y+Math.sin(pitch)*d,target.z+Math.cos(pitch)*d); camera.lookAt(target); camera.updateMatrixWorld();
+    let ok=true; let minY=9,maxY=-9; for(const c of corners){ const p=c.clone().project(camera); if(Math.abs(p.x)>.97) ok=false; minY=Math.min(minY,p.y); maxY=Math.max(maxY,p.y); }
+    if(maxY-minY>yTop-yBot) ok=false; if(ok) hi=d; else lo=d; }
+  const d=hi; camera.position.set(0,target.y+Math.sin(pitch)*d,target.z+Math.cos(pitch)*d); camera.lookAt(target); camera.updateMatrixWorld();
+  // 上下の余白に合わせて、ずらす
+  let minY=9,maxY=-9; for(const c of corners){ const p=c.clone().project(camera); minY=Math.min(minY,p.y); maxY=Math.max(maxY,p.y); }
+  const shift=((yTop+yBot)/2-(minY+maxY)/2);
+  camera.setViewOffset(w,h,0,shift*h/2,w,h); camera.updateProjectionMatrix();
+  camBase.copy(camera.position);
+  sun.position.set(-4,12,7); sun.target.position.set(0,0,0);
+}
+const camBase=new THREE.Vector3(); let shake=0;
+
+/* =========================================================
+   表示を状態に合わせる
+   ========================================================= */
+function tilePos(t){ return tiles[t].position; }
+function syncAll(){
+  for(let t=0;t<L.tiles.length;t++){ const c=S.pos[t]; if(c<0) continue; const p=cellXZ(c); tiles[t].position.set(p.x,0,p.z); }
+  view.pT=S.pT; view.got=S.got; view.g=S.g.map(g=>({t:g.t,d:g.d}));
+  pMesh.userData.ov=null; gMesh.forEach((m,i)=>{ m.userData.ov=null; m.rotation.y=dirRot(S.g[i].d); m.userData.bang.visible=false; });
+  iMesh.forEach((m,i)=>{ m.visible=!((S.got>>i)&1); m.scale.setScalar(1); });
+  refreshMarks();
+}
+function placeActors(){
+  const pp=tilePos(view.pT);
+  if(pMesh.userData.ov) pMesh.position.copy(pMesh.userData.ov); else pMesh.position.set(pp.x,FLOOR,pp.z);
+  gMesh.forEach((m,i)=>{ if(m.userData.ov) m.position.copy(m.userData.ov); else { const p=tilePos(view.g[i].t); m.position.set(p.x,FLOOR,p.z); } });
+  iMesh.forEach((m,i)=>{ if(!m.visible||m.userData.fly) return; const p=tilePos(L.items[i].t); m.position.set(p.x+.32,FLOOR,p.z-.3); const k=clock*2+i; m.userData.glow.material.opacity=.5+.25*Math.sin(k*2); m.userData.ring.scale.setScalar(1+.08*Math.sin(k*2)); m.children[0]&&(m.rotation.y=Math.sin(k)*.3); });
+  for(const mk of markers){ if(mk.t<0) continue; const p=tilePos(mk.t); mk.m.position.set(p.x+mk.ox,FLOOR+(mk.kind==='hint'?.03:.012),p.z+mk.oz); }
+}
+const dashTex=tex(64,16,(x,w,h)=>{ x.clearRect(0,0,w,h); x.fillStyle='rgba(120,0,0,.9)'; x.fillRect(2,3,34,10); x.fillStyle='#ff3b3b'; x.fillRect(4,5,30,6); x.fillStyle='#ffd0d0'; x.fillRect(8,7,22,2); });
+const hintArrowTex=tex(128,128,(x)=>{ x.beginPath(); x.moveTo(64,6); x.lineTo(118,62); x.lineTo(84,62); x.lineTo(84,122); x.lineTo(44,122); x.lineTo(44,62); x.lineTo(10,62); x.closePath(); x.lineJoin='round'; x.lineWidth=12; x.strokeStyle='#063a2e'; x.stroke(); x.fillStyle='#62e3c4'; x.fill(); x.lineWidth=4; x.strokeStyle='#ffffff'; x.stroke(); });
+const hintRingTex=tex(128,128,(x)=>{ x.strokeStyle='#62e3c4'; x.lineWidth=9; x.strokeRect(8,8,112,112); x.strokeStyle='rgba(255,255,255,.9)'; x.lineWidth=3; x.strokeRect(8,8,112,112); });
+const footTex=tex(128,128,(x)=>{ for(const pass of [0,1]){ x.fillStyle=pass?'#ffb24d':'#4a2400'; const k=pass?0:5; for(const [cx,cy,r] of [[44,78,1],[84,46,-1]]){ x.save(); x.translate(cx,cy); x.rotate(r*.2); x.beginPath(); x.ellipse(0,0,13+k,20+k,0,0,7); x.fill(); x.beginPath(); x.ellipse(0,-30,9+k,9+k,0,0,7); x.fill(); x.restore(); } } });
+const arrowTex=tex(128,128,(x)=>{ x.beginPath(); x.moveTo(64,10); x.lineTo(114,62); x.lineTo(82,62); x.lineTo(82,118); x.lineTo(46,118); x.lineTo(46,62); x.lineTo(14,62); x.closePath(); x.lineJoin='round'; x.lineWidth=12; x.strokeStyle='#4a2400'; x.stroke(); x.fillStyle='#ffb24d'; x.fill(); x.lineWidth=4; x.strokeStyle='#fff3d6'; x.stroke(); });
+const chevTex=tex(128,64,(x)=>{ x.strokeStyle='rgba(255,255,255,.95)'; x.lineWidth=12; x.lineCap='round'; x.lineJoin='round'; for(const o of [0,34]){ x.beginPath(); x.moveTo(20+o,8); x.lineTo(44+o,32); x.lineTo(20+o,56); x.stroke(); } });
+const ringTex=tex(128,128,(x)=>{ x.strokeStyle='rgba(98,227,196,1)'; x.lineWidth=10; x.setLineDash([16,10]); x.beginPath(); x.arc(64,64,52,0,7); x.stroke(); });
+function mark(tex,t,ox,oz,rot,size,opacity=1,kind){ const m=new THREE.Mesh(new THREE.PlaneGeometry(size,size*(tex===chevTex?.5:1)),new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity,depthWrite:false})); m.rotation.x=-Math.PI/2; m.rotation.z=rot; m.renderOrder=3; board.add(m); const mk={m,t,ox,oz,kind}; markers.push(mk); return mk; }
+function clearMarks(){ for(const mk of markers){ board.remove(mk.m); mk.m.geometry.dispose(); if(mk.kind==='beam') mk.m.material.map.dispose(); mk.m.material.dispose(); } markers=[]; }
+function refreshMarks(){
+  clearMarks();
+  const seen=KS.vision(L,S);
+  overlays.forEach((o,c)=>{ const p=cellXZ(c); o.position.set(p.x,FLOOR+.006,p.z); o.userData.on=seen[c]>=0&&S.cells[c]>=0; });
+  if(mode!=='play') return;
+  // 見張りの視線（赤い点線）
+  S.g.forEach((g,i)=>{ let cur=S.pos[g.t], n=0; for(let k=0;k<20;k++){ const nx=KS.link(L,S,cur,g.d); if(nx<0) break; cur=nx; n++; }
+    const st=cellXZ(S.pos[g.t]); const dx=KS.DX[g.d], dz=KS.DY[g.d]; const a0=.2, len=n*TS+HS-.1-a0;
+    const t=dashTex.clone(); t.needsUpdate=true; t.wrapS=THREE.RepeatWrapping; t.repeat.set(len/.34,1);
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(len,.13),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false}));
+    m.rotation.set(-Math.PI/2,0,[Math.PI/2,0,-Math.PI/2,Math.PI][g.d]); m.position.set(st.x+dx*(a0+len/2),FLOOR+.3,st.z+dz*(a0+len/2)); m.renderOrder=5; board.add(m); markers.push({m,t:-1,kind:'beam'}); });
+  // 見張りの次の動き
+  S.g.forEach((g,i)=>{ const nx=KS.guardNext(L,S,i); const G=L.guards[i];
+    if(nx.move){ mark(footTex,nx.t,0,.15,[0,-Math.PI/2,Math.PI,Math.PI/2][g.d],.85,.95,'foot'); }
+    else if(nx.turn){ const d=nx.d; mark(arrowTex,g.t,KS.DX[d]*.52,KS.DY[d]*.52,[0,-Math.PI/2,Math.PI,Math.PI/2][d],.66,1,'turn'); }
+  });
+  // 歩ける部屋
+  const pc=S.pos[S.pT];
+  for(let d=0;d<4;d++){ const n=KS.link(L,S,pc,d); if(n>=0){ const t=S.cells[n]; mark(ringTex,t,0,0,0,1.05,.9,'walk'); } }
+  // すべらせられる部屋
+  for(let e=0;e<L.w*L.h;e++){ if(S.cells[e]>=0) continue; for(let d=0;d<4;d++){ const c=KS.nb(L,e,d); if(c<0) continue; const t=S.cells[c]; if(t<0||L.tiles[t].fixed) continue; const md=KS.opp(d); // マスcからeへ向かう方向
+      mark(chevTex,t,KS.DX[md]*.58,KS.DY[md]*.58,[Math.PI/2,0,-Math.PI/2,Math.PI][md],.56,.85,'slide'); } }
+}
+
+/* =========================================================
+   HUD
+   ========================================================= */
+function stageLabel(i){ const m=LEVELS[i]; return `${BUILD[m.b].name} ${m.b+1}-${(i%5)+1}`; }
+function hud(){
+  $('hStage').textContent=stageLabel(LI); $('hTitle').textContent=LEVELS[LI].title; $('hMoves').textContent=hist.length;
+  $('hItems').innerHTML=L.items.map((it,i)=>`<div class="itemChip ${(S.got>>i)&1?'got':''}"><i>${ITEMK[it.kind].e}</i><span>${it.name||ITEMK[it.kind].name}</span></div>`).join('')+`<div class="itemChip exit"><i>🚪</i><span>${B.exitName}へ</span></div>`;
+  $('undoBtn').disabled=!hist.length;
+}
+let hintT=null;
+function hint(text,sec=0){ const h=$('hint'); h.innerHTML=text; h.classList.toggle('on',!!text); clearTimeout(hintT); if(sec&&text) hintT=setTimeout(()=>h.classList.remove('on'),sec*1000); }
+function toast(t){ const e=$('toast'); e.innerHTML=t; e.classList.remove('go'); void e.offsetWidth; e.classList.add('go'); }
+function screen(id){ for(const s of document.querySelectorAll('.screen')) s.classList.toggle('on',s.id===id); }
+const SPK_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+const SPK_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="m16 9 6 6M22 9l-6 6"/></svg>';
+const STAR=(on,i)=>`<svg viewBox="0 0 24 24" class="${on?'on':''}" style="animation-delay:${.15+i*.22}s"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="${on?'#ffcc4d':'rgba(255,255,255,.15)'}" stroke="${on?'#b97a12':'rgba(255,255,255,.3)'}" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+function starsFor(i,moves){ const o=LEVELS[i].opt; const s3=o+Math.max(1,Math.round(o*.1)), s2=o+Math.max(4,Math.round(o*.45)); return moves<=s3?3:moves<=s2?2:1; }
+function star3(i){ const o=LEVELS[i].opt; return o+Math.max(1,Math.round(o*.1)); }
+
+/* =========================================================
+   ステージの開始
+   ========================================================= */
+function loadLevel(i){
+  LI=i; const meta=LEVELS[i]; B=BUILD[meta.b];
+  L=JSON.parse(JSON.stringify(meta.L)); L.items.forEach((it,k)=>{ it.kind=meta.items[k].kind; it.name=meta.items[k].name; });
+  S=KS.initState(L); hist=[]; usedHint=false;
+  LP=KS.prepare(JSON.parse(JSON.stringify(L))); setPlan(S,meta.path);
+  buildWorld(); syncAll(); placeActors(); hud();
+}
+function setPlan(S0,path){ const keys=[]; let s=S0; for(const a of path){ keys.push(KS.key(LP,s)); s=KS.apply(LP,s,a).S; } plan={keys,acts:path}; }
+const UDLR=['上','右','下','左'];
+async function giveHint(){
+  if(mode!=='play'||busy) return; Sfx.init(); Sfx.tick();
+  const k=KS.key(LP,S); let idx=plan?plan.keys.indexOf(k):-1;
+  if(idx<0){ hint('💡 考え中…'); busy=true; await new Promise(r=>setTimeout(r,60)); const r=HintSolver.solveFrom(LP,S); busy=false;
+    if(!r.ok){ hint(r.why==='nosol'?'💡 この状態からは、見つからずに出る方法がない。「1手もどす」か「最初から」でやり直そう':'💡 考えきれなかった…。「最初から」にすると、最後までヒントを出せる',5); return; }
+    setPlan(S,r.path); idx=0; }
+  const a=plan.acts[idx]; usedHint=true; refreshMarks();
+  if(a.k==='slide'){ const t=S.cells[a.from]; const md=[-L.w,1,L.w,-1].indexOf(a.to-a.from); const md2=md<0?0:md;
+    mark(hintArrowTex,t,0,0,[0,-Math.PI/2,Math.PI,Math.PI/2][md2],1.15,1,'hint'); mark(hintRingTex,t,0,0,0,1.75,1,'hintring');
+    hint(`💡 「${ROOMS[L.tiles[t].type][0]}」を${UDLR[md2]}へすべらせる<br><small>（ヒントを使ったので、このステージは★2つまで）</small>`,6); }
+  else { const t=S.cells[a.to]; mark(hintArrowTex,S.pT,KS.DX[a.d]*.55,KS.DY[a.d]*.55,[0,-Math.PI/2,Math.PI,Math.PI/2][a.d],.85,1,'hint'); mark(hintRingTex,t,0,0,0,1.75,1,'hintring');
+    hint(`💡 ${UDLR[a.d]}の「${ROOMS[L.tiles[t].type][0]}」へ歩く<br><small>（ヒントを使ったので、このステージは★2つまで）</small>`,6); }
+}
+function rulesHTML(i){
+  const m=LEVELS[i]; const r=[];
+  if(i===0) r.push('<b>歩く</b>：となりの部屋をタップ（ドアがつながっている部屋だけ）','<b>すべらせる</b>：空きマスのとなりの部屋をタップ、または空きマスの方へスワイプ','回収したら、<b>'+BUILD[m.b].exitName+'</b>まで行けばクリア','こまったら <b>💡ヒント</b>（使うとそのステージは★2つまで）');
+  if(i===1) r.push('<b>自分がいる部屋</b>もすべらせられる。部屋ごと移動しよう');
+  if(i===2) r.push('<span class="r">赤い点線</span>は見張りの視線。<span class="r">赤い床</span>は見えている所で、入るとアウト','ドアがつながっていると、何部屋先まででも見える。<b>壁でふさげば見えない</b>','<b>見張りのいる部屋ごとすべらせて</b>、視線をそらすこともできる');
+  if(i===3) r.push('<span class="o">オレンジの矢印</span>は、見張りが<b>次に見る向き</b>','1手動かすごとに、見張りも1回動く');
+  if(i===4) r.push('<span class="o">オレンジの足あと</span>は、見張りが<b>次に歩いていく部屋</b>','見張りが歩いてきて同じ部屋になってもアウト');
+  if(i===5) r.push('<b>🔒 の部屋</b>は動かせない（階段など）');
+  if(i===6) r.push('回収するものが<b>2つ</b>。全部そろえてから出口へ');
+  if(i===10) r.push('<b>空きマスが2つ</b>。すべらせ方がふえる','右を向く看護師さんは、進めないと<b>右</b>を向く');
+  if(i===15) r.push('<b>監視カメラ</b>は時計回りにぐるっと向きを変える');
+  return r;
+}
+function guardRows(i){
+  const L0=LEVELS[i].L; const seen=new Set(); const rows=[];
+  for(const G of L0.guards){ const kind=G.who==='camera'?'cam':G.kind; const k=G.who+kind; if(seen.has(k)) continue; seen.add(k);
+    rows.push(`<div class="gRow"><span class="gi">${GK[G.who].e}</span><div><b>${GK[G.who].name}</b>${KIND_TEXT[kind]}</div></div>`); }
+  return rows.join('');
+}
+function showIntro(i){
+  mode='intro'; const m=LEVELS[i]; const r=rulesHTML(i);
+  const bFirst=i%5===0;
+  $('cardBody').innerHTML=`<div class="kicker">${stageLabel(i)}</div><h2>${m.title}</h2>
+    <p class="story">${bFirst?BUILD[m.b].intro+'<br>':''}${m.story}</p>
+    <div class="goalBox">${m.items.map(it=>`<div class="itemChip"><i style="filter:none">${ITEMK[it.kind].e}</i><span>${it.name||ITEMK[it.kind].name}</span></div>`).join('')}<div class="itemChip"><i style="filter:none">🚪</i><span>${BUILD[m.b].exitName}へ</span></div></div>
+    ${m.L.guards.length?`<div class="gList">${guardRows(i)}</div>`:''}
+    ${r.length?`<div class="rule">${r.map(x=>'・'+x).join('<br>')}</div>`:''}
+    <button class="btn" id="goBtn">スタート</button>`;
+  screen('card'); $('hud').classList.remove('on');
+  $('goBtn').onclick=()=>{ Sfx.init(); Sfx.tick(); startPlay(); };
+}
+function startPlay(){
+  mode='play'; screen(null); $('hud').classList.add('on'); fitCamera(); refreshMarks(); hud();
+  const m=LEVELS[LI];
+  if(LI===0) hint('光る輪の部屋をタップすると歩く。白い矢印の部屋はすべらせられる');
+  else if(LI===1) hint('自分がいる部屋も、すべらせられる');
+  else if(LI===2) hint('赤い点線はお母さんの視線。ドアがつながっていると、となりの部屋まで見える',6);
+  else hint('',0);
+}
+function playLevel(i){ loadLevel(i); showIntro(i); }
+
+/* =========================================================
+   1手すすめる
+   ========================================================= */
+async function doAction(a){
+  if(busy||mode!=='play') return;
+  Sfx.init(); busy=true; if(LI>2) hint('',0);
+  const prev=S; const r=KS.apply(L,S,a);
+  hist.push(prev);
+  overlays.forEach(o=>o.userData.on=false); clearMarks();
+  await playEvents(r);
+  S=r.S; hud(); if(LI<2&&hist.length>=3) hint('',0);
+  if(r.res==='caught'){ await caughtAnim(r); showCaught(r); }
+  else if(r.res==='win'){ await winAnim(); showClear(); }
+  else { syncAll(); }
+  busy=false;
+}
+async function playEvents(r){
+  const ev=r.ev; let i=0;
+  while(i<ev.length){
+    const e=ev[i];
+    if(e.k==='slide'){ const g=tiles[e.t]; const a=cellXZ(e.from), b=cellXZ(e.to); Sfx.slide();
+      await tween(.26,t=>{ const k=easeOutBack(t); g.position.x=lerp(a.x,b.x,k); g.position.z=lerp(a.z,b.z,k); }); i++; }
+    else if(e.k==='step'){ await walk(pMesh,e.fromT,e.toT,e.d,.34,true); view.pT=e.toT; i++; }
+    else if(e.k==='pick'){ flyItem(e.i); view.got|=1<<e.i; i++; }
+    else if(e.k==='caught'||e.k==='win'){ i++; }
+    else { // 見張りはいっしょに動く
+      const group=[]; while(i<ev.length&&(ev[i].k==='gmove'||ev[i].k==='gturn')) group.push(ev[i++]);
+      const ps=group.map(g=> g.k==='gmove'? walk(gMesh[g.gi],g.fromT,g.toT,g.d,.34,false).then(()=>{view.g[g.gi].t=g.toT;}) : turn(gMesh[g.gi],g.d0,g.d1,.28).then(()=>{view.g[g.gi].d=g.d1;}));
+      if(group.some(g=>g.k==='gmove')) Sfx.gstep(); else if(group.length) Sfx.gturn();
+      await Promise.all(ps);
+    }
+  }
+}
+function walk(m,fromT,toT,d,dur,isKid){
+  const a=tilePos(fromT).clone(), b=tilePos(toT).clone(); m.rotation.y=dirRot(d); if(isKid) Sfx.step();
+  const v=new THREE.Vector3(); m.userData.ov=v;
+  return tween(dur,t=>{ const k=ease(t); v.set(lerp(a.x,b.x,k),FLOOR+Math.abs(Math.sin(t*Math.PI*2))*.06,lerp(a.z,b.z,k)); }).then(()=>{ m.userData.ov=null; });
+}
+function turn(m,d0,d1,dur){ const r0=dirRot(d0); let r1=dirRot(d1); let dr=r1-r0; while(dr>Math.PI) dr-=Math.PI*2; while(dr<-Math.PI) dr+=Math.PI*2; return tween(dur,t=>{ m.rotation.y=r0+dr*ease(t); }); }
+function flyItem(i){ const m=iMesh[i]; m.userData.fly=true; Sfx.pick(); const p0=m.position.clone();
+  tween(.55,t=>{ m.position.set(p0.x,p0.y+t*1.2,p0.z); m.rotation.y+=.3; m.scale.setScalar(1+t*.6*(1-t)*4-(t>.7?(t-.7)*3:0)); }).then(()=>{ m.visible=false; m.userData.fly=false; });
+  toast(`${ITEMK[L.items[i].kind].e} ${L.items[i].name||ITEMK[L.items[i].kind].name} を回収！`+(KS && (view.got|(1<<i))===(1<<L.items.length)-1?`<br><small>あとは${B.exitName}へ！</small>`:''));
+}
+async function caughtAnim(r){
+  const gi=r.gi; const m=gMesh[gi]; const G=L.guards[gi];
+  Sfx.caught(); $('flash').classList.add('on'); shake=.25;
+  m.userData.bang.visible=true; m.userData.bang.scale.set(.01,.01,1);
+  const seen=KS.vision(L,r.S); overlays.forEach((o,c)=>{ o.userData.on=seen[c]>=0&&r.S.cells[c]>=0; });
+  // 見張りが子どもの方を向く
+  if(G.who!=='camera'){ const pp=pMesh.position, gp=m.position; if(pp.distanceTo(gp)>.3){ const want=Math.atan2(pp.x-gp.x,pp.z-gp.z); const r0=m.rotation.y; let dr=want-r0; while(dr>Math.PI) dr-=Math.PI*2; while(dr<-Math.PI) dr+=Math.PI*2; tween(.25,t=>{ m.rotation.y=r0+dr*ease(t); }); } }
+  pMesh.userData.ov=pMesh.position.clone(); const y0=pMesh.userData.ov.y;
+  await tween(.7,t=>{ const s=Math.min(1,t*4); m.userData.bang.scale.set(.5*easeOutBack(s),.5*easeOutBack(s),1); pMesh.userData.ov.y=y0+Math.sin(Math.min(1,t*3)*Math.PI)*.25; });
+  pMesh.userData.ov=null;
+  await tween(.35,()=>{});
+  $('flash').classList.remove('on');
+}
+async function winAnim(){
+  Sfx.clear(); hint('',0);
+  const p=tilePos(L.exit); const a=new THREE.Vector3(p.x,FLOOR,p.z), b=new THREE.Vector3(p.x,FLOOR,p.z+TS*.95);
+  pMesh.rotation.y=0; const v=new THREE.Vector3(); pMesh.userData.ov=v;
+  await tween(.55,t=>{ v.set(a.x,FLOOR+Math.abs(Math.sin(t*Math.PI*3))*.06,lerp(a.z,b.z,t)); });
+  confetti(b);
+  await tween(.6,t=>{ v.y=FLOOR+Math.sin(t*Math.PI)*.4; pMesh.rotation.y=t*Math.PI*2; });
+}
+function confetti(p){
+  const cols=[0xffcc4d,0x62e3c4,0xff6b8a,0x7fb6ff,0xffffff]; const parts=[];
+  for(let i=0;i<46;i++){ const m=new THREE.Mesh(new THREE.PlaneGeometry(.08,.05),new THREE.MeshBasicMaterial({color:cols[i%5],side:THREE.DoubleSide})); m.position.copy(p).add(new THREE.Vector3(0,.4,0)); board.add(m);
+    const a=Math.random()*Math.PI*2, s=1.5+Math.random()*2.5; parts.push({m,v:new THREE.Vector3(Math.cos(a)*s*.6,3+Math.random()*3,Math.sin(a)*s*.6),w:new THREE.Vector3(Math.random()*9,Math.random()*9,0)}); }
+  tween(2.2,(t,dt)=>{ for(const q of parts){ q.v.y-=9*dt; q.v.multiplyScalar(1-dt*1.2); q.m.position.addScaledVector(q.v,dt); q.m.rotation.x+=q.w.x*dt; q.m.rotation.y+=q.w.y*dt; } }).then(()=>{ for(const q of parts){ board&&board.remove(q.m); q.m.geometry.dispose(); q.m.material.dispose(); } });
+}
+
+/* ---------- 見つかった・クリア ---------- */
+function showCaught(r){
+  mode='caught'; const G=L.guards[r.gi];
+  $('cardBody').innerHTML=`<div class="kicker" style="color:#ff8a8a">CAUGHT</div><h2>見つかった！</h2>
+    <div style="font-size:40px;line-height:1.1">${GK[G.who].e}</div>
+    <div class="line">「${GK[G.who].line}」</div>
+    <div class="muted">${r.ev.some(e=>e.why==='walk')?'見張りが歩いてきて、同じ部屋になってしまった。':r.ev.some(e=>e.why==='bump')?'見張りがいる部屋に入ってしまった。':'赤い床（見張りに見える所）に入ってしまった。'}</div>
+    <button class="btn mint" id="cUndo">1手もどす</button>
+    <button class="btn sub" id="cReset">最初から</button>`;
+  screen('card');
+  $('cUndo').onclick=()=>{ Sfx.undo(); undo(); };
+  $('cReset').onclick=()=>{ Sfx.tick(); reset(); };
+}
+function showClear(){
+  mode='clear'; const moves=hist.length; const raw=starsFor(LI,moves); const st=usedHint?Math.min(2,raw):raw;
+  const prev=prog.stars[LI]||0; if(st>prev){ prog.stars[LI]=st; store.set('prog',prog); }
+  const last=LI===LEVELS.length-1; const endB=LI%5===4;
+  $('cardBody').innerHTML=`<div class="kicker">CLEAR</div><h2>${last?'ぜんぶ脱出成功！':'脱出成功！'}</h2>
+    <div class="stars">${[0,1,2].map(i=>STAR(i<st,i)).join('')}</div>
+    <div class="big">${moves}<small>手</small></div>
+    <div class="muted">${usedHint?'ヒントを使ったので★2つまで。ヒントなしで★3つ（'+star3(LI)+'手以内）をねらおう':st<3?`★3つは ${star3(LI)}手以内`:'★3つ！ 見事な手さばき'}</div>
+    ${endB&&!last?`<div class="rule">次の舞台は <b>${BUILD[LEVELS[LI+1].b].name}</b>！</div>`:''}
+    ${last?`<div class="rule">家・学校・病院・美術館、全20ステージ脱出！<br>合計 <b>★${totalStars()}</b> / 60</div>`:''}
+    ${last?'':'<button class="btn" id="nBtn">次のステージへ</button>'}
+    <div class="row"><button class="btn sub" id="rBtn">もう一回</button><button class="btn sub" id="sBtn">ステージ選択</button></div>`;
+  screen('card');
+  setTimeout(()=>{ for(let i=0;i<st;i++) setTimeout(()=>Sfx.star(i),150+i*220); },0);
+  if(!last) $('nBtn').onclick=()=>{ Sfx.tick(); playLevel(LI+1); };
+  $('rBtn').onclick=()=>{ Sfx.tick(); reset(); };
+  $('sBtn').onclick=()=>{ Sfx.tick(); openSelect(); };
+}
+function totalStars(){ return Object.values(prog.stars).reduce((a,b)=>a+b,0); }
+function undo(){ if(!hist.length||busy) return; S=hist.pop(); mode='play'; screen(null); syncAll(); placeActors(); hud(); $('flash').classList.remove('on'); }
+function reset(){ if(busy) return; S=KS.initState(L); hist=[]; usedHint=false; setPlan(S,LEVELS[LI].path); mode='play'; screen(null); $('hud').classList.add('on'); syncAll(); placeActors(); hud(); $('flash').classList.remove('on'); }
+$('hintBtn').onclick=()=>giveHint();
+$('undoBtn').onclick=()=>{ if(mode==='play'&&!busy&&hist.length){ Sfx.undo(); undo(); } };
+$('resetBtn').onclick=()=>{ if(mode==='play'&&!busy){ Sfx.tick(); reset(); } };
+
+/* ---------- タイトル・選択・メニュー ---------- */
+function unlocked(i){ return i===0||!!prog.stars[i-1]||DEBUG; }
+function nextStage(){ for(let i=0;i<LEVELS.length;i++) if(!prog.stars[i]) return i; return 0; }
+function showTitle(){
+  mode='title'; $('hud').classList.remove('on'); hint('',0);
+  loadLevel(Math.min(nextStage(),LEVELS.length-1)); refreshMarks();
+  const ts=totalStars(); $('bestLine').innerHTML=ts?`集めた星 <b>★${ts}</b> / 60`:'';
+  screen('title'); fitCamera();
+}
+function openSelect(){
+  mode='select'; $('hud').classList.remove('on');
+  $('selList').innerHTML=BUILD.map((b,bi)=>`<div class="bsec"><h3>${['🏠','🏫','🏥','🏛️'][bi]} ${b.name} <small>${b.sub}</small></h3><div class="sgrid">${[0,1,2,3,4].map(k=>{ const i=bi*5+k; const st=prog.stars[i]||0;
+    return `<button data-i="${i}" ${unlocked(i)?'':'disabled'} class="${i===LI?'cur':''}">${k+1}<span class="ss">${st?'★'.repeat(st):''}</span></button>`; }).join('')}</div></div>`).join('');
+  $('selList').querySelectorAll('button').forEach(b=>b.onclick=()=>{ Sfx.init(); Sfx.tick(); playLevel(+b.dataset.i); });
+  screen('select');
+}
+$('playBtn').onclick=()=>{ Sfx.init(); Sfx.tick(); playLevel(nextStage()); };
+$('selectBtn').onclick=()=>{ Sfx.init(); Sfx.tick(); openSelect(); };
+$('selBack').onclick=()=>{ Sfx.tick(); showTitle(); };
+$('menuBtn').addEventListener('pointerdown',e=>e.stopPropagation());
+$('menuBtn').onclick=()=>{ if(mode!=='play'||busy) return; Sfx.tick(); mode='menu'; screen('menu'); };
+$('mResume').onclick=()=>{ Sfx.tick(); mode='play'; screen(null); };
+$('mRule').onclick=()=>{ Sfx.tick(); const keep=hist.slice(), keepS=S; showIntro(LI); $('goBtn').textContent='つづける'; $('goBtn').onclick=()=>{ Sfx.tick(); mode='play'; screen(null); $('hud').classList.add('on'); S=keepS; hist=keep; hud(); }; };
+$('mSelect').onclick=()=>{ Sfx.tick(); openSelect(); };
+$('mTitle').onclick=()=>{ Sfx.tick(); showTitle(); };
+$('muteBtn').onclick=()=>{ muted=!muted; store.set('mute',muted); Sfx.init(); Sfx.setMute(muted); $('muteBtn').innerHTML=muted?SPK_OFF:SPK_ON; };
+$('muteBtn').innerHTML=muted?SPK_OFF:SPK_ON;
+
+/* =========================================================
+   タップ・スワイプ
+   ========================================================= */
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), plane=new THREE.Plane(new THREE.Vector3(0,1,0),-FLOOR), hitP=new THREE.Vector3();
+function cellAt(clientX,clientY){
+  const r=canvas.getBoundingClientRect(); ndc.set(((clientX-r.left)/r.width)*2-1,-((clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(ndc,camera); if(!ray.ray.intersectPlane(plane,hitP)) return -1;
+  const x=Math.round(hitP.x/TS+(L.w-1)/2), y=Math.round(hitP.z/TS+(L.h-1)/2); if(x<0||y<0||x>=L.w||y>=L.h) return -1;
+  const lx=hitP.x/TS+(L.w-1)/2-x, ly=hitP.z/TS+(L.h-1)/2-y; if(Math.abs(lx)>.5||Math.abs(ly)>.5) return -1; return y*L.w+x;
+}
+let down=null;
+canvas.addEventListener('pointerdown',e=>{ Sfx.init(); if(mode!=='play') return; down={x:e.clientX,y:e.clientY,c:cellAt(e.clientX,e.clientY),id:e.pointerId}; try{canvas.setPointerCapture(e.pointerId);}catch(_){} });
+canvas.addEventListener('pointerup',e=>{ if(!down||e.pointerId!==down.id) return; const d=down; down=null; if(mode!=='play'||busy) return;
+  const dx=e.clientX-d.x, dy=e.clientY-d.y; const dist=Math.hypot(dx,dy);
+  if(dist>24 && d.c>=0){ // スワイプ：その方向の空きマスへ
+    const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?2:0); const to=KS.nb(L,d.c,dir); const t=S.cells[d.c];
+    if(to>=0&&S.cells[to]<0&&t>=0&&!L.tiles[t].fixed){ doAction({k:'slide',from:d.c,to}); return; }
+    if(t>=0&&L.tiles[t].fixed){ Sfx.nope(); hint('🔒 この部屋は動かせない',2); return; }
+    Sfx.nope(); hint('すべらせる先が空いていない',2); return; }
+  onTap(cellAt(e.clientX,e.clientY));
+});
+canvas.addEventListener('pointercancel',()=>{ down=null; });
+function onTap(c){
+  if(c<0) return; const t=S.cells[c];
+  const pc=S.pos[S.pT];
+  if(t<0){ Sfx.nope(); hint('空きマスのとなりの部屋をタップすると、ここへすべる',2.5); return; }
+  for(let d=0;d<4;d++){ if(KS.link(L,S,pc,d)===c){ doAction({k:'step',d,from:pc,to:c}); return; } }
+  const empt=[]; for(let d=0;d<4;d++){ const n=KS.nb(L,c,d); if(n>=0&&S.cells[n]<0) empt.push(n); }
+  if(empt.length&&!L.tiles[t].fixed){ if(empt.length>1){ hint('空きマスが2つとなりにある時は、すべらせたい方へスワイプ',3); Sfx.nope(); return; } doAction({k:'slide',from:c,to:empt[0]}); return; }
+  if(c===pc){ hint('光る輪の部屋をタップすると、そこへ歩く',2.2); return; }
+  if(L.tiles[t].fixed){ Sfx.nope(); hint('🔒 この部屋は動かせない',2); return; }
+  Sfx.nope();
+  const adj=[0,1,2,3].some(d=>KS.nb(L,pc,d)===c);
+  hint(adj?'ドアがつながっていないので進めない':'となりの部屋にしか歩けない。すべらせられるのは空きマスのとなりの部屋だけ',2.6);
+}
+
+/* =========================================================
+   ループ
+   ========================================================= */
+let last=performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min(DEBUG?.25:.05,(now-last)/1000); last=now; clock+=dt;
+  for(let i=anims.length-1;i>=0;i--){ const a=anims[i]; const t=clamp((clock-a.t0)/a.dur,0,1); a.fn(t,dt); if(t>=1){ anims.splice(i,1); a.res(); } }
+  if(L&&board){
+    placeActors();
+    const pulse=.72+.18*Math.sin(clock*5);
+    for(const o of overlays){ const want=o.userData.on?pulse:0; o.material.opacity=lerp(o.material.opacity,want,1-Math.exp(-dt*12)); o.visible=o.material.opacity>.01; }
+    for(const mk of markers){ if(mk.kind==='beam'){ mk.m.material.map.offset.x-=dt*1.4; continue; } if(mk.kind==='hint'||mk.kind==='hintring'){ const k=1+.08*Math.sin(clock*7); mk.m.scale.set(k,k,1); mk.m.material.opacity=.8+.2*Math.sin(clock*7); continue; } if(mk.kind==='walk'){ mk.m.rotation.z=clock*.6; mk.m.material.opacity=.65+.3*Math.sin(clock*4); } else if(mk.kind==='slide'){ mk.m.material.opacity=.45+.35*Math.sin(clock*4); } else mk.m.material.opacity=.7+.25*Math.sin(clock*5); }
+    if(mode==='title'||mode==='select'){ const a=Math.sin(clock*.15)*.25; camera.position.set(camBase.x*Math.cos(a)+camBase.z*Math.sin(a),camBase.y,-camBase.x*Math.sin(a)+camBase.z*Math.cos(a)); camera.lookAt(0,0,.25*TS); }
+    else { camera.position.copy(camBase); camera.lookAt(0,0,.25*TS); }
+    if(shake>0){ camera.position.x+=(Math.random()-.5)*shake; camera.position.y+=(Math.random()-.5)*shake; shake=Math.max(0,shake-dt*.8); }
+  }
+  if(!(DEBUG&&window.__noRender)) renderer.render(scene,camera);
+}
+new ResizeObserver(()=>{ if(L) fitCamera(); }).observe($('game'));
+const coarse=matchMedia('(pointer:coarse)');
+function checkRotate(){ const land=coarse.matches&&innerWidth>innerHeight&&innerHeight<540; $('rotate').style.display=land?'flex':'none'; }
+addEventListener('resize',checkRotate); addEventListener('orientationchange',()=>setTimeout(()=>{checkRotate(); if(L) fitCamera();},250));
+
+/* ---------- はじまり ---------- */
+(async()=>{
+  try{ await Promise.race([document.fonts.load(`800 20px "M PLUS Rounded 1c"`),new Promise(r=>setTimeout(r,1500))]); }catch(e){}
+  checkRotate(); showTitle(); $('loading').remove(); requestAnimationFrame(loop);
+})();
+
+if(DEBUG){
+  window.KSD={ get L(){return L;}, get S(){return S;}, get mode(){return mode;}, get busy(){return busy;}, get hist(){return hist;}, LEVELS, KS, playLevel, loadLevel, startPlay, doAction, undo, reset, onTap, giveHint, get plan(){return plan;}, get usedHint(){return usedHint;},
+    cellToScreen(c){ const p=cellXZ(c); const v=new THREE.Vector3(p.x,FLOOR,p.z).project(camera); const r=canvas.getBoundingClientRect(); return {x:r.left+(v.x+1)/2*r.width,y:r.top+(1-v.y)/2*r.height}; } };
+}
+</script>
+</body>
+</html>
