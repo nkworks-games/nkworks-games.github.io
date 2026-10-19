@@ -476,13 +476,15 @@ class FirebaseBackend {
   async claim(b, h, nm) {
     await this.authP;
     const { runTransaction, serverTimestamp } = this.fs, curRef = this.d('taru', 'cur'), fRef = this.d('taruFlights', String(b));
-    let err = null;
-    for (const w of [0, 800, 1600, 3200, 6400, 12000]) { // 電波が 悪い時は 間を あけて 何回か ためす
-      if (w) await new Promise(r => setTimeout(r, w));
+    let err = null, raced = 0;
+    const waits = [0, 800, 1600, 3200, 6400, 12000];
+    for (let i = 0; i < waits.length; i++) { // 電波が 悪い時は 間を あけて 何回か ためす
+      if (waits[i]) await new Promise(r => setTimeout(r, waits[i]));
+      let readN = null;
       try {
         const r = await runTransaction(this.db, async tx => {
           const s = await tx.get(curRef); if (!s.exists()) return 'none';
-          const c = s.data(); if (c.b !== b) return 'moved';
+          const c = s.data(); readN = c.n; if (c.b !== b) return 'moved';
           tx.set(fRef, { b, h, u: this.uid, nm, t: serverTimestamp(), holes: c.holes, n: c.n, p: c.p, start: c.start });
           tx.update(curRef, { b: b + 1, holes: c.holes * 10, n: 0, p: 0, start: serverTimestamp() });
           return 'sent';
@@ -494,7 +496,18 @@ class FirebaseBackend {
         }
         return { ok: false, done: true };
       } catch (e) {
-        if (e && e.code === 'permission-denied') return { ok: false, done: true }; // 当たりの穴では なかった
+        if (e && e.code === 'permission-denied') {
+          // 断られた：「はずれ」か、「読んだ 直後に だれかが 刺して 本数が ずれた」かを 見分ける
+          //   樽を 読み直して 本数が 読んだ時と 同じなら、ずれでは ない＝本当に はずれ。ずれていたら もう一度（以前は ここを はずれと 決めつけていた）
+          const s = await this.fs.getDocFromServer(curRef).catch(() => null);
+          if (s && s.exists()) {
+            const c = s.data();
+            if (c.b !== b) { const f = await this.fs.getDoc(fRef).catch(() => null); return f && f.exists() && f.data().u === this.uid && f.data().h === h ? { ok: true } : { ok: false, done: true }; }
+            if (readN != null && c.n === readN) return { ok: false, done: true }; // 当たりの穴では なかった
+            if (raced++ < 8) { i--; continue; }   // 本数が ずれていた：待たずに やり直す
+          }
+          err = e; continue;
+        }
         err = e;
       }
     }
@@ -1247,7 +1260,7 @@ function onState(c) {
   if (!c) { $('loading').textContent = 'まだ樽の準備ができていません（作者の準備待ち）'; $('loading').style.display = 'flex'; return; }
   const prev = A.cur; A.cur = c;
   if (!A.ready && !A.userDone) return;   // 自分の記録（待ち時間）が届くまで待つ
-  if (!A.ready) { A.ready = true; $('loading').style.display = 'none'; loadAds(); startBarrel(c.b); A.backend.ready().then(() => announceMissed(c.b), () => { }); setTimeout(retryPending, 1500); if (SV.mode === 'solo') setMode('solo'); }
+  if (!A.ready) { A.ready = true; $('loading').style.display = 'none'; loadAds(); startBarrel(c.b); A.backend.ready().then(() => announceMissed(c.b), () => { }); setTimeout(retryPending, 1500); setTimeout(recheckMine, 2500); if (SV.mode === 'solo') setMode('solo'); }
   else if (prev && c.b !== prev.b) onBarrelChanged(prev, c);
   renderTop(); renderSword();
 }
@@ -1474,6 +1487,23 @@ function askClaim(P) {
     P.claim = c;
     if (A.push !== P && c.ok && !A.busyFlight) doFlight({ me: true, b: P.b, h: P.h }); // 押しこみの画面が もう終わっていた時（電波が 悪かった時）
   });
+}
+// 安全網：樽の 穴が 全部 埋まったのに 飛んでいない時は、この 端末で 刺した 剣を もう一度 当たりか 聞く
+//   （当たりを 刺した人の 確認が とちゅうで 失敗していても、その人が また開いた時に 樽が 飛ぶ）
+let recheckB = null, recheckBusy = false;
+function recheckMine() {
+  const c = A.cur; if (!c || c.n < c.holes || recheckBusy || recheckB === c.b || A.push || A.busyFlight || !A.ready || A.mode === 'solo') return;
+  const hs = mineOf(c.b).slice(); if (!hs.length) { recheckB = c.b; return; }
+  recheckBusy = true;
+  (async () => {
+    let unknown = false;
+    for (const h of hs) {
+      if (!A.cur || A.cur.b !== c.b) break;
+      const r = await A.backend.claim(c.b, h, SV.name || '名無し').catch(() => ({ ok: false, done: false }));
+      if (r.ok) break; if (r.done === false) unknown = true;
+    }
+    if (!unknown) recheckB = c.b; recheckBusy = false;
+  })();
 }
 // 結果待ちの剣を 聞き直す（つながった時・開いた時・20秒ごと）
 let pendBusy = false;
@@ -1788,7 +1818,7 @@ async function boot() {
   setTimeout(loadAds, 6000);
   stage = new Stage($('c'), ASSETS);
   resize(); window.addEventListener('resize', resize);
-  window.addEventListener('online', () => setTimeout(retryPending, 800)); setInterval(retryPending, 20000); // 結果待ちの剣を 聞き直す
+  window.addEventListener('online', () => setTimeout(retryPending, 800)); setInterval(() => { retryPending(); recheckMine(); }, 20000); // 結果待ちの剣を 聞き直す
   const cv = $('c');
   cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointermove', onMove); cv.addEventListener('pointerup', onUp); cv.addEventListener('pointercancel', onUp);
   cv.addEventListener('wheel', e => { e.preventDefault(); stage.zoomBy(e.deltaY > 0 ? 1.1 : 0.9); renderHint(); }, { passive: false });
@@ -1841,7 +1871,7 @@ async function boot() {
   if (!SV.seenHow) $('howto').classList.add('show');
   requestAnimationFrame(frame);
 }
-window.__tk = { A, SV, L, clock, SO, setMode, soloStab, soloLoad, soloCatchUp, get stage() { return stage; }, renderTop, retryPending, tapAt, randomHole, startPush, doFlight, showFlyCard, onSwordDown: () => onSwordDown({ preventDefault() { } }), onSwordUp, askName, closeFlyCard, THREE };
+window.__tk = { A, SV, L, clock, SO, recheckMine, setMode, soloStab, soloLoad, soloCatchUp, get stage() { return stage; }, renderTop, retryPending, tapAt, randomHole, startPush, doFlight, showFlyCard, onSwordDown: () => onSwordDown({ preventDefault() { } }), onSwordUp, askName, closeFlyCard, THREE };
 boot().catch(e => { console.error(e); $('loading').textContent = '読みこみに失敗しました。ページを開き直してください'; });
 
 </script>
