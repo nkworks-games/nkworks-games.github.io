@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<title>世界を黄金比にする委員会</title>
+<meta name="description" content="提出された写真を、本委員会が黄金比（1：1.618）に修正します。写真の枠と目立つ線を黄金比の位置へ。修正後は黄金比認定証を交付します。">
+<meta name="theme-color" content="#fbf8ef">
+<meta property="og:type" content="website">
+<meta property="og:title" content="世界を黄金比にする委員会">
+<meta property="og:description" content="提出された写真を、本委員会が黄金比に修正します。">
+<meta property="og:url" content="https://nkworks-games.com/ougonhi/">
+<meta property="og:image" content="https://nkworks-games.com/ougonhi/card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&display=swap" rel="stylesheet">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350" crossorigin="anonymous"></script>
+<style>
+:root{--paper:#fbf8ef;--paper2:#f3eedf;--ink:#1d1c1a;--sub:#5f5a50;--gold:#b48b32;--gold2:#d9b864;--navy:#1f2f55;--shu:#cf3b28;--min:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--min);font-weight:500}
+body{min-height:100%;overscroll-behavior:none}
+.hide{display:none!important}
+.screen{max-width:480px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom))}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation}
+.btn{display:block;width:100%;border:0;border-radius:6px;padding:15px 12px;font-size:18px;font-weight:700;letter-spacing:.08em;color:#fff;background:var(--navy);box-shadow:0 3px 0 #0f1a33}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #0f1a33}
+.btn.b2{background:#fff;color:var(--navy);border:1.5px solid var(--navy);box-shadow:0 3px 0 #c9c2ae}
+.btns{display:grid;gap:12px}
+.fine{font-size:12.5px;color:var(--sub);line-height:1.7}
+/* はじめの画面 */
+#s-intro{display:flex;flex-direction:column;gap:18px}
+.head{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--gold)}
+.head svg{flex:0 0 72px;height:72px}
+.head h1{margin:0;font-size:24px;font-weight:800;line-height:1.35;letter-spacing:.04em;text-wrap:balance}
+.head h1 small{display:block;font-size:12px;font-weight:500;color:var(--sub);letter-spacing:.2em}
+.notice{border:1px solid var(--ink);padding:14px 16px;background:#fff;font-size:15.5px;line-height:1.9}
+.notice b{display:block;font-size:13px;letter-spacing:.3em;margin-bottom:4px}
+.rate{background:var(--paper2);padding:14px 16px;border-left:4px solid var(--gold)}
+.rate .l{font-size:13px;color:var(--sub);letter-spacing:.1em}
+.rate .v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.02em;margin:2px 0}
+.rate .n{font-size:14px}
+.rate .s{font-size:11.5px;color:var(--sub);margin-top:4px}
+.mine{font-size:14px}
+.mine b{font-size:18px}
+.adwrap{margin-top:75px;min-height:50px;display:flex;justify-content:center}
+.adwrap ins{display:inline-block;width:320px;height:50px}
+footer{font-size:11px;color:var(--sub);text-align:center;margin-top:8px}
+/* 修正申請書（修正の前に 向きを 選ぶ） */
+#s-app{display:flex;flex-direction:column;gap:12px}
+#s-app h2,#s-crop h2{margin:0;text-align:center;font-size:20px;font-weight:800;letter-spacing:.35em;padding-left:.35em}
+#s-app .lead,#s-crop .lead{margin:-6px 0 0;text-align:center;font-size:12.5px;color:var(--sub)}
+.btn.sm{padding:11px 8px;font-size:16px}
+/* 切り取り */
+#s-crop{display:flex;flex-direction:column;gap:12px}
+#cropvp{position:relative;width:100%;background:#2b2925;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden;border-radius:4px;cursor:grab}
+#cropc{display:block;width:100%;height:100%}
+.croptools{display:flex;align-items:center;justify-content:center;gap:12px}
+.zb{width:48px;height:40px;border:1.5px solid var(--navy);border-radius:6px;background:#fff;color:var(--navy);font-size:22px;font-weight:700;line-height:1;padding:0}
+#cropinfo{flex:1;font-size:13px;color:var(--sub);text-align:center;font-variant-numeric:tabular-nums}
+.row2{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
+#pv{margin:0 auto;box-shadow:0 0 0 1px var(--gold)}
+#pvc{display:block;width:100%;height:100%}
+.opt .ol{font-size:12.5px;color:var(--sub);letter-spacing:.15em;margin-bottom:5px}
+.seg{display:flex;border:1.5px solid var(--navy);border-radius:6px;overflow:hidden;background:#fff}
+.seg button{flex:1 1 0;min-width:0;border:0;border-left:1px solid #c9c2ae;background:none;color:var(--navy);font-size:14px;font-weight:700;padding:9px 0;white-space:nowrap}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--navy);color:#fff}
+#pvsum{text-align:center;font-size:14px;min-height:20px}
+#pvsum b{color:var(--navy)}
+.lnk{display:block;margin:0 auto;border:0;background:none;color:var(--sub);font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:6px 10px}
+/* 修正中 */
+#s-fix{padding-top:max(24px,env(safe-area-inset-top));min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;max-width:none}
+#stage{position:relative;transform-origin:50% 50%}
+#stage.shake{animation:shake .35s linear}
+@keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
+#cv,#ov{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+#cv{background:var(--paper2)}
+.stamp{position:absolute;left:50%;top:50%;width:var(--st,160px);height:var(--st,160px);margin:calc(var(--st,160px) / -2) 0 0 calc(var(--st,160px) / -2);border:calc(var(--st,160px) * .05) solid var(--shu);border-radius:50%;color:var(--shu);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:calc(var(--st,160px) * .25);line-height:1.12;letter-spacing:.08em;padding-left:.08em;transform:rotate(-14deg);opacity:0;background:rgba(255,253,246,.78);box-shadow:inset 0 0 0 calc(var(--st,160px) * .035) rgba(255,253,246,.9),inset 0 0 0 calc(var(--st,160px) * .05) var(--shu)}
+.stamp span{display:block}
+.stamp.on{animation:stamp .32s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes stamp{0%{opacity:0;transform:rotate(-14deg) scale(2.6)}100%{opacity:.92;transform:rotate(-14deg) scale(1)}}
+#fixmsg{font-size:14px;color:var(--sub);letter-spacing:.3em;min-height:20px}
+/* 結果 */
+#s-res{display:flex;flex-direction:column;gap:16px}
+#cmp{position:relative;margin:0 auto;touch-action:pan-y;user-select:none;-webkit-user-select:none;box-shadow:0 0 0 1px var(--gold)}
+#cmp canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+#aw{position:absolute;inset:0}
+#knob{position:absolute;top:0;bottom:0;width:0;border-left:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+#knob:after{content:"◀ ▶";position:absolute;top:50%;left:0;transform:translate(-50%,-50%);background:var(--navy);color:#fff;font-size:11px;letter-spacing:.1em;padding:7px 8px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.tag{position:absolute;top:8px;font-size:11px;padding:3px 7px;background:rgba(29,28,26,.72);color:#fff;letter-spacing:.15em;pointer-events:none}
+.tag.l{left:8px}.tag.r{right:8px}
+#cert{position:relative;background:#fff;padding:16px 18px 14px;border:1.5px solid var(--gold);outline:3px double var(--gold2);outline-offset:-8px;line-height:1.75}
+#cert h2{margin:0;text-align:center;font-size:21px;font-weight:800;letter-spacing:.35em;padding-left:.35em}
+#cert .no{text-align:center;font-size:12.5px;color:var(--sub);margin-bottom:8px;font-variant-numeric:tabular-nums}
+#cert .body{font-size:15px}
+#cert .cnt{font-size:13px;margin-top:6px}
+#cert .by{font-size:13.5px;margin-top:4px;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+#cert .by svg{width:46px;height:46px}
+.post-note{font-size:12px;color:var(--sub);text-align:center;margin-top:-4px}
+/* 保存（長押し） */
+#saveov{position:fixed;inset:0;z-index:9;background:rgba(20,18,14,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;color:#fff;text-align:center}
+#saveov img{max-width:100%;max-height:72vh;box-shadow:0 6px 30px rgba(0,0,0,.5);-webkit-touch-callout:default}
+#saveov .btn{max-width:260px}
+#toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:10;white-space:nowrap}
+#toast.on{opacity:.94}
+</style>
+</head>
+<body>
+<section id="s-intro" class="screen">
+  <div class="head"><svg id="emblem" viewBox="0 0 100 100" aria-hidden="true"></svg><h1><small>WORLD GOLDEN RATIO COMMITTEE</small>世界を黄金比に<br>する委員会</h1></div>
+  <div class="notice"><b>通 知</b>本委員会は、世界のあらゆる比率を黄金比（1：1.618）に修正しています。お手元の写真を提出してください。</div>
+  <div class="rate"><div class="l">世界の黄金比化率</div><div class="v" id="rate">集計中</div><div class="n" id="total">修正済み —枚</div><div class="s">世界の写真（1年分・約2兆枚）に対する割合。みんなが直した枚数をそのまま数えています。</div></div>
+  <div class="mine">あなたが美しくした世界：<b id="mine">0</b>枚</div>
+  <div class="btns"><button id="b-pick" class="btn">写真を提出する</button><button id="b-cam" class="btn b2">その場で撮影して提出する</button></div>
+  <p class="fine">人の美しさは採点しません。写真はこの端末の外に送りません（直した枚数だけを数えます）。<br>ほかの人が写った写真は、その人がいやがらないものだけにしてください。</p>
+  <div class="adwrap" id="ad1"></div>
+  <footer>N.K. Works</footer>
+</section>
+<section id="s-app" class="screen hide">
+  <h2>修正申請書</h2>
+  <p class="lead">修正の向きを選んでください。</p>
+  <div id="pv"><canvas id="pvc"></canvas></div>
+  <div class="opt"><div class="ol">渦の中心</div><div class="seg" id="seg-spin"><button data-v="a">おまかせ</button><button data-v="0">右下</button><button data-v="1">左下</button><button data-v="2">左上</button><button data-v="3">右上</button></div></div>
+  <div class="opt"><div class="ol">形</div><div class="seg" id="seg-shape"><button data-v="a">おまかせ</button><button data-v="p">縦長</button><button data-v="l">横長</button></div></div>
+  <button id="b-crop" class="btn b2 sm">一部を切り取る</button>
+  <div id="pvsum"></div>
+  <button id="b-go" class="btn">この内容で提出する</button>
+  <button id="b-back" class="lnk">ほかの写真にする</button>
+</section>
+<section id="s-crop" class="screen hide">
+  <h2>切り取り</h2>
+  <p class="lead">角や辺を引っぱって、範囲を選んでください。</p>
+  <div id="cropvp"><canvas id="cropc"></canvas></div>
+  <div class="croptools"><button id="z-out" class="zb" aria-label="縮小">－</button><span id="cropinfo"></span><button id="z-in" class="zb" aria-label="拡大">＋</button></div>
+  <div class="row2"><button id="b-cropall" class="btn b2 sm">全体を選ぶ</button><button id="b-cropok" class="btn sm">この範囲にする</button></div>
+  <button id="b-cropno" class="lnk">やめる</button>
+</section>
+<section id="s-fix" class="screen hide">
+  <div id="stage"><canvas id="cv"></canvas><canvas id="ov"></canvas><div class="stamp" id="stamp"><span>修正</span><span>完了</span></div></div>
+  <div id="fixmsg">審査中</div>
+</section>
+<section id="s-res" class="screen hide">
+  <div id="cmp"><canvas id="cb"></canvas><div id="aw"><canvas id="ca"></canvas></div><div id="knob"></div><span class="tag l">修正前</span><span class="tag r">修正後</span></div>
+  <div id="cert"><h2>黄金比認定証</h2><div class="no" id="c-no"></div><div class="body" id="c-body"></div><div class="cnt" id="c-cnt"></div><div class="by">世界を黄金比にする委員会<svg id="seal" viewBox="0 0 100 100" aria-hidden="true"></svg></div></div>
+  <div class="btns">
+    <button id="b-again" class="btn">もう一度修正する</button>
+    <button id="b-redo" class="btn b2">向きを選び直す</button>
+    <button id="b-save" class="btn b2">画像を保存</button>
+    <button id="b-post" class="btn b2">Xに投稿</button>
+    <p class="post-note">投稿には、保存した画像かスクショを付けてください。</p>
+    <button id="b-new" class="btn b2">別の写真を提出する</button>
+  </div>
+  <div class="adwrap" id="ad2"></div>
+</section>
+<div id="saveov" class="hide"><img id="saveimg" alt="保存用の画像"><p>画像を長押しして保存してください</p><button class="btn b2" id="b-close">閉じる</button></div>
+<div id="toast"></div>
+<input type="file" id="f-pick" accept="image/*" hidden>
+<input type="file" id="f-cam" accept="image/*" capture="environment" hidden>
+<script>
+(() => {
+'use strict';
+// =====================================================================
+//  世界を黄金比にする委員会
+//  写真の枠を黄金比（1：1.618）に引き伸ばし、いちばん目立つ横線・縦線を黄金比の位置（38.2%・61.8%）へ動かす。
+//  ゆがめ方は「横は横だけ・縦は縦だけ」の区切りごとの伸び縮み（線は曲がらない）。区切りの格子ごとに drawImage で描く。
+//  写真は端末の外に送らない。
+// =====================================================================
+const PHI = 1.6180339887, G1 = 1 - 1 / PHI, G2 = 1 / PHI;   // 0.382, 0.618
+const URL_PUBLIC = 'https://nkworks-games.com/ougonhi/', TAG = '#黄金比委員会';
+const WORLD_PHOTOS = 2e12;   // 世界で1年に撮られる写真（推計 約2兆枚）
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('ougonhi.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('ougonhi.' + k, JSON.stringify(v)); } catch (e) { /* 保存できない時は そのまま */ } },
+};
+const fmt = n => Number(n).toLocaleString('ja-JP');
+function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2200); }
+
+// ---------------- 音（Web Audio で作る）：スーッ・グニッ・ドン ----------------
+const Snd = {
+  ctx: null,
+  init() { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; if (!this.ctx) { try { this.ctx = new AC(); const n = this.ctx.sampleRate, b = this.ctx.createBuffer(1, n, n), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; this.nb = b; } catch (e) { this.ctx = null; return; } } if (this.ctx.state === 'suspended') this.ctx.resume(); },
+  noise(dur, f0, f1, vol, q = 2, at = 0) { const c = this.ctx; if (!c) return; const t = c.currentTime + at, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = this.nb; f.type = 'bandpass'; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); s.stop(t + dur + 0.05); },
+  sweep() { this.noise(0.6, 1800, 7000, 0.12, 3); },
+  gunyo() { const c = this.ctx; if (!c) return; const t = c.currentTime, o = c.createOscillator(), l = c.createOscillator(), lg = c.createGain(), g = c.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(260, t); o.frequency.exponentialRampToValueAtTime(95, t + 0.5); l.frequency.value = 16; lg.gain.value = 26; l.connect(lg); lg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3, t + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.62); o.connect(g); g.connect(c.destination); for (const x of [o, l]) { x.start(t); x.stop(t + 0.7); } },
+  don() { const c = this.ctx; if (!c) return; const t = c.currentTime, o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.32);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.9, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.45); this.noise(0.16, 900, 300, 0.4, 0.7); },
+};
+
+// ---------------- 写真を 読みこむ：長い辺を maxSide まで 縮める（切り取りに 使う 元の 写真は 3200px まで 残す）----------------
+async function loadPhoto(file, maxSide = 1600) {
+  let src;
+  try { src = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+  catch (e) { src = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(file); }); }
+  const w0 = src.width, h0 = src.height, k = Math.min(1, maxSide / Math.max(w0, h0));
+  const c = mk(Math.max(8, Math.round(w0 * k)), Math.max(8, Math.round(h0 * k))), g = c.getContext('2d');
+  g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, c.width, c.height);
+  if (src.close) src.close();
+  return c;
+}
+// 枠：縦長は 幅そのまま・高さ＝幅×1.618、横長は 高さそのまま・幅＝高さ×1.618。正方形（差 3% 以内）は 横長あつかい
+//   force（'p'＝縦長 / 'l'＝横長）を 渡すと、写真の 向きに 関係なく その向きの 枠に する（結果画面の「向きを変えて修正する」）
+function frameOf(w, h, force) {
+  const r = Math.max(w, h) / Math.min(w, h), square = r <= 1.03, nat = h > w && !square ? 'p' : 'l', o = force || nat;
+  let W = o === 'p' ? w : Math.round(h * PHI), H = o === 'p' ? Math.round(w * PHI) : h;
+  if (o !== nat) { const k = Math.min(1, 2000 / Math.max(W, H)); W = Math.round(W * k); H = Math.round(H * k); }   // 向きを 変えた時は 大きく なりすぎないように
+  // r：写真の 縦横の 比（枠の 向きで 測る。向きを 変えると 1 より 小さく なり、ずれが 大きく 出る）
+  return { W, H, portrait: o === 'p', square, r: o === nat ? r : (o === 'p' ? h / w : w / h), turned: o !== nat };
+}
+
+// ---------------- 目立つ線を さがす ----------------
+//   写真を 長い辺 320px に 縮め、となりの 明るさの 差（輪郭）を 行ごと・列ごとに 足す。いちばん 大きい 行＝横線、列＝縦線
+//   端から 5% は 無視（写真の 枠を 線と まちがえない）。n 本 さがす時は 近すぎる 線を はぶく
+function analyze(src, n) {
+  const k = 320 / Math.max(src.width, src.height), w = Math.max(16, Math.round(src.width * k)), h = Math.max(16, Math.round(src.height * k));
+  const c = mk(w, h), g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(src, 0, 0, w, h);
+  const d = g.getImageData(0, 0, w, h).data, L = new Float32Array(w * h);
+  for (let i = 0, j = 0; i < L.length; i++, j += 4) L[i] = 0.299 * d[j] + 0.587 * d[j + 1] + 0.114 * d[j + 2];
+  const row = new Float32Array(h), col = new Float32Array(w);
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const i = y * w + x;
+    row[y] += Math.abs(L[i + w] - L[i - w]);   // 上下の 差＝横向きの 輪郭
+    col[x] += Math.abs(L[i + 1] - L[i - 1]);   // 左右の 差＝縦向きの 輪郭
+  }
+  for (let y = 0; y < h; y++) row[y] /= w;
+  for (let x = 0; x < w; x++) col[x] /= h;
+  return { rows: pick(smooth3(row), n), cols: pick(smooth3(col), n) };
+}
+const smooth3 = a => a.map((v, i) => ((a[i - 1] ?? v) + 2 * v + (a[i + 1] ?? v)) / 4);
+function pick(S, n) {
+  const len = S.length, m = Math.ceil(len * 0.05), sep = Math.max(2, Math.round(len * 0.04));
+  const idx = []; for (let i = m; i < len - m; i++) idx.push(i);
+  idx.sort((a, b) => S[b] - S[a]);
+  let sum = 0; for (let i = m; i < len - m; i++) sum += S[i]; const mean = sum / Math.max(1, len - 2 * m);
+  const top = S[idx[0]] || 0, weak = top < 7 || top < mean * 1.35;   // 線が 弱すぎる（真っ白な 壁など）
+  const out = [];
+  for (const i of idx) { if (out.length >= n) break; if (out.every(j => Math.abs(j - i) >= sep)) out.push(i); }
+  return { pos: out.map(i => (i + 0.5) / len).sort((a, b) => a - b), weak, top };
+}
+// 黄金比の 分割を くり返した 位置（38.2%・61.8% → 23.6%・14.6%・47.2%・52.8%・76.4%・85.4% …）
+function goldenPoints(depth) {
+  let iv = [[0, 1]], pts = [];
+  for (let d = 0; d < depth; d++) {
+    const nx = [];
+    for (const [a, b] of iv) { const p = a + (b - a) * G1, q = a + (b - a) * G2; pts.push(p, q); nx.push([a, p], [p, q], [q, b]); }
+    iv = nx;
+  }
+  return [...new Set(pts.map(v => +v.toFixed(5)))].sort((a, b) => a - b);
+}
+// 並び順を 変えずに、それぞれの 線を 黄金比の 位置へ（動く 量の 合計が いちばん 小さい 組み合わせ）
+function assign(lines, cands) {
+  const n = lines.length, m = cands.length, INF = 1e9;
+  const D = Array.from({ length: n + 1 }, () => new Float64Array(m + 1).fill(INF)), P = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));
+  for (let j = 0; j <= m; j++) D[0][j] = 0;
+  for (let i = 1; i <= n; i++) for (let j = i; j <= m; j++) {
+    const take = D[i - 1][j - 1] + Math.abs(lines[i - 1] - cands[j - 1]), skip = D[i][j - 1];
+    if (take <= skip) { D[i][j] = take; P[i][j] = 1; } else { D[i][j] = skip; P[i][j] = 0; }
+  }
+  const out = new Array(n); let i = n, j = m;
+  while (i > 0) { if (P[i][j] === 1) { out[i - 1] = cands[j - 1]; i--; j--; } else j--; }
+  return out;
+}
+
+// ---------------- ゆがめて 描く：区切り（knots）ごとに 伸び縮み ----------------
+//   sx/sy：元の 写真の 区切り（0〜1）、tx/ty：描く 先の 区切り（0〜1、rect の 中）。区切りの 格子を 1枚ずつ drawImage
+function drawWarp(g, src, sx, tx, sy, ty, rect) {
+  const SW = src.width, SH = src.height;
+  const X = tx.map(v => Math.round(rect.x + v * rect.w)), Y = ty.map(v => Math.round(rect.y + v * rect.h));
+  for (let j = 0; j < sy.length - 1; j++) {
+    const dy = Y[j], dh = Y[j + 1] - Y[j], syy = sy[j] * SH, sh = (sy[j + 1] - sy[j]) * SH; if (dh <= 0 || sh <= 0) continue;
+    for (let i = 0; i < sx.length - 1; i++) {
+      const dx = X[i], dw = X[i + 1] - X[i], sxx = sx[i] * SW, sw = (sx[i + 1] - sx[i]) * SW; if (dw <= 0 || sw <= 0) continue;
+      g.drawImage(src, sxx, syy, Math.max(0.5, sw), Math.max(0.5, sh), dx, dy, dw, dh);
+    }
+  }
+}
+// 区切りの 並びが 逆に ならない ように（ばねの 行き過ぎで 追い越さない）
+function mono(a) { const o = a.slice(); for (let i = 1; i < o.length; i++) o[i] = Math.max(o[i], o[i - 1] + 0.002); o[o.length - 1] = 1; for (let i = o.length - 2; i >= 0; i--) o[i] = Math.min(o[i], o[i + 1] - 0.002); o[0] = 0; return o; }
+
+// ---------------- 黄金螺旋（黄金比の 長方形に ぴったり）----------------
+//   横長の 長方形から 正方形を 左・上・右・下 の順に 切りとり、正方形ごとに 4分の1の 円を つなぐ
+function spiralPts(W, H, flipX, flipY) {
+  const port = H > W, LW = port ? H : W, LH = port ? W : H;
+  let x = 0, y = 0, w = LW, h = LH; const pts = [];
+  const arc = (cx, cy, r, a0, a1) => { for (let k = 0; k <= 16; k++) { const a = a0 + (a1 - a0) * k / 16; pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); } };
+  for (let k = 0; k < 14; k++) {
+    const dir = k % 4;
+    if (dir === 0) { const s = h; arc(x + s, y + s, s, Math.PI, Math.PI * 1.5); x += s; w -= s; }
+    else if (dir === 1) { const s = w; arc(x, y + s, s, Math.PI * 1.5, Math.PI * 2); y += s; h -= s; }
+    else if (dir === 2) { const s = h; arc(x + w - s, y, s, 0, Math.PI * 0.5); w -= s; }
+    else { const s = w; arc(x + s, y + h - s, s, Math.PI * 0.5, Math.PI); h -= s; }
+    if (w < 0.5 || h < 0.5) break;
+  }
+  const eye = [x + w / 2, y + h / 2];
+  const tf = p => { let [px, py] = port ? [p[1], p[0]] : p; if (flipX) px = W - px; if (flipY) py = H - py; return [px, py]; };
+  return { pts: pts.map(tf), eye: tf(eye) };
+}
+function bestSpiral(W, H, ex, ey) {   // 渦の 中心が (ex, ey) に いちばん 近い 向き
+  let best = null;
+  for (const fx of [false, true]) for (const fy of [false, true]) { const s = spiralPts(W, H, fx, fy), d = Math.hypot(s.eye[0] - ex, s.eye[1] - ey); if (!best || d < best.d) best = { ...s, d }; }
+  return best;
+}
+// 渦の 向き 4通り（渦の 中心が どの 角に あるか）。結果画面の ボタンを 押すたびに この 順に 変わる
+const SPIN = [{ n: '右下', r: 1, b: 1 }, { n: '左下', r: 0, b: 1 }, { n: '左上', r: 0, b: 0 }, { n: '右上', r: 1, b: 0 }];
+const spinPt = i => [SPIN[i].r ? G2 : G1, SPIN[i].b ? G2 : G1];   // その 向きの 渦の 中心に いちばん 近い 黄金比の 交点
+// 使う 渦：選んだ 向き、おまかせなら 目立つ 線の 交点に いちばん 近い 向き。i＝SPIN の 番号
+function spiralFor(W, H, plan) {
+  const ep = S.spin == null ? [plan.ex, plan.ey] : spinPt(S.spin), sp = bestSpiral(W, H, ep[0] * W, ep[1] * H);
+  sp.i = SPIN.findIndex(q => q.r === +(sp.eye[0] > W / 2) && q.b === +(sp.eye[1] > H / 2)); return sp;
+}
+
+// ---------------- 状態 ----------------
+const S = { orig: null, cur: null, before: null, frame: null, round: 0, first: null, no: '', busy: false, mine: store.get('mine', 0), spin: null, spinNow: 0, shape: null, counted: false, plan: null };   // spin：選んだ 渦の 向き・shape：選んだ 形（'p' 縦長 / 'l' 横長）。null＝おまかせ
+
+// 1回目の 修正：線を さがして、行き先と「ずれ」を 決める
+function planFirst(orig, fr = frameOf(orig.width, orig.height), spin = null) {
+  const a = analyze(orig, 1);
+  const weakH = a.rows.weak || !a.rows.pos.length, weakV = a.cols.weak || !a.cols.pos.length;
+  const yS = weakH ? 0.5 : a.rows.pos[0], xS = weakV ? 0.5 : a.cols.pos[0];
+  const near = (v, pref) => Math.abs(v - G1) < Math.abs(v - G2) - 1e-9 ? G1 : Math.abs(v - G2) < Math.abs(v - G1) - 1e-9 ? G2 : pref;
+  const yN = near(yS, G2), xN = near(xS, G1);
+  const dev = (Math.abs(fr.r - PHI) / PHI + Math.abs(yS - yN) + Math.abs(xS - xN)) / 3 * 100;   // ずれは いちばん 近い 黄金比の 線で 測る（渦の 向きを 変えても 同じ）
+  const [xT, yT] = spin == null ? [xN, yN] : spinPt(spin);   // 渦の 向きを 選んだ 時は、目立つ 線の 交点を その 渦の 中心へ
+  return { fr, sx: [0, xS, 1], tx: [0, xT, 1], sy: [0, yS, 1], ty: [0, yT, 1], guidesX: [G1, G2], guidesY: [G1, G2], dev, none: weakH && weakV, square: fr.square, ex: xT, ey: yT };
+}
+// 2回目から：今の 画像で 目立つ 線を n 本ずつ（最大 12 本）さがし、黄金比の 分割を くり返した 位置へ
+function planAgain(cur, n) {
+  n = Math.min(12, n); const a = analyze(cur, n);
+  const depth = n <= 1 ? 1 : n <= 4 ? 2 : 3, C = goldenPoints(depth);
+  const ys = a.rows.pos.length ? a.rows.pos : [0.5], xs = a.cols.pos.length ? a.cols.pos : [0.5];
+  const yt = assign(ys, C), xt = assign(xs, C);
+  return { sx: [0, ...xs, 1], tx: [0, ...xt, 1], sy: [0, ...ys, 1], ty: [0, ...yt, 1], guidesX: xt, guidesY: yt, ex: xt[0], ey: yt[0] };
+}
+
+// ---------------- 3秒の 修正 ----------------
+const cv = $('cv'), ov = $('ov'), stage = $('stage');
+function fitStage(W, H) {
+  const mw = Math.min(innerWidth - 32, 560), mh = innerHeight - 110, s = Math.min(mw / W, mh / H);
+  stage.style.width = Math.round(W * s) + 'px'; stage.style.height = Math.round(H * s) + 'px'; stage.style.setProperty('--st', Math.round(Math.min(W, H) * s * 0.46) + 'px');   // 印の 大きさ
+  const dpr = Math.min(2, window.devicePixelRatio || 1); ov.width = Math.round(W * s * dpr); ov.height = Math.round(H * s * dpr);
+  return s;
+}
+function runFix(plan, src, rect0, done) {
+  const fr = S.frame, W = fr.W, H = fr.H;
+  cv.width = W; cv.height = H; fitStage(W, H);
+  const g = cv.getContext('2d'), o = ov.getContext('2d'); g.imageSmoothingQuality = 'high';
+  const sp = spiralFor(W, H, plan); S.spinNow = sp.i;
+  let segLen = [0]; for (let i = 1; i < sp.pts.length; i++) segLen.push(segLen[i - 1] + Math.hypot(sp.pts[i][0] - sp.pts[i - 1][0], sp.pts[i][1] - sp.pts[i - 1][1]));
+  const T = window.__ogFast ? 0.6 : 3.0, k = T / 3.0, t0 = performance.now();
+  let sDon = false, sGun = false; Snd.sweep();
+  $('stamp').classList.remove('on'); stage.classList.remove('shake'); $('fixmsg').textContent = '審査中';
+  const rect1 = { x: 0, y: 0, w: W, h: H };
+  const frame = now => {
+    const t = (now - t0) / 1000 / k;   // 0〜3（秒）
+    // 変形の 進み：枠は すっと（ease-out）、線は ばね（少し 行き過ぎて 戻る）
+    const s = clamp((t - 0.6) / 1.8, 0, 1), f = 1 - Math.pow(1 - s, 3), e = s <= 0 ? 0 : s >= 1 ? 1 : 1 - Math.exp(-6 * s) * Math.cos(9 * s);
+    if (s > 0 && !sGun) { sGun = true; Snd.gunyo(); $('fixmsg').textContent = '修正中'; }
+    const rect = { x: lerp(rect0.x, rect1.x, f), y: lerp(rect0.y, rect1.y, f), w: lerp(rect0.w, rect1.w, f), h: lerp(rect0.h, rect1.h, f) };
+    const tx = mono(plan.sx.map((v, i) => lerp(v, plan.tx[i], e))), ty = mono(plan.sy.map((v, i) => lerp(v, plan.ty[i], e)));
+    g.fillStyle = '#f3eedf'; g.fillRect(0, 0, W, H);
+    drawWarp(g, src, plan.sx, tx, plan.sy, ty, rect);
+    // 補助線と 黄金螺旋（0〜0.6秒で 引かれ、2.4〜3.0秒で 消える）
+    const sc = ov.width / W, a = t < 2.4 ? 1 : clamp(1 - (t - 2.4) / 0.45, 0, 1), dr = clamp(t / 0.6, 0, 1);
+    o.clearRect(0, 0, ov.width, ov.height);
+    if (a > 0) {
+      o.save(); o.globalAlpha = a; o.lineCap = 'round';
+      o.strokeStyle = 'rgba(217,184,100,.95)'; o.lineWidth = Math.max(1.5, ov.width / 260); o.shadowColor = 'rgba(0,0,0,.45)'; o.shadowBlur = 4;
+      for (const gx of plan.guidesX) { o.beginPath(); o.moveTo(gx * ov.width, 0); o.lineTo(gx * ov.width, ov.height * dr); o.stroke(); }
+      for (const gy of plan.guidesY) { o.beginPath(); o.moveTo(0, gy * ov.height); o.lineTo(ov.width * dr, gy * ov.height); o.stroke(); }
+      const L = segLen[segLen.length - 1] * dr; o.lineWidth = Math.max(2, ov.width / 180); o.strokeStyle = 'rgba(232,200,110,.95)';
+      o.beginPath(); o.moveTo(sp.pts[0][0] * sc, sp.pts[0][1] * sc);
+      for (let i = 1; i < sp.pts.length && segLen[i] <= L; i++) o.lineTo(sp.pts[i][0] * sc, sp.pts[i][1] * sc);
+      o.stroke(); o.restore();
+    }
+    if (t >= 2.4 && !sDon) { sDon = true; Snd.don(); $('stamp').classList.add('on'); stage.classList.add('shake'); $('fixmsg').textContent = '修正完了'; }
+    if (t < 3.0) requestAnimationFrame(frame);
+    else {
+      // 最後の 1枚（ばね・枠とも 行き先ぴったり）
+      const out = mk(W, H), og = out.getContext('2d'); og.imageSmoothingQuality = 'high'; og.fillStyle = '#f3eedf'; og.fillRect(0, 0, W, H);
+      drawWarp(og, src, plan.sx, mono(plan.tx), plan.sy, mono(plan.ty), rect1);
+      setTimeout(() => done(out), window.__ogFast ? 50 : 650);
+    }
+  };
+  requestAnimationFrame(frame);
+}
+
+// ---------------- 画面の 切りかえ・広告 ----------------
+function show(id) {
+  for (const s of ['s-intro', 's-app', 's-crop', 's-fix', 's-res']) $(s).classList.toggle('hide', s !== id);
+  window.scrollTo(0, 0);
+  ads('ad1', id === 's-intro'); ads('ad2', id === 's-res');   // 修正の 3秒は 広告を 出さない
+  window.scrollTo(0, 0);
+}
+function ads(id, on) {
+  const z = $(id); if (!z) return;
+  if (on && !z.firstChild && !window.__noads) {
+    const i = document.createElement('ins'); i.className = 'adsbygoogle'; i.dataset.adClient = 'ca-pub-2073267239630350'; i.dataset.adSlot = '6261635446'; z.appendChild(i);
+    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { /* 広告が 読めない 時は 余白だけ */ }
+  }
+  if (!on && z.firstChild) z.innerHTML = '';
+}
+
+// ---------------- 写真を 提出 ----------------
+async function submit(file) {
+  if (!file || S.busy) return;
+  S.busy = true; Snd.init();
+  try {
+    S.full = await loadPhoto(file, 3200); S.crop = null; S.orig = workPhoto(); S.cur = null; S.round = 0; S.no = certNo(); S.spin = null; S.shape = null; S.counted = false;
+    openApp();
+  } catch (e) { console.error(e); toast('写真を読みこめませんでした'); show('s-intro'); }
+  S.busy = false;
+}
+// 枠を 決めて、修正前の 画像を 作る：修正後と 同じ 大きさの 枠に、形を 変えずに 余白を つけて 置く
+function setFrame(force) {
+  const orig = S.orig; S.frame = frameOf(orig.width, orig.height, force);
+  const { W, H } = S.frame, s0 = Math.min(W / orig.width, H / orig.height), rect0 = { w: orig.width * s0, h: orig.height * s0 }; rect0.x = (W - rect0.w) / 2; rect0.y = (H - rect0.h) / 2;
+  S.rect0 = rect0;
+  const b = mk(W, H), bg = b.getContext('2d'); bg.fillStyle = '#e9e3d3'; bg.fillRect(0, 0, W, H); bg.imageSmoothingQuality = 'high'; bg.drawImage(orig, rect0.x, rect0.y, rect0.w, rect0.h); S.before = b;
+  return rect0;
+}
+
+// 作業用の 写真：切り取った 部分（なければ 全体）。全体は 長い辺 1600px まで、切り取りは 長い辺 640〜1600px に そろえる
+function workPhoto() {
+  const F = S.full, b = S.crop || { x: 0, y: 0, w: F.width, h: F.height }, L = Math.max(b.w, b.h), k = S.crop ? clamp(L, 640, 1600) / L : Math.min(1, 1600 / L);
+  const c = mk(Math.max(8, Math.round(b.w * k)), Math.max(8, Math.round(b.h * k))), g = c.getContext('2d');
+  g.imageSmoothingQuality = 'high'; g.drawImage(F, b.x, b.y, b.w, b.h, 0, 0, c.width, c.height); return c;
+}
+
+// ---------------- 切り取り：角・辺を 引っぱる／枠の 中を ずらす／2本指・＋－・ホイールで 拡大（枠の 外を ずらすと 写真が 動く）----------------
+const CR = { box: null, z: 1, ox: 0, oy: 0, s0: 1, vw: 0, vh: 0, ptr: new Map(), act: null }, cropvp = $('cropvp'), cropc = $('cropc');
+function openCrop() {
+  if (!S.full || S.busy) return;
+  const F = S.full; CR.box = S.crop ? { ...S.crop } : { x: 0, y: 0, w: F.width, h: F.height }; CR.z = 1; CR.ptr.clear(); CR.act = null;
+  show('s-crop'); sizeCrop(); fitView(); drawCrop();
+}
+function sizeCrop() {
+  cropvp.style.height = '0px';
+  const vh = Math.min(innerHeight, (window.visualViewport && visualViewport.height) || innerHeight), rest = $('s-crop').offsetHeight;
+  const h = Math.round(clamp(vh - rest - 4, 220, vh * 0.66)), w = cropvp.clientWidth, dpr = Math.min(2, window.devicePixelRatio || 1), F = S.full;
+  cropvp.style.height = h + 'px'; CR.vw = w; CR.vh = h; cropc.width = Math.round(w * dpr); cropc.height = Math.round(h * dpr);
+  CR.s0 = Math.min((w - 28) / F.width, (h - 28) / F.height);   // まわりに 14px あけて、はしの 角も つかめるように
+}
+const crSc = () => CR.s0 * CR.z;
+function clampView() {
+  const F = S.full, sc = crSc(), iw = F.width * sc, ih = F.height * sc;
+  CR.ox = iw <= CR.vw - 28 ? (CR.vw - iw) / 2 : clamp(CR.ox, CR.vw - 14 - iw, 14);
+  CR.oy = ih <= CR.vh - 28 ? (CR.vh - ih) / 2 : clamp(CR.oy, CR.vh - 14 - ih, 14);
+}
+function fitView() { CR.z = 1; clampView(); }
+function zoomAt(z, px, py) {   // (px, py) の 下の 点を 動かさずに 拡大・縮小
+  const sc0 = crSc(), ix = (px - CR.ox) / sc0, iy = (py - CR.oy) / sc0;
+  CR.z = clamp(z, 1, 8); const sc = crSc(); CR.ox = px - ix * sc; CR.oy = py - iy * sc; clampView(); drawCrop();
+}
+function boxScr() { const sc = crSc(), b = CR.box; return { x: CR.ox + b.x * sc, y: CR.oy + b.y * sc, w: b.w * sc, h: b.h * sc }; }
+function drawCrop() {
+  const F = S.full, g = cropc.getContext('2d'), d = cropc.width / CR.vw, sc = crSc(), b = boxScr();
+  g.setTransform(d, 0, 0, d, 0, 0); g.fillStyle = '#2b2925'; g.fillRect(0, 0, CR.vw, CR.vh);
+  g.imageSmoothingQuality = 'high'; g.drawImage(F, CR.ox, CR.oy, F.width * sc, F.height * sc);
+  g.fillStyle = 'rgba(20,18,14,.6)'; g.beginPath(); g.rect(0, 0, CR.vw, CR.vh); g.rect(b.x, b.y, b.w, b.h); g.fill('evenodd');   // 枠の 外を 暗く
+  g.strokeStyle = 'rgba(217,184,100,.55)'; g.lineWidth = 1;   // 枠の 中に 黄金比の 線（うすく）
+  for (const v of [G1, G2]) { g.beginPath(); g.moveTo(b.x + v * b.w, b.y); g.lineTo(b.x + v * b.w, b.y + b.h); g.moveTo(b.x, b.y + v * b.h); g.lineTo(b.x + b.w, b.y + v * b.h); g.stroke(); }
+  g.strokeStyle = '#d9b864'; g.lineWidth = 2; g.strokeRect(b.x, b.y, b.w, b.h);
+  // 角の つまみ（L字）と 辺の つまみ
+  const L = Math.min(22, b.w / 3, b.h / 3); g.strokeStyle = '#fff'; g.lineWidth = 4; g.lineCap = 'square';
+  for (const [x, y, sx, sy] of [[b.x, b.y, 1, 1], [b.x + b.w, b.y, -1, 1], [b.x, b.y + b.h, 1, -1], [b.x + b.w, b.y + b.h, -1, -1]]) { g.beginPath(); g.moveTo(x + sx * L, y); g.lineTo(x, y); g.lineTo(x, y + sy * L); g.stroke(); }
+  g.lineWidth = 3.5; const m = Math.min(16, b.w / 4, b.h / 4);
+  for (const [x, y, hor] of [[b.x + b.w / 2, b.y, 1], [b.x + b.w / 2, b.y + b.h, 1], [b.x, b.y + b.h / 2, 0], [b.x + b.w, b.y + b.h / 2, 0]]) { g.beginPath(); if (hor) { g.moveTo(x - m, y); g.lineTo(x + m, y); } else { g.moveTo(x, y - m); g.lineTo(x, y + m); } g.stroke(); }
+  const r = CR.box.w / CR.box.h, f = v => v.toFixed(2);
+  $('cropinfo').textContent = `横：縦 ＝ ${r >= 1 ? f(r) + '：1' : '1：' + f(1 / r)}`;
+}
+function cropHit(p) {   // 押した 場所：角（nw など）・辺（n など）・枠の 中（move）・枠の 外（pan）
+  const b = boxScr(), T = 22, nx = Math.abs(p.x - b.x) < T, fx = Math.abs(p.x - b.x - b.w) < T, ny = Math.abs(p.y - b.y) < T, fy = Math.abs(p.y - b.y - b.h) < T;
+  const inX = p.x > b.x - T && p.x < b.x + b.w + T, inY = p.y > b.y - T && p.y < b.y + b.h + T;
+  if (inX && inY) {
+    const v = ny ? 'n' : fy ? 's' : '', h = nx ? 'w' : fx ? 'e' : '';
+    if (v || h) return v + h;
+    // 枠の 中：枠を ずらす。ただし 拡大して 枠が 画面いっぱいに なっている 時は 写真を 動かす（そうしないと 写真を 動かせない）
+    if (p.x > b.x && p.x < b.x + b.w && p.y > b.y && p.y < b.y + b.h) return b.x <= 14 && b.y <= 14 && b.x + b.w >= CR.vw - 14 && b.y + b.h >= CR.vh - 14 ? 'pan' : 'move';
+  }
+  return 'pan';
+}
+{
+  const pos = e => { const r = cropvp.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  const two = () => { const [a, b] = [...CR.ptr.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, m: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } }; };
+  cropvp.addEventListener('pointerdown', e => {
+    e.preventDefault(); try { cropvp.setPointerCapture(e.pointerId); } catch (_) { }
+    const p = pos(e); CR.ptr.set(e.pointerId, p);
+    if (CR.ptr.size === 2) { const t = two(), sc = crSc(); CR.act = { k: 'pinch', d0: t.d, z0: CR.z, ix: (t.m.x - CR.ox) / sc, iy: (t.m.y - CR.oy) / sc }; return; }
+    if (CR.ptr.size === 1) CR.act = { k: cropHit(p), p0: p, b0: { ...CR.box }, ox0: CR.ox, oy0: CR.oy };
+  });
+  cropvp.addEventListener('pointermove', e => {
+    if (!CR.ptr.has(e.pointerId) || !CR.act) return;
+    const p = pos(e); CR.ptr.set(e.pointerId, p); const a = CR.act, F = S.full;
+    if (a.k === 'pinch') {
+      if (CR.ptr.size < 2) return;
+      const t = two(); CR.z = clamp(a.z0 * t.d / a.d0, 1, 8); const sc = crSc(); CR.ox = t.m.x - a.ix * sc; CR.oy = t.m.y - a.iy * sc; clampView(); drawCrop(); return;
+    }
+    const sc = crSc(), dx = (p.x - a.p0.x) / sc, dy = (p.y - a.p0.y) / sc, b0 = a.b0, mn = Math.max(24, Math.min(F.width, F.height) * 0.03);
+    if (a.k === 'pan') { CR.ox = a.ox0 + p.x - a.p0.x; CR.oy = a.oy0 + p.y - a.p0.y; clampView(); }
+    else if (a.k === 'move') { CR.box.x = clamp(b0.x + dx, 0, F.width - b0.w); CR.box.y = clamp(b0.y + dy, 0, F.height - b0.h); }
+    else {
+      let x1 = b0.x, y1 = b0.y, x2 = b0.x + b0.w, y2 = b0.y + b0.h;
+      if (a.k.includes('w')) x1 = clamp(x1 + dx, 0, x2 - mn); if (a.k.includes('e')) x2 = clamp(x2 + dx, x1 + mn, F.width);
+      if (a.k.includes('n')) y1 = clamp(y1 + dy, 0, y2 - mn); if (a.k.includes('s')) y2 = clamp(y2 + dy, y1 + mn, F.height);
+      CR.box = { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+    }
+    drawCrop();
+  });
+  const up = e => { CR.ptr.delete(e.pointerId); if (CR.act && CR.act.k === 'pinch' ? CR.ptr.size < 2 : !CR.ptr.size) CR.act = null; };
+  cropvp.addEventListener('pointerup', up); cropvp.addEventListener('pointercancel', up);
+  cropvp.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(CR.z * Math.exp(-e.deltaY * 0.0015), p.x, p.y); }, { passive: false });
+  const zc = () => { const b = boxScr(); return [clamp(b.x + b.w / 2, 0, CR.vw), clamp(b.y + b.h / 2, 0, CR.vh)]; };   // ＋－ は 枠の 真ん中を 中心に
+  $('z-in').onclick = () => zoomAt(CR.z * 1.5, ...zc());
+  $('z-out').onclick = () => zoomAt(CR.z / 1.5, ...zc());
+  $('b-cropall').onclick = () => { const F = S.full; CR.box = { x: 0, y: 0, w: F.width, h: F.height }; fitView(); drawCrop(); };
+  $('b-cropok').onclick = () => {
+    const F = S.full, b = CR.box, all = b.w * b.h >= F.width * F.height * 0.995;
+    S.crop = all ? null : { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.w), h: Math.round(b.h) }; S.orig = workPhoto(); S.plan = null; openApp();
+  };
+  $('b-cropno').onclick = openApp;
+  $('b-crop').onclick = openCrop;
+  addEventListener('resize', () => { if (!$('s-crop').classList.contains('hide')) { sizeCrop(); clampView(); drawCrop(); } });
+}
+
+// ---------------- 修正申請書：修正の 前に 渦の 向きと 形を 選ぶ（見本が すぐ 変わる）----------------
+function openApp() { if (!S.orig) return; show('s-app'); renderApp(); }
+function renderApp() {
+  setFrame(S.shape); const plan = planFirst(S.orig, S.frame, S.spin); S.plan = plan;
+  const { W, H } = S.frame, sp = spiralFor(W, H, plan);
+  for (const b of $('seg-spin').children) b.classList.toggle('on', b.dataset.v === (S.spin == null ? 'a' : String(S.spin)));
+  for (const b of $('seg-shape').children) b.classList.toggle('on', b.dataset.v === (S.shape || 'a'));
+  $('pvsum').innerHTML = `${S.crop ? '切り取った部分を ' : ''}<b>${S.frame.portrait ? '縦長' : '横長'}</b>・渦の中心は<b>${SPIN[sp.i].n}</b> で修正します`;
+  $('b-crop').textContent = S.crop ? '切り取る範囲を変える' : '一部を切り取る';
+  // 見本の 大きさ：ほかの 部品を 置いた 残りの 高さ（スマホ 1画面に 収める）
+  const pv = $('pv'); pv.style.width = pv.style.height = '0px';
+  const vh = Math.min(innerHeight, (window.visualViewport && visualViewport.height) || innerHeight), rest = $('s-app').offsetHeight;
+  const mw = Math.min(innerWidth, 480) - 36, mh = Math.max(150, Math.min(vh * 0.55, vh - rest - 4)), s = Math.min(mw / W, mh / H);
+  const w = Math.round(W * s), h = Math.round(H * s), dpr = Math.min(2, window.devicePixelRatio || 1), c = $('pvc');
+  pv.style.width = w + 'px'; pv.style.height = h + 'px'; c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+  const g = c.getContext('2d'), k = c.width / W; g.imageSmoothingQuality = 'high'; g.drawImage(S.before, 0, 0, c.width, c.height);
+  // 黄金比の 線と 渦（修正中と 同じ 金色）
+  g.save(); g.lineCap = 'round'; g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 3;
+  g.strokeStyle = 'rgba(217,184,100,.95)'; g.lineWidth = Math.max(1.2, c.width / 280);
+  for (const v of [G1, G2]) { g.beginPath(); g.moveTo(v * c.width, 0); g.lineTo(v * c.width, c.height); g.moveTo(0, v * c.height); g.lineTo(c.width, v * c.height); g.stroke(); }
+  g.lineWidth = Math.max(2, c.width / 170); g.strokeStyle = 'rgba(232,200,110,.98)'; g.beginPath();
+  sp.pts.forEach((q, j) => j ? g.lineTo(q[0] * k, q[1] * k) : g.moveTo(q[0] * k, q[1] * k)); g.stroke(); g.restore();
+}
+// 提出：選んだ 向きで 元の 写真から 修正する（修正回数は 1回目から。直した 枚数は 写真1枚につき 1回だけ 数える）
+async function go() {
+  if (S.busy || !S.orig) return; S.busy = true; Snd.init();
+  const plan = S.plan || planFirst(S.orig, S.frame, S.spin); S.first = plan;
+  show('s-fix');
+  await new Promise(res => runFix(plan, S.orig, S.rect0, out => { S.cur = out; res(); }));
+  S.round = 1;
+  if (!S.counted) { S.counted = true; S.mine++; store.set('mine', S.mine); report(); countUp(); }
+  showResult(); S.busy = false;
+}
+async function again() {
+  if (S.busy || !S.cur) return; S.busy = true; Snd.init();
+  const n = S.round + 1, plan = planAgain(S.cur, n);
+  show('s-fix');
+  await new Promise(res => runFix(plan, S.cur, { x: 0, y: 0, w: S.frame.W, h: S.frame.H }, out => { S.cur = out; res(); }));
+  S.round = n; showResult(); S.busy = false;
+}
+function report() { $('mine').textContent = fmt(S.mine); }
+
+// ---------------- 認定証の 文 ----------------
+function certNo() { const d = new Date(), p = v => String(v).padStart(2, '0'); return `第 ${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')} 号`; }
+function firstSentences(p) {
+  const d = p.dev.toFixed(1);
+  if (p.square) return ['正方形は認められていません。', '修正しました。'];
+  if (p.none) return ['本委員会は、何もない場所にも黄金比を見出しました。'];
+  if (p.dev < 1) return ['提出された写真は、すでに黄金比でした。', '本委員会は念のため修正しました。'];
+  if (p.dev < 10) return [`提出された写真は、黄金比からわずかに（${d}%）ずれていました。`, '修正しました。'];
+  if (p.dev < 30) return [`提出された写真は、黄金比から${d}%ずれていました。`, '本委員会はこれを修正しました。', '世界がまた少し美しくなりました。'];
+  return [`提出された写真は、黄金比から${d}%ずれていました。`, 'これは重大な違反です。', '修正しました。'];
+}
+function countSentence(n) {
+  if (n === 2) return '念のため、もう一度修正しました。';
+  if (n <= 4) return `修正回数：${n}回。より美しくなりました。`;
+  if (n <= 9) return `修正回数：${n}回。美しすぎます。`;
+  if (n <= 19) return `修正回数：${n}回。本委員会にも、もう元の姿はわかりません。`;
+  return `修正回数：${n}回。これ以上の修正は、世界が耐えられません。`;
+}
+function certSentences() {
+  const a = firstSentences(S.first); if (S.round <= 1) return a;
+  return (a.length > 1 ? a.slice(0, -1) : a).concat(countSentence(S.round));
+}
+function postText() {
+  const n = S.round, p = S.first;
+  if (n <= 1) return p.square ? '提出した正方形の写真は認められず、世界を黄金比にする委員会に修正されました。' : p.none ? '何もない写真を提出したら、世界を黄金比にする委員会が黄金比を見出しました。' : `提出した写真が黄金比から${p.dev.toFixed(1)}%ずれていたので、世界を黄金比にする委員会に修正されました。`;
+  const tail = n === 2 ? '' : n <= 4 ? 'より美しくなりました。' : n <= 9 ? '美しすぎます。' : n <= 19 ? 'もう元の姿はわかりません。' : 'これ以上の修正は、世界が耐えられません。';
+  return `世界を黄金比にする委員会に${n}回修正されました。${tail}`;
+}
+
+// ---------------- 結果画面 ----------------
+const cmp = $('cmp'), cb = $('cb'), ca = $('ca'), aw = $('aw'), knob = $('knob');
+let split = 0.5;
+function showResult() {
+  const { W, H } = S.frame;
+  show('s-res');
+  $('c-no').textContent = S.no;
+  $('c-body').innerHTML = certSentences().map(t => `<div>${t}</div>`).join('');
+  $('c-cnt').textContent = `修正回数：${S.round}回`;
+  // スライダーと 認定証が スマホ 1画面に 収まる 大きさ（認定証の 高さを 測ってから 残りを スライダーに）
+  const top = parseFloat(getComputedStyle($('s-res')).paddingTop) || 18, certH = $('cert').offsetHeight;
+  const vh = Math.min(innerHeight, (window.visualViewport && visualViewport.height) || innerHeight);
+  const mw = Math.min(innerWidth, 480) - 36, mh = Math.max(170, Math.min(vh * 0.6, vh - certH - top - 16 - 24)), s = Math.min(mw / W, mh / H);
+  cmp.style.width = Math.round(W * s) + 'px'; cmp.style.height = Math.round(H * s) + 'px';
+  const dpr = Math.min(2, window.devicePixelRatio || 1), cw = Math.round(W * s * dpr), ch = Math.round(H * s * dpr);
+  for (const [c, img] of [[cb, S.before], [ca, S.cur]]) { c.width = cw; c.height = ch; const g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(img, 0, 0, cw, ch); }
+  setSplit(0.5);
+}
+function setSplit(v) { split = clamp(v, 0, 1); aw.style.clipPath = `inset(0 0 0 ${(split * 100).toFixed(2)}%)`; knob.style.left = (split * 100).toFixed(2) + '%'; }
+{ let drag = false; const at = e => { const r = cmp.getBoundingClientRect(); setSplit((e.clientX - r.left) / r.width); };
+  cmp.addEventListener('pointerdown', e => { drag = true; cmp.setPointerCapture(e.pointerId); at(e); });
+  cmp.addEventListener('pointermove', e => { if (drag) at(e); });
+  for (const ev of ['pointerup', 'pointercancel']) cmp.addEventListener(ev, () => { drag = false; }); }
+
+// ---------------- 画像を 保存（1080×1440）----------------
+function wrapText(g, text, maxW) { const out = []; let line = ''; for (const ch of text) { if (g.measureText(line + ch).width > maxW && line) { out.push(line); line = ch; } else line += ch; } if (line) out.push(line); return out; }
+function sealDraw(g, cx, cy, r) {
+  g.save(); g.strokeStyle = '#cf3b28'; g.fillStyle = '#cf3b28'; g.lineWidth = r * 0.09; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+  g.lineWidth = r * 0.04; g.beginPath(); g.arc(cx, cy, r * 0.82, 0, Math.PI * 2); g.stroke();
+  g.font = `800 ${r * 0.42}px ${getComputedStyle(document.body).fontFamily}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('黄金比', cx, cy - r * 0.24); g.fillText('委員会', cx, cy + r * 0.26); g.restore();
+}
+async function makeImage() {
+  try { await document.fonts.load('800 40px "Shippori Mincho B1"'); } catch (e) { /* 字体が なくても 描く */ }
+  const C = mk(1080, 1440), g = C.getContext('2d'), FF = getComputedStyle(document.body).fontFamily;
+  g.fillStyle = '#fbf8ef'; g.fillRect(0, 0, 1080, 1440);
+  g.strokeStyle = '#b48b32'; g.lineWidth = 4; g.strokeRect(22, 22, 1036, 1396); g.lineWidth = 1.5; g.strokeRect(34, 34, 1012, 1372);
+  g.fillStyle = '#1d1c1a'; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.font = `800 50px ${FF}`; g.fillText('黄 金 比 認 定 証', 540, 108);
+  g.font = `500 24px ${FF}`; g.fillStyle = '#5f5a50'; g.fillText(S.no, 540, 146);
+  // 写真：縦長は 左右に、横長は 上下に
+  const { W, H } = S.frame, area = { x: 70, y: 176, w: 940, h: 850 }, put = (img, x, y, w, h, label) => {
+    const s = Math.min(w / W, h / H), dw = W * s, dh = H * s, dx = x + (w - dw) / 2, dy = y + (h - dh) / 2;
+    g.imageSmoothingQuality = 'high'; g.drawImage(img, dx, dy, dw, dh); g.strokeStyle = '#b48b32'; g.lineWidth = 2; g.strokeRect(dx, dy, dw, dh);
+    g.fillStyle = 'rgba(29,28,26,.78)'; g.fillRect(dx, dy, 104, 38); g.fillStyle = '#fff'; g.font = `700 22px ${FF}`; g.textAlign = 'center'; g.fillText(label, dx + 52, dy + 27);
+  };
+  if (S.frame.portrait) { const w = (area.w - 30) / 2; put(S.before, area.x, area.y + 34, w, area.h - 34, '修正前'); put(S.cur, area.x + w + 30, area.y + 34, w, area.h - 34, '修正後'); g.fillStyle = '#b48b32'; g.font = `800 44px ${FF}`; g.textAlign = 'center'; g.fillText('→', 540, area.y + area.h / 2 + 30); }
+  else { const h = (area.h - 30) / 2; put(S.before, area.x, area.y, area.w, h, '修正前'); put(S.cur, area.x, area.y + h + 30, area.w, h, '修正後'); }
+  // 認定証の 文
+  g.fillStyle = '#1d1c1a'; g.textAlign = 'left'; g.font = `500 30px ${FF}`; let y = 1082;
+  for (const sct of certSentences()) for (const ln of wrapText(g, sct, 900)) { g.fillText(ln, 90, y); y += 44; }
+  g.font = `500 24px ${FF}`; g.fillStyle = '#5f5a50'; g.fillText(`修正回数：${S.round}回`, 90, Math.min(y + 4, 1300));
+  g.fillStyle = '#1d1c1a'; g.font = `700 26px ${FF}`; g.textAlign = 'left'; g.fillText('世界を黄金比にする委員会', 90, 1376); g.font = `500 20px ${FF}`; g.fillStyle = '#5f5a50'; g.fillText('nkworks-games.com/ougonhi/', 440, 1376);
+  sealDraw(g, 960, 1330, 60);
+  return C;
+}
+async function save() {
+  const C = await makeImage(), blob = await new Promise(r => C.toBlob(r, 'image/png')), name = `黄金比認定証_${S.no.replace(/[^0-9-]/g, '')}.png`;
+  const inApp = /Twitter|FBAN|FBAV|Instagram|Line\//i.test(navigator.userAgent);
+  if (!inApp && blob && navigator.canShare) {
+    try { const f = new File([blob], name, { type: 'image/png' }); if (navigator.canShare({ files: [f] })) { await navigator.share({ files: [f] }); return; } }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob);
+  if (!inApp && 'download' in HTMLAnchorElement.prototype && !/iPhone|iPad|iPod/.test(navigator.userAgent)) { const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); toast('画像を保存しました'); return; }
+  $('saveimg').src = url; $('saveov').classList.remove('hide');   // Xの 中の ブラウザなど：長押しで 保存
+}
+function post() { const u = 'https://x.com/intent/post?text=' + encodeURIComponent(postText() + '\n' + TAG) + '&url=' + encodeURIComponent(URL_PUBLIC); window.open(u, '_blank', 'noopener'); }
+
+// ---------------- 世界の 黄金比化率：みんなが 直した 枚数を Firebase で 数える ----------------
+//   送るのは「1枚直した」だけ（写真も ずれも 送らない）。1人 1日 100枚まで。つながらなくても 遊べる
+const FB_CFG = { apiKey: 'AIzaSyDgzaEzIltyI-UkB_i1LKrcq0fLPtXqel0', authDomain: 'nkworks-games.firebaseapp.com', projectId: 'nkworks-games', storageBucket: 'nkworks-games.firebasestorage.app', messagingSenderId: '996468697479', appId: '1:996468697479:web:ccea287b2ddeb1ff234b22' };
+const FBV = 'https://www.gstatic.com/firebasejs/10.12.2/';
+let fbBase = null, fbUser = null, total = null;
+function fbb() {   // 読むだけ（ログインいらず）
+  if (!fbBase) fbBase = (async () => {
+    const [A, F] = await Promise.all([import(FBV + 'firebase-app.js'), import(FBV + 'firebase-firestore.js')]);
+    const app = A.initializeApp(FB_CFG, 'ougonhi'), db = F.getFirestore(app);
+    return { A, F, app, db, cnt: F.doc(db, 'ougonhi', 'count') };
+  })();
+  return fbBase;
+}
+function fbu() {   // 数える時だけ：名前なしで ログイン
+  if (!fbUser) fbUser = (async () => { const b = await fbb(), U = await import(FBV + 'firebase-auth.js'), au = U.getAuth(b.app); if (!au.currentUser) await U.signInAnonymously(au); return au.currentUser.uid; })();
+  return fbUser;
+}
+function rateText(total) { if (!total) return '0%'; const p = total / WORLD_PHOTOS * 100, dg = clamp(Math.ceil(-Math.log10(p)) + 1, 2, 20); return p.toFixed(dg) + '%'; }
+function showTotal() { if (total == null) return; $('rate').textContent = rateText(total); $('total').textContent = `修正済み ${fmt(total)}枚`; }
+async function loadStats() {
+  try { const { F, cnt } = await fbb(), s = await F.getDoc(cnt); total = s.exists() ? s.data().n || 0 : 0; showTotal(); }
+  catch (e) { $('rate').textContent = '集計中'; $('total').textContent = '修正済みの枚数は、ただいま数えられません'; }
+}
+async function countUp() {   // 写真1枚を はじめて 提出した 時だけ 1枚 数える
+  try {
+    const { F, db, cnt } = await fbb(), uid = await fbu(), ur = F.doc(db, 'ougonhiUsers', uid), d0 = Math.floor(Date.now() / 864e5);
+    const ok = await F.runTransaction(db, async tx => {
+      const u = await tx.get(ur), p = u.exists() ? u.data() : null, d = p && p.d > d0 ? p.d : d0, c = p && p.d === d ? p.c + 1 : 1;
+      if (c > 100) return false;   // 1日 100枚より 多くは 数えない
+      tx.set(ur, { d, c, t: F.serverTimestamp() }); tx.update(cnt, { n: F.increment(1) }); return true;
+    });
+    if (ok && total != null) { total++; showTotal(); }
+  } catch (e) { /* 数えられなくても 遊べる */ }
+}
+
+// ---------------- 紋章（黄金螺旋）と 印 ----------------
+function emblem() {
+  const s = spiralPts(100 * PHI, 100, false, false), k = 86 / (100 * PHI), ox = 7, oy = 50 - 50 * k;
+  const d = s.pts.map((p, i) => (i ? 'L' : 'M') + (ox + p[0] * k).toFixed(2) + ' ' + (oy + p[1] * k).toFixed(2)).join('');
+  $('emblem').innerHTML = `<circle cx="50" cy="50" r="47" fill="none" stroke="#b48b32" stroke-width="2.5"/><circle cx="50" cy="50" r="42" fill="none" stroke="#b48b32" stroke-width="1"/><rect x="${ox}" y="${oy.toFixed(2)}" width="86" height="${(100 * k).toFixed(2)}" fill="none" stroke="#b48b32" stroke-width="1" opacity=".6"/><path d="${d}" fill="none" stroke="#1f2f55" stroke-width="2.2"/>`;
+  $('seal').innerHTML = `<circle cx="50" cy="50" r="45" fill="none" stroke="#cf3b28" stroke-width="5"/><circle cx="50" cy="50" r="37" fill="none" stroke="#cf3b28" stroke-width="1.5"/><text x="50" y="44" text-anchor="middle" font-size="19" font-weight="800" fill="#cf3b28" font-family="Shippori Mincho B1,serif">黄金比</text><text x="50" y="68" text-anchor="middle" font-size="19" font-weight="800" fill="#cf3b28" font-family="Shippori Mincho B1,serif">委員会</text>`;
+}
+
+// ---------------- はじめ ----------------
+$('b-pick').onclick = () => { Snd.init(); $('f-pick').click(); };
+$('b-cam').onclick = () => { Snd.init(); $('f-cam').click(); };
+for (const id of ['f-pick', 'f-cam']) $(id).onchange = e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; submit(f); };
+$('b-again').onclick = again;
+$('b-redo').onclick = () => { if (!S.busy) openApp(); };
+$('b-go').onclick = go;
+$('b-back').onclick = () => { S.orig = S.full = null; S.cur = null; show('s-intro'); };
+$('seg-spin').onclick = e => { const v = e.target.dataset && e.target.dataset.v; if (v == null || S.busy) return; S.spin = v === 'a' ? null : +v; renderApp(); };
+$('seg-shape').onclick = e => { const v = e.target.dataset && e.target.dataset.v; if (v == null || S.busy) return; S.shape = v === 'a' ? null : v; renderApp(); };
+addEventListener('resize', () => { if (!$('s-app').classList.contains('hide')) renderApp(); });
+$('b-save').onclick = () => save().catch(e => { console.error(e); toast('保存できませんでした'); });
+$('b-post').onclick = post;
+$('b-new').onclick = () => { S.cur = null; show('s-intro'); };
+$('b-close').onclick = () => $('saveov').classList.add('hide');
+emblem(); $('mine').textContent = fmt(S.mine); loadStats(); show('s-intro');
+window.__og = { S, CR, loadStats, countUp, fbb, submit, go, openApp, openCrop, again, SPIN, spiralPts, analyze, planFirst, planAgain, goldenPoints, assign, makeImage, rateText, certSentences, postText, frameOf };
+})();
+</script>
+</body>
+</html>
