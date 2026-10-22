@@ -1710,6 +1710,7 @@ class MockNet {
     return { items: page.filter(x => !x.hd), last: page.length === 20 ? page.at(-1).id : null };
   }
   async wakaru(id){ const d = this.db(); const k = id + '_' + this.uid; if (d.wk[k] || !d.leaks[id]) return false; d.wk[k] = 1; d.leaks[id].w++; this.save(d); return true; }
+  async unwakaru(id){ const d = this.db(); const k = id + '_' + this.uid; if (!d.wk[k] || !d.leaks[id]) return false; delete d.wk[k]; d.leaks[id].w = Math.max(0, d.leaks[id].w - 1); this.save(d); return true; }
   async report(id){ const d = this.db(); const k = id + '_' + this.uid; if (d.rep[k] || !d.leaks[id]) return false; d.rep[k] = 1; const L = d.leaks[id]; L.rp++; L.hd = L.rp >= 3; this.save(d); return true; }
   async remove(id){ const d = this.db(); if (!d.leaks[id] || d.leaks[id].u !== this.uid) return false; delete d.leaks[id]; this.save(d); return true; }
 }
@@ -1751,6 +1752,12 @@ class FireNet {
   async wakaru(id){
     await this.authP; const { writeBatch, serverTimestamp, increment } = this.fs; const b = writeBatch(this.db);
     b.set(this.d('hakaLeaks', id, 'wk', this.uid), { t: serverTimestamp() }); b.update(this.d('hakaLeaks', id), { w: increment(1) });
+    try { await b.commit(); return true; } catch (e) { return false; }
+  }
+  // グッドの取り消し（自分が押した分だけ -1）
+  async unwakaru(id){
+    await this.authP; const { writeBatch, increment } = this.fs; const b = writeBatch(this.db);
+    b.delete(this.d('hakaLeaks', id, 'wk', this.uid)); b.update(this.d('hakaLeaks', id), { w: increment(-1) });
     try { await b.commit(); return true; } catch (e) { return false; }
   }
   async report(id){
@@ -2026,7 +2033,16 @@ async function loadList(reset){
     c.innerHTML = `<div class="meta">${me ? '<b style="color:#e0483c">あなたの秘密</b>　' : ''}${it.age}歳・${esc(CH[it.ch] ? CH[it.ch].name : '')}　${esc(byText(it.by || ''))}　${ago(it.t)}</div><div class="tx">${esc(it.tx)}</div>
       <div class="acts"><button class="wk${wk[it.id] ? ' on' : ''}" aria-label="いいね">👍 <span>${it.w}</span></button><span class="sp"></span>${me ? '<button class="del">消す</button>' : '<button class="rp">通報</button>'}</div>`;
     const wb = c.querySelector('.wk');
-    wb.onclick = async () => { if (wk[it.id]) return; wk[it.id] = 1; store.set('wk', wk); wb.classList.add('on'); wb.querySelector('span').textContent = it.w + 1; SND.pop(1.2); NET.wakaru(it.id); };
+    let n = it.w, busy = false;   // グッドは押すたびに ON／OFF（取り消せる）
+    const showWk = on => { wb.classList.toggle('on', on); wb.querySelector('span').textContent = n; };
+    wb.onclick = async () => {
+      if (busy) return; busy = true; const was = !!wk[it.id];
+      if (was){ delete wk[it.id]; n = Math.max(0, n - 1); } else { wk[it.id] = 1; n++; }
+      store.set('wk', wk); showWk(!was); SND.pop(was ? 0.8 : 1.2);
+      const ok = was ? await NET.unwakaru(it.id) : await NET.wakaru(it.id);
+      if (!ok){ if (was){ wk[it.id] = 1; n++; } else { delete wk[it.id]; n = Math.max(0, n - 1); } store.set('wk', wk); showWk(was); }
+      busy = false;
+    };
     const rb = c.querySelector('.rp'); if (rb) rb.onclick = async () => { if (rb.dataset.arm !== '1'){ rb.dataset.arm = '1'; rb.textContent = 'もう一度押すと通報'; return; } rp[it.id] = 1; store.set('rp', rp); NET.report(it.id); c.remove(); toast('通報しました。あなたの画面には出しません'); };
     const db = c.querySelector('.del'); if (db) db.onclick = async () => { if (db.dataset.arm !== '1'){ db.dataset.arm = '1'; db.textContent = 'もう一度押すと消す'; return; } const ok = await NET.remove(it.id); if (ok){ c.remove(); store.set(MINE_KEY, mine.filter(x => x !== it.id)); toast('消しました。なかったことに…'); } else toast('消せませんでした。少ししてから試してください'); };
     box.appendChild(c);
