@@ -149,6 +149,7 @@ label.chk input{width:22px;height:22px;flex:0 0 22px;margin:1px 0 0;accent-color
 .card .tx{font-size:18px;line-height:1.6;word-break:break-all}
 .card .acts{display:flex;gap:8px;margin-top:8px;align-items:center}
 .card .acts button{padding:6px 12px;border-radius:10px;font-size:14px;background:#fff;border:2px solid #3a3426;color:#2a2620}
+.card .acts button.wk{font-size:16px;padding:5px 12px}.card .acts button.wk span{font-size:14px;font-weight:800}
 .card .acts button.wk.on{background:var(--yel)}
 .card .acts .sp{flex:1}
 .card .acts button.rp,.card .acts button.del{font-size:12px;background:none;border:0;text-decoration:underline;opacity:.7}
@@ -2023,7 +2024,7 @@ async function loadList(reset){
     if (rp[it.id]) continue;
     const me = mine.includes(it.id), c = document.createElement('div'); c.className = 'card' + (me ? ' mine' : '');
     c.innerHTML = `<div class="meta">${me ? '<b style="color:#e0483c">あなたの秘密</b>　' : ''}${it.age}歳・${esc(CH[it.ch] ? CH[it.ch].name : '')}　${esc(byText(it.by || ''))}　${ago(it.t)}</div><div class="tx">${esc(it.tx)}</div>
-      <div class="acts"><button class="wk${wk[it.id] ? ' on' : ''}">わかる <span>${it.w}</span></button><span class="sp"></span>${me ? '<button class="del">消す</button>' : '<button class="rp">通報</button>'}</div>`;
+      <div class="acts"><button class="wk${wk[it.id] ? ' on' : ''}" aria-label="いいね">👍 <span>${it.w}</span></button><span class="sp"></span>${me ? '<button class="del">消す</button>' : '<button class="rp">通報</button>'}</div>`;
     const wb = c.querySelector('.wk');
     wb.onclick = async () => { if (wk[it.id]) return; wk[it.id] = 1; store.set('wk', wk); wb.classList.add('on'); wb.querySelector('span').textContent = it.w + 1; SND.pop(1.2); NET.wakaru(it.id); };
     const rb = c.querySelector('.rp'); if (rb) rb.onclick = async () => { if (rb.dataset.arm !== '1'){ rb.dataset.arm = '1'; rb.textContent = 'もう一度押すと通報'; return; } rp[it.id] = 1; store.set('rp', rp); NET.report(it.id); c.remove(); toast('通報しました。あなたの画面には出しません'); };
