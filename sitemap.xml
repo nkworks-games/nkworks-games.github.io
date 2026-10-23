@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>https://nkworks-games.com/</loc><lastmod>2026-10-22</lastmod></url>
-<url><loc>https://nkworks-games.com/games/</loc><lastmod>2026-10-22</lastmod></url>
-<url><loc>https://nkworks-games.com/blog/</loc><lastmod>2026-10-22</lastmod></url>
+<url><loc>https://nkworks-games.com/</loc><lastmod>2026-10-23</lastmod></url>
+<url><loc>https://nkworks-games.com/games/</loc><lastmod>2026-10-23</lastmod></url>
+<url><loc>https://nkworks-games.com/blog/</loc><lastmod>2026-10-23</lastmod></url>
 <url><loc>https://nkworks-games.com/about.html</loc><lastmod>2026-10-19</lastmod></url>
 <url><loc>https://nkworks-games.com/privacy-policy.html</loc><lastmod>2026-10-22</lastmod></url>
 <url><loc>https://nkworks-games.com/games/haka-made/</loc><lastmod>2026-10-22</lastmod></url>
@@ -72,4 +72,7 @@
 <url><loc>https://nkworks-games.com/blog/sound-without-files/</loc><lastmod>2026-10-19</lastmod></url>
 <url><loc>https://nkworks-games.com/blog/touch-area/</loc><lastmod>2026-10-19</lastmod></url>
 <url><loc>https://nkworks-games.com/blog/shinashina-barrel/</loc><lastmod>2026-10-19</lastmod></url>
+<url><loc>https://nkworks-games.com/games/bunnage/</loc><lastmod>2026-10-23</lastmod></url>
+<url><loc>https://nkworks-games.com/bunnage/</loc><lastmod>2026-10-23</lastmod></url>
+<url><loc>https://nkworks-games.com/blog/sling-cannot-push/</loc><lastmod>2026-10-23</lastmod></url>
 </urlset>
