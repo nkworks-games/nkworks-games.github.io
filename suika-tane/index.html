@@ -2963,7 +2963,7 @@ function showResult(){
 async function submitRun(name, byButton){
   const r = G.res; if (!r || !NET) return;
   $('nameGo').disabled = true;
-  const res = await NET.submit(name, r.d, Math.round(r.wind * 10));
+  const res = await NET.submit(name, r.d, Math.round(r.wind * 10) || 0);   // -0 は 0 に（-0 は小数あつかいになり、ルールの「整数」に通らない）
   $('nameGo').disabled = false;
   if (!res.ok){ $('nameErr').textContent = res.err === 'permission-denied' ? '少し待ってから、もう一度ためしてください' : '通信できませんでした。あとでもう一度ためしてください'; }
   if (byButton && res.ok){ store.set('name', name); $('nameGo').textContent = '名前を変える'; toast('ランキングにのせました！'); }
