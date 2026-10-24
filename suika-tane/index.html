@@ -19,12 +19,12 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800;900&family=Mochiy+Pop+One&display=swap" rel="stylesheet">
 <script>(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s = document.createElement('script'); s.async = true; s.crossOrigin = 'anonymous'; s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();</script>
 <style>
-:root{--ad:50px;--gap:75px;--safeB:env(safe-area-inset-bottom,0px);--gameH:calc(100vh - var(--ad) - var(--gap) - var(--safeB));--ink:#2b2350;--red:#e8434b;--red2:#c92f3a;--green:#3f9a4c;--yel:#ffd23f;--cream:#fff8ec;--sky:#ffb067;--maru:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;--pop:"Mochiy Pop One","M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif}
+:root{--ad:50px;--gap:75px;--safeB:env(safe-area-inset-bottom,0px);--gameH:calc(100vh - var(--ad) - var(--gap) - var(--safeB));--gw:min(100vw,calc(var(--gameH) * .7));--ink:#2b2350;--red:#e8434b;--red2:#c92f3a;--green:#3f9a4c;--yel:#ffd23f;--cream:#fff8ec;--sky:#ffb067;--maru:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;--pop:"Mochiy Pop One","M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:#2b2350;color:var(--ink);font-family:var(--maru);font-weight:800;-webkit-user-select:none;user-select:none;touch-action:none;overscroll-behavior:none}
 @supports (height:100dvh){:root{--gameH:calc(100dvh - var(--ad) - var(--gap) - var(--safeB))}}
 /* ゲームの画面（下に広告の場所をあける。中の position:fixed は、この中が基準になる） */
-#game{position:fixed;top:0;left:50%;transform:translateX(-50%);height:var(--gameH);width:min(100vw,calc(var(--gameH) * .7));overflow:hidden;background:#2b2350}
+#game{position:fixed;top:0;left:50%;transform:translateX(-50%);height:var(--gameH);width:var(--gw);overflow:hidden;background:#2b2350}
 #adGap{position:fixed;left:0;right:0;bottom:calc(var(--ad) + var(--safeB));height:var(--gap);background:#2b2350}
 #adArea{position:fixed;left:0;right:0;bottom:0;height:calc(var(--ad) + var(--safeB));padding-bottom:var(--safeB);display:flex;justify-content:center;align-items:center;background:#2b2350}
 #adArea .slot{width:320px;height:50px;overflow:hidden}
@@ -42,7 +42,7 @@ button{font-family:var(--maru);font-weight:800;cursor:pointer;border:0}
 h2{font-family:var(--pop);font-weight:400;font-size:22px;margin:0 0 10px;text-align:center}
 /* タイトル */
 #scrTitle{justify-content:space-between;background:linear-gradient(rgba(43,35,80,.25),transparent 30%,transparent 55%,rgba(43,35,80,.6))}
-.logo{font-family:var(--pop);font-size:clamp(34px,10.5vw,52px);line-height:1.12;color:#fff;text-align:center;letter-spacing:.02em;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);margin:4px 0 0}
+.logo{font-family:var(--pop);font-size:clamp(34px,calc(var(--gw) * 0.105),52px);line-height:1.12;color:#fff;text-align:center;letter-spacing:.02em;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);margin:4px 0 0}
 .logo .r{color:var(--red)}.logo .g{color:#7fd36a}
 .ribbon{display:inline-block;background:var(--yel);border:3px solid var(--ink);border-radius:999px;padding:2px 14px;font-size:15px;box-shadow:0 3px 0 var(--ink);transform:rotate(-3deg)}
 #titleTop{display:flex;flex-direction:column;align-items:center;margin-top:6px}
@@ -66,7 +66,7 @@ h2{font-family:var(--pop);font-weight:400;font-size:22px;margin:0 0 10px;text-al
 #hud{--tc:#9fdcff;--tc2:#e8f8ff}
 #breath{position:absolute;left:0;right:0;top:calc(max(10px,env(safe-area-inset-top)) + 54px);text-align:center;display:none;font-family:var(--pop);color:var(--tc2);-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink);line-height:1;white-space:nowrap}
 #breath.on{display:block}
-#breath b{font-weight:400;font-size:clamp(40px,13vw,58px);display:inline-block;color:#fff;transition:color .3s}
+#breath b{font-weight:400;font-size:clamp(40px,calc(var(--gw) * 0.13),58px);display:inline-block;color:#fff;transition:color .3s}
 #breath .lb{font-size:22px;margin-right:6px}
 #breath .u{font-size:26px;margin-left:2px}
 #breath.bump b{animation:bump .28s}
@@ -99,20 +99,21 @@ h2{font-family:var(--pop);font-weight:400;font-size:22px;margin:0 0 10px;text-al
 #pops{position:absolute;inset:0;overflow:hidden}
 .popt{position:absolute;font-family:var(--pop);font-size:24px;color:#fff;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;white-space:nowrap;transform:translate(-50%,-50%);animation:popup .8s forwards}
 .popt.y{color:var(--yel)}.popt.r{color:#ff8080}.popt.g{color:#c8c8d8;font-size:18px}.popt.s{font-size:18px}.popt.b{font-size:32px;color:var(--tc2)}
-.popt.mega{font-size:clamp(64px,22vw,120px);color:var(--yel);-webkit-text-stroke:7px var(--ink);text-shadow:0 8px 0 var(--ink);animation:mega 1.2s forwards;z-index:3}
+.popt.mega{font-size:clamp(56px,calc(var(--gw) * 0.19),110px);letter-spacing:-.12em;color:var(--yel);-webkit-text-stroke:7px var(--ink);text-shadow:0 8px 0 var(--ink);animation:mega 1.2s forwards;z-index:3}
 #just{position:fixed;inset:0;z-index:8;pointer-events:none;display:none;overflow:hidden}
 #just.on{display:block;animation:justIn 1.9s forwards}
 #just .rays{position:absolute;left:50%;top:44%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;background:repeating-conic-gradient(rgba(255,90,90,.32) 0 5deg,rgba(255,255,255,0) 5deg 9deg,rgba(255,210,60,.32) 9deg 14deg,rgba(255,255,255,0) 14deg 18deg,rgba(90,220,120,.32) 18deg 23deg,rgba(255,255,255,0) 23deg 27deg,rgba(90,170,255,.32) 27deg 32deg,rgba(255,255,255,0) 32deg 36deg,rgba(200,100,255,.32) 36deg 41deg,rgba(255,255,255,0) 41deg 45deg);animation:spin 2.4s linear infinite;mix-blend-mode:screen}
 #just .glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 44%,rgba(255,250,210,.85),rgba(255,240,160,.25) 30%,rgba(255,255,255,0) 60%)}
-#just .t{position:absolute;left:0;right:0;top:30%;text-align:center;font-family:var(--pop);font-size:clamp(76px,26vw,140px);line-height:1;color:#fff;-webkit-text-stroke:7px var(--ink);paint-order:stroke fill;text-shadow:0 8px 0 var(--ink),0 0 34px #fff3a0;animation:justT 1.6s both}
-@keyframes justT{0%{transform:scale(.2) rotate(-12deg);opacity:0}12%{transform:scale(1.25) rotate(4deg);opacity:1}25%{transform:scale(1) rotate(-2deg)}80%{transform:scale(1.02);opacity:1}100%{transform:scale(1.06) translateY(-14px);opacity:0}}
-#just .s{position:absolute;left:0;right:0;top:calc(30% + clamp(86px,29vw,150px));text-align:center;font-family:var(--pop);font-size:clamp(18px,5.6vw,26px);color:var(--yel);-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;animation:pop .5s .25s both}
+#just .t{position:absolute;left:0;right:0;top:30%;text-align:center;font-family:var(--pop);font-size:clamp(70px,calc(var(--gw) * 0.24),130px);line-height:1;color:#fff;-webkit-text-stroke:7px var(--ink);paint-order:stroke fill;text-shadow:0 8px 0 var(--ink),0 0 34px #fff3a0;animation:justT 1.6s both}
+@keyframes justT{0%{transform:scale(.2) rotate(-12deg);opacity:0}12%{transform:scale(1.18) rotate(3deg);opacity:1}25%{transform:scale(1) rotate(-2deg)}80%{transform:scale(1.02);opacity:1}100%{transform:scale(1.06) translateY(-14px);opacity:0}}
+#just .s{position:absolute;left:0;right:0;top:calc(30% + clamp(80px,calc(var(--gw) * 0.27),140px));text-align:center;font-family:var(--pop);font-size:clamp(18px,calc(var(--gw) * 0.056),26px);color:var(--yel);-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;animation:justS .5s .25s both}
+@keyframes justS{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:none;opacity:1}}
 @keyframes justIn{0%{opacity:0}6%{opacity:1}78%{opacity:1}100%{opacity:0}}
 .popt.gold{color:#ffe14a;text-shadow:0 8px 0 var(--ink),0 0 26px #fff0a0}
 .justtag{display:inline-block;margin-left:3px;padding:0 5px;border-radius:6px;font-size:11px;color:#fff;background:linear-gradient(90deg,#ff5a5a,#ffb23a,#4fcf6a,#4aa0ff,#b45cff)}
-@keyframes mega{0%{transform:translate(-50%,-50%) scale(.2) rotate(-12deg);opacity:0}12%{transform:translate(-50%,-50%) scale(1.25) rotate(4deg);opacity:1}25%{transform:translate(-50%,-50%) scale(1) rotate(-2deg)}80%{opacity:1}100%{transform:translate(-50%,-62%) scale(1.05);opacity:0}}
+@keyframes mega{0%{transform:translate(-50%,-50%) scale(.2) rotate(-12deg);opacity:0}12%{transform:translate(-50%,-50%) scale(1.15) rotate(3deg);opacity:1}25%{transform:translate(-50%,-50%) scale(1) rotate(-2deg)}80%{opacity:1}100%{transform:translate(-50%,-62%) scale(1.05);opacity:0}}
 @keyframes popup{0%{transform:translate(-50%,-30%) scale(.6);opacity:0}20%{transform:translate(-50%,-60%) scale(1.15);opacity:1}100%{transform:translate(-50%,-160%) scale(1);opacity:0}}
-#banner{position:fixed;left:0;right:0;top:30%;z-index:6;text-align:center;pointer-events:none;font-family:var(--pop);font-size:clamp(26px,8vw,40px);color:#fff;-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);opacity:0;transition:opacity .2s;padding:0 12px;line-height:1.3}
+#banner{position:fixed;left:0;right:0;top:30%;z-index:6;text-align:center;pointer-events:none;font-family:var(--pop);font-size:clamp(26px,calc(var(--gw) * 0.08),40px);color:#fff;-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);opacity:0;transition:opacity .2s;padding:0 12px;line-height:1.3}
 #banner.on{opacity:1;animation:pop .4s}
 #banner.y{color:var(--yel)}#banner.r{color:#ff7b7b}#banner.low{top:56%}
 #banner small{display:block;font-size:.5em;-webkit-text-stroke:3px var(--ink)}
@@ -138,7 +139,7 @@ h2{font-family:var(--pop);font-weight:400;font-size:22px;margin:0 0 10px;text-al
 #flash{position:fixed;inset:0;z-index:7;background:#fffaf0;opacity:0;pointer-events:none}
 /* 結果 */
 #scrResult{justify-content:flex-start;background:linear-gradient(rgba(43,35,80,.15),rgba(43,35,80,.55))}
-.rbig{font-family:var(--pop);font-size:clamp(46px,15vw,68px);line-height:1;color:var(--yel);-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);text-align:center;margin:8px 0 2px}
+.rbig{font-family:var(--pop);font-size:clamp(46px,calc(var(--gw) * 0.15),68px);line-height:1;color:var(--yel);-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);text-align:center;margin:8px 0 2px}
 .rbig small{font-size:.5em}
 .rtitle{display:inline-block;background:var(--red);color:#fff;border:3px solid var(--ink);border-radius:999px;padding:4px 16px;font-size:17px;box-shadow:0 3px 0 var(--ink);margin:6px 0 10px}
 .rplace{color:#fff;font-size:15px;text-align:center;text-shadow:0 2px 0 var(--ink),0 0 6px var(--ink);margin:-2px 0 8px}
@@ -255,7 +256,7 @@ h2{font-family:var(--pop);font-weight:400;font-size:22px;margin:0 0 10px;text-al
       <li><b>はじめの10秒</b>：画面をさわると「空気のかたまり」をつかめます。指でそのまま<b>口まで運ぶ</b>と、息がたまります。<b>息に上限はありません</b>。ためればためるほど、遠くへ飛びます。</li>
       <li>かたまりは重くて、指より速くは動けません。<b>遠くから</b>運ぶほど大きくなり、一度にたくさんたまりますが、時間がかかります。<b>近くから</b>だとすぐ届きますが、少しだけ。</li>
       <li>とちゅうで指をはなしても、それまでに運んだ分は口まで飛んでいきます。10秒が終わった時に指でつかんでいる分は、とどきません。</li>
-      <li>次に、頭が上下にゆれます。<b>タップ</b>した角度で「ぷっ！」と発射。4秒たつと勝手に出ます。<b>40°くらい</b>がねらい目です。<b>息が多いほど、頭のゆれが速くなり、ふるえも出て、ねらいもきびしくなります。</b></li>
+      <li>次に、頭が上下にゆれます。<b>タップ</b>した角度で「ぷっ！」と発射。4秒たつと勝手に出ます（少し弱くなり、JUSTも出ません）。<b>40°くらい</b>がねらい目です。<b>息が多いほど、頭のゆれが速くなり、ふるえも出て、ねらいもきびしくなります。</b></li>
       <li>40°に<b>ぴったり（JUST）</b>で発射すると、特別な演出が出て、飛ぶ力が3%アップ！ 息が多いほど、JUSTの幅はせまくなります。</li>
       <li><b>宇宙の果て</b>は、10秒間ずっと限界まで息を運び、さらにJUSTを出した人だけが届く場所です。</li>
       <li>風鈴の向きで、その回の風がわかります。追い風だと少しだけよく飛びます。</li>
@@ -326,6 +327,7 @@ const angShake = B => clamp((B - 4) * 0.3, 0, 3);                          // �
 // JUST：40°にぴったり（ナイスの幅の半分。±0.6〜1.5°）。飛ぶ力が3%アップ
 const justW = B => clamp(niceW(B) * 0.5, 0.6, 1.5);
 const JUST_BONUS = 1.03;
+const AUTO_K = 0.9;       // 時間ぎれで勝手に出たときの飛ぶ力（JUSTもナイスもなし）
 // 飛ぶ距離（m）：力 1（100%）ごとに だいたい10倍。地球一周をこえると、もっと速くインフレ
 const EARTH = 40075017;                 // 地球一周（m）
 const LAP_END = 2e8;                    // ここまでは「地球一周して後頭部にコツン」。それより先は宇宙へ
@@ -2347,8 +2349,9 @@ function solveV0(p0, ang, wind, D){
 }
 function spit(auto){
   if (G.phase !== 'angle') return; G.phase = 'spit'; G.auto = auto; G.t = 0; G.released = false; hint(''); $('timer').style.visibility = 'hidden'; METER.visible = false;
-  G.just = Math.abs(G.ang - ANG_BEST) <= justW(G.bFinal); G.nice = G.just || Math.abs(G.ang - ANG_BEST) <= niceW(G.bFinal);
-  G.S = powerOf(G.bFinal, G.ang, G.wind) * (G.just ? JUST_BONUS : 1); const Dm = distOf(G.S); G.Dm = Dm; G.lap = isLap(Dm);
+  // 時間ぎれ（勝手に出た）ときは、たまたま40°でもJUSTにしない（待つだけで確定演出が出ないように）
+  G.just = !auto && Math.abs(G.ang - ANG_BEST) <= justW(G.bFinal); G.nice = !auto && (G.just || Math.abs(G.ang - ANG_BEST) <= niceW(G.bFinal));
+  G.S = powerOf(G.bFinal, G.ang, G.wind) * (G.just ? JUST_BONUS : auto ? AUTO_K : 1); const Dm = distOf(G.S); G.Dm = Dm; G.lap = isLap(Dm);
   G.mode = G.lap ? 'lap' : isSpace(Dm) ? 'space' : Dm <= GARDEN_MAX ? 'garden' : Dm <= FAR_MAX ? 'far' : 'globe';
   G.dist = Dm;
   if (G.nice && !G.just) later(0.05, () => { banner('ナイス角度！', 0.9, 'y'); SND.good(); });
@@ -2948,7 +2951,7 @@ function showResult(){
   $('rTitle').textContent = r.title;
   $('rNew').innerHTML = r.isBest && r.prevBest ? '<span class="newrec">🎉 自己ベスト更新！（前回 ' + fmtDTxt(r.prevBest) + '）</span>' : r.isBest ? '<span class="newrec">はじめての記録！</span>' : '<span style="color:#fff;font-size:13px;text-shadow:0 2px 0 var(--ink)">自己ベスト ' + fmtDTxt(store.get('bestM', 0)) + '</span>';
   $('rBreath').textContent = comma(r.b * 100) + '%';
-  $('rAng').innerHTML = (r.just ? r.ang.toFixed(1) : Math.round(r.ang)) + '°' + (r.just ? '<span class="justtag">JUST</span>' : r.nice ? '<span style="font-size:11px;color:var(--red)">ナイス</span>' : '');
+  $('rAng').innerHTML = (r.just ? r.ang.toFixed(1) : Math.round(r.ang)) + '°' + (r.just ? '<span class="justtag">JUST</span>' : r.nice ? '<span style="font-size:11px;color:var(--red)">ナイス</span>' : r.auto ? '<span style="font-size:11px;color:#8a8399">時間ぎれ</span>' : '');
   $('rPlace').textContent = r.line;
   $('rWind').textContent = Math.abs(r.wind) < 0.15 ? '無風' : (r.wind > 0 ? '追' : '向') + Math.abs(r.wind).toFixed(1);
   $('rRank').innerHTML = `<div style="font-size:13px;opacity:.85">審判のおじいさん</div>「${esc(r.comment)}」`;
