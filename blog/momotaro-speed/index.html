@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>「ライドなんだから」で、どんぶらこが時速190kmになった - N.K. Works 開発日記</title>
+<meta name="description" content="『桃太郎ライド』は、桃になって川を流れるゲーム。のんびり時速40kmで流れていた桃を、カメラや風の線で速く見せ、コースを3kmにのばして、時速190kmまで上げた話。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/blog/momotaro-speed/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:title" content="「ライドなんだから」で、どんぶらこが時速190kmになった - N.K. Works 開発日記">
+<meta property="og:description" content="『桃太郎ライド』は、桃になって川を流れるゲーム。のんびり時速40kmで流れていた桃を、カメラや風の線で速く見せ、コースを3kmにのばして、時速190kmまで上げた話。">
+<meta property="og:url" content="https://nkworks-games.com/blog/momotaro-speed/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/assets/site.css">
+<script>
+(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous'; s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();
+</script>
+</head>
+<body>
+
+<header class="site-h"><div class="wrap">
+<a class="logo" href="/">N.K. Works</a>
+<nav class="nav"><a href="/games/">ゲーム</a><a href="/blog/" aria-current="page">開発日記</a><a href="/about.html">運営者情報</a></nav>
+</div></header>
+
+<main><div class="wrap"><article class="post">
+<p class="crumb"><a href="/">トップ</a> › <a href="/blog/">開発日記</a></p>
+<h1>「ライドなんだから」で、どんぶらこが時速190kmになった</h1><p class="post-meta">2026年10月25日 ・ N.K. Works</p>
+<p>『桃太郎ライド』は、桃になって川を流れ、おばあさんの洗濯が終わる前に、洗濯たらいへ飛びこむゲームです。最初の形では、桃は時速40kmくらいで、のんびりどんぶらこと流れていました。遊んでみて出た感想は「もっと疾走感がほしい」。そこから2回作り直して、最後は時速190kmで流れるゲームになりました。</p>
+<h2>1.4倍では、まだ足りなかった</h2>
+<p>1回目の作り直しでは、流れを1.4倍速くして、カメラや風の演出を足しました。たしかに速くはなりましたが、返ってきた言葉は「ライドってついてるくらいだから、もっと大げさなくらいでいい」。たしかに、遊園地のライドは、こわいくらいの速さが楽しいものです。そこで、最初の形の約2.5倍、秒速25〜32m（時速90〜115km）をふつうの速さにして、いちばん速い時は時速187kmまで出るようにしました。</p>
+<h2>速さは、数字だけでは伝わらない</h2>
+<p>速さの数字を上げても、画面の見え方が同じだと、意外と速く感じません。そこで、速く見せるための工夫をいくつも重ねました。</p>
+<ul><li>カメラを低く、桃に近づけた。水面がすぐ下を流れていくほど速く見えます。</li><li>川の上に、止まっている白い「風の線」を置いた。桃がそれを次々に追いこしていくことで、速さが目に見えます。</li><li>速いほど画面を広く見せ、小さくゆらす。きびだんごを取った瞬間などは、画面がドンと広がります。</li><li>水面の模様を、桃より遅く流した。桃と同じ速さで流すと、桃が止まって見えてしまうからです。</li></ul>
+<p>画面の上には「時速◯km」も出しました。100kmで黄色、140kmでオレンジに変わり、150kmをこえると「爆速！」と出ます。</p>
+<h2>速くすると、コースが一瞬で終わる</h2>
+<p>速さを上げると、同じコースはあっという間に終わってしまいます。1回約2分という遊びの長さは変えたくなかったので、コースの長さも速さに合わせてのばしました。最初は1.2kmだったコースが、最後は約3kmです。岩の間かくや、横に動く速さも、同じように広げています。速さを変えた時に、コースの長さを数字ひとつで合わせられるように作り直したので、調整がぐっと楽になりました。</p>
+<h2>下り坂と、千本鳥居</h2>
+<p>ライドらしさを出すために、ウォータースライダーのような下り坂を5か所入れました。坂の上ではカメラが坂を見下ろし、下るほど速くなります。もうひとつの見せ場が「千本鳥居」です。朱色の鳥居がずらっと並ぶ下を、障害物なしで一気にかけぬけます。鳥居をくぐるたびに「ヒュッ」と音が鳴ります。</p>
+<h2>カーブを強くすると、川がやせる</h2>
+<p>最後に「もっとカーブや高低差がほしい」と言われて、川を大きくうねらせました。最初の作り方は、まっすぐな川を横にずらして曲げていたので、強く曲げると、カーブの所だけ川はばが細く見えてしまいます。そこで、川の向きを少しずつ足していって道すじを作る方法に変えました。これなら、どんなに曲げても川はばは同じです。曲がる所では、ジェットコースターのようにカメラが内側へ傾きます。</p>
+<p>高低差は、滝を4つ、下り坂を5つにして、波のこぶも足しました。こぶは、ゆっくり通るとそのまま、速く通るとザブンザブンとはねます。最初はこぶの上り坂でジャンプすると、最後の大滝まで100m以上飛んでしまったので、ジャンプで飛べる高さに上限をつけました。</p>
+<h2>時間は、わざときびしく</h2>
+<p>時間がきびしすぎないかは、自動で遊ぶプログラムに何十回も流させて確かめています。今は、うまい人で残り約29秒、ぶつからなくても白い流れやきびだんごを使わないと残り約11秒、初めての人はあと少しで間に合わないくらいです。そのかわり、記録は「歴代」と「今日」のトップ3が、リアルタイムでみんなの画面に出るようにしました。だれかが記録を出すと、その場でランキングが入れかわります。</p>
+<h2>この記事のゲーム</h2><ul class="grid"><li><a class="card" href="/games/momotaro-ride/"><div class="th"><img src="/games/momotaro-ride/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>桃太郎ライド</b><span>時速190kmで、どんぶらこ。</span><em>2026年10月25日 公開</em></div></a></li></ul>
+<h2>ほかの日記</h2><ul class="list"><li><a href="/blog/suika-breath/"><em>2026年10月24日</em><b>息に上限をなくしたら、タネが宇宙の果てまで飛んだ</b><span>『スイカのタネ飛ばし選手権』は、縁側からタネを飛ばすゲーム。息を100%ぴったりにためる形から、上限なしで空気を指で運ぶ形に作り直し、短くはじく抜け道をふさいだ話。</span></a></li><li><a href="/blog/milliken-shrink/"><em>2026年10月23日</em><b>お皿は、31回で1mmになる</b><span>『ミリけん』は、のせるたびにお皿がちぢむけん玉。70mmから1mmまでの縮め方と、本物に近い動きと遊びやすさの間で、玉の動きを作り直した話。</span></a></li><li><a href="/blog/sling-cannot-push/"><em>2026年10月23日</em><b>投石機のひもは、押せない</b><span>『ぶん投げ工房』で、長いひもの時に玉が地面をすべったまま飛んでいく、なぞの動きがありました。原因はひもの計算でした。本物の投石機を調べて、車輪を足した話も。</span></a></li></ul>
+<div class="ad-box"><p class="lbl">広告</p>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</article></div></main>
+<footer class="site-f"><div class="wrap">
+<p><a href="/">トップ</a> ・ <a href="/games/">ゲーム一覧</a> ・ <a href="/blog/">開発日記</a> ・ <a href="/about.html">運営者情報・お問い合わせ</a> ・ <a href="/privacy-policy.html">プライバシーポリシー</a></p>
+<p>&copy; 2026 N.K. Works</p>
+</div></footer>
+</body>
+</html>
