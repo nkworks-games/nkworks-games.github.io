@@ -9,7 +9,6 @@
 <meta property="og:title" content="はみ出しタワー">
 <meta property="og:description" content="前のブロックより、少しでも外へ。何個積める？">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;700&display=swap" rel="stylesheet">
@@ -197,6 +196,7 @@ button{font:inherit;color:inherit}
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
 </script>
+<style>/* nkw-info：説明ページへのリンク */.nkw-info{display:inline-block;margin-left:.8em;padding:6px 2px;color:inherit;text-decoration:underline;text-underline-offset:2px;pointer-events:auto;letter-spacing:.06em;-webkit-user-select:none;user-select:none}</style>
 </head>
 <body>
 <div id="app">
@@ -256,6 +256,7 @@ button{font:inherit;color:inherit}
     <div class="titleBottom">
       <button class="btn big" id="btnPlay">あそぶ</button>
       <div class="titleblock"><div><i>図面名</i>はみ出しタワー</div><div><i>縮尺</i>1 : 1</div><div><i>作成</i>N.K. Works</div></div>
+      <a class="nkw-info" style="margin:6px 0 0;font-size:11px" href="/games/hamidashi-tower/">遊び方・ほかのゲーム ›</a>
     </div>
   </div>
 
@@ -276,9 +277,7 @@ button{font:inherit;color:inherit}
 </div>
 
 <div id="ad">
-  <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>
 </div>
-<script>(window.adsbygoogle = window.adsbygoogle || []).push({});</script>
 <script>setTimeout(function(){ if(!window.__htReady){ var t=document.getElementById('loadTxt'); if(t) t.textContent='読み込みに時間がかかっています。通信を確認して、再読み込みしてください。'; } }, 15000);</script>
 
 <script type="module">
@@ -1184,5 +1183,6 @@ requestAnimationFrame(t => { last = t; loop(t); });
 show($('loading'), false); window.__htReady = true;
 window.HT = { THREE, towerIM, G, analyze, IDEAL, MAX_COUNT, MIN_SHIFT, startGame, place, moveCur, gainFor, goTitle, openShare, save, hand, setP: p => { if (G.cur){ G.cur.raw = p; G.cur.p = q3(p); } } };
 </script>
+<!-- 広告は一時停止中：AdSenseのサイト審査が通るまで、ゲーム画面では広告を読み込みません（帯と余白はそのまま）。審査後にこの変更を元に戻します -->
 </body>
 </html>

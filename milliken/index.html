@@ -13,7 +13,6 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#1b120b">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Dela+Gothic+One&display=swap" rel="stylesheet">
@@ -129,6 +128,7 @@ h2{margin:4px 0 8px;font-size:26px;font-weight:800}
 #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;opacity:.85;z-index:9;background:#1b120b}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<style>/* nkw-info：説明ページへのリンク */.nkw-info{display:inline-block;margin-left:.8em;padding:6px 2px;color:inherit;text-decoration:underline;text-underline-offset:2px;pointer-events:auto;letter-spacing:.06em;-webkit-user-select:none;user-select:none}</style>
 </head>
 <body>
 <div id="game">
@@ -165,7 +165,7 @@ h2{margin:4px 0 8px;font-size:26px;font-weight:800}
     <button class="btn" id="startBtn">はじめる</button>
     <button class="btn sub" id="demoBtn">お手本を見る</button>
     <div class="best" id="bestLine"></div>
-    <div class="credit">N.K. Works</div>
+    <div class="credit">N.K. Works<a class="nkw-info" href="/games/milliken/">遊び方・ほかのゲーム ›</a></div>
   </div></div>
 
   <!-- result -->
@@ -208,9 +208,7 @@ h2{margin:4px 0 8px;font-size:26px;font-weight:800}
 
 <div id="adGap"></div>
 <div id="adArea"><div class="slot">
-  <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>
 </div></div>
-<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
 
 <script type="module">
 import * as THREE from 'three';
@@ -1202,5 +1200,6 @@ if(DEBUG){
     worldPerPx, camera, scene, rope, get viewH(){return viewH;}, loupe};
 }
 </script>
+<!-- 広告は一時停止中：AdSenseのサイト審査が通るまで、ゲーム画面では広告を読み込みません（帯と余白はそのまま）。審査後にこの変更を元に戻します -->
 </body>
 </html>

@@ -221,6 +221,7 @@ h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
 @media (prefers-reduced-motion:reduce){#logo span,#tut svg,#bubble.zzz,#gauge.full,#arrows .ar.near,#bAuto.pulse{animation:none!important}}
 </style>
 
+<style>/* nkw-info：説明ページへのリンク */.nkw-info{display:inline-block;margin-left:.8em;padding:6px 2px;color:inherit;text-decoration:underline;text-underline-offset:2px;pointer-events:auto;letter-spacing:.06em;-webkit-user-select:none;user-select:none}</style>
 </head>
 <body>
 <div id="game">
@@ -251,7 +252,7 @@ h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
     </div>
     <div class="trow"><button id="bStart" class="btn b1" style="min-width:180px">あそぶ</button><button id="bMute1" class="ib mute" aria-label="音の切りかえ"></button></div>
     <div id="tBest"></div>
-    <div class="credit">N.K. Works</div>
+    <div class="credit">N.K. Works<a class="nkw-info" href="/games/shinashina-gun/">遊び方・ほかのゲーム ›</a></div>
   </div></section>
 
   <section id="sIntro" class="scr hide"><div class="box">
@@ -321,17 +322,14 @@ h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
      ・広告のコードは nkworks-games.com で開いた時だけ読みこみます（ほかの場所では灰色の枠だけ出ます）
      ・広告が出ない時（unfilled）は、広告の枠をかくします -->
 <div id="ad-zone">
-  <div id="ad-banner">
+  <div id="ad-banner"><!-- 広告は一時停止中：AdSenseのサイト審査が通るまで、ゲーム画面では広告を読み込みません（帯と余白はそのまま）。審査後にこの変更を元に戻します -->
     <!-- しなしなガン 下バナー（全ゲーム共通の広告ユニット「ゲーム用バナー」） -->
-    <ins class="adsbygoogle"
-         style="display:inline-block;width:320px;height:50px"
-         data-ad-client="ca-pub-2073267239630350"
-         data-ad-slot="6261635446"></ins>
     <div id="ad-ph" class="hide">広告（320×50）</div>
   </div>
 </div>
 <script>
 (function(){
+  return; /* 広告一時停止中（AdSense審査待ち。審査後に元に戻す） */
   // 広告：本番のドメインの時だけ読みこむ
   if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) {
     var s = document.createElement('script');

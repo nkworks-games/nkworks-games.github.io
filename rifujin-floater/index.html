@@ -16,7 +16,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350" crossorigin="anonymous"></script>
 <!-- three.js r160 (MIT License, Copyright 2010-2023 Three.js Authors) https://github.com/mrdoob/three.js -->
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <style>
@@ -169,6 +168,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
 #grade.atk .g{font-size:60px;}
 #loading{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:var(--bg);font-weight:800;}
 </style>
+<style>/* nkw-info：説明ページへのリンク */.nkw-info{display:inline-block;margin-left:.8em;padding:6px 2px;color:inherit;text-decoration:underline;text-underline-offset:2px;pointer-events:auto;letter-spacing:.06em;-webkit-user-select:none;user-select:none}</style>
 </head>
 <body>
 <div id="app">
@@ -203,7 +203,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
         <div class="best" id="title-best"></div>
         <button class="btn" id="btn-start">プレイ</button>
         <div class="links"><button class="link" id="btn-howto">あそびかた</button><button class="link" id="btn-set2">せってい</button></div>
-        <div class="foot">N.K. Works ・ 人物モデル：Quaternius（CC0）</div>
+        <div class="foot">N.K. Works ・ 人物モデル：Quaternius（CC0）<br><a class="nkw-info" style="margin-left:0" href="/games/rifujin-floater/">遊び方・ほかのゲーム ›</a></div>
       </div>
     </div>
 
@@ -255,11 +255,9 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
   </div>
   <div id="ad-gap"></div>
   <div id="ad-wrap">
-    <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>
   </div>
 </div>
 <div id="rotate"><svg viewBox="0 0 64 64"><rect x="20" y="6" width="24" height="44" rx="4"/><path d="M50 40a18 18 0 0 1-14 16M36 56l4-4M36 56l5 2"/></svg>スマホを縦にして遊んでください</div>
-<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -1805,5 +1803,6 @@ UI.toTitle();
 $('loading').style.display = 'none';
 requestAnimationFrame(frame);
 </script>
+<!-- 広告は一時停止中：AdSenseのサイト審査が通るまで、ゲーム画面では広告を読み込みません（帯と余白はそのまま）。審査後にこの変更を元に戻します -->
 </body>
 </html>

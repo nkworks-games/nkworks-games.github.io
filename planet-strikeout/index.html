@@ -13,7 +13,6 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#05070f">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
@@ -164,6 +163,7 @@ h2{margin:4px 0 10px;font-size:34px;font-weight:800;letter-spacing:1px}
 #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;opacity:.8;z-index:9;background:#05070f}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<style>/* nkw-info：説明ページへのリンク */.nkw-info{display:inline-block;margin-left:.8em;padding:6px 2px;color:inherit;text-decoration:underline;text-underline-offset:2px;pointer-events:auto;letter-spacing:.06em;-webkit-user-select:none;user-select:none}</style>
 </head>
 <body>
 <div id="game">
@@ -205,7 +205,7 @@ h2{margin:4px 0 10px;font-size:34px;font-weight:800;letter-spacing:1px}
     <div class="settings">
       <div class="seg">なぞる感度 <button data-sens="0.8">低い</button><button data-sens="1">ふつう</button><button data-sens="1.25">高い</button></div>
     </div>
-    <div class="credit">N.K. Works</div>
+    <div class="credit">N.K. Works<a class="nkw-info" href="/games/planet-strikeout/">遊び方・ほかのゲーム ›</a></div>
   </div></div>
 
   <!-- card (arrival / stage end) -->
@@ -255,9 +255,7 @@ h2{margin:4px 0 10px;font-size:34px;font-weight:800;letter-spacing:1px}
 
 <div id="adGap"></div>
 <div id="adArea"><div class="slot">
-  <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>
 </div></div>
-<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
 
 <script type="module">
 import * as THREE from 'three';
@@ -1405,5 +1403,6 @@ if(DEBUG){
     setResults:(arr)=>{G.results=arr;}, BOARD_Z, BOARD_Y, YAW0};
 }
 </script>
+<!-- 広告は一時停止中：AdSenseのサイト審査が通るまで、ゲーム画面では広告を読み込みません（帯と余白はそのまま）。審査後にこの変更を元に戻します -->
 </body>
 </html>

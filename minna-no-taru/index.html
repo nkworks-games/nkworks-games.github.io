@@ -147,6 +147,7 @@ body.solo #sw-txt small{display:block;font-size:10px;opacity:.85;}
 #loading{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:var(--bg);font-weight:800;text-align:center;line-height:1.7;padding:20px;}
 @media (max-height:640px){.left b{font-size:24px;}#sword{height:60px;}.meta{margin-top:3px;}}
 </style>
+<style>/* nkw-info：説明ページへのリンク */.nkw-info{display:inline-block;margin-left:.8em;padding:6px 2px;color:inherit;text-decoration:underline;text-underline-offset:2px;pointer-events:auto;letter-spacing:.06em;-webkit-user-select:none;user-select:none}</style>
 </head>
 <body>
 <div id="app">
@@ -221,7 +222,7 @@ body.solo #sw-txt small{display:block;font-size:10px;opacity:.85;}
       <button class="btn sub" id="m-name">名前を変える</button>
       <button class="btn sub" id="m-mute">音：オン</button>
       <button class="btn sub" id="m-share">今の樽をXでシェア</button>
-      <div class="nm-note" style="margin-top:10px">N.K. Works ・ 質感とりんご：ambientCG・Poly Haven（CC0）</div>
+      <div class="nm-note" style="margin-top:10px">N.K. Works ・ 質感とりんご：ambientCG・Poly Haven（CC0）<br><a class="nkw-info" style="margin-left:0" href="/games/minna-no-taru/">遊び方・ほかのゲーム ›</a></div>
       <button class="btn" id="m-close">とじる</button>
     </div></div>
 
@@ -237,11 +238,9 @@ body.solo #sw-txt small{display:block;font-size:10px;opacity:.85;}
   </div>
   <div id="ad-gap"></div>
   <div id="ad-wrap">
-    <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>
   </div>
 </div>
 <div id="rotate"><svg viewBox="0 0 64 64"><rect x="20" y="6" width="24" height="44" rx="4"/><path d="M50 40a18 18 0 0 1-14 16M36 56l4-4M36 56l5 2"/></svg>スマホを縦にして遊んでください</div>
-<script>try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}</script>
 <script type="module">
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -1248,7 +1247,7 @@ const A = { backend: null, cur: null, user: null, fills: new Map(), unChunks: ne
 let stage;
 const toast = (m, ms = 2400) => { const t = $('toast'); t.innerHTML = m; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), ms); };
 // 広告は ゲームが出てから読みこむ（ゲームの読みこみを 先にする）
-function loadAds() { if (loadAds.done) return; loadAds.done = true; const s = document.createElement('script'); s.async = true; s.crossOrigin = 'anonymous'; s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); }
+function loadAds() { return; /* 広告一時停止中（AdSense審査待ち。審査後に元に戻す） */ if (loadAds.done) return; loadAds.done = true; const s = document.createElement('script'); s.async = true; s.crossOrigin = 'anonymous'; s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const mmss = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const dateText = t => { if (!t) return ''; const d = new Date(t); return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
@@ -1875,5 +1874,6 @@ window.__tk = { A, SV, L, clock, SO, recheckMine, setMode, soloStab, soloLoad, s
 boot().catch(e => { console.error(e); $('loading').textContent = '読みこみに失敗しました。ページを開き直してください'; });
 
 </script>
+<!-- 広告は一時停止中：AdSenseのサイト審査が通るまで、ゲーム画面では広告を読み込みません（帯と余白はそのまま）。審査後にこの変更を元に戻します -->
 </body>
 </html>

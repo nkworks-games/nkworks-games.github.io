@@ -225,6 +225,7 @@ label.chk input{width:22px;height:22px;flex:0 0 22px;margin:1px 0 0;accent-color
   </div>
   <div class="stats" id="stats"></div>
   <div style="display:flex;gap:14px"><button class="lnk" id="goHow">遊び方・秘密のあつかい</button><button class="lnk" id="muteBtn">音：ON</button></div>
+  <a class="lnk" style="margin-top:0;font-size:12.5px" href="/games/haka-made/">説明・ほかのゲーム ›</a>
 </div>
 
 <div class="scr" id="scrInput">
@@ -2004,6 +2005,7 @@ function share(){
   open('https://x.com/intent/post?text=' + encodeURIComponent(txt) + '&url=' + encodeURIComponent(url), '_blank', 'noopener');
 }
 function showAd(id){
+  return; /* 広告一時停止中（AdSense審査待ち。審査後に元に戻す） */
   if (adDone[id] || IS_TEST) return;
   if (!/(^|\.)nkworks-games\.com$/.test(location.hostname)) return;
   adDone[id] = true;
@@ -2123,5 +2125,6 @@ window.HM = { addJumper, drawModes, modeSel, partsOk, cutMin, visLen, startTut, 
 boot().catch(e => { $('loading').innerHTML = '<div style="padding:20px;text-align:center;line-height:1.7">読みこみに失敗しました。<br>ページを開き直してください。</div>'; console.error(e); });
 
 </script>
+<!-- 広告は一時停止中：AdSenseのサイト審査が通るまで、ゲーム画面では広告を読み込みません（帯と余白はそのまま）。審査後にこの変更を元に戻します -->
 </body>
 </html>
