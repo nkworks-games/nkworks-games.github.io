@@ -68,6 +68,12 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
 #pm{position:absolute;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50% 50% 46% 46%;background:radial-gradient(circle at 40% 35%,#ffd0d6,#f7869b 60%,#e0587a);border:2.5px solid var(--ink);left:0}
 #pb{position:absolute;right:-16px;top:50%;width:28px;height:28px;margin-top:-15px}
 #b-mute{position:absolute;left:12px;top:max(12px,env(safe-area-inset-top));width:42px;height:42px;border-radius:50%;background:rgba(255,250,240,.92);border:2.5px solid var(--ink);font-size:19px;pointer-events:auto}
+#b-pause{position:absolute;right:12px;top:max(12px,env(safe-area-inset-top));width:42px;height:42px;border-radius:50%;background:rgba(255,250,240,.92);border:2.5px solid var(--ink);pointer-events:auto;display:flex;align-items:center;justify-content:center}
+#b-pause svg{width:18px;height:18px;fill:var(--ink)}
+#s-pause{display:flex;align-items:center;justify-content:center;background:rgba(60,40,20,.35)}
+#s-pause .card{width:100%;max-width:320px;text-align:center}
+#s-pause h2{font-size:26px;font-weight:800}
+#s-pause p{font-size:14px;color:var(--sub);margin-top:6px;font-weight:700;line-height:1.6}
 #spd{position:absolute;top:calc(max(10px,env(safe-area-inset-top)) + 100px);left:50%;transform:translateX(-50%);color:#fff;font-weight:800;text-shadow:var(--ol);white-space:nowrap;font-variant-numeric:tabular-nums}
 #spd small{font-size:12px;margin-right:3px}#spd b{font-size:22px}#spd i{font-style:normal;font-size:12px;margin-left:2px}
 #spd.hot b{color:#ffd23f}#spd.max b{color:#ff8a5c}
@@ -128,6 +134,7 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
   <div id="wash"><small>おばあさんの洗濯が おわるまで</small><div id="cloths"></div><div id="tmr"><span id="tm">120.0</span><i>秒</i></div></div>
   <div id="prog"><span id="pm"></span><svg id="pb" viewBox="0 0 28 28"><circle cx="14" cy="16" r="9" fill="#f7d5b8" stroke="#4a3324" stroke-width="2"/><path d="M5 15 C5 6 23 6 23 15 C20 11 8 11 5 15Z" fill="#f4f4f0" stroke="#4a3324" stroke-width="2"/><circle cx="14" cy="5" r="3.5" fill="#f4f4f0" stroke="#4a3324" stroke-width="2"/><path d="M10 17 q1.5 1.5 3 0 M15 17 q1.5 1.5 3 0" stroke="#4a3324" stroke-width="1.6" fill="none"/></svg></div>
   <button id="b-mute" aria-label="音のオンオフ">🔊</button>
+  <button id="b-pause" aria-label="一時停止"><svg viewBox="0 0 20 20"><rect x="3.5" y="3" width="4.5" height="14" rx="1.5"/><rect x="12" y="3" width="4.5" height="14" rx="1.5"/></svg></button>
   <div id="rk1" class="hide"><b id="rk1t"></b><small id="rk1n"></small></div>
   <div id="rkToast"></div>
   <div id="spd"><small>時速</small><b id="kmh">0</b><i>km</i></div>
@@ -168,6 +175,13 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
     <div class="btns"><button class="btn" id="b-again">もう一回 流れる</button><button class="btn bx" id="b-x">Xに投稿する</button><button class="btn b2" id="b-top">タイトルへ</button></div>
   </div>
   <div class="adwrap" id="ad2"></div>
+</div>
+<div id="s-pause" class="scr hide">
+  <div class="card">
+    <h2>ひと休み中</h2>
+    <p>おばあさんも 洗濯の手を止めて<br>待っています</p>
+    <div class="btns"><button class="btn" id="b-resume">つづける</button><button class="btn b2" id="b-home">ホームにもどる</button></div>
+  </div>
 </div>
 <div id="load">桃を準備中…</div>
 <script type="module">
@@ -1238,6 +1252,7 @@ function initHUD() {
 }
 function updHUD(dt) {
   if (G.state !== 'play' && G.state !== 'count' && G.state !== 'goal' && G.state !== 'fail') return;
+  $('b-pause').classList.toggle('hide', G.state !== 'play' && G.state !== 'count');
   const t = Math.max(0, G.time); HUD.tm.textContent = t.toFixed(1);
   const left = Math.ceil(t / (CONFIG.timeLimit / CONFIG.laundry) - 1e-6);
   if (left !== G.lastCloth) { HUD.cl.forEach((e, i) => e.classList.toggle('done', i >= left)); if (left < G.lastCloth && G.state === 'play') AU.sfx('cloth'); G.lastCloth = left; }
@@ -1333,6 +1348,7 @@ const endPtr = e => { if (e.pointerId === IN.id) IN.id = null; };
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
 addEventListener('keydown', e => {
   const k = e.code;
+  if (k === 'Escape') { setPause(G.state !== 'pause'); return; }
   if (k === 'ArrowLeft' || k === 'KeyA') IN.keys.L = 1; else if (k === 'ArrowRight' || k === 'KeyD') IN.keys.R = 1;
   else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW') { if (G.state === 'play') { wantJump(); e.preventDefault(); } }
   else return;
@@ -1452,7 +1468,7 @@ $('rkSend').onclick = () => { const c = checkName($('rkName').value); if (!c.ok)
 $('rkName').addEventListener('keydown', e => { if (e.key === 'Enter') $('rkSend').click(); });
 
 // ===== [SEC:FLOW] =====
-function show(id) { for (const s of ['s-title', 's-res']) $(s).classList.toggle('hide', s !== id); ads('ad1', id === 's-title'); ads('ad2', id === 's-res'); }
+function show(id) { for (const s of ['s-title', 's-res', 's-pause']) $(s).classList.toggle('hide', s !== id); ads('ad1', id === 's-title'); ads('ad2', id === 's-res'); }
 function ads(id, on) {
   const z = $(id); if (!z) return;
   if (on && !z.firstChild) { z.innerHTML = '<ins class="adsbygoogle" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>'; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { /* 広告が出ない時も 枠は残す */ } }
@@ -1472,6 +1488,18 @@ function toTitle() {
 function startGame() {
   AU.init(); show(null); resetRun(); G.state = 'count'; G.cd = 3.4; G.cdN = 4; G.runs = store.get('runs', 0);
   $('hud').classList.remove('hide'); updHUD(0); camSnap(); CAM.pos.y += 6; CAM.pos.z += 6; renderRanks();
+}
+// 一時停止：止めている間は 時間も川も おばあさんも止まる。BGMは 止めた所から 続ける
+function setPause(on) {
+  if (on) {
+    if (G.state !== 'play' && G.state !== 'count') return;
+    G.pState = G.state; G.state = 'pause'; AU.bgmOn = false; IN.keys = {}; IN.id = null;
+    $('b-pause').classList.add('hide'); show('s-pause');
+  } else {
+    if (G.state !== 'pause') return;
+    G.state = G.pState; show(null); $('b-pause').classList.remove('hide');
+    if (G.state === 'play' && AU.ctx) { AU.bgmOn = true; AU.nextT = AU.ctx.currentTime + 0.05; }
+  }
 }
 function updCount(dt) {
   G.cd -= dt; const n = Math.ceil(G.cd - 0.4);
@@ -1513,7 +1541,9 @@ function showResult(ok) {
 $('b-start').onclick = startGame; $('b-again').onclick = startGame; $('b-top').onclick = toTitle;
 $('b-x').onclick = () => { window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(G.share), '_blank', 'noopener'); };
 $('b-mute').onclick = e => { e.stopPropagation(); AU.init(); AU.set(!AU.on); };
-document.addEventListener('visibilitychange', () => { if (!AU.ctx) return; if (document.hidden) AU.ctx.suspend(); else AU.ctx.resume(); });
+$('b-pause').onclick = e => { e.stopPropagation(); setPause(true); };
+$('b-resume').onclick = () => setPause(false); $('b-home').onclick = toTitle;
+document.addEventListener('visibilitychange', () => { if (document.hidden) setPause(true); if (!AU.ctx) return; if (document.hidden) AU.ctx.suspend(); else AU.ctx.resume(); });
 
 // ===== [SEC:LOOP] =====
 function update(dt) {
@@ -1530,6 +1560,7 @@ let last = performance.now();
 function frame(now) {
   requestAnimationFrame(frame);
   let dt = (now - last) / 1000; last = now; if (dt > 0.1) dt = 0.1; if (dt <= 0) return;
+  if (G.state === 'pause') { renderer.render(scene, camera); return; }
   const n = Math.ceil(dt / (1 / 60)), h = dt / n; for (let i = 0; i < n; i++) update(h);
   updVisuals(dt); updCam(dt); updHUD(dt); renderer.render(scene, camera);
 }
