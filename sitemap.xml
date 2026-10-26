@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>https://nkworks-games.com/</loc><lastmod>2026-10-23</lastmod></url>
-<url><loc>https://nkworks-games.com/games/</loc><lastmod>2026-10-23</lastmod></url>
-<url><loc>https://nkworks-games.com/blog/</loc><lastmod>2026-10-23</lastmod></url>
+<url><loc>https://nkworks-games.com/</loc><lastmod>2026-10-26</lastmod></url>
+<url><loc>https://nkworks-games.com/games/</loc><lastmod>2026-10-26</lastmod></url>
+<url><loc>https://nkworks-games.com/blog/</loc><lastmod>2026-10-26</lastmod></url>
 <url><loc>https://nkworks-games.com/about.html</loc><lastmod>2026-10-19</lastmod></url>
 <url><loc>https://nkworks-games.com/privacy-policy.html</loc><lastmod>2026-10-22</lastmod></url>
 <url><loc>https://nkworks-games.com/games/haka-made/</loc><lastmod>2026-10-22</lastmod></url>
@@ -84,4 +84,7 @@
 <url><loc>https://nkworks-games.com/games/momotaro-ride/</loc><lastmod>2026-10-25</lastmod></url>
 <url><loc>https://nkworks-games.com/momotaro-ride/</loc><lastmod>2026-10-25</lastmod></url>
 <url><loc>https://nkworks-games.com/blog/momotaro-speed/</loc><lastmod>2026-10-25</lastmod></url>
+<url><loc>https://nkworks-games.com/games/cap-yakyu/</loc><lastmod>2026-10-26</lastmod></url>
+<url><loc>https://nkworks-games.com/cap-yakyu/</loc><lastmod>2026-10-26</lastmod></url>
+<url><loc>https://nkworks-games.com/blog/cap-drop-ball/</loc><lastmod>2026-10-26</lastmod></url>
 </urlset>

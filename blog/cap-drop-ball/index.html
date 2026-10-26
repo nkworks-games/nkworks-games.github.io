@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>落ちる球だけ投げていれば、だれにも打たれなかった - N.K. Works 開発日記</title>
+<meta name="description" content="『キャップ野球』は、ペットボトルのキャップで遊ぶ体育館の野球。落ちる球だけで打たれなかったCPUの打者に、同じ球を見るほど慣れていくしくみを入れ、打つ側には「ちぢむ円」の目安を足した話。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/blog/cap-drop-ball/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:title" content="落ちる球だけ投げていれば、だれにも打たれなかった - N.K. Works 開発日記">
+<meta property="og:description" content="『キャップ野球』は、ペットボトルのキャップで遊ぶ体育館の野球。落ちる球だけで打たれなかったCPUの打者に、同じ球を見るほど慣れていくしくみを入れ、打つ側には「ちぢむ円」の目安を足した話。">
+<meta property="og:url" content="https://nkworks-games.com/blog/cap-drop-ball/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/assets/site.css">
+<script>
+(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous'; s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();
+</script>
+</head>
+<body>
+
+<header class="site-h"><div class="wrap">
+<a class="logo" href="/">N.K. Works</a>
+<nav class="nav"><a href="/games/">ゲーム</a><a href="/blog/" aria-current="page">開発日記</a><a href="/about.html">運営者情報</a></nav>
+</div></header>
+
+<main><div class="wrap"><article class="post">
+<p class="crumb"><a href="/">トップ</a> › <a href="/blog/">開発日記</a></p>
+<h1>落ちる球だけ投げていれば、だれにも打たれなかった</h1><p class="post-meta">2026年10月26日 ・ N.K. Works</p>
+<p>『キャップ野球』は、ペットボトルのキャップを指ではじいて投げ、プラスチックバットで打ち返す、体育館の野球ゲームです。キャップは軽くて平たいので、ボールよりずっと大きく変化します。ふわっと浮く球、すとんと落ちる球、横にぐいっと曲がる球。この変化を投げ分けるのが、このゲームのいちばんの楽しさです。ところが、遊んでもらうと「ひたすら落ちる球を投げ続ければ、相手に打たれることがない」と言われました。</p>
+<h2>CPUの打者は、毎回同じだけしか読めなかった</h2>
+<p>CPUの打者は、投げられた球がどれくらい変化するかを、選手ごとの「目のよさ」に合わせて、ある割合だけ読んで振ります。目のいい選手でも、変化の4割ほどしか読めません。この割合が、何球目でも同じでした。そのため、いちばん大きく変化する落ちる球を投げると、毎回同じように球の上を空振りしてしまいます。自動で投げるプログラムで、落ちる球だけを180球投げてみると、三振が51、打たれたヒットは0本でした。</p>
+<h2>同じ球は、だんだん読まれる</h2>
+<p>本物の野球でも、同じ球ばかり投げていれば、打者は慣れて打ってきます。そこで、CPUの打者に「どの球を何回見たか」を覚えさせました。同じ種類の球が続くほど、変化を読める割合が上がり、振るタイミングも合ってきます。かわりに、ちがう球を見るたびに、ほかの球への慣れは少しずつ薄れていきます。</p>
+<p>同じように落ちる球だけを180球投げると、今度はヒットが21本（ツーベース6本、ホームラン1本）、三振は10になりました。浮く球・まっすぐ・落ちる球をまぜて投げると、ヒットは6本、三振は19です。同じ球で押し切るより、まぜた方がずっと打たれにくい。これでやっと、投げ分けることに意味が出ました。</p>
+<h2>打つ方は、むずかしすぎた</h2>
+<p>投げる方とは反対に、打つ方は「かなり難しいので、この辺に球がくるみたいな目安がほしい」と言われました。キャップは最後に大きく変化するので、投げた瞬間の向きを見ても、どこに来るかがわかりません。そこで、ストライクゾーンの中に「ちぢむ円」を出すことにしました。円は、まっすぐ来た時の場所に大きく出て、キャップが本当に来る所へ動きながら小さくなります。指をはなすべき瞬間には、青く光ります。</p>
+<p>もうひとつ、「振ったタイミングが遅かったのか早かったのかを教えて」という声もありました。振ったあとに、早い・遅いのメーターを出しています。緑の帯がバットに当たる幅で、点が自分のタイミングです。何秒ずれたかと、円が上すぎたか下すぎたかも出ます。慣れた人のために、タイトルの設定から円を消すこともできます。</p>
+<h2>捕ったキャップが、手の中で回り出した</h2>
+<p>守備の選手がキャップを捕ったあと、手の中でキャップがくるくる回り続けることがありました。原因は2つありました。投げた時の回転が、捕ったあとも残っていたこと。そして、選手が「キャップの方を向く」動きを、自分が持っているキャップに対してもしていたことです。キャップの方を向くと手が動き、手が動くとキャップも動くので、いつまでも向きなおし続けていました。捕ったら回転を止め、持っている間はキャップの方を向かないようにして、手の中にぴたっと収まるようになりました。</p>
+<h2>この記事のゲーム</h2><ul class="grid"><li><a class="card" href="/games/cap-yakyu/"><div class="th"><img src="/games/cap-yakyu/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>キャップ野球</b><span>ペットボトルのキャップで、体育館の野球。</span><em>2026年10月26日 公開</em></div></a></li></ul>
+<h2>ほかの日記</h2><ul class="list"><li><a href="/blog/momotaro-speed/"><em>2026年10月25日</em><b>「ライドなんだから」で、どんぶらこが時速190kmになった</b><span>『桃太郎ライド』は、桃になって川を流れるゲーム。のんびり時速40kmで流れていた桃を、カメラや風の線で速く見せ、コースを3kmにのばして、時速190kmまで上げた話。</span></a></li><li><a href="/blog/suika-breath/"><em>2026年10月24日</em><b>息に上限をなくしたら、タネが宇宙の果てまで飛んだ</b><span>『スイカのタネ飛ばし選手権』は、縁側からタネを飛ばすゲーム。息を100%ぴったりにためる形から、上限なしで空気を指で運ぶ形に作り直し、短くはじく抜け道をふさいだ話。</span></a></li><li><a href="/blog/milliken-shrink/"><em>2026年10月23日</em><b>お皿は、31回で1mmになる</b><span>『ミリけん』は、のせるたびにお皿がちぢむけん玉。70mmから1mmまでの縮め方と、本物に近い動きと遊びやすさの間で、玉の動きを作り直した話。</span></a></li></ul>
+<div class="ad-box"><p class="lbl">広告</p>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</article></div></main>
+<footer class="site-f"><div class="wrap">
+<p><a href="/">トップ</a> ・ <a href="/games/">ゲーム一覧</a> ・ <a href="/blog/">開発日記</a> ・ <a href="/about.html">運営者情報・お問い合わせ</a> ・ <a href="/privacy-policy.html">プライバシーポリシー</a></p>
+<p>&copy; 2026 N.K. Works</p>
+</div></footer>
+</body>
+</html>
