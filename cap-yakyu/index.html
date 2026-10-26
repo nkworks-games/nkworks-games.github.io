@@ -235,7 +235,11 @@ const CONFIG = {
   netAimMax: 30,      // 投げる番で この秒数 投げなければ、その1球は CPU が代わりに投げる
   netBeat: 8,         // 「つながっています」の合図を送る間かく（秒）
   netLobby: 30,       // だれかと対戦：待合所の人を「待っている」とみなす秒数
-  netSlow: 0.35,      // 相手の振りを待つあいだ、キャップが本塁に近づく時のスロー（1＝ふつう）
+  netSlow: 0.3,       // 相手の振りを待つあいだのスローの いちばん遅い速さ（1＝ふつう）
+  netSlowWin: 0.45,   // 本塁まで あと何秒（ふつうの速さで）の所から スローにするか
+  netLate0: 0.45,     // 相手の振りが届くまでの遅れ（秒）の 最初の見こみ。試合中は 実際の遅れで直していく
+  netSetU: 0.3,       // 打つ側：相手が投げるまで 相手投手は この所まで振りかぶって待つ（0〜1）
+  netRelT: 0.12,      // 打つ側：相手の球が届いてから 投げるまでの時間（秒）
   // CPU
   cpuReact: 0.2, cpuNoise: 0.05, cpuTimeNoise: 0.03, cpuFastBias: 0.35,
   cpuLearn: 0.16, cpuLearnT: 0.15,  // 同じ球を見るたびに CPU打者が 変化を読める量／タイミングが合う量
@@ -1440,11 +1444,15 @@ function stepGame(h) {
   // 投手の投げる動き（はなしてから）
   if (P && P.st.thr !== undefined) { P.st.thr += h; const t = P.st.thr, u0 = P.st.u0 ?? 1;
     P.st.u = t < 0.07 ? lerp(u0, 2, t / 0.07) : 2 + clamp((t - 0.07) / 0.32, 0, 1); P.st.rec = clamp((t - 0.9) / 0.5, 0, 1); if (P.st.rec >= 1) P.st = {}; }
-  if (G.state === 'cpuwind') { G.stT += h; if (NETON() && G.mode === 'bat' && !netPitchReady()) G.stT = Math.min(G.stT, G.windAt);   // 相手が投げるまで待つ
-    if (G.stT > G.windAt && P.st.thr === undefined) { P.st.u = clamp((G.stT - G.windAt) / 0.55, 0, 1);
+  if (G.state === 'cpuwind') { G.stT += h;
+    // オンライン：相手が投げるまでは「構え」まで振りかぶって待ち、球が届いたら すぐ投げる
+    const nw = NETON() && G.mode === 'bat', rd = nw && netPitchReady(), P = ACT.P;
+    if ((G.stT > G.windAt || rd) && G.state === 'cpuwind' && P.st.thr === undefined) {
+    if (!nw) P.st.u = clamp((G.stT - G.windAt) / 0.55, 0, 1);
+    else P.st.u = rd ? Math.min(1, (P.st.u || 0) + h * (1 - CONFIG.netSetU) / CONFIG.netRelT) : Math.min(CONFIG.netSetU, (P.st.u || 0) + h / 0.55);
     if (P.st.u >= 1) { const K = KP[P.pl.style] || KP.over, rel = W(P, K.hand[2][0], K.hand[2][1], K.hand[2][2]).add(Wd(P, 0, 0, PSHIFT[2]));
       G.pending = { pi: NETON() && G.mode === 'bat' ? netTakePitch() : makePitch(P.pl, { ...cpuChoosePitch(P.pl, G.cnt), rel, compensate: true }), t: G.time + 0.07 }; P.st.thr = 0; P.st.u0 = 1; G.state = 'throw'; G.pitches++; } } }
-  if (G.pending && G.time >= G.pending.t) { launchPitch(G.pending.pi); G.pn++; G.launchT = G.time; G.plateP = simPitch(G.pending.pi.rel, G.pending.pi.vel, G.pending.pi.B, 0.55, true, 0, G.pending.pi.T, G.pending.pi.ramp); G.guide = G.mode === 'bat' && CONFIG.guide ? mkGuide(G.pending.pi) : null; if (G.mode === 'pitch') G.rep = noteSeen(G.pending.pi.name); G.pending = null; G.state = 'flight'; }
+  if (G.pending && G.time >= G.pending.t) { launchPitch(G.pending.pi); G.pn++; G.launchT = G.time; G.plateP = simPitch(G.pending.pi.rel, G.pending.pi.vel, G.pending.pi.B, 0.55, true, 0, G.pending.pi.T, G.pending.pi.ramp); G.guide = G.mode === 'bat' && CONFIG.guide ? mkGuide(G.pending.pi) : null; if (G.mode === 'pitch') G.rep = noteSeen(G.pending.pi.name); netOnLaunch(G.pending.pi); G.pending = null; G.state = 'flight'; }
   if (G.state === 'flight' && (CAP.mode === 'pitch' || CAP.mode === 'loose')) stepPitchCap(h);
   else if (CAP.mode === 'fly') stepFlyCap(h);
   else if (CAP.mode === 'loose') stepPitchCap(h);
@@ -1941,7 +1949,7 @@ function netSendPitch(pi) { netSend('p', G.pn + 1, serPi(pi)); }
 // 打つ側：相手の投げた球が届いているか（投手交代が先に届いていたら 入れかえる）
 function netPitchReady() {
   const on = G.match.on, n = G.pn + 1, c = on.inbox.c[n];
-  if (c != null && c !== G.pi && G.state === 'cpuwind' && ACT.P.st.thr === undefined && !(ACT.P.st.u > 0)) {
+  if (c != null && c !== G.pi && G.state === 'cpuwind' && ACT.P.st.thr === undefined && !(ACT.P.st.u > CONFIG.netSetU + 1e-6)) {
     G.pi = c; G.match.ts[G.def === G.homeT ? 'H' : 'A'].pi = c; setupActors(); newPitch(); showCall(G.def.players[c].name + '（あいて）', '投手交代');
   }
   return !!on.inbox.p[n];
@@ -1954,13 +1962,20 @@ function netHold(c, h) {
   if (c.pos.z + c.vel.z * h < CONFIG.hitZ - 1e-4) return false;
   G.netHolding = true; return true;
 }
+// 投げる側：投げた時刻（ほんとうの時間）と、ふつうの速さで本塁に着くまでの時間をおぼえる
+function netOnLaunch(pi) { if (NETON() && G.mode === 'pitch') { G.nlR = performance.now() / 1000; G.nT = pi.T || 0.6; } else G.nlR = 0; }
+// 投げる側：本塁の手前（あと netSlowWin 秒）から、見こみの遅れの分だけ なめらかにスローにする。届いたら ふつうに戻る
 function netSlowF() {
-  if (!NETON() || G.mode !== 'pitch' || CAP.mode !== 'pitch' || G.crossedHit || G.match.on.inbox.x[G.pn]) return 1;
-  return CAP.pos.z > CONFIG.hitZ - 2.2 ? CONFIG.netSlow : 1;
+  if (!NETON() || G.mode !== 'pitch' || CAP.mode !== 'pitch' || G.crossedHit || G.match.on.inbox.x[G.pn] || !G.nlR) return 1;
+  const tr = (CONFIG.hitZ - CAP.pos.z) / Math.max(1, CAP.vel.z); if (tr > CONFIG.netSlowWin) return 1;
+  const rem = G.nT + (ONL.late ?? CONFIG.netLate0) - (performance.now() / 1000 - G.nlR);
+  return rem <= 0 ? CONFIG.netSlow : rem > tr ? clamp(tr / rem, CONFIG.netSlow, 1) : 1;   // 見こみより遅れている時は いちばん遅く
 }
 // 投げる側：相手の振りが届いた → 打者の振りを合わせて見せる
 function netOnCross(n) {
-  const d = G.match.on.inbox.x[n]; if (n !== G.pn || G.mode !== 'pitch' || !d.sw || SWING.on) return;
+  const d = G.match.on.inbox.x[n]; if (n !== G.pn || G.mode !== 'pitch') return;
+  if (G.nlR) { const late = performance.now() / 1000 - G.nlR - G.nT; ONL.late = clamp(lerp(ONL.late ?? CONFIG.netLate0, late, 0.35), 0, 2); G.nlR = 0; }   // 遅れの見こみを直す
+  if (!d.sw || SWING.on) return;
   const tc = CAP.mode === 'pitch' && !G.crossedHit ? G.time + Math.max(0, (CONFIG.hitZ - CAP.pos.z) / Math.max(1, CAP.vel.z)) : (G.crossT ?? G.time);
   startSwing(d.sw.cx, d.sw.cy, tc + d.sw.ds);
 }
