@@ -324,7 +324,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 // ===== [SEC:CONFIG] =====
 const CONFIG = {
   NQ: 10,                 // 答える問題の数
-  EXTRA_MAX: 25,          // 延長戦で追加する問題の最大数
+  EXTRA_MAX: 25,          // 延長戦で追加する問題の最大数（「どちらでもない・知らない」も1問と数える。10問の間に押した分もふくめて、全部で NQ＋EXTRA_MAX 問まで）
   EXTRA_CONF: 0.95,       // 10問終わって、いちばん有力な県の確率がこれ未満なら延長戦（延長中にこれを超えたら終わり）
   FIRST_Q: '',            // 1問目を決めておく時は問題のid（空なら毎回ランダム）
   POOL_RATE: 0.3,         // 遊ぶたびに、最初の10問に使う問題を全体のこの割合だけランダムに選ぶ（毎回ちがう問題が出るように）
@@ -1030,20 +1030,22 @@ function renderTitleStat() {
 function goTitle() { hidePin(); setVisual('title'); renderTitleStat(); $('tMain').classList.remove('hide'); $('tRev').classList.add('hide'); show('title'); }
 function startQuiz() {
   shareSeq++; SHARE = null;
-  Object.assign(G, { ans: [], skipped: [], qi: -1, post: PRIOR.slice(), guess: -1, truth: -1, hit: false, seki: false, lock: false, sendState: '', ext: false, avail: makeAvail() });
+  Object.assign(G, { ans: [], skipped: [], qi: -1, post: PRIOR.slice(), guess: -1, truth: -1, hit: false, seki: false, lock: false, sendState: '', ext: false, skipAtExt: 0, extMax: CONFIG.EXTRA_MAX, avail: makeAvail() });
   $('extBanner').classList.remove('on'); $('guessNow').classList.add('hide'); $('prog').classList.remove('ext');
   hidePin(); setVisual('quiz', { post: G.post });
   $('prog').innerHTML = [...Array(CONFIG.NQ)].map(() => '<i></i>').join('') + '<b id="progN"></b>';
   show('quiz'); nextQ(true);
 }
+// 延長戦で出した問題の数（「知らない」もふくむ）
+const extCount = () => G.ans.length - CONFIG.NQ + G.skipped.length - G.skipAtExt;
 function renderProg() {
-  const n = G.ans.length; $('prog').querySelectorAll('i').forEach((e, i) => e.classList.toggle('on', i < n));
-  $('progN').textContent = G.ext ? `延長 ${clamp(n + 1 - CONFIG.NQ, 1, CONFIG.EXTRA_MAX)}` : `${Math.min(n + 1, CONFIG.NQ)}/${CONFIG.NQ}`;
+  const n = G.ext ? CONFIG.NQ + extCount() : G.ans.length; $('prog').querySelectorAll('i').forEach((e, i) => e.classList.toggle('on', i < n));
+  $('progN').textContent = G.ext ? `延長 ${clamp(n + 1 - CONFIG.NQ, 1, G.extMax)}` : `${Math.min(n + 1, CONFIG.NQ)}/${CONFIG.NQ}`;
 }
-// 延長戦：10問で決めきれない時だけ、最大5問追加する
+// 延長戦：10問で決めきれない時だけ追加する（10問の間に「知らない」を押した分だけ、延長戦の問題は少なくなる）
 async function startExtra() {
-  G.ext = true;
-  $('prog').querySelector('b').insertAdjacentHTML('beforebegin', [...Array(CONFIG.EXTRA_MAX)].map(() => '<i class="x"></i>').join(''));
+  G.ext = true; G.skipAtExt = G.skipped.length; G.extMax = Math.max(1, CONFIG.EXTRA_MAX - G.skipped.length);
+  $('prog').querySelector('b').insertAdjacentHTML('beforebegin', [...Array(G.extMax)].map(() => '<i class="x"></i>').join(''));
   $('prog').classList.add('ext'); $('guessNow').classList.remove('hide');
   renderProg(); $('qCard').classList.add('out');
   $('extBanner').classList.remove('on'); void $('extBanner').offsetWidth; $('extBanner').classList.add('on');
@@ -1054,7 +1056,7 @@ async function nextQ(first) {
   const n = G.ans.length, conf = Math.max(...G.post);
   if (n >= CONFIG.NQ) {
     if (!G.ext && CONFIG.EXTRA_MAX > 0 && conf < CONFIG.EXTRA_CONF) await startExtra();
-    else if (!G.ext || n >= CONFIG.NQ + CONFIG.EXTRA_MAX || conf >= CONFIG.EXTRA_CONF) { finishQuiz(); return; }
+    else if (!G.ext || extCount() >= G.extMax || conf >= CONFIG.EXTRA_CONF) { finishQuiz(); return; }
   }
   const qi = pickNext(G.ans, G.skipped, G.post, Math.random, G.avail);
   if (qi < 0) { if (G.ans.length) finishQuiz(); else goTitle(); return; }
