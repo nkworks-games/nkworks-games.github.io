@@ -70,10 +70,13 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
 #b-mute{position:absolute;left:12px;top:max(12px,env(safe-area-inset-top));width:42px;height:42px;border-radius:50%;background:rgba(255,250,240,.92);border:2.5px solid var(--ink);font-size:19px;pointer-events:auto}
 #b-pause{position:absolute;right:12px;top:max(12px,env(safe-area-inset-top));width:42px;height:42px;border-radius:50%;background:rgba(255,250,240,.92);border:2.5px solid var(--ink);pointer-events:auto;display:flex;align-items:center;justify-content:center}
 #b-pause svg{width:18px;height:18px;fill:var(--ink)}
-#s-pause{display:flex;align-items:center;justify-content:center;background:rgba(60,40,20,.35)}
-#s-pause .card{width:100%;max-width:320px;text-align:center}
+#s-pause,#s-busy{display:flex;align-items:center;justify-content:center;background:rgba(60,40,20,.35)}
+#s-pause .card,#s-busy .card{width:100%;max-width:320px;text-align:center}
 #s-pause h2{font-size:26px;font-weight:800}
-#s-pause p{font-size:14px;color:var(--sub);margin-top:6px;font-weight:700;line-height:1.6}
+#s-pause p,#s-busy p{font-size:14px;color:var(--sub);margin-top:6px;font-weight:700;line-height:1.6}
+#s-busy{z-index:6;background:rgba(60,40,20,.55)}
+#s-busy h2{font-size:21px;font-weight:800;line-height:1.4;color:var(--r)}
+#s-busy p.sm{font-size:12px}
 #spd{position:absolute;top:calc(max(10px,env(safe-area-inset-top)) + 100px);left:50%;transform:translateX(-50%);color:#fff;font-weight:800;text-shadow:var(--ol);white-space:nowrap;font-variant-numeric:tabular-nums}
 #spd small{font-size:12px;margin-right:3px}#spd b{font-size:22px}#spd i{font-style:normal;font-size:12px;margin-left:2px}
 #spd.hot b{color:#ffd23f}#spd.max b{color:#ff8a5c}
@@ -184,6 +187,14 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
     <div class="btns"><button class="btn" id="b-resume">つづける</button><button class="btn b2" id="b-home">ホームにもどる</button></div>
   </div>
 </div>
+<div id="s-busy" class="scr hide">
+  <div class="card">
+    <h2>⚠️ いま ランキングに<br>登録できません</h2>
+    <p>ランキングが混み合っています。<br>流れることはできますが、<br>記録は すぐには のりません</p>
+    <p class="sm">このページを開いたままにしておけば、混雑が終わった時に 自動で登録されます</p>
+    <div class="btns"><button class="btn" id="b-busyGo">それでも流れる</button><button class="btn b2" id="b-busyNo">やめておく</button></div>
+  </div>
+</div>
 <div id="load">桃を準備中…</div>
 <script type="module">
 import * as THREE from 'three';
@@ -277,7 +288,7 @@ const CONFIG = {
          peach: '#ff8fa3', peachLow: '#ffe4a2', peachTop: '#ef5f7e', peachCleft: '#d0466a', leaf: '#62b058',
          dango: '#f6e6b0', stick: '#c99c5e', kaki: '#f2861f', mount: ['#86b973', '#9fc7a2', '#bcd7cb'] },
   bpm: 136,
-  rank: { show: 3, nameMax: 10, maxT: 1200, sendWait: 8 }, // sendWait＝登録がこの秒数で終わらなければ「混み合っています」と出す。ランキング：表示する人数・名前の文字数・受けつける記録の上限（0.1秒単位。1200＝制限時間いっぱい。ジャンプで速さを保つ技があり 上限が読めないため。Firebaseのルールも同じ数）
+  rank: { show: 3, nameMax: 10, maxT: 1200, sendWait: 8, probeWait: 6 }, // sendWait＝登録がこの秒数で終わらなければ「混み合っています」と出す。probeWait＝開いた時の「登録できるか」の確認が この秒数で返らなければ 混雑あつかい。ランキング：表示する人数・名前の文字数・受けつける記録の上限（0.1秒単位。1200＝制限時間いっぱい。ジャンプで速さを保つ技があり 上限が読めないため。Firebaseのルールも同じ数）
   fast: { from: 20, to: 45 }, // 速さの演出が はじまる速さ・いちばん強くなる速さ(m/秒)
   // ---- 結果の称号（残り秒数がこれ以上） ----
   titles: [ [32, '伝説の桃', '川の神さまも おどろく はやさ。洗濯は まだ たっぷり 残っている'],
@@ -1387,20 +1398,24 @@ class FirebaseRank {
   }
   watch(b, cb, onErr) { const fs = this.fs, q = fs.query(fs.collection(this.db, ...boardPath(b)), fs.orderBy('t', 'desc'), fs.limit(8)); return fs.onSnapshot(q, s => cb(s.docs.map(d => { const v = d.data({ serverTimestamps: 'estimate' }); return { id: d.id, name: v.name, t: v.t, at: v.at && v.at.toMillis ? v.at.toMillis() : 0 }; })), onErr); }
   async put(b, name, t) { const fs = this.fs, uid = await this.uidP; await fs.setDoc(fs.doc(this.db, ...boardPath(b), uid), { name, t, at: fs.serverTimestamp() }); }
+  // 登録できるかの確認：ルールで必ず断られる場所に書いてみる。すぐ「断られた」が返れば 書きこめる状態（何も保存されない）。
+  // 無料の回数を使い切っている時は 返事が来ず、回復すると 自動で返ってくる
+  async probe() { const fs = this.fs; await this.uidP; try { await fs.setDoc(fs.doc(this.db, 'momotaroProbe', 'ping'), { a: 1 }); } catch (e) { if (e.code !== 'permission-denied') throw e; } }
 }
 class MockRank { // テスト用（?mockrank の時だけ）：この端末の中だけで ランキングごっこ
   async init() { this.uidP = Promise.resolve('me'); this.cbs = {}; }
   key(b) { return 'mockrank:' + boardPath(b).join('/'); }
+  async probe() { const s = +(location.search.match(/mockbusy=(\d+)/) || [])[1] || 0; if (s) await new Promise(r => setTimeout(r, s * 1000)); }
   list(b) { return store.get(this.key(b), [{ id: 'a', name: 'もも名人', t: 305, at: 1 }, { id: 'b', name: 'どんぶらこ', t: 248, at: 2 }]); }
   watch(b, cb) { this.cbs[b] = cb; setTimeout(() => cb(this.list(b)), 50); return () => { }; }
   async put(b, name, t) { const slow = +(location.search.match(/mockslow=(\d+)/) || [])[1] || 0; if (slow) await new Promise(r => setTimeout(r, slow * 1000)); const l = this.list(b).filter(x => x.id !== 'me'); l.push({ id: 'me', name, t, at: Date.now() }); store.set(this.key(b), l); if (this.cbs[b]) this.cbs[b](l); }
 }
-const RANK = { be: null, ok: false, failed: false, uid: null, all: null, day: null, dayK: dayKey(), tab: store.get('rankTab', 'all'), unsub: {}, top1: null, pend: null, wait: null };
+const RANK = { be: null, ok: false, failed: false, uid: null, all: null, day: null, dayK: dayKey(), tab: store.get('rankTab', 'all'), unsub: {}, top1: null, pend: null, wait: null, busy: false, busyOk: false };
 async function initRank() {
   try {
     RANK.be = /[?&]mockrank/.test(location.search) ? new MockRank() : new FirebaseRank(); await RANK.be.init(); RANK.ok = true;
     RANK.be.uidP.then(u => { RANK.uid = u; renderRanks(); }).catch(() => { });
-    watchBoard('all'); watchBoard('day');
+    watchBoard('all'); watchBoard('day'); probeRank();
     setInterval(() => { const k = dayKey(); if (k !== RANK.dayK) { RANK.dayK = k; RANK.day = null; watchBoard('day'); } }, 30000); // 0時に「今日」を切りかえ
   } catch (e) { console.warn('ランキングを読みこめません', e); RANK.failed = true; renderRanks(); }
 }
@@ -1412,12 +1427,17 @@ function watchBoard(b) {
     renderRanks();
   }, e => { console.warn('ランキングの更新に失敗', e); RANK.failed = !RANK[b]; renderRanks(); });
 }
+function probeRank() { // 混み合っているか（今 登録できるか）を確かめる
+  const tm = setTimeout(() => { RANK.busy = true; renderRanks(); }, CONFIG.rank.probeWait * 1000);
+  RANK.be.probe().then(() => { clearTimeout(tm); if (RANK.busy) { RANK.busy = false; renderRanks(); } }, e => { clearTimeout(tm); console.warn('ランキングの確認に失敗', e); });
+}
 function toast(t) { const e = $('rkToast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => e.classList.remove('on'), 2600); }
 function rankBox(el) {
   el.textContent = '';
   const tabs = document.createElement('div'); tabs.className = 'tabs';
   for (const [b, label] of [['all', '歴代トップ3'], ['day', '今日のトップ3']]) { const bt = document.createElement('button'); bt.textContent = label; bt.className = RANK.tab === b ? 'on' : ''; bt.onclick = () => { RANK.tab = b; store.set('rankTab', b); renderRanks(); }; tabs.appendChild(bt); }
   el.appendChild(tabs);
+  if (RANK.busy && RANK.wait == null) { const w = document.createElement('div'); w.className = 'wait'; w.style.paddingTop = '6px'; w.textContent = '⚠️ いま混み合っていて 登録できません'; el.appendChild(w); }
   const list = RANK[RANK.tab];
   if (!RANK.ok || !list) { const n = document.createElement('div'); n.className = 'note'; n.textContent = location.protocol === 'file:' ? 'ランキングは nkworks-games.com で遊ぶと表示されます' : RANK.failed ? 'ランキングを読みこめませんでした。時間をおいて 開き直してね' : 'ランキングを読みこみ中…'; el.appendChild(n); return; }
   if (!list.length) { const n = document.createElement('div'); n.className = 'note'; n.textContent = RANK.tab === 'day' ? 'まだ今日の記録はありません。1位になるチャンス！' : 'まだ記録はありません。1位になるチャンス！'; el.appendChild(n); return; }
@@ -1463,12 +1483,12 @@ async function sendRank(name) {
   const job = Promise.all([P.pa ? RANK.be.put('all', name, P.t) : 0, P.pd ? RANK.be.put('day', name, P.t) : 0]);
   let slow = false;
   const tm = setTimeout(() => {
-    slow = true; RANK.wait = P.t; renderRanks(); if (RANK.pend !== P) return;
+    slow = true; RANK.wait = P.t; RANK.busy = true; renderRanks(); if (RANK.pend !== P) return;
     $('rkForm').classList.add('hide'); $('rkMsg').textContent = `⏳ ${placeText()}！ でも いまランキングが混み合っていて 登録できません`;
     $('rkErr').textContent = 'このページを開いたままにしておくと、混雑が終わった時に 自動で登録されます';
   }, CONFIG.rank.sendWait * 1000);
   try {
-    await job; clearTimeout(tm); if (RANK.wait === P.t) RANK.wait = null;
+    await job; clearTimeout(tm); if (RANK.wait === P.t) RANK.wait = null; RANK.busy = false;
     if (RANK.pend === P) {
       $('rkForm').classList.add('hide'); $('rkErr').textContent = '';
       const msg = $('rkMsg'); msg.textContent = `🎉 ${placeText()}！「${name}」で 登録しました`;
@@ -1555,7 +1575,11 @@ function showResult(ok) {
   if (ok) offerRank(Math.round(G.time * 10)); else $('rkin').classList.add('hide');
   renderRanks(); show('s-res');
 }
-$('b-start').onclick = startGame; $('b-again').onclick = startGame; $('b-top').onclick = toTitle;
+// 混み合っている時は 走る前に「登録できないけど いい？」と聞く（1回 OKしたら このページでは もう聞かない）
+function tryStart() { if (RANK.ok && RANK.busy && !RANK.busyOk) { $('s-busy').classList.remove('hide'); return; } startGame(); }
+$('b-busyGo').onclick = () => { RANK.busyOk = true; $('s-busy').classList.add('hide'); startGame(); };
+$('b-busyNo').onclick = () => $('s-busy').classList.add('hide');
+$('b-start').onclick = tryStart; $('b-again').onclick = tryStart; $('b-top').onclick = toTitle;
 $('b-x').onclick = () => { window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(G.share), '_blank', 'noopener'); };
 $('b-mute').onclick = e => { e.stopPropagation(); AU.init(); AU.set(!AU.on); };
 $('b-pause').onclick = e => { e.stopPropagation(); setPause(true); };
