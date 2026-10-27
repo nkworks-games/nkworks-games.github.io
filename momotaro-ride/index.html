@@ -111,6 +111,7 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
 .rank li.me{background:#fff3c4;border-radius:8px}
 .rank .note{font-size:12.5px;color:var(--sub);text-align:center;padding:9px 8px;line-height:1.6}
 .rank .live{font-size:10.5px;color:#2b9a4a;text-align:right;padding:0 10px 5px;font-weight:800}
+.rank .wait{font-size:12px;color:var(--r);text-align:center;padding:2px 10px 6px;font-weight:800;line-height:1.5}
 .rkin{margin-top:12px;background:#fff3c4;border:2.5px solid var(--ink);border-radius:12px;padding:9px 10px;text-align:center}
 .rkin p{font-size:14px;font-weight:800;line-height:1.6}
 .rkin a{color:var(--pkd);text-decoration:underline;cursor:pointer;font-size:12.5px;margin-left:4px}
@@ -276,7 +277,7 @@ const CONFIG = {
          peach: '#ff8fa3', peachLow: '#ffe4a2', peachTop: '#ef5f7e', peachCleft: '#d0466a', leaf: '#62b058',
          dango: '#f6e6b0', stick: '#c99c5e', kaki: '#f2861f', mount: ['#86b973', '#9fc7a2', '#bcd7cb'] },
   bpm: 136,
-  rank: { show: 3, nameMax: 10, maxT: 1200 }, // ランキング：表示する人数・名前の文字数・受けつける記録の上限（0.1秒単位。1200＝制限時間いっぱい。ジャンプで速さを保つ技があり 上限が読めないため。Firebaseのルールも同じ数）
+  rank: { show: 3, nameMax: 10, maxT: 1200, sendWait: 8 }, // sendWait＝登録がこの秒数で終わらなければ「混み合っています」と出す。ランキング：表示する人数・名前の文字数・受けつける記録の上限（0.1秒単位。1200＝制限時間いっぱい。ジャンプで速さを保つ技があり 上限が読めないため。Firebaseのルールも同じ数）
   fast: { from: 20, to: 45 }, // 速さの演出が はじまる速さ・いちばん強くなる速さ(m/秒)
   // ---- 結果の称号（残り秒数がこれ以上） ----
   titles: [ [32, '伝説の桃', '川の神さまも おどろく はやさ。洗濯は まだ たっぷり 残っている'],
@@ -1392,9 +1393,9 @@ class MockRank { // テスト用（?mockrank の時だけ）：この端末の�
   key(b) { return 'mockrank:' + boardPath(b).join('/'); }
   list(b) { return store.get(this.key(b), [{ id: 'a', name: 'もも名人', t: 305, at: 1 }, { id: 'b', name: 'どんぶらこ', t: 248, at: 2 }]); }
   watch(b, cb) { this.cbs[b] = cb; setTimeout(() => cb(this.list(b)), 50); return () => { }; }
-  async put(b, name, t) { const l = this.list(b).filter(x => x.id !== 'me'); l.push({ id: 'me', name, t, at: Date.now() }); store.set(this.key(b), l); if (this.cbs[b]) this.cbs[b](l); }
+  async put(b, name, t) { const slow = +(location.search.match(/mockslow=(\d+)/) || [])[1] || 0; if (slow) await new Promise(r => setTimeout(r, slow * 1000)); const l = this.list(b).filter(x => x.id !== 'me'); l.push({ id: 'me', name, t, at: Date.now() }); store.set(this.key(b), l); if (this.cbs[b]) this.cbs[b](l); }
 }
-const RANK = { be: null, ok: false, failed: false, uid: null, all: null, day: null, dayK: dayKey(), tab: store.get('rankTab', 'all'), unsub: {}, top1: null, pend: null };
+const RANK = { be: null, ok: false, failed: false, uid: null, all: null, day: null, dayK: dayKey(), tab: store.get('rankTab', 'all'), unsub: {}, top1: null, pend: null, wait: null };
 async function initRank() {
   try {
     RANK.be = /[?&]mockrank/.test(location.search) ? new MockRank() : new FirebaseRank(); await RANK.be.init(); RANK.ok = true;
@@ -1429,6 +1430,7 @@ function rankBox(el) {
     li.append(m, t, n); ol.appendChild(li);
   });
   el.appendChild(ol);
+  if (RANK.wait != null) { const w = document.createElement('div'); w.className = 'wait'; w.textContent = `⏳ あなたの記録 ${(RANK.wait / 10).toFixed(1)}秒は 登録まち（混雑が終わると 自動で登録）`; el.appendChild(w); }
   const lv = document.createElement('div'); lv.className = 'live'; lv.textContent = '● リアルタイム更新中'; el.appendChild(lv);
 }
 function renderRanks() {
@@ -1455,14 +1457,29 @@ function offerRank(t) { // ゴールした時：トップ3に入っていたら 
 function placeText() { const { pa, pd } = RANK.pend; return [pa ? `歴代${pa}位` : '', pd ? `今日${pd}位` : ''].filter(Boolean).join('・') + 'に入った'; }
 function askName(msg) { $('rkMsg').textContent = msg; $('rkForm').classList.remove('hide'); const i = $('rkName'); i.value = store.get('name', ''); }
 async function sendRank(name) {
-  const P = RANK.pend; if (!P) return; $('rkErr').textContent = ''; $('rkSend').disabled = true;
+  const P = RANK.pend; if (!P) return; $('rkErr').textContent = ''; $('rkSend').disabled = true; store.set('name', name);
+  // Firebaseが混み合っている（無料の回数を使い切った）時は 書きこみが返ってこない。裏で送り直しは続くので「登録まち」と表示する
+  $('rkMsg').textContent = `🎉 ${placeText()}！ 登録中…`;
+  const job = Promise.all([P.pa ? RANK.be.put('all', name, P.t) : 0, P.pd ? RANK.be.put('day', name, P.t) : 0]);
+  let slow = false;
+  const tm = setTimeout(() => {
+    slow = true; RANK.wait = P.t; renderRanks(); if (RANK.pend !== P) return;
+    $('rkForm').classList.add('hide'); $('rkMsg').textContent = `⏳ ${placeText()}！ でも いまランキングが混み合っていて 登録できません`;
+    $('rkErr').textContent = 'このページを開いたままにしておくと、混雑が終わった時に 自動で登録されます';
+  }, CONFIG.rank.sendWait * 1000);
   try {
-    if (P.pa) await RANK.be.put('all', name, P.t); if (P.pd) await RANK.be.put('day', name, P.t);
-    store.set('name', name); $('rkForm').classList.add('hide');
-    const msg = $('rkMsg'); msg.textContent = `🎉 ${placeText()}！「${name}」で 登録しました`;
-    const a = document.createElement('a'); a.textContent = '名前を変える'; a.onclick = () => askName('新しい名前を入れてね'); msg.appendChild(a);
-  } catch (e) { console.warn(e); $('rkErr').textContent = '登録できませんでした。通信を確かめて もう一度押してね'; $('rkForm').classList.remove('hide'); $('rkName').value = name; }
-  $('rkSend').disabled = false;
+    await job; clearTimeout(tm); if (RANK.wait === P.t) RANK.wait = null;
+    if (RANK.pend === P) {
+      $('rkForm').classList.add('hide'); $('rkErr').textContent = '';
+      const msg = $('rkMsg'); msg.textContent = `🎉 ${placeText()}！「${name}」で 登録しました`;
+      const a = document.createElement('a'); a.textContent = '名前を変える'; a.onclick = () => askName('新しい名前を入れてね'); msg.appendChild(a);
+    }
+    if (slow) toast(`ランキングに登録できました！ ${(P.t / 10).toFixed(1)}秒`);
+  } catch (e) {
+    clearTimeout(tm); if (RANK.wait === P.t) RANK.wait = null; console.warn(e);
+    if (RANK.pend === P) { $('rkErr').textContent = e && e.code === 'permission-denied' ? 'この記録は 登録できませんでした' : '登録できませんでした。通信を確かめて もう一度押してね'; $('rkForm').classList.remove('hide'); $('rkName').value = name; }
+  }
+  renderRanks(); $('rkSend').disabled = false;
 }
 $('rkSend').onclick = () => { const c = checkName($('rkName').value); if (!c.ok) { $('rkErr').textContent = c.why; return; } sendRank(c.name); };
 $('rkName').addEventListener('keydown', e => { if (e.key === 'Enter') $('rkSend').click(); });
