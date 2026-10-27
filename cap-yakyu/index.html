@@ -232,7 +232,7 @@ const CONFIG = {
   lvCtrl: [0.1, 0.035], // 投手のコントロールのぶれ（m）
   lvFld: [0.7, 1.22],   // 守備のうまさ
   // オンライン対戦
-  online: false,      // オンライン対戦のボタンを出すか（ラグが大きいので いまは休止中。true で元に戻る）
+  online: true,       // オンライン対戦のボタンを出すか（false で休止）
   netGone: 20,        // 相手から この秒数 なにも届かなければ 抜けたことにして、CPU が引きつぐ
   netAimMax: 30,      // 投げる番で この秒数 投げなければ、その1球は CPU が代わりに投げる
   netBeat: 8,         // 「つながっています」の合図を送る間かく（秒）
@@ -1779,79 +1779,87 @@ function frame(now) {
 }
 
 // ===== [SEC:NET] =====
-// オンライン対戦：Firebase（みんなの樽と同じプロジェクト）の Firestore で 2台のスマホをつなぐ。
+// オンライン対戦：Firebase（みんなの樽と同じプロジェクト）の Realtime Database（シンガポール）で 2台のスマホをつなぐ。
 // 送るもの（どれも「何球目か」の番号 n つき）：
 //   p＝投げた人の「投げ方」／x＝打つ人の「本塁を通った時の振り・打球」／r＝打つ人が決めた「その1球の結果」／c＝投手交代／bye＝やめる
 // 打った結果は 打つ人のスマホが決める（通信が少し遅れても、打つタイミングがずれない）。投げた人のスマホは、相手の振りが届くまで本塁の手前でスローにして待つ。
-// 保存の形：capRooms/{4けたの番号}（host・guest・sid・st・home・at）、capRooms/{番号}/ev（送ったもの。to＝あて先）、capLobby/quick（だれかと対戦の待合所）
-// 無料枠を大事に使うため：トランザクションは使わない（入れるのは1人だけ、はルールで守る）／自分あてだけ受けとる／合図は ひまな時だけ
+// 保存の形：capRoom/{4けたの番号}/info（host・guest・sid・st・home・at）、capRoom/{番号}/ev/{sid}/{あて先}/…（送ったもの）、capLobby（だれかと対戦の待合所）
+// 速さのため：Realtime Database を使う（Firestore は1通 0.4秒、こちらは 0.1秒くらい）／入れるのは1人だけ、はルールで守る／自分あてだけ受けとる／合図は ひまな時だけ
 // ?mocknet の時は 同じブラウザの別のタブどうしでつなぐ（確認用。&lag=ミリ秒 で遅れをまねる）
-const FIREBASE_CONFIG = {"apiKey": "AIzaSyDgzaEzIltyI-UkB_i1LKrcq0fLPtXqel0", "authDomain": "nkworks-games.firebaseapp.com", "projectId": "nkworks-games", "storageBucket": "nkworks-games.firebasestorage.app", "messagingSenderId": "996468697479", "appId": "1:996468697479:web:ccea287b2ddeb1ff234b22"};
+const FIREBASE_CONFIG = {"apiKey": "AIzaSyDgzaEzIltyI-UkB_i1LKrcq0fLPtXqel0", "authDomain": "nkworks-games.firebaseapp.com", "projectId": "nkworks-games", "storageBucket": "nkworks-games.firebasestorage.app", "messagingSenderId": "996468697479", "appId": "1:996468697479:web:ccea287b2ddeb1ff234b22", "databaseURL": "https://nkworks-games-default-rtdb.asia-southeast1.firebasedatabase.app"};
 const FIREBASE_VER = '10.12.2';
 const NETON = () => !!(G.match && G.match.on && !G.match.on.gone);   // 相手が人のあいだ true（抜けたら CPU）
 const vA = v => [v.x, v.y, v.z], aV = a => V(a[0], a[1], a[2]);
 const serPi = pi => ({ rel: vA(pi.rel), vel: vA(pi.vel), B: vA(pi.B), T: pi.T, ramp: pi.ramp || null, wob: pi.wob || null, kmh: pi.kmh, lat: pi.lat, vert: pi.vert, name: pi.name });
 const desPi = d => ({ rel: aV(d.rel), vel: aV(d.vel), B: aV(d.B), T: d.T, ramp: d.ramp || undefined, wob: d.wob || null, kmh: d.kmh, lat: d.lat, vert: d.vert, name: d.name });
 const newSid = () => Math.random().toString(36).slice(2, 10);
-class FireNet {
+class RtNet {   // Realtime Database でつなぐ
   async init() {
     const base = `https://www.gstatic.com/firebasejs/${FIREBASE_VER}/`;
-    const [app, auth, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+    const [app, auth, R] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-database.js')]);
     const a = app.getApps().find(x => x.name === 'capyakyu') || app.initializeApp(FIREBASE_CONFIG, 'capyakyu'), au = auth.getAuth(a);
-    this.fs = fs; this.db = fs.getFirestore(a); await auth.signInAnonymously(au); this.uid = au.currentUser.uid; this.seq = 0;
+    this.R = R; this.db = R.getDatabase(a); await auth.signInAnonymously(au); this.uid = au.currentUser.uid; this.seq = 0; this.off = 0;
+    R.onValue(R.ref(this.db, '.info/serverTimeOffset'), s => { this.off = s.val() || 0; });   // サーバーとの時計のずれ
   }
-  room(code) { return this.fs.doc(this.db, 'capRooms', code); }
-  lobby() { return this.fs.doc(this.db, 'capLobby', 'quick'); }
-  fresh(ts, sec) { const ms = ts && (ts.toMillis ? ts.toMillis() : ts); return !!ms && Date.now() - ms < sec * 1000; }
+  ref(p) { return this.R.ref(this.db, p); }
+  info(code) { return this.ref(`capRoom/${code}/info`); }
+  lobby() { return this.ref('capLobby'); }
+  fresh(ms, sec) { return !!ms && Date.now() + this.off - ms < sec * 1000; }
+  denied(e) { return /permission/i.test(String(e && (e.code || e.message))); }
   async make(pub) {
-    const fs = this.fs;
+    const R = this.R;
     for (let i = 0; i < 12; i++) {
       const code = String(1000 + Math.floor(Math.random() * 9000)), sid = newSid(), home = Math.random() < 0.5 ? 'host' : 'guest';
-      const s = await fs.getDoc(this.room(code)); if (s.exists()) { const d = s.data(); if (d.st !== 'end' && this.fresh(d.at, 7200)) continue; }
-      try { await fs.setDoc(this.room(code), { host: this.uid, guest: null, sid, pub: !!pub, st: 'wait', home, at: fs.serverTimestamp() }); }
-      catch (e) { if (e && e.code === 'permission-denied') continue; throw e; }   // ちょうど同じ番号を だれかが作った
+      const s = await R.get(this.info(code)); if (s.exists()) { const d = s.val(); if (d.st !== 'end' && this.fresh(d.at, 7200)) continue; }
+      // 部屋ごと書きなおす（前の試合の送ったものも消える）。使っている部屋は ルールで断られる
+      try { await R.set(this.ref(`capRoom/${code}`), { info: { host: this.uid, sid, pub: !!pub, st: 'wait', home, at: R.serverTimestamp() } }); }
+      catch (e) { if (this.denied(e)) continue; throw e; }
       Object.assign(this, { code, sid, role: 'host', home, lastSend: Date.now() }); return { code };
     }
     throw new Error('部屋を作れませんでした。もう一度ためしてね');
   }
   async join(code) {
-    const fs = this.fs, s = await fs.getDoc(this.room(code)); if (!s.exists()) throw new Error('その番号の部屋はありません');
-    const d = s.data(), busy = new Error('その部屋は もう始まっているか、終わっています');
+    const R = this.R, s = await R.get(this.info(code)); if (!s.exists()) throw new Error('その番号の部屋はありません');
+    const d = s.val(), busy = new Error('その部屋は もう始まっているか、終わっています');
     if (d.host === this.uid) throw new Error('自分で作った部屋です。相手に番号を伝えてね');
     if (d.st !== 'wait' || d.guest || !this.fresh(d.at, 7200)) throw busy;
-    try { await fs.updateDoc(this.room(code), { guest: this.uid, st: 'play' }); }   // 先にだれかが入っていたら ルールで断られる
-    catch (e) { if (e && e.code === 'permission-denied') throw busy; throw e; }
+    try { await R.update(this.info(code), { guest: this.uid, st: 'play' }); }   // 先にだれかが入っていたら ルールで断られる
+    catch (e) { if (this.denied(e)) throw busy; throw e; }
     Object.assign(this, { code, sid: d.sid, role: 'guest', home: d.home, lastSend: Date.now() }); return { code };
   }
-  async lobbyGet() { const s = await this.fs.getDoc(this.lobby()); return s.exists() ? s.data() : null; }
+  async lobbyGet() { return (await this.R.get(this.lobby())).val(); }
   lobbyOther(d) { return !!(d && d.code && d.uid !== this.uid && this.fresh(d.at, CONFIG.netLobby)); }
   // 入った部屋（または自分の部屋）の案内を 待合所から消す。ほかの人の案内に変わっていたら そのまま
-  async lobbyTake(code) { const d = await this.lobbyGet(); if (d && d.code === code) await this.fs.setDoc(this.lobby(), { code: null, uid: null, at: this.fs.serverTimestamp() }); }
+  async lobbyTake(code) { const d = await this.lobbyGet(); if (d && d.code === code) await this.R.set(this.lobby(), { at: this.R.serverTimestamp() }); }
   // だれかと：待合所に だれかの部屋があれば入る。なければ 自分の部屋を作って 待合所に書く
   async quick() {
     const d = await this.lobbyGet();
     if (this.lobbyOther(d)) { try { const r = await this.join(d.code); this.lobbyTake(d.code).catch(() => { }); return r; } catch (e) { /* 先に取られていたら 自分で待つ */ } }
     const r = await this.make(true); await this.lobbyPut(); return r;
   }
-  async lobbyPut() { await this.fs.setDoc(this.lobby(), { code: this.code, uid: this.uid, at: this.fs.serverTimestamp() }); this.lobbyMine = true; }
+  async lobbyPut() { await this.R.set(this.lobby(), { code: this.code, uid: this.uid, at: this.R.serverTimestamp() }); this.lobbyMine = true; }
   // 待っているあいだ：ほかに待っている人がいたら その部屋に入る（true を返す）。いなければ 自分の案内を書きなおす
   async lobbyBeat() {
     const d = await this.lobbyGet();
     if (this.lobbyOther(d)) {
       const mine = this.code; try { await this.join(d.code); } catch (e) { return false; }
-      this.lobbyMine = false; this.lobbyTake(d.code).catch(() => { }); this.fs.updateDoc(this.room(mine), { st: 'end' }).catch(() => { }); return true;
+      this.lobbyMine = false; this.lobbyTake(d.code).catch(() => { }); this.R.update(this.info(mine), { st: 'end' }).catch(() => { }); return true;
     }
     await this.lobbyPut(); return false;
   }
   async lobbyClear() { this.lobbyMine = false; await this.lobbyTake(this.code); }
-  watchRoom(cb) { return this.fs.onSnapshot(this.room(this.code), s => { if (s.exists()) cb(s.data()); }, e => console.warn('部屋の見はり', e)); }
-  listen(cb) {   // 自分あて（to）のものだけ受けとる
-    const fs = this.fs, q = fs.query(fs.collection(this.db, 'capRooms', this.code, 'ev'), fs.where('sid', '==', this.sid), fs.where('to', '==', this.role));
-    return fs.onSnapshot(q, s => { for (const ch of s.docChanges()) if (ch.type === 'added') cb(ch.doc.data()); }, e => console.warn('受けとり', e));
+  watchRoom(cb) { return this.R.onValue(this.info(this.code), s => { if (s.exists()) cb(s.val()); }, e => console.warn('部屋の見はり', e)); }
+  listen(cb) { return this.R.onChildAdded(this.ref(`capRoom/${this.code}/ev/${this.sid}/${this.role}`), s => cb(s.val()), e => console.warn('受けとり', e)); }   // 自分あてだけ
+  send(k, n, d) {
+    const R = this.R, to = this.role === 'host' ? 'guest' : 'host'; this.lastSend = Date.now();
+    return R.push(this.ref(`capRoom/${this.code}/ev/${this.sid}/${to}`), { sid: this.sid, uid: this.uid, to, s: ++this.seq, k, n, d: d == null ? null : JSON.parse(JSON.stringify(d)), t: R.serverTimestamp() });
   }
-  send(k, n, d) { const fs = this.fs; this.lastSend = Date.now(); return fs.addDoc(fs.collection(this.db, 'capRooms', this.code, 'ev'), { sid: this.sid, uid: this.uid, to: this.role === 'host' ? 'guest' : 'host', s: ++this.seq, k, n, d: d ?? null, at: fs.serverTimestamp() }); }
   beat() { return this.send('h', 0, null); }
-  end() { return this.fs.updateDoc(this.room(this.code), { st: 'end' }); }
+  end() {
+    const R = this.R, code = this.code;
+    if (this.role === 'host') setTimeout(() => R.remove(this.ref(`capRoom/${code}/ev`)).catch(() => { }), 5000);   // 試合の記録は 少しあとで消す（容量を使わない）
+    return R.update(this.info(code), { st: 'end' });
+  }
 }
 class MockNet {   // 確認用：同じブラウザの別タブどうし（localStorage と BroadcastChannel）
   async init() {
@@ -1895,7 +1903,7 @@ class MockNet {   // 確認用：同じブラウザの別タブどうし（local
   async end() { const d = this.get(this.code); if (d) { d.st = 'end'; this.put(this.code, d); } }
 }
 const ONL = { net: null, unsub: [], timers: [], busy: false, beating: false, waitStart: 0 };
-async function netReady() { if (ONL.net) return ONL.net; const n = /[?&]mocknet/.test(location.search) ? new MockNet() : new FireNet(); await n.init(); ONL.net = n; return n; }
+async function netReady() { if (ONL.net) return ONL.net; const n = /[?&]mocknet/.test(location.search) ? new MockNet() : new RtNet(); await n.init(); ONL.net = n; return n; }
 function netStop() { for (const u of ONL.unsub) { try { u(); } catch (e) { } } ONL.unsub = []; for (const t of ONL.timers) clearInterval(t); ONL.timers = []; }
 function netSend(k, n, d) { const on = G.match && G.match.on; if (!on || on.gone) return; on.net.send(k, n, d).catch(e => console.warn('送れませんでした', e)); }
 // --- 待合の画面
