@@ -324,8 +324,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 // ===== [SEC:CONFIG] =====
 const CONFIG = {
   NQ: 10,                 // 答える問題の数
-  EXTRA_MAX: 20,          // 延長戦で追加する問題の最大数
-  EXTRA_CONF: 0.9,        // 10問終わって、いちばん有力な県の確率がこれ未満なら延長戦（延長中にこれを超えたら終わり）
+  EXTRA_MAX: 25,          // 延長戦で追加する問題の最大数
+  EXTRA_CONF: 0.95,       // 10問終わって、いちばん有力な県の確率がこれ未満なら延長戦（延長中にこれを超えたら終わり）
   FIRST_Q: '',            // 1問目を決めておく時は問題のid（空なら毎回ランダム）
   POOL_RATE: 0.3,         // 遊ぶたびに、最初の10問に使う問題を全体のこの割合だけランダムに選ぶ（毎回ちがう問題が出るように）
   TRUST: 0.85,            // 調査データをどれくらい信じるか（1＝そのまま、0＝まったく信じない）
@@ -337,7 +337,7 @@ const CONFIG = {
   PRIOR_PLAYS: 3000,      // 「遊んだ人の県の割合」を混ぜる時の、人口の重み（人数）
   PICK_SLACK: 0.85,       // 次の問題：いちばん役に立つ問題の何割以上の役立ち度の中からえらぶ（1＝いつも同じ問題）
   PICK_POW: 4,            // その中で、役に立つ問題ほど出やすくする強さ
-  GROUP_MAX: { zoni: 2, tv: 2 }, // 同じ話題の問題を1回で何問まで出すか（書いてない話題は1問まで）
+  GROUP_MAX: { zoni: 2, tv: 0 }, // 同じ話題の問題を1回で何問まで出すか（書いてない話題は1問まで。0＝出さない：地元テレビ局の問題は「ずるい」ので出さない）
   REV: { CHOICES: 3, HINTS: 3 },   // 逆モード：毎ターンの質問の候補数・ヒントの数
   SEKI_LO: 0.38, SEKI_HI: 0.62, // 東日本である確率がこの間なら「関ケ原の住人」
   SHARDS: 8,              // みんなの答えを入れる箱の数（同時に書きこめる人数をふやす。1箱に1秒1回ほどが目安）
@@ -618,7 +618,7 @@ function pickNext(ans, skipped, post, rnd = Math.random, avail = null) {
   const gc = {}; for (const qi of used) { const g = QS[qi].g; if (g) gc[g] = (gc[g] || 0) + 1; }
   const H0 = entropy(post), cands = [];
   QS.forEach((q, i) => {
-    if (used.has(i) || (q.g && (gc[q.g] || 0) >= (CONFIG.GROUP_MAX[q.g] || 1))) return;
+    if (used.has(i) || (q.g && (gc[q.g] || 0) >= (CONFIG.GROUP_MAX[q.g] ?? 1))) return;
     if (q.late && ans.length < CONFIG.NQ) return;   // 地元のテレビ局の問題などは、延長戦に入ってからだけ
     if (useAvail && !avail.has(i)) return;
     const m = M[i]; let pa = 0; for (let k = 0; k < N; k++) pa += post[k] * m[k];
