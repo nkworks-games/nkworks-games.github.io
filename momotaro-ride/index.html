@@ -75,8 +75,13 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
 #s-pause h2{font-size:26px;font-weight:800}
 #s-pause p,#s-busy p{font-size:14px;color:var(--sub);margin-top:6px;font-weight:700;line-height:1.6}
 #s-busy{z-index:6;background:rgba(60,40,20,.55)}
-#s-busy h2{font-size:21px;font-weight:800;line-height:1.4;color:var(--r)}
-#s-busy p.sm{font-size:12px}
+#s-busy h2{font-size:26px;font-weight:800;line-height:1.35;color:var(--r)}
+#s-busy h2 i{display:block;font-style:normal;font-size:52px;line-height:1.1}
+#s-busy p{font-size:16px;color:var(--ink)}
+#s-busy p.sm{font-size:13.5px;color:var(--sub)}
+.busyBan{margin-top:12px;background:var(--r);color:#fff;border:3px solid var(--ink);border-radius:14px;padding:11px 10px 10px;text-align:center;font-size:19px;font-weight:800;line-height:1.35;box-shadow:0 4px 0 var(--ink);animation:banpulse 1.6s ease-in-out infinite}
+.busyBan small{display:block;font-size:13.5px;font-weight:700;margin-top:4px;line-height:1.5}
+@keyframes banpulse{50%{transform:scale(1.025)}}
 #spd{position:absolute;top:calc(max(10px,env(safe-area-inset-top)) + 100px);left:50%;transform:translateX(-50%);color:#fff;font-weight:800;text-shadow:var(--ol);white-space:nowrap;font-variant-numeric:tabular-nums}
 #spd small{font-size:12px;margin-right:3px}#spd b{font-size:22px}#spd i{font-style:normal;font-size:12px;margin-left:2px}
 #spd.hot b{color:#ffd23f}#spd.max b{color:#ff8a5c}
@@ -114,7 +119,6 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
 .rank li.me{background:#fff3c4;border-radius:8px}
 .rank .note{font-size:12.5px;color:var(--sub);text-align:center;padding:9px 8px;line-height:1.6}
 .rank .live{font-size:10.5px;color:#2b9a4a;text-align:right;padding:0 10px 5px;font-weight:800}
-.rank .wait{font-size:12px;color:var(--r);text-align:center;padding:2px 10px 6px;font-weight:800;line-height:1.5}
 .rkin{margin-top:12px;background:#fff3c4;border:2.5px solid var(--ink);border-radius:12px;padding:9px 10px;text-align:center}
 .rkin p{font-size:14px;font-weight:800;line-height:1.6}
 .rkin a{color:var(--pkd);text-decoration:underline;cursor:pointer;font-size:12.5px;margin-left:4px}
@@ -156,6 +160,7 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
       <p>おばあさんの洗濯が終わる前に、どんぶらこ！</p>
     </div>
     <div class="best" id="bestBox"></div>
+    <div class="busyBan hide" id="busy1"></div>
     <div class="rank" id="rank1"></div>
     <ul class="howto" id="howto"></ul>
     <div class="btns"><button class="btn" id="b-start">どんぶらこ！</button></div>
@@ -175,6 +180,7 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
     <div class="st" id="rStats"></div>
     <div class="best" id="rBest"></div>
     <div class="rkin hide" id="rkin"><p id="rkMsg"></p><div class="rkf hide" id="rkForm"><input id="rkName" maxlength="20" placeholder="名前（10文字まで）" autocomplete="off" enterkeyhint="done"><button class="btn" id="rkSend">登録</button></div><p class="rkErr" id="rkErr"></p></div>
+    <div class="busyBan hide" id="busy2"></div>
     <div class="rank" id="rank2"></div>
     <div class="btns"><button class="btn" id="b-again">もう一回 流れる</button><button class="btn bx" id="b-x">Xに投稿する</button><button class="btn b2" id="b-top">タイトルへ</button></div>
   </div>
@@ -189,7 +195,7 @@ button{font-family:inherit;cursor:pointer;touch-action:manipulation;border:0}
 </div>
 <div id="s-busy" class="scr hide">
   <div class="card">
-    <h2>⚠️ いま ランキングに<br>登録できません</h2>
+    <h2><i>⚠️</i>いま ランキングに<br>登録できません</h2>
     <p>ランキングが混み合っています。<br>流れることはできますが、<br>記録は すぐには のりません</p>
     <p class="sm">このページを開いたままにしておけば、混雑が終わった時に 自動で登録されます</p>
     <div class="btns"><button class="btn" id="b-busyGo">それでも流れる</button><button class="btn b2" id="b-busyNo">やめておく</button></div>
@@ -1437,7 +1443,6 @@ function rankBox(el) {
   const tabs = document.createElement('div'); tabs.className = 'tabs';
   for (const [b, label] of [['all', '歴代トップ3'], ['day', '今日のトップ3']]) { const bt = document.createElement('button'); bt.textContent = label; bt.className = RANK.tab === b ? 'on' : ''; bt.onclick = () => { RANK.tab = b; store.set('rankTab', b); renderRanks(); }; tabs.appendChild(bt); }
   el.appendChild(tabs);
-  if (RANK.busy && RANK.wait == null) { const w = document.createElement('div'); w.className = 'wait'; w.style.paddingTop = '6px'; w.textContent = '⚠️ いま混み合っていて 登録できません'; el.appendChild(w); }
   const list = RANK[RANK.tab];
   if (!RANK.ok || !list) { const n = document.createElement('div'); n.className = 'note'; n.textContent = location.protocol === 'file:' ? 'ランキングは nkworks-games.com で遊ぶと表示されます' : RANK.failed ? 'ランキングを読みこめませんでした。時間をおいて 開き直してね' : 'ランキングを読みこみ中…'; el.appendChild(n); return; }
   if (!list.length) { const n = document.createElement('div'); n.className = 'note'; n.textContent = RANK.tab === 'day' ? 'まだ今日の記録はありません。1位になるチャンス！' : 'まだ記録はありません。1位になるチャンス！'; el.appendChild(n); return; }
@@ -1450,11 +1455,14 @@ function rankBox(el) {
     li.append(m, t, n); ol.appendChild(li);
   });
   el.appendChild(ol);
-  if (RANK.wait != null) { const w = document.createElement('div'); w.className = 'wait'; w.textContent = `⏳ あなたの記録 ${(RANK.wait / 10).toFixed(1)}秒は 登録まち（混雑が終わると 自動で登録）`; el.appendChild(w); }
   const lv = document.createElement('div'); lv.className = 'live'; lv.textContent = '● リアルタイム更新中'; el.appendChild(lv);
 }
 function renderRanks() {
   rankBox($('rank1')); rankBox($('rank2'));
+  for (const id of ['busy1', 'busy2']) { // 登録できない時の 目立つ帯
+    const e = $(id), on = RANK.ok && (RANK.busy || RANK.wait != null); e.classList.toggle('hide', !on); if (!on) continue;
+    e.innerHTML = RANK.wait != null ? `⏳ あなたの記録 ${(RANK.wait / 10).toFixed(1)}秒は<br>登録まち<small>混雑が終わると 自動で登録されます（このページは 開いたままにしてね）</small>` : '⚠️ ランキングに 登録できません<small>いま混み合っています。<br>しばらくすると 直ります</small>';
+  }
   const t1 = RANK.all && RANK.all[0];
   $('rk1t').textContent = t1 ? `👑 ${(t1.t / 10).toFixed(1)}秒` : ''; $('rk1n').textContent = t1 ? t1.name : '';
   $('rk1').classList.toggle('hide', !t1 || G.state === 'title' || G.state === 'result');
