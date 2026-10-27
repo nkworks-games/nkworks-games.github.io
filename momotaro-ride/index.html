@@ -1423,6 +1423,11 @@ async function initRank() {
     RANK.be.uidP.then(u => { RANK.uid = u; renderRanks(); }).catch(() => { });
     watchBoard('all'); watchBoard('day'); probeRank();
     setInterval(() => { const k = dayKey(); if (k !== RANK.dayK) { RANK.dayK = k; RANK.day = null; watchBoard('day'); } }, 30000); // 0時に「今日」を切りかえ
+    // ほかのタブ・アプリを見ている間は ランキングの見張りを 止める（読む回数を へらす）。もどったら 読み直す
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { for (const b of ['all', 'day']) if (RANK.unsub[b]) { RANK.unsub[b](); RANK.unsub[b] = null; } }
+      else if (!RANK.unsub.all) { watchBoard('all'); watchBoard('day'); }
+    });
   } catch (e) { console.warn('ランキングを読みこめません', e); RANK.failed = true; renderRanks(); }
 }
 function watchBoard(b) {

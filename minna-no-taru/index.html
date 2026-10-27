@@ -144,6 +144,9 @@ body.solo #sw-txt small{display:block;font-size:10px;opacity:.85;}
 #rotate{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-weight:800;font-size:18px;text-align:center;}
 #rotate.show{display:flex;}
 #rotate svg{width:64px;height:64px;fill:none;stroke:var(--cream);stroke-width:2.5;}
+#sleep{position:absolute;inset:0;z-index:44;display:none;align-items:center;justify-content:center;background:rgba(20,14,8,.55);color:#fff6e8;font-weight:800;text-align:center;line-height:1.8;padding:20px;cursor:pointer;}
+#sleep.show{display:flex;}
+#sleep b{display:inline-block;margin-top:8px;background:#fff6e8;color:#3a2614;border-radius:999px;padding:8px 22px;}
 #loading{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:var(--bg);font-weight:800;text-align:center;line-height:1.7;padding:20px;}
 @media (max-height:640px){.left b{font-size:24px;}#sword{height:60px;}.meta{margin-top:3px;}}
 </style>
@@ -235,6 +238,7 @@ body.solo #sw-txt small{display:block;font-size:10px;opacity:.85;}
     </div></div>
 
     <div id="toast"></div>
+    <div id="sleep"><div>しばらく さわっていないので、<br>樽の見張りを 休んでいます<br><b>タップで再開</b></div></div>
     <div id="loading">よみこみ中…</div>
   </div>
   <div id="ad-gap"></div>
@@ -409,8 +413,18 @@ class MockBackend extends StoreBackend {
 }
 
 /* ===== Firebase ===== */
+// 読む回数（お金）をおさえる設定
+const NET_CFG = {
+  BUSY_N: 12,            // 1分間に これ以上 刺されたら「混んでいる」→ 見張りを POLL_MS ごとの確認に切りかえる
+  CALM_N: 6,             // 混んでいる時に、1分間の本数が これ未満に なったら すぐ届く見張りに もどす
+  POLL_MS: 5000,         // 混んでいる時に 樽の数字を 確かめる 間かく
+  CHUNK_POLL_MS: 15000,  // 混んでいる時に 穴の一覧を 確かめる 間かく
+  RANGE: 10,             // 見ている所の 前後 何箱（1箱＝1000穴）を 見張るか（前は20）
+  RANGE_BUSY: 3,         // 混んでいる時は 前後 何箱か
+  IDLE_MS: 120000,       // これだけ さわらないと 見張りを 休む（タップで再開）
+};
 class FirebaseBackend {
-  constructor(cfg, ver) { this.kind = 'firebase'; this.cfg = cfg; this.ver = ver; this.uid = null; }
+  constructor(cfg, ver) { this.kind = 'firebase'; this.cfg = cfg; this.ver = ver; this.uid = null; this.busy = false; this.curN = 0; this.chunkW = new Set(); this.onBusy = null; }
   async init() {
     const base = `https://www.gstatic.com/firebasejs/${this.ver}/`;
     const [app, auth, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
@@ -424,20 +438,72 @@ class FirebaseBackend {
   ready() { return this.authP; }   // ログインが終わるまで待つ（刺す前・自分の記録を読む前）
   d(...p) { return this.fs.doc(this.db, ...p); }
   ms(t) { return t && t.toMillis ? t.toMillis() : (typeof t === 'number' ? t : null); }
+  // 樽の見張り：空いている時は 刺されるたびに すぐ届く（onSnapshot）。混んでいる時は POLL_MS ごとに 確かめる
+  //   （すぐ届く見張りは「刺された回数 × 見ている人数」だけ 読む回数が ふえるので、混むと 一気に ふくらむ）
   watchState(cb, onErr) {
-    let lastHt = null;
-    return this.fs.onSnapshot(this.d('taru', 'cur'), s => {
+    const fs = this.fs, ref = this.d('taru', 'cur'), hist = [];   // hist：[時刻, 樽, 本数]
+    let lastHt = null, unsub = null, timer = null, stopped = false;
+    const rate = () => { // 直近1分に 刺された本数
+      const t0 = Date.now() - 60000; while (hist.length > 1 && hist[1][0] < t0) hist.shift();
+      let n = 0; for (let i = 1; i < hist.length; i++) if (hist[i][1] === hist[i - 1][1]) n += Math.max(0, hist[i][2] - hist[i - 1][2]);
+      return n;
+    };
+    const got = (s, live) => {
       if (!s.exists()) { cb(null); return; }
       const v = s.data({ serverTimestamps: 'estimate' }), raw = this.curRaw = s.data(), ht = this.ms(raw.ht);
       // サーバーの時計に あわせる：だれかが 刺した時刻（ht）が 届いた瞬間の 差の いちばん大きいもの（届くまでの 遅れが いちばん少ない）
-      if (ht && lastHt != null && ht !== lastHt && !s.metadata.hasPendingWrites) { const off = ht - Date.now(); if (this.syncOff == null || off > this.syncOff) { this.syncOff = off; clock.off = off; } }
+      if (live && ht && lastHt != null && ht !== lastHt && !s.metadata.hasPendingWrites) { const off = ht - Date.now(); if (this.syncOff == null || off > this.syncOff) { this.syncOff = off; clock.off = off; } }
       if (ht) lastHt = ht;
+      hist.push([Date.now(), v.b, v.n || 0]); this.curN = (v.b || 0) * 1e9 + (v.n || 0);
       cb({ b: v.b, holes: v.holes, start: this.ms(v.start), n: v.n, p: v.p, heat: v.heat || 0, ht: this.ms(v.ht) });
-    }, e => onErr && onErr(e));
+    };
+    const live = () => {
+      this.setBusy(false);
+      unsub = fs.onSnapshot(ref, s => {
+        got(s, true);
+        if (!stopped && unsub && rate() >= NET_CFG.BUSY_N) { unsub(); unsub = null; poll(); }
+      }, e => onErr && onErr(e));
+    };
+    const poll = () => {
+      this.setBusy(true);
+      const tick = async () => {
+        if (stopped) return;
+        try { got(await fs.getDocFromServer(ref), false); } catch (e) { }
+        if (stopped) return;
+        if (rate() < NET_CFG.CALM_N) live(); else timer = setTimeout(tick, NET_CFG.POLL_MS);
+      };
+      timer = setTimeout(tick, NET_CFG.POLL_MS);
+    };
+    live();
+    return () => { stopped = true; if (unsub) unsub(); unsub = null; clearTimeout(timer); };
+  }
+  // 混み具合が変わった：見張る箱の数を 決め直してもらい（onBusy）、残りの箱も 新しい見張り方に 切りかえる
+  setBusy(v) {
+    if (this.busy === v) return;
+    this.busy = v;
+    if (this.onBusy) this.onBusy(v);
+    for (const w of this.chunkW) if (w.mode !== v) { this.stopChunk(w); this.startChunk(w); }
   }
   watchChunk(b, k, cb, onErr) {
-    return this.fs.onSnapshot(this.d('taruChunks', b + '_' + k), s => cb(s.exists() ? (s.data().f || []) : []), e => onErr && onErr(e));
+    const w = { b, k, cb, onErr, mode: null, un: null, had: false };
+    this.chunkW.add(w); this.startChunk(w);
+    return () => { this.chunkW.delete(w); this.stopChunk(w); };
   }
+  startChunk(w) {
+    const ref = this.d('taruChunks', w.b + '_' + w.k), got = s => { w.had = true; w.cb(s.exists() ? (s.data().f || []) : []); };
+    w.mode = this.busy;
+    if (!this.busy) { w.un = this.fs.onSnapshot(ref, got, e => w.onErr && w.onErr(e)); return; }
+    // 混んでいる時：CHUNK_POLL_MS ごとに、樽の本数が 前に読んだ時から 変わっていたら 読み直す（はじめての箱は すぐ読む）
+    let stop = false, t = null, seen = this.curN;
+    const tick = async () => {
+      if (stop) return;
+      if (!w.had || this.curN !== seen) { seen = this.curN; try { got(await this.fs.getDocFromServer(ref)); } catch (e) { } }
+      if (!stop) t = setTimeout(tick, NET_CFG.CHUNK_POLL_MS);
+    };
+    t = setTimeout(tick, w.had ? NET_CFG.CHUNK_POLL_MS : 0);
+    w.un = () => { stop = true; clearTimeout(t); };
+  }
+  stopChunk(w) { if (w.un) w.un(); w.un = null; }
   async getUser() {
     await this.authP;
     const s = await this.fs.getDoc(this.d('taruUsers', this.uid));
@@ -1274,13 +1340,13 @@ function startBarrel(b) {
 }
 // 見ている所の近くの穴の一覧を受けとる（第2代までは全部）
 function watchChunks() {
-  const b = A.lastB, g = L.gridOf(b), total = Math.ceil(g.H / L.CHUNK);
+  const b = A.lastB, g = L.gridOf(b), total = Math.ceil(g.H / L.CHUNK), busy = !!(A.backend && A.backend.busy);
   let want;
-  if (total <= 12) want = [...Array(total).keys()];
-  else {
+  if (total <= 12 && !busy) want = [...Array(total).keys()];
+  else { // 見ている所の 前後だけ（混んでいる時は さらに せまく）
     const r = Math.max(0, Math.min(g.R - 1, Math.round((0.78 - stage.camY) / stage.ch))), c = Math.round(((-stage.rotY / (Math.PI * 2)) % 1 + 1) % 1 * g.C);
-    const center = L.chunkOf(r * g.C + c); want = [];
-    for (let k = center - 20; k <= center + 20; k++) if (k >= 0 && k < total) want.push(k);
+    const center = L.chunkOf(r * g.C + c), R = busy ? NET_CFG.RANGE_BUSY : NET_CFG.RANGE; want = [];
+    for (let k = center - R; k <= center + R; k++) if (k >= 0 && k < total) want.push(k);
   }
   const ws = new Set(want);
   for (const [k, u] of A.unChunks) if (!ws.has(k)) { u(); A.unChunks.delete(k); }
@@ -1295,6 +1361,7 @@ function onChunk(b, k, list) {
   A.fills.set(k, now);
   if (A.sel != null && now.has(A.sel) && !mine.has(A.sel) && !A.push) { A.sel = null; stage.select(null); toast('その穴は、いまだれかが刺しました'); renderSword(); renderHint(); }
 }
+const roams = () => L.gridOf(A.lastB).H > 12000 || !!(A.backend && A.backend.busy);   // 見ている所が変わったら 見張る箱を 選び直すか
 const isFilled = h => { const s = A.fills.get(L.chunkOf(h)); return !!(s && s.has(h)) || mineOf(A.lastB).includes(h); };
 
 /* ===== 上の数字 ===== */
@@ -1381,7 +1448,7 @@ function onUp(e) {
   if (ptrs.size < 2) pinch = null;
   if (!drag) return;
   const d = drag; drag = null;
-  if (d.moved) { A.spin = d.vx; if (A.mode === 'main' && A.lastB && L.gridOf(A.lastB).H > 12000) watchChunks(); return; }
+  if (d.moved) { A.spin = d.vx; if (A.mode === 'main' && A.lastB && roams()) watchChunks(); return; }
   if (performance.now() - d.t > 600) return;
   const r = $('c').getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
   tapAt(x, y);
@@ -1395,7 +1462,7 @@ function tapAt(x, y) {
   if (stage.view === 'far') {
     stage.setView('near', Math.max(-0.7, Math.min(0.7, p.y)));
     if (p.hole != null) stage.focusHole(p.hole, true);
-    Snd.tap(); renderHint(); setTimeout(() => L.gridOf(A.lastB).H > 12000 && watchChunks(), 600); return;
+    Snd.tap(); renderHint(); setTimeout(() => roams() && watchChunks(), 600); return;
   }
   if (p.hole == null) return;
   if (isFilled(p.hole)) { showSword(p.hole); return; }
@@ -1744,6 +1811,7 @@ function setMode(m) {
   $('tab-main').classList.toggle('on', m === 'main'); $('tab-solo').classList.toggle('on', m === 'solo');
   if (m === 'solo') {
     if (!SO.b) soloLoad();
+    for (const [, u] of A.unChunks) u(); A.unChunks.clear();   // 自分の樽の間は みんなの樽の穴を 見張らない（もどった時に 読み直す）
     A.sel = null; stage.select(null); stage.showMine(null);
     stage.setBarrelSolo(SO.b); SO.mainWasCool = A.user ? coolLeft() > 0 : false;
     if (!SV.seenSoloHow) $('solohow').classList.add('show');
@@ -1787,13 +1855,36 @@ function onBackendErr(e) {
   console.warn('server', e && (e.code || e.message));
   toast('サーバーが混みあっています。少し待ってから開き直してね', 4000);
 }
+/* ===== 見ていない時は、サーバーの見張りを休む（読む回数を へらす） ===== */
+//   ほかのタブ・アプリに切りかえた時（もどったら すぐ再開）と、IDLE_MS さわらなかった時（タップで再開）
+const NAP = { why: null, act: performance.now() };
+function napStart(why) {
+  if (NAP.why || !A.ready || !A.backend || A.backend.kind !== 'firebase' || A.push || A.busyFlight) return false;
+  NAP.why = why;
+  if (A.unState) { A.unState(); A.unState = null; }
+  for (const [, u] of A.unChunks) u(); A.unChunks.clear();
+  if (why === 'idle') $('sleep').classList.add('show');
+  return true;
+}
+function napEnd() {
+  NAP.act = performance.now();
+  if (!NAP.why) return;
+  NAP.why = null; $('sleep').classList.remove('show');
+  A.unState = A.backend.watchState(onState, onBackendErr);
+  if (A.mode === 'main' && A.lastB) watchChunks();
+}
+function napCheck() {
+  if (document.hidden) { if (!NAP.why) napStart('hidden'); return; }
+  if (NAP.why === 'hidden') { napEnd(); return; }
+  if (!NAP.why && performance.now() - NAP.act > NET_CFG.IDLE_MS) napStart('idle');
+}
 
 /* ===== ループ ===== */
 let lastT = performance.now(), uiT = 0;
 function frame(now) {
   const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
   if (!window.__tkPause) {
-    if (A.spin && !drag) { stage.rotate(A.spin); A.spin *= 0.92; if (Math.abs(A.spin) < 0.0004) { A.spin = 0; if (A.mode === 'main' && A.lastB && L.gridOf(A.lastB).H > 12000) watchChunks(); } }
+    if (A.spin && !drag) { stage.rotate(A.spin); A.spin *= 0.92; if (Math.abs(A.spin) < 0.0004) { A.spin = 0; if (A.mode === 'main' && A.lastB && roams()) watchChunks(); } }
     updatePush(dt);
     if (A.cardDue && ((stage.fx && stage.fx.t > 3.4) || performance.now() - A.cardDue.t0 > 6000)) { const c = A.cardDue; A.cardDue = null; showFlyCard(c.me, c.b, c.info); }
     soloTick();
@@ -1828,7 +1919,9 @@ async function boot() {
   $('btn-rand').onclick = randomHole;
   $('tab-main').onclick = () => setMode('main'); $('tab-solo').onclick = () => setMode('solo');
   $('sh-close').onclick = () => { $('solohow').classList.remove('show'); SV.seenSoloHow = true; save(); };
-  document.addEventListener('visibilitychange', () => { if (document.hidden && SO.b && !SO.flying) soloSave(true); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && SO.b && !SO.flying) soloSave(true); napCheck(); });
+  for (const ev of ['pointerdown', 'keydown', 'wheel']) document.addEventListener(ev, () => { NAP.act = performance.now(); if (NAP.why === 'idle') napEnd(); }, { capture: true, passive: true });
+  setInterval(napCheck, 5000);
   window.addEventListener('pagehide', () => { if (SO.b && !SO.flying) soloSave(true); });
   $('zoomout').onclick = () => { stage.setView('far', 0.1); closePop(); renderHint(); };
   $('pop-close').onclick = closePop; $('pop-rp').onclick = reportName;
@@ -1848,6 +1941,7 @@ async function boot() {
   try { await initP; }
   catch (e) { $('loading').textContent = 'サーバーにつながりませんでした。少し待ってから開き直してください'; return; }
   A.backend = be;
+  if (be.kind === 'firebase') be.onBusy = () => { if (A.mode === 'main' && A.lastB && !NAP.why) watchChunks(); };
   L.MODE.trial = be.kind === 'trial';
   $('trial').classList.toggle('show', be.kind === 'trial');
   if (Q.has('setup') && be.kind === 'firebase') {
@@ -1871,7 +1965,7 @@ async function boot() {
   if (!SV.seenHow) $('howto').classList.add('show');
   requestAnimationFrame(frame);
 }
-window.__tk = { A, SV, L, clock, SO, recheckMine, setMode, soloStab, soloLoad, soloCatchUp, get stage() { return stage; }, renderTop, retryPending, tapAt, randomHole, startPush, doFlight, showFlyCard, onSwordDown: () => onSwordDown({ preventDefault() { } }), onSwordUp, askName, closeFlyCard, THREE };
+window.__tk = { A, SV, L, clock, SO, NAP, napCheck, NET_CFG, recheckMine, setMode, soloStab, soloLoad, soloCatchUp, get stage() { return stage; }, renderTop, retryPending, tapAt, randomHole, startPush, doFlight, showFlyCard, onSwordDown: () => onSwordDown({ preventDefault() { } }), onSwordUp, askName, closeFlyCard, THREE };
 boot().catch(e => { console.error(e); $('loading').textContent = '読みこみに失敗しました。ページを開き直してください'; });
 
 </script>

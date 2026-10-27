@@ -2772,6 +2772,7 @@ function drawAir(x, y, g, a, flying){
 const FIREBASE_CONFIG = {"apiKey": "AIzaSyDgzaEzIltyI-UkB_i1LKrcq0fLPtXqel0", "authDomain": "nkworks-games.firebaseapp.com", "projectId": "nkworks-games", "storageBucket": "nkworks-games.firebasestorage.app", "messagingSenderId": "996468697479", "appId": "1:996468697479:web:ccea287b2ddeb1ff234b22"};
 const FB_VER = '10.12.2';
 const RANK_N = 50;
+const RANK_CACHE_MS = 60000;   // ランキングを読み直さない時間
 
 // テストや通信できない時の、手もとだけの仮の置き場
 class MockNet {
@@ -2813,6 +2814,7 @@ class FireNet {
   // いちばん遠い記録の時だけ書く（今日・全期間それぞれ）
   async submit(n, dist, w){
     try { await this.authP; } catch (e) { return { ok: false }; }
+    this.cache = {};   // 自分の記録が変わるので、ランキングを読み直す
     const { getDoc, setDoc, updateDoc, serverTimestamp } = this.fs; const r = { ok: true, best: false, day: false };
     for (const k of ['all', 'day']){
       try {
@@ -2829,20 +2831,25 @@ class FireNet {
     for (const k of ['all', 'day']){ try { const ref = this.ref(k, this.uid), s = await getDoc(ref); if (s.exists() && s.data().n !== n) await updateDoc(ref, { n, t: serverTimestamp() }); } catch (e) { ok = false; } }
     return ok;
   }
-  async list(kind){
+  // ランキング：読んだ結果を RANK_CACHE_MS のあいだ使い回す（読む回数＝件数ぶん お金がかかるので）
+  async list(kind, n = RANK_N + 15){
+    const key = kind + '_' + (kind === 'day' ? dayKey() : '') + '_' + n, c = (this.cache = this.cache || {})[key];
+    if (c && Date.now() - c.at < RANK_CACHE_MS) return c.items;
     const { query, orderBy, limit, getDocs } = this.fs;
     try { await this.authP; } catch (e) {}
-    const s = await getDocs(query(this.coll(kind), orderBy('d', 'desc'), limit(RANK_N + 15)));
+    const s = await getDocs(query(this.coll(kind), orderBy('d', 'desc'), limit(n)));
     const items = []; s.forEach(d => { const v = d.data(); const me = d.id === this.uid; if (!v.hd || me) items.push({ id: d.id, n: v.n, d: v.d, w: v.w, t: this.ms(v.t), hd: !!v.hd, me }); });
-    return items.slice(0, RANK_N);
+    const out = items.slice(0, RANK_N); this.cache[key] = { at: Date.now(), items: out };
+    return out;
   }
+  top(kind){ return this.list(kind, 5); }   // 「今日の1位」の旗だけなら 上の5件で足りる
   async rank(kind, dist){ try { const { query, where, getCountFromServer } = this.fs; const c = await getCountFromServer(query(this.coll(kind), where('d', '>', dist))); return c.data().count + 1; } catch (e) { return null; } }
   async report(kind, id){
     await this.authP; const { writeBatch, serverTimestamp, getDoc, doc } = this.fs;
     try {
       const pr = this.ref(kind, id), s = await getDoc(pr); if (!s.exists()) return false; const rp = (s.data().rp || 0) + 1;
       const b = writeBatch(this.db); b.set(doc(pr, 'rep', this.uid), { t: serverTimestamp() }); b.update(pr, { rp, hd: rp >= 3 });
-      await b.commit(); return true;
+      await b.commit(); this.cache = {}; return true;
     } catch (e) { return false; }
   }
 }
@@ -2931,7 +2938,7 @@ function drawBest(){ const b = store.get('bestM', 0); $('bestBox').style.display
 async function refreshFlags(){
   const b = store.get('bestM', 0); setFlag('best', b <= GARDEN_MAX ? b : 0, '自己ベスト ' + fmtDTxt(b));
   if (!NET) return;
-  try { const L = await NET.list('day'); const top = L.find(x => !x.hd); if (top && !top.me && top.d <= GARDEN_MAX) setFlag('top', top.d, '今日1位 ' + top.n); else setFlag('top', 0);
+  try { const L = await (NET.top ? NET.top('day') : NET.list('day')); const top = L.find(x => !x.hd); if (top && !top.me && top.d <= GARDEN_MAX) setFlag('top', top.d, '今日1位 ' + top.n); else setFlag('top', 0);
     $('todayTop').innerHTML = top ? `今日の1位：${esc(top.n)}　<b>${fmtDTxt(top.d)}</b>` : '今日の1位：まだだれもいません'; } catch (e) { $('todayTop').textContent = ''; }
 }
 function startGame(){
