@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>通信の速さテスト｜キャップ野球</title>
+<style>
+:root{--bg:#f4f1ea;--card:#fff;--ink:#1f2430;--sub:#6b7280;--a:#2f8cff;--b:#ff6a2a;--line:#e5e1d8}
+@media (prefers-color-scheme:dark){:root{--bg:#15171c;--card:#1f232b;--ink:#eef0f4;--sub:#9aa3b2;--line:#2c313b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6}
+main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:4px 0 6px}
+p{margin:6px 0;color:var(--sub);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:14px 0}
+button{font:inherit;font-weight:700;border:0;border-radius:999px;padding:14px 20px;width:100%;cursor:pointer}
+#go{background:var(--b);color:#fff;font-size:18px}
+#go:disabled{opacity:.5}
+#copy{background:var(--line);color:var(--ink);margin-top:10px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.name{font-weight:700}
+.big{font-size:28px;font-weight:800}
+.small{font-size:12px;color:var(--sub)}
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin:6px 0 2px}
+.bar i{display:block;height:100%;width:0;transition:width .3s}
+#fs .bar i{background:var(--b)} #rt .bar i{background:var(--a)}
+#msg{font-weight:700;color:var(--ink);min-height:1.6em}
+#est{font-size:15px;color:var(--ink)}
+</style>
+</head>
+<body>
+<main>
+  <h1>通信の速さテスト</h1>
+  <p>キャップ野球のオンライン対戦で使う「手紙のやりとり」が、このスマホで何秒かかるかを測ります。2つのやり方で、20回ずつ送ります（30秒くらい）。</p>
+  <p>いつも遊ぶ時と同じ開き方（Xの中のブラウザなど）・同じ回線で押してください。</p>
+  <div class="card"><button id="go">はかる</button><p id="msg"></p></div>
+  <div class="card" id="fs">
+    <div class="row"><span class="name">いまのやり方（Firestore・東京）</span><span class="big" id="fsMed">—</span></div>
+    <div class="bar"><i id="fsBar"></i></div>
+    <div class="small" id="fsSub">ふつう＝真ん中の値。平均・いちばん遅い時もここに出ます</div>
+  </div>
+  <div class="card" id="rt">
+    <div class="row"><span class="name">速いやり方（Realtime Database・シンガポール）</span><span class="big" id="rtMed">—</span></div>
+    <div class="bar"><i id="rtBar"></i></div>
+    <div class="small" id="rtSub">ふつう＝真ん中の値</div>
+  </div>
+  <div class="card"><div id="est">測り終わると、対戦で「投げてから相手の振りが戻るまで」の見こみが出ます。</div>
+    <button id="copy" disabled>結果をコピー（チャットに貼ってください）</button></div>
+</main>
+<script type="module">
+const VER = '10.12.2', base = `https://www.gstatic.com/firebasejs/${VER}/`;
+const CFG = {"apiKey": "AIzaSyDgzaEzIltyI-UkB_i1LKrcq0fLPtXqel0", "authDomain": "nkworks-games.firebaseapp.com", "projectId": "nkworks-games", "storageBucket": "nkworks-games.firebasestorage.app", "messagingSenderId": "996468697479", "appId": "1:996468697479:web:ccea287b2ddeb1ff234b22", "databaseURL": "https://nkworks-games-default-rtdb.asia-southeast1.firebasedatabase.app"};
+const N = 20, WARM = 3, GAP = 150, TIMEOUT = 4000;
+const $ = id => document.getElementById(id), msg = t => { $('msg').textContent = t; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sid = Math.random().toString(36).slice(2, 10);
+let mods, result = {};
+async function load() {
+  if (mods) return mods;
+  const [app, auth, fs, rtdb] = await Promise.all(['firebase-app', 'firebase-auth', 'firebase-firestore', 'firebase-database'].map(n => import(base + n + '.js')));
+  // 送る側と受ける側を べつべつの接続にする（2台のスマホのかわり）
+  const mk = async name => { const a = app.initializeApp(CFG, name), au = auth.getAuth(a); await auth.signInAnonymously(au); return { a, uid: au.currentUser.uid }; };
+  const S = await mk('ntSend'), R = await mk('ntRecv');
+  return mods = { fs, rtdb, S, R };
+}
+// 1回ずつ：送る → 受ける側に届くまでの時間（ミリ秒）
+async function runOne(label, setup) {
+  const arrive = {}, waiters = {};
+  const got = i => { arrive[i] = performance.now(); if (waiters[i]) waiters[i](); };
+  const { send, stop } = await setup(got);
+  const lat = [];
+  for (let i = 0; i < WARM + N; i++) {
+    const t0 = performance.now();
+    const p = new Promise(r => { waiters[i] = r; if (arrive[i]) r(); });
+    send(i).catch(e => console.warn(e));
+    await Promise.race([p, sleep(TIMEOUT)]);
+    if (i >= WARM) lat.push(arrive[i] ? arrive[i] - t0 : TIMEOUT);
+    msg(`${label}：${Math.max(0, i - WARM + 1)} / ${N}`);
+    await sleep(GAP);
+  }
+  stop();
+  const s = lat.slice().sort((a, b) => a - b), med = s[Math.floor(s.length / 2)], avg = lat.reduce((a, b) => a + b, 0) / lat.length, max = s[s.length - 1];
+  return { med: Math.round(med), avg: Math.round(avg), max: Math.round(max), lost: lat.filter(x => x >= TIMEOUT).length };
+}
+const fsSetup = async got => {
+  const { fs, S, R } = mods, dbS = fs.getFirestore(S.a), dbR = fs.getFirestore(R.a);
+  const q = fs.query(fs.collection(dbR, 'capRooms', '0000', 'ev'), fs.where('sid', '==', 'nt' + sid), fs.where('to', '==', 'host'));
+  let ready; const rd = new Promise(r => ready = r);
+  const un = fs.onSnapshot(q, s => { ready(); for (const ch of s.docChanges()) if (ch.type === 'added') got(ch.doc.data().n); }, e => { console.warn(e); ready(); });
+  await rd;
+  return { send: i => fs.addDoc(fs.collection(dbS, 'capRooms', '0000', 'ev'), { sid: 'nt' + sid, uid: S.uid, to: 'host', s: i, k: 't', n: i, d: null, at: fs.serverTimestamp() }), stop: un };
+};
+const rtSetup = async got => {
+  const { rtdb, S, R } = mods, dS = rtdb.getDatabase(S.a), dR = rtdb.getDatabase(R.a);
+  const r = rtdb.ref(dR, 'capNet/t' + sid);
+  const un = rtdb.onChildAdded(r, snap => got(snap.val().i), e => console.warn(e));
+  await sleep(600);
+  return { send: i => rtdb.push(rtdb.ref(dS, 'capNet/t' + sid), { u: S.uid, t: Date.now(), i }), stop: un };
+};
+function show(k, r) {
+  $(k + 'Med').textContent = (r.med / 1000).toFixed(2) + '秒';
+  $(k + 'Bar').style.width = Math.min(100, r.med / 6) + '%';
+  $(k + 'Sub').textContent = `ふつう ${r.med}ミリ秒 ／ 平均 ${r.avg} ／ いちばん遅い ${r.max}` + (r.lost ? ` ／ 届かなかった ${r.lost}回` : '');
+}
+$('go').onclick = async () => {
+  $('go').disabled = true; $('copy').disabled = true;
+  try {
+    msg('準備しています…'); await load();
+    result.fs = await runOne('いまのやり方', fsSetup); show('fs', result.fs);
+    result.rt = await runOne('速いやり方', rtSetup); show('rt', result.rt);
+    const e = r => (2 * r.med / 1000 + 0.19).toFixed(2);
+    $('est').innerHTML = `投げてから相手の振りが戻るまで（見こみ）<br>いまのやり方：<b>${e(result.fs)}秒</b> → 速いやり方：<b>${e(result.rt)}秒</b>`;
+    msg('測り終わりました'); $('copy').disabled = false;
+  } catch (err) { console.warn(err); msg('うまく測れませんでした。通信を確かめて、もう一度押してください'); }
+  $('go').disabled = false;
+};
+$('copy').onclick = async () => {
+  const f = result.fs, r = result.rt;
+  const t = `通信テスト Firestore ふつう${f.med} 平均${f.avg} 最大${f.max} 落${f.lost} ／ RTDB ふつう${r.med} 平均${r.avg} 最大${r.max} 落${r.lost} ／ ${navigator.userAgent.slice(0, 120)}`;
+  try { await navigator.clipboard.writeText(t); msg('コピーしました。チャットに貼ってください'); } catch (e) { prompt('この文字をコピーしてください', t); }
+};
+</script>
+</body>
+</html>
