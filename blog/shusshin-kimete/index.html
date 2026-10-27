@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2択10問では、半分しか当たらなかった - N.K. Works 開発日記</title>
+<meta name="description" content="『出身県、当てます』は、2択の質問で出身県を当てるゲーム。はじめは半分しか当たらなかったのを、県ごとの「決め手の質問」と延長戦で、8割5分ほどまで上げた話。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/blog/shusshin-kimete/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:title" content="2択10問では、半分しか当たらなかった - N.K. Works 開発日記">
+<meta property="og:description" content="『出身県、当てます』は、2択の質問で出身県を当てるゲーム。はじめは半分しか当たらなかったのを、県ごとの「決め手の質問」と延長戦で、8割5分ほどまで上げた話。">
+<meta property="og:url" content="https://nkworks-games.com/blog/shusshin-kimete/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/assets/site.css">
+<script>
+(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous'; s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();
+</script>
+</head>
+<body>
+
+<header class="site-h"><div class="wrap">
+<a class="logo" href="/">N.K. Works</a>
+<nav class="nav"><a href="/games/">ゲーム</a><a href="/blog/" aria-current="page">開発日記</a><a href="/about.html">運営者情報</a></nav>
+</div></header>
+
+<main><div class="wrap"><article class="post">
+<p class="crumb"><a href="/">トップ</a> › <a href="/blog/">開発日記</a></p>
+<h1>2択10問では、半分しか当たらなかった</h1><p class="post-meta">2026年10月27日 ・ N.K. Works</p>
+<p>『出身県、当てます』は、「肉じゃがの肉は、牛？豚？」のような2択の質問に答えると、出身県を当てるゲームです。答えるたびに日本地図の上で候補の県が光り、最後に空からピンが落ちてきます。はじめは、食べものやことばの地域差を調べた資料をもとに、72問の質問を用意しました。ところが、自動で答えるプログラムで試してみると、10問で当たるのは半分くらいでした。</p>
+<h2>となりの県どうしが、見分けられない</h2>
+<p>肉じゃがの肉は、東日本は豚、西日本は牛が多いことで知られています。こういう質問は、東か西かを分けるのは得意です。でも、宮城と山形、奈良と大阪のような、となりの県どうしでは答えがほとんど同じになります。そのため、地方まではしぼれても、最後の1県が決められませんでした。とくに人口の少ない県は、となりの大きな県とまちがえられがちでした。</p>
+<h2>その県の人なら、ほとんどが「はい」と言える質問</h2>
+<p>そこで、県ごとに「決め手」になる質問を探しました。群馬の「上毛かるた」、長野の県歌「信濃の国」、滋賀の小学5年生が乗る学習船「うみのこ」、鹿児島の火山灰を集める袋。その県で育った人なら、ほとんどが「はい」と答え、ほかの県の人は「いいえ」と答えるものです。知らない人も迷わず答えられるように、「子どもの頃、〇〇（短い説明）をやった？」という形にそろえました。</p>
+<p>47都道府県すべてに1問以上の決め手を入れて70問を足すと、当たる割合は7割をこえました。さらに、まちがえやすい組（奈良と大阪、佐賀と福岡、山口と広島など）を見分ける質問を50問足して、全部で192問になりました。地元のテレビ局を聞く質問は、ほとんど「〇〇県出身ですか？」と聞くのと同じなので、10問で決めきれなかった時だけ出すようにしています。</p>
+<h2>決めきれない時は、延長戦</h2>
+<p>アキネーターのように、決まるまで聞き続けることも試しました。ただ、ずっと質問が続くと疲れてしまいます。そこで、10問で決めきれなかった時だけ「延長戦！」として、最大15問まで続けることにしました。とちゅうで「もう当てて！」と押せば、そこで当てます。これで、プログラムで試した当たる割合は8割5分ほどになりました。</p>
+<h2>毎回、同じ質問から始まっていた</h2>
+<p>「いちばん候補をしぼれる質問」を毎回えらんでいたので、同じ人が何回遊んでも、ほとんど同じ質問が出ていました。今は、遊ぶたびに192問のうち3割だけをランダムにえらび、その中から最初の質問を出しています。同じ人が2回遊んだ時に、最初の10問でかぶる質問は、8問ほどから2問ほどに減りました。当たる割合は、ほとんど変わっていません。</p>
+<h2>「知らない」も手がかりになる</h2>
+<p>迷った時の「どちらでもない・知らない」は、はじめは質問を飛ばすだけでした。でも、ある食べものを「知らない」と答える人が多い地方もあるはずです。そこで、「知らない」を押した人の数も県ごとに集めて、判定に使うようにしました。最初はどの県も同じ扱いなので、答えが集まるほど効いてきます。</p>
+<h2>まだ苦手な県と、これから</h2>
+<p>ここまでの数字は、資料からの見つもりどおりに答えるプログラムで試したものです。実際の人の答えは、少しずつちがうはずです。岐阜は愛知と、島根は鳥取と、まだよくまちがえます。でもこのゲームは、遊んだ人の答えを集計して、見つもりを本物の割合におきかえていくしくみになっています。遊ぶ人が増えるほど、当たるようになります。反対に、コンピュータの出身県をあなたが当てる「当ててみる」モードと、1日1回の「今日の県」も作りました。何ターンで当てられるか、試してみてください。</p>
+<h2>この記事のゲーム</h2><ul class="grid"><li><a class="card" href="/games/shusshin-ken/"><div class="th"><img src="/games/shusshin-ken/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>出身県、当てます</b><span>2択の質問で、出身県を当てます。</span><em>2026年10月27日 公開</em></div></a></li></ul>
+<h2>ほかの日記</h2><ul class="list"><li><a href="/blog/cap-drop-ball/"><em>2026年10月26日</em><b>落ちる球だけ投げていれば、だれにも打たれなかった</b><span>『キャップ野球』は、ペットボトルのキャップで遊ぶ体育館の野球。落ちる球だけで打たれなかったCPUの打者に、同じ球を見るほど慣れていくしくみを入れ、打つ側には「ちぢむ円」の目安を足した話。</span></a></li><li><a href="/blog/momotaro-speed/"><em>2026年10月25日</em><b>「ライドなんだから」で、どんぶらこが時速190kmになった</b><span>『桃太郎ライド』は、桃になって川を流れるゲーム。のんびり時速40kmで流れていた桃を、カメラや風の線で速く見せ、コースを3kmにのばして、時速190kmまで上げた話。</span></a></li><li><a href="/blog/suika-breath/"><em>2026年10月24日</em><b>息に上限をなくしたら、タネが宇宙の果てまで飛んだ</b><span>『スイカのタネ飛ばし選手権』は、縁側からタネを飛ばすゲーム。息を100%ぴったりにためる形から、上限なしで空気を指で運ぶ形に作り直し、短くはじく抜け道をふさいだ話。</span></a></li></ul>
+<div class="ad-box"><p class="lbl">広告</p>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</article></div></main>
+<footer class="site-f"><div class="wrap">
+<p><a href="/">トップ</a> ・ <a href="/games/">ゲーム一覧</a> ・ <a href="/blog/">開発日記</a> ・ <a href="/about.html">運営者情報・お問い合わせ</a> ・ <a href="/privacy-policy.html">プライバシーポリシー</a></p>
+<p>&copy; 2026 N.K. Works</p>
+</div></footer>
+</body>
+</html>
