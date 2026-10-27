@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>出身県、当てます</title>
-<meta name="description" content="2択10問で、あなたの出身県を当てます。肉じゃがの肉は牛？豚？ 答えるたびに3Dの日本地図が光って候補がしぼられ、最後に空からピンが落ちてきます。遊ぶ人が増えるほど、よく当たるようになります。">
+<title>出身地、当てます</title>
+<meta name="description" content="2択10問で、あなたの出身地を当てます。肉じゃがの肉は牛？豚？ 答えるたびに3Dの日本地図が光って候補がしぼられ、最後に空からピンが落ちてきます。遊ぶ人が増えるほど、よく当たるようになります。">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
 <meta property="og:type" content="website">
-<meta property="og:title" content="出身県、当てます">
-<meta property="og:description" content="2択10問で、あなたの出身県を当てます。">
+<meta property="og:title" content="出身地、当てます">
+<meta property="og:description" content="2択10問で、あなたの出身地を当てます。">
 <meta property="og:url" content="https://nkworks-games.com/shusshin-ken/">
 <meta property="og:image" content="https://nkworks-games.com/shusshin-ken/card.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -211,15 +211,15 @@ a{color:inherit;}
     <header id="hud" class="hide"><div id="prog"></div><button id="quit">やめる</button></header>
 
     <section id="title" class="scr hide">
-      <div class="logo"><small>2択10問で</small><h1>出身県、<br>当てます</h1><p>肉じゃがの肉は、牛？ 豚？</p></div>
+      <div class="logo"><small>2択10問で</small><h1>出身地、<br>当てます</h1><p>肉じゃがの肉は、牛？ 豚？</p></div>
       <div class="card" id="tSheet">
         <div id="tMain">
-          <button class="btn main" id="startBtn">当ててもらう<small>2択の質問で、あなたの出身県を当てます</small></button>
-          <button class="btn main alt" id="revBtn">当ててみる<small>コンピュータの出身県を、あなたが当てます</small></button>
+          <button class="btn main" id="startBtn">当ててもらう<small>2択の質問で、あなたの出身地を当てます</small></button>
+          <button class="btn main alt" id="revBtn">当ててみる<small>コンピュータの出身地を、あなたが当てます</small></button>
         </div>
         <div id="tRev" class="hide">
           <p class="tnote" id="tRevNote">質問をえらんで、少ないターンで当てよう</p>
-          <button class="btn main alt" id="revDaily">今日の県<small>日本中のみんなと同じ県・1日1回</small></button>
+          <button class="btn main alt" id="revDaily">今日の出身地<small>日本中のみんなと同じお題・1日1回</small></button>
           <button class="btn sub" id="revFree">ランダム練習</button>
           <button class="lnk" id="revBack">もどる</button>
         </div>
@@ -239,7 +239,7 @@ a{color:inherit;}
     </section>
 
     <section id="guess" class="scr hide">
-      <div id="gBig"><small id="gLead">あなたの出身県は…</small><b id="gName"></b></div>
+      <div id="gBig"><small id="gLead">あなたの出身地は…</small><b id="gName"></b></div>
       <div class="card" id="gCard">
         <p>15歳までに いちばん長く住んだのは？</p>
         <button class="btn main" id="gYes"></button>
@@ -288,7 +288,7 @@ a{color:inherit;}
         <div class="rvLabel"><span>質問をえらぶ（1ターン）</span><button class="lnk" id="rvFold">地図を広げる ▼</button></div>
         <div id="rvCands"></div>
         <div class="row rvAct"><button class="btn sub" id="rvHint"></button><button class="btn sub" id="rvLog"></button><button class="btn main" id="rvGuess">当てる</button></div>
-        <p class="rvTip"><span>地図の県をタップで「ここかな？」の目印</span><button class="lnk" id="rvGiveUp">ギブアップ</button></p>
+        <p class="rvTip"><span>地図をタップで「ここかな？」の目印</span><button class="lnk" id="rvGiveUp">ギブアップ</button></p>
         <button class="btn sub" id="rvUnfold">質問にもどる ▲</button>
       </div>
     </section>
@@ -1074,7 +1074,7 @@ async function finishQuiz() {
   G.lock = true; G.post = posterior(G.ans, PRIOR, G.skipped);
   G.guess = G.post.indexOf(Math.max(...G.post));
   const e = eastShare(G.post); G.seki = e >= CONFIG.SEKI_LO && e <= CONFIG.SEKI_HI;
-  $('gName').textContent = ''; $('gName').classList.remove('pop'); $('gCard').classList.remove('in'); $('gLead').textContent = 'あなたの出身県は…';
+  $('gName').textContent = ''; $('gName').classList.remove('pop'); $('gCard').classList.remove('in'); $('gLead').textContent = 'あなたの出身地は…';
   show('guess');
   setVisual('reveal', { guess: G.guess, truth: -1 }); camToPref(G.guess, 2.6);
   await sleep(CONFIG.PIN.WAIT_SEC * 1000);
@@ -1096,15 +1096,15 @@ function chooseTruth(k) {
 // 結果の1行目（延長戦をしたかどうかで少し変える）
 function kindText() {
   if (G.seki) return G.ext ? '延長戦でも、東か西か決めきれない…' : '東か西か、決めきれない…';
-  if (G.hit) return G.ext ? '延長戦の末、出身県当たりました！' : '出身県、当たりました！';
+  if (G.hit) return G.ext ? '延長戦の末、出身地当たりました！' : '出身地、当たりました！';
   if (G.truth < 0) return '日本以外で育ったあなたは…';
-  return G.ext ? '延長戦でもハズレ…でも' : '出身県はハズレ…でも';
+  return G.ext ? '延長戦でもハズレ…でも' : '出身地はハズレ…でも';
 }
 async function showResult() {
   const g = G.guess, hit = G.hit, abroad = G.truth < 0;
   setVisual('reveal', { guess: g, truth: G.truth });
   let kind = kindText(), small, big, extra = '';
-  if (G.seki) { small = ''; big = '関ケ原の住人'; extra = `いちばん近いのは${fullName(g)}` + (hit ? '（出身県は当たり！）' : ''); }
+  if (G.seki) { small = ''; big = '関ケ原の住人'; extra = `いちばん近いのは${fullName(g)}` + (hit ? '（出身地は当たり！）' : ''); }
   else if (hit) { small = '純度100%の'; big = minName(g); }
   else { small = '心は'; big = minName(g); }
   if (!hit && !abroad) extra += (extra ? '／' : '') + `本当の${PREFS[G.truth][1]}は ${rankOf(G.post, G.truth)}位でした`;
@@ -1134,7 +1134,7 @@ function showBorderQ(j) {
   let n = 0; for (let k = 0; k < N; k++) { const [a, b] = counts(q, k); n += a + b; }
   BD.info = (my ? `あなた：${my.a ? q.a : q.b}　` : '') + (n ? `みんなの答え ${fmt(n)}人` : 'みんなの答えは まだありません（今は調査をもとにした値）');
   renderBorderInfo();
-  const basis = { measured: '調査の県別の数字', mixed: '調査の数字と、資料からの推定', estimated: '資料をもとにした推定' }[q.basis] || '資料をもとにした推定';
+  const basis = { measured: '調査の都道府県別の数字', mixed: '調査の数字と、資料からの推定', estimated: '資料をもとにした推定' }[q.basis] || '資料をもとにした推定';
   $('bSrc').innerHTML = `はじめの値：${basis}（${q.src.map(s => `<a href="${esc(s[3])}" target="_blank" rel="noopener">${esc(s[0])}${s[1] ? '「' + esc(s[1]) + '」' : ''}${s[2] ? ' ' + esc(s[2]) : ''}</a>`).join('、')}）`;
   setVisual('border', { qi, sel: BD.sel });
 }
@@ -1142,7 +1142,7 @@ function renderBorderInfo() {
   const qi = BD.order[BD.i], q = QS[qi];
   let s = BD.info;
   if (BD.sel >= 0) { const p = Math.round(shareA(qi, BD.sel) * 100), [a, b] = counts(q, BD.sel); s = `${fullName(BD.sel)}：${q.a} ${p}%・${q.b} ${100 - p}%` + (a + b ? `（答えた人 ${fmt(a + b)}人）` : '') + '<br>' + esc(BD.info); }
-  else s = esc(s) + '<br><span style="color:var(--sub)">県をタップすると、くわしい割合が見られます</span>';
+  else s = esc(s) + '<br><span style="color:var(--sub)">地図をタップすると、その場所のくわしい割合が見られます</span>';
   $('bInfo').innerHTML = s;
 }
 // ---- 出どころ ----
@@ -1151,7 +1151,7 @@ function openCredit() {
   CREDIT_FROM = SCREEN === 'credit' ? CREDIT_FROM : SCREEN;
   const uniq = new Map();
   $('creditBody').innerHTML = `<h3>出どころ・クレジット</h3>
-<p>判定の「はじめの値」は、下の調査や資料をもとに、N.K. Works が都道府県ごとに見つもったものです（県別の数字がない所は、資料の地図や説明からの推定です）。遊んだ人の答えが集まるほど、実際の答えにおきかわっていきます。答えと県は、だれのものか分からない形で集計しています（1台につき最初の1回だけ）。</p>
+<p>判定の「はじめの値」は、下の調査や資料をもとに、N.K. Works が都道府県ごとに見つもったものです（都道府県別の数字がない所は、資料の地図や説明からの推定です）。遊んだ人の答えが集まるほど、実際の答えにおきかわっていきます。答えと出身地は、だれのものか分からない形で集計しています（1台につき最初の1回だけ）。</p>
 <h4>問題ごとの出どころ</h4><ul>${QS.map(q => `<li><b>${esc(q.t)}</b>：${q.src.map(s => `<a href="${esc(s[3])}" target="_blank" rel="noopener">${esc(s[0])}${s[1] ? '「' + esc(s[1]) + '」' : ''}${s[2] ? '（' + esc(s[2]) + '）' : ''}</a>`).join('、')}</li>`).join('')}</ul>
 <h4>地図</h4><p>「国土数値情報（行政区域データ）」（国土交通省）<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2021.html" target="_blank" rel="noopener">https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2021.html</a> をもとに、スマートニュース メディア研究所が加工したデータ（<a href="https://github.com/smartnews-smri/japan-topography" target="_blank" rel="noopener">japan-topography</a>）をさらに加工して使用。沖縄県は四国の南に寄せて表示し、東京都の小笠原諸島などは地図から省いています。</p>
 <h4>人口</h4><p>総務省統計局「人口推計（2023年10月1日現在）」</p>
@@ -1171,7 +1171,7 @@ function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Ma
 function shuffle(a, rnd) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function renderDailyNote() {
   const d = lsGet('sk.daily', null), key = jstKey();
-  $('tRevNote').textContent = d && d.key === key && d.done ? `今日の県はクリア済み（${d.win ? d.turns + 'ターン' : 'ギブアップ'}）。また明日！` : '質問をえらんで、少ないターンで当てよう';
+  $('tRevNote').textContent = d && d.key === key && d.done ? `今日の出身地はクリア済み（${d.win ? d.turns + 'ターン' : 'ギブアップ'}）。また明日！` : '質問をえらんで、少ないターンで当てよう';
 }
 function startRev(daily) {
   const key = jstKey();
@@ -1195,12 +1195,12 @@ function rvAnswer(qi) {
   return { a, label: a ? q.a : q.b, ratio: r >= 10 ? 'ほぼ全員' : r <= 5 ? '半々くらい' : `約${r}割` };
 }
 function rvHintText(n) {
-  if (n === 1) return RV.target <= EAST_LAST ? '東日本の県' : '西日本の県';
-  if (n === 2) return INLAND.includes(RV.target) ? '海に面していない県' : '海に面している県';
-  return REGIONS[PREFS[RV.target][2]] + '地方の県';
+  if (n === 1) return RV.target <= EAST_LAST ? '東日本' : '西日本';
+  if (n === 2) return INLAND.includes(RV.target) ? '海に面していない' : '海に面している';
+  return REGIONS[PREFS[RV.target][2]] + '地方';
 }
 function rvLogText(x) {
-  if (x.t === 'q') return `${QS[x.qi].q} → ${x.label}（この県の人の${x.ratio}）`;
+  if (x.t === 'q') return `${QS[x.qi].q} → ${x.label}（地元の人の${x.ratio}）`;
   if (x.t === 'h') return `ヒント：${x.text}`;
   if (x.t === 'x') return `${fullName(x.k)}…ではない`;
   return `${fullName(x.k)}…正解！`;
@@ -1229,13 +1229,13 @@ function rvToggleMark(k) {
 }
 function rvRender() {
   const d = RV.key.split('-');
-  $('rvMode').textContent = RV.daily ? `今日の県（${+d[1]}月${+d[2]}日）` : 'ランダム練習';
+  $('rvMode').textContent = RV.daily ? `今日の出身地（${+d[1]}月${+d[2]}日）` : 'ランダム練習';
   $('rvTurn').textContent = `${RV.turns}ターン`;
   const last = RV.log[RV.log.length - 1];
-  if (last && last.t === 'q') $('rvLast').innerHTML = `<div class="lq">Q. ${esc(QS[last.qi].q)}</div><div class="la ${last.a ? 'a' : 'b'}">${esc(last.label)}<small>この県の人の${last.ratio}</small></div>`;
+  if (last && last.t === 'q') $('rvLast').innerHTML = `<div class="lq">Q. ${esc(QS[last.qi].q)}</div><div class="la ${last.a ? 'a' : 'b'}">${esc(last.label)}<small>地元の人の${last.ratio}</small></div>`;
   else if (last && last.t === 'h') $('rvLast').innerHTML = `<div class="lq">ヒント</div><div class="la h">${esc(last.text)}</div>`;
   else if (last && last.t === 'x') $('rvLast').innerHTML = `<div class="lq">ざんねん</div><div class="la h">${esc(fullName(last.k))}ではありません</div>`;
-  else $('rvLast').innerHTML = `<div class="lq">コンピュータは、ある県で育ちました</div><div class="la">どの県の人でしょう？</div>`;
+  else $('rvLast').innerHTML = `<div class="lq">コンピュータは、ある都道府県で育ちました</div><div class="la">どこの人でしょう？</div>`;
   $('rvCands').innerHTML = RV.cands.length ? RV.cands.map(qi => `<button class="rvq" data-qi="${qi}"><span>${esc(QS[qi].q)}</span></button>`).join('') : '<p class="rvTip"><span>もう質問はありません。当ててみよう！</span></p>';
   const left = CONFIG.REV.HINTS - RV.hints;
   $('rvHint').innerHTML = left > 0 ? `ヒント<small>あと${left}つ・1ターン</small>` : 'ヒント<small>もうありません</small>'; $('rvHint').disabled = left <= 0;
@@ -1252,21 +1252,21 @@ async function rvShowResult(saved) {
   $('rvLogBox').classList.add('hide');
   setVisual('reveal', { guess: RV.target, truth: -1 }); show('revRes');
   const name = fullName(RV.target);
-  $('rrKind').textContent = RV.daily ? `今日の県（${+RV.key.split('-')[1]}月${+RV.key.split('-')[2]}日）` : 'ランダム練習';
+  $('rrKind').textContent = RV.daily ? `今日の出身地（${+RV.key.split('-')[1]}月${+RV.key.split('-')[2]}日）` : 'ランダム練習';
   $('rrTitle').textContent = `正解は ${name}！`;
   $('rrTurns').textContent = RV.win ? `${RV.turns}ターンで当てた！` : 'ギブアップ…';
   $('rrEmoji').textContent = RV.log.map(x => RV_EMOJI[x.t]).join('');
-  $('rrNote').textContent = RV.daily ? '今日の県は1日1回。明日はちがう県です' : '';
+  $('rrNote').textContent = RV.daily ? '今日の出身地は1日1回。明日はちがう所です' : '';
   hidePin(); dropPin(RV.target, () => { });
 }
 function rvShareText() {
   const em = RV.log.map(x => RV_EMOJI[x.t]).join('');
-  if (RV.daily) return (RV.win ? `【出身県、当ててみる】今日の県を${RV.turns}ターンで当てた！` : '【出身県、当ててみる】今日の県、ギブアップ…') + '\n' + em;
-  return (RV.win ? `【出身県、当ててみる】${fullName(RV.target)}の人を${RV.turns}ターンで当てた！` : `【出身県、当ててみる】${fullName(RV.target)}の人を当てられなかった…`) + '\n' + em;
+  if (RV.daily) return (RV.win ? `【出身地、当ててみる】今日の出身地を${RV.turns}ターンで当てた！` : '【出身地、当ててみる】今日の出身地、ギブアップ…') + '\n' + em;
+  return (RV.win ? `【出身地、当ててみる】${fullName(RV.target)}の人を${RV.turns}ターンで当てた！` : `【出身地、当ててみる】${fullName(RV.target)}の人を当てられなかった…`) + '\n' + em;
 }
 function rvShare() {
   const text = rvShareText();
-  if (matchMedia('(pointer:coarse)').matches && navigator.share) { navigator.share({ text: text + '\n#出身県当てます ' + SITE_URL }).catch(e => { if (!e || e.name !== 'AbortError') openX(text); }); return; }
+  if (matchMedia('(pointer:coarse)').matches && navigator.share) { navigator.share({ text: text + '\n#出身地当てます ' + SITE_URL }).catch(e => { if (!e || e.name !== 'AbortError') openX(text); }); return; }
   openX(text);
 }
 
@@ -1274,10 +1274,10 @@ function rvShare() {
 let SHARE = null, shareSeq = 0;
 function shareText() {
   const o = oddsText(G.odds), qn = G.ext ? `2択${G.ans.length}問（延長戦あり）で` : `2択${G.ans.length}問で`;
-  if (G.seki) return `${qn}出身県を当ててもらったら、東か西か決めきれない「関ケ原の住人」でした。この答えの組み合わせは${o}`;
-  if (G.hit) return `${qn}出身県を当てられた…！ 純度100%の${minName(G.guess)}でした。この答えの組み合わせは${o}`;
-  if (G.truth < 0) return `${qn}出身県を当ててもらったら、日本以外で育ったのに、心は${minName(G.guess)}らしい。この答えの組み合わせは${o}`;
-  return `${qn}出身県を当てられなかった！ でも、心は${minName(G.guess)}らしい。この答えの組み合わせは${o}`;
+  if (G.seki) return `${qn}出身地を当ててもらったら、東か西か決めきれない「関ケ原の住人」でした。この答えの組み合わせは${o}`;
+  if (G.hit) return `${qn}出身地を当てられた…！ 純度100%の${minName(G.guess)}でした。この答えの組み合わせは${o}`;
+  if (G.truth < 0) return `${qn}出身地を当ててもらったら、日本以外で育ったのに、心は${minName(G.guess)}らしい。この答えの組み合わせは${o}`;
+  return `${qn}出身地を当てられなかった！ でも、心は${minName(G.guess)}らしい。この答えの組み合わせは${o}`;
 }
 function fitFont(ctx, text, maxW, size, family, weight = '') { let s = size; do { ctx.font = `${weight} ${s}px ${family}`; if (ctx.measureText(text).width <= maxW) break; s -= 2; } while (s > 10); return s; }
 // 日本全体＋ピンを、w×h の画像に写す（本当の県の色や紙ふぶきは写さない）
@@ -1313,8 +1313,8 @@ async function makeShareImage() {
   if (PIN.on && !PIN.landed) { PIN.t = CONFIG.PIN.DROP_SEC; updatePin(0); }
   x.drawImage(snapshotMap(780, 1200), 0, 0);
   const R = 800, RW = 360, F = '"Dela Gothic One", sans-serif', FR = '"M PLUS Rounded 1c", sans-serif';
-  x.textBaseline = 'alphabetic'; x.fillStyle = '#fff'; fitFont(x, '出身県、当てます', RW, 44, F); x.fillText('出身県、当てます', R, 118);
-  x.fillStyle = '#ffc93c'; x.font = `800 24px ${FR}`; x.fillText('2択10問で、出身県を当てる', R, 160);
+  x.textBaseline = 'alphabetic'; x.fillStyle = '#fff'; fitFont(x, '出身地、当てます', RW, 44, F); x.fillText('出身地、当てます', R, 118);
+  x.fillStyle = '#ffc93c'; x.font = `800 24px ${FR}`; x.fillText('2択10問で、出身地を当てる', R, 160);
   x.fillStyle = 'rgba(255,255,255,.18)'; x.fillRect(R, 196, RW, 3);
   const kind = kindText();
   x.fillStyle = '#cfd8e6'; fitFont(x, kind, RW, 28, FR, '800'); x.fillText(kind, R, 300);
@@ -1325,7 +1325,7 @@ async function makeShareImage() {
   y += 110; x.fillStyle = 'rgba(255,255,255,.18)'; x.fillRect(R, y, RW, 3);
   y += 80; x.fillStyle = '#cfd8e6'; x.font = `800 27px ${FR}`; x.fillText('この答えの組み合わせは', R, y);
   y += 84; const od = oddsText(G.odds); x.fillStyle = '#fff'; fitFont(x, od, RW, 58, F); x.fillText(od, R, y);
-  x.fillStyle = '#8fa3bf'; fitFont(x, 'nkworks-games.com/shusshin-ken', RW, 24, FR, '800'); x.fillText('nkworks-games.com/shusshin-ken', R, 1100); x.fillText('#出身県当てます', R, 1140);
+  x.fillStyle = '#8fa3bf'; fitFont(x, 'nkworks-games.com/shusshin-ken', RW, 24, FR, '800'); x.fillText('nkworks-games.com/shusshin-ken', R, 1100); x.fillText('#出身地当てます', R, 1140);
   return await new Promise(r => cv.toBlob(r, 'image/png'));
 }
 async function prepShare() {
@@ -1335,13 +1335,13 @@ async function prepShare() {
   catch (e) { s = { text }; }
   if (id === shareSeq) SHARE = s;   // 「もう一回」を押した後にできた古い画像は使わない
 }
-function openX(text) { window.open('https://x.com/intent/post?text=' + encodeURIComponent(text + ' #出身県当てます') + '&url=' + encodeURIComponent(SITE_URL), '_blank', 'noopener'); }
+function openX(text) { window.open('https://x.com/intent/post?text=' + encodeURIComponent(text + ' #出身地当てます') + '&url=' + encodeURIComponent(SITE_URL), '_blank', 'noopener'); }
 function doShare() {
   if (!SHARE) { toast('画像を用意しています… もう一度おしてね'); return; }
   const s = SHARE;
   const touch = matchMedia('(pointer:coarse)').matches;
   if (touch && s.file && navigator.canShare && navigator.canShare({ files: [s.file] })) {
-    navigator.share({ files: [s.file], text: s.text + ' #出身県当てます ' + SITE_URL }).catch(e => { if (!e || e.name !== 'AbortError') openX(s.text); });
+    navigator.share({ files: [s.file], text: s.text + ' #出身地当てます ' + SITE_URL }).catch(e => { if (!e || e.name !== 'AbortError') openX(s.text); });
     return;
   }
   if (s.blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(s.blob); a.download = 'shusshin-ken.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('画像を保存しました。Xの投稿にそえてね'); }
@@ -1366,7 +1366,7 @@ $('revDaily').onclick = () => startRev(true);
 $('revFree').onclick = () => startRev(false);
 $('rvQuit').onclick = () => { rvSave(); goTitle(); };
 $('rvHint').onclick = rvHint;
-$('rvGuess').onclick = () => { if (!RV.done) openPick('rev', 'どの県の人？', '外れたら×がついて、1ターンふえます。', rvGuess, false); };
+$('rvGuess').onclick = () => { if (!RV.done) openPick('rev', 'どこの人？', '外れたら×がついて、1ターンふえます。', rvGuess, false); };
 $('rvLog').onclick = () => { $('rvLogList').innerHTML = RV.log.map(rvLogText).map(s => `<li>${esc(s)}</li>`).join('') || '<li>まだありません</li>'; $('rvLogBox').classList.remove('hide'); };
 $('rvLogClose').onclick = () => $('rvLogBox').classList.add('hide');
 $('rvCands').addEventListener('click', e => { const b = e.target.closest('.rvq'); if (b) rvAsk(+b.dataset.qi); });
