@@ -1,0 +1,36 @@
+# 出身地、当てます：みんなの答えのまとめ（shusshin-ken/stats.json）を30分ごとに作り直す
+name: shusshin-stats
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shusshin-stats.yml'
+      - '.github/scripts/shusshin_stats.py'
+permissions:
+  contents: write
+concurrency:
+  group: shusshin-stats
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: まとめを作る
+        run: python3 .github/scripts/shusshin_stats.py shusshin-ken/stats.json
+      - name: 変わっていたら保存して公開
+        run: |
+          git add shusshin-ken/stats.json
+          if git diff --cached --quiet; then echo "変化なし"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "出身地：みんなの答えのまとめを更新（自動）"
+          for i in 1 2 3; do
+            if git pull -q --rebase origin main && git push -q origin HEAD:main; then exit 0; fi
+            sleep 10
+          done
+          exit 1
