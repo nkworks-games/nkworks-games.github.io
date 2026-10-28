@@ -19,6 +19,9 @@ while True:
         break
 names = sorted(x['name'].rsplit('/', 1)[1] for x in docs)
 print('箱：', len(docs), names)
+# 箱ごとの項目の数（Firestore は1つの箱の索引が40,000まで。数の項目は1つで索引2つなので、約20,000項目をこえると書きこめなくなる）
+fields = {x['name'].rsplit('/', 1)[1]: len(x.get('fields', {})) for x in docs}
+print('箱ごとの項目の数：', fields, '／ 最大', max(fields.values()))
 if len(docs) < 8:
     sys.exit('箱が少なすぎるので、作り直さない')
 
@@ -47,6 +50,7 @@ out = {
     'q': dict(sorted(q.items(), key=lambda x: int(x[0]))),
     # まちがいの記録（zx=本当の県×予想、zc=確率×当たり、zl=問題数×当たり、ze=10問時点×最後）
     'z': dict(sorted((k, v) for k, v in st.items() if k.startswith('z'))),
+    'f': fields,   # 箱ごとの項目の数（20,000に近づいたら、箱の分け方を見直す）
 }
 
 old_t = -1
