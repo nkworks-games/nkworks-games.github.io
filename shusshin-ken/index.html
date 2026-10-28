@@ -128,7 +128,13 @@ a{color:inherit;}
 .ch.b{background:var(--b);box-shadow:0 4px 0 #157f8a;}
 .ch:active,.ch.press{transform:translateY(3px);box-shadow:none;}
 .ch.dim{filter:grayscale(.6) opacity(.5);}
+.maybe{display:flex;gap:10px;margin-top:8px;}
+.mb{flex:1;height:32px;border-radius:12px;font-size:12.5px;font-weight:800;border:2px solid;background:transparent;transition:transform .08s,filter .2s;}
+.mb.a{color:#c4513a;border-color:#ffb19d;} .mb.b{color:#157f8a;border-color:#8fd5dd;}
+.mb:active,.mb.press{transform:translateY(2px);} .mb.a.press{background:#ffe4dc;} .mb.b.press{background:#d9f3f5;}
+.mb.dim{filter:grayscale(.6) opacity(.5);}
 #skip{font-size:12px;font-weight:800;color:var(--sub);text-decoration:underline;text-underline-offset:3px;padding:6px 8px;}
+#qCard .qfoot{margin-top:6px;}
 .qfoot{display:flex;justify-content:center;gap:14px;margin-top:10px;}
 #guessNow{font-size:12px;font-weight:800;color:#d4553a;text-decoration:underline;text-underline-offset:3px;padding:6px 8px;}
 #prog.ext{gap:3px;}
@@ -202,7 +208,7 @@ a{color:inherit;}
 #rotate{position:fixed;inset:0;z-index:50;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-weight:800;}
 #rotate svg{width:64px;height:64px;fill:none;stroke:#fff;stroke-width:3;}
 @media (pointer:coarse) and (orientation:landscape) and (max-height:520px){#rotate{display:flex;}}
-@media (max-height:640px){#qText{font-size:18px;min-height:52px;margin-bottom:10px;}.ch{min-height:56px;font-size:15px;}#title h1{font-size:38px;}#rTitle b{font-size:32px;}#gName{font-size:40px;}}
+@media (max-height:640px){#qText{font-size:18px;min-height:52px;margin-bottom:10px;}.ch{min-height:56px;font-size:15px;}.mb{height:28px;}.maybe{margin-top:6px;}#title h1{font-size:38px;}#rTitle b{font-size:32px;}#gName{font-size:40px;}}
 </style>
 </head>
 <body>
@@ -236,6 +242,7 @@ a{color:inherit;}
         <p id="qNum"></p>
         <h2 id="qText"></h2>
         <div class="choices"><button class="ch a" id="chA"></button><button class="ch b" id="chB"></button></div>
+        <div class="maybe"><button class="mb a" id="mbA">たぶん こっち</button><button class="mb b" id="mbB">たぶん こっち</button></div>
         <div class="qfoot"><button id="skip">どちらでもない・知らない</button><button id="guessNow" class="hide">もう当てて！</button></div>
       </div>
     </section>
@@ -334,7 +341,8 @@ const CONFIG = {
   EARLY_N: 5,             // 最初のこの問数は、EARLY_IDS の問題（店・商品・施設などの名前が出ない、地方を分ける広い問題）だけにする（「最初から狙い撃ち」「2問目でスガキヤ」と言われたため）
   EARLY_IDS: ['snow', 'kenmin_no_hi', 'kenmin_11gatsu', 'fuyu_kaminari', 'chugaku_bento', 'nikujaga', 'zouni_mochi_shape', 'zoni_shiromiso', 'udon_tsuyu', 'nikuman_sujoyu', 'sekihan_amanatto', 'natto', 'sake_buri', 'katsudon_style', 'okonomiyaki', 'dagojiru', 'karau', 'tsugu', 'gohan_moru', 'gohan_yosoru', 'butajiru', 'tsukue_tsuru', 'mebachiko', 'meibo', 'erai', 'kansai_keehen', 'shitou', 'sogan'],
   USE_SKIP: false,        // 「どちらでもない・知らない」を押したことを、県の判定に使うか（「知らない・覚えてない・両方」など意味がまざるので使わない。押した数の集計は続ける）
-  LOG_VER: 3,             // まちがいの記録につける判定のしくみの版（判定や質問の選び方を変えたら1つ上げて、前と比べる）   // 当ててもらうモードで出さない問題（しぼる力が弱く「知らない」が多い）
+  LOG_VER: 4,             // まちがいの記録につける判定のしくみの版（判定や質問の選び方を変えたら1つ上げて、前と比べる）。4＝「たぶん」を足した
+  MAYBE_W: 0.5,           // 「たぶんこっち」の答えの強さ（1＝ふつうの答えと同じ、0＝使わない）   // 当ててもらうモードで出さない問題（しぼる力が弱く「知らない」が多い）
   TRUST: 0.85,            // 調査データをどれくらい信じるか（1＝そのまま、0＝まったく信じない）
   SKIP_PRIOR: 0.06,       // 「どちらでもない・知らない」を押す人の割合の はじめの値（どの県も同じ＝最初は判定に影響しない）
   SKIP_STRENGTH: 20,      // その はじめの値を「何人ぶん」として数えるか（「知らない」が集まると県ごとの差が効いてくる）
@@ -625,7 +633,7 @@ function shareA(qi, k) { const q = QS[qi], S = CONFIG.PRIOR_STRENGTH, [a, b] = c
 // skips：「どちらでもない・知らない」を押した問題（その県の人が知らないと答える確率も手がかりにする）
 function posterior(ans, prior = PRIOR, skips = []) {
   const lp = prior.map(Math.log);
-  for (const x of ans) { const m = M[x.qi], kk = K[x.qi]; for (let k = 0; k < N; k++) lp[k] += Math.log((CONFIG.USE_SKIP ? 1 - kk[k] : 1) * (x.a ? m[k] : 1 - m[k])); }
+  for (const x of ans) { const m = M[x.qi], kk = K[x.qi], w = x.w ?? 1; for (let k = 0; k < N; k++) lp[k] += Math.log(CONFIG.USE_SKIP ? 1 - kk[k] : 1) + w * Math.log(x.a ? m[k] : 1 - m[k]); }   // w：「たぶん」は弱い手がかり
   if (CONFIG.USE_SKIP) for (const qi of skips) { const kk = K[qi]; for (let k = 0; k < N; k++) lp[k] += Math.log(kk[k]); }
   const mx = Math.max(...lp), e = lp.map(v => Math.exp(v - mx)), s = sum(e);
   return e.map(v => v / s);
@@ -663,7 +671,7 @@ function pickNext(ans, skipped, post, rnd = Math.random, avail = null, early = t
 // この答え方をする人は、日本で何人に1人か（県ごとの人口で重みづけ）
 function oddsOf(ans) {
   let tot = 0;
-  for (let k = 0; k < N; k++) { let lp = Math.log(POP_SHARE[k]); for (const x of ans) lp += Math.log(x.a ? M[x.qi][k] : 1 - M[x.qi][k]); tot += Math.exp(lp); }
+  for (let k = 0; k < N; k++) { let lp = Math.log(POP_SHARE[k]); for (const x of ans) lp += (x.w ?? 1) * Math.log(x.a ? M[x.qi][k] : 1 - M[x.qi][k]); tot += Math.exp(lp); }
   return 1 / tot;
 }
 function oddsText(n) {
@@ -1109,14 +1117,14 @@ async function nextQ(first) {
   if (!first) { card.classList.add('out'); await sleep(200); }
   G.qi = qi; const q = QS[qi];
   $('qNum').textContent = `Q${G.ans.length + 1}` + (G.ext ? '（延長戦）' : ''); $('qText').textContent = q.q; $('qText').classList.toggle('long', q.q.length > 38); $('chA').textContent = q.a; $('chB').textContent = q.b;
-  $('chA').classList.remove('press', 'dim'); $('chB').classList.remove('press', 'dim');
+  for (const id of ['chA', 'chB', 'mbA', 'mbB']) $(id).classList.remove('press', 'dim');
   renderProg(); card.classList.remove('out'); G.lock = false;
   requestAnimationFrame(() => { measureFocus(); applyView(); });
 }
-function answer(a) {
+function answer(a, maybe = false) {
   if (G.lock || SCREEN !== 'quiz' || G.qi < 0) return; G.lock = true;
-  $(a ? 'chA' : 'chB').classList.add('press'); $(a ? 'chB' : 'chA').classList.add('dim');
-  G.ans.push({ qi: G.qi, a }); G.post = posterior(G.ans, PRIOR, G.skipped);
+  $((maybe ? 'mb' : 'ch') + (a ? 'A' : 'B')).classList.add('press'); $(a ? 'chB' : 'chA').classList.add('dim'); $(a ? 'mbB' : 'mbA').classList.add('dim');
+  G.ans.push(maybe ? { qi: G.qi, a, w: CONFIG.MAYBE_W } : { qi: G.qi, a }); G.post = posterior(G.ans, PRIOR, G.skipped);
   if (G.ans.length === CONFIG.NQ) G.guess10 = G.post.indexOf(Math.max(...G.post));   // 10問の時点の予想（記録用）
   setVisual('quiz', { post: G.post }); camToPost(G.post); renderProg();
   setTimeout(() => nextQ(false), CONFIG.NEXT_DELAY);
@@ -1188,7 +1196,7 @@ function showBorderQ(j) {
   $('bSel').value = String(BD.i); $('bQ').textContent = q.q; $('bA').textContent = q.a; $('bB').textContent = q.b;
   const my = BD.from === 'result' ? G.ans.find(x => x.qi === qi) : null;
   let n = 0; for (let k = 0; k < N; k++) { const [a, b] = counts(q, k); n += a + b; }
-  BD.info = (my ? `あなた：${my.a ? q.a : q.b}　` : '') + (n ? `みんなの答え ${fmt(n)}人` : 'みんなの答えは まだありません（今は調査をもとにした値）');
+  BD.info = (my ? `あなた：${my.w ? 'たぶん ' : ''}${my.a ? q.a : q.b}　` : '') + (n ? `みんなの答え ${fmt(n)}人` : 'みんなの答えは まだありません（今は調査をもとにした値）');
   renderBorderInfo();
   const basis = { measured: '調査の都道府県別の数字', mixed: '調査の数字と、資料からの推定', estimated: '資料をもとにした推定' }[q.basis] || '資料をもとにした推定';
   $('bSrc').innerHTML = `はじめの値：${basis}（${q.src.map(s => `<a href="${esc(s[3])}" target="_blank" rel="noopener">${esc(s[0])}${s[1] ? '「' + esc(s[1]) + '」' : ''}${s[2] ? ' ' + esc(s[2]) : ''}</a>`).join('、')}）`;
@@ -1477,6 +1485,7 @@ $('rvUnfold').onclick = () => { $('rvCard').classList.remove('mini'); requestAni
 $('rrAgain').onclick = () => startRev(false);
 $('rrHome').onclick = goTitle;
 $('chA').onclick = () => answer(true); $('chB').onclick = () => answer(false);
+$('mbA').onclick = () => answer(true, true); $('mbB').onclick = () => answer(false, true);
 $('skip').onclick = skipQ;
 $('guessNow').onclick = () => { if (!G.lock && SCREEN === 'quiz' && G.ext) finishQuiz(); };   // 延長戦の途中で「もう当てて！」
 $('quit').onclick = goTitle;
@@ -1495,7 +1504,7 @@ $('bPrev').onclick = () => { BD.sel = -1; showBorderQ(BD.i - 1); };
 $('bNext').onclick = () => { BD.sel = -1; showBorderQ(BD.i + 1); };
 $('bSel').onchange = e => { BD.sel = -1; showBorderQ(+e.target.value); };
 window.addEventListener('keydown', e => {
-  if (SCREEN === 'quiz') { if (e.key === 'ArrowLeft' || e.key === '1') answer(true); else if (e.key === 'ArrowRight' || e.key === '2') answer(false); }
+  if (SCREEN === 'quiz') { if (e.key === 'ArrowLeft' || e.key === '1') answer(true, e.shiftKey); else if (e.key === 'ArrowRight' || e.key === '2') answer(false, e.shiftKey); }   // Shift を押しながらだと「たぶん」
   else if (SCREEN === 'border') { if (e.key === 'ArrowLeft') $('bPrev').click(); else if (e.key === 'ArrowRight') $('bNext').click(); }
 });
 
