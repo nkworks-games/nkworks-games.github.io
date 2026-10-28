@@ -344,6 +344,7 @@ const CONFIG = {
   QS_PER_DOC: 100,        // 1つの箱に入れる問題の数（Firestoreの1ドキュメントの項目数の上限をこえないように、問題101〜は s0_1 などの別の箱へ）
   MAX_PARTS: 2,           // 箱の種類の上限（1つふやすと、開くたびに読む回数が SHARDS 回ふえる）。201問目からも s0_1 などに入れる（1つの箱に約140問まで入る）
   CACHE_MIN: 30,          // みんなの答えを何分ごとに読み直すか（読む回数をへらすため長め）
+  STATS_URL: 'stats.json', // みんなの答えのまとめ（このファイルを読む。Firebaseは答えを送る時だけ使う＝料金がかからない。読めない時はFirebaseから読む。空にすると毎回Firebaseから読む）
   SHOW_COUNT_MIN: 30,     // この人数をこえたら、タイトルに「これまで◯人」を出す
   NEXT_DELAY: 520,        // 答えてから次の問題が出るまで（ミリ秒）
   MAP: { DEPTH: 0.12, RAISE: 5.5, LON0: 137.0, LAT0: 36.5, OKI_SHIFT: [8, 4], MIN_ISLAND: 0.0004, MIN_STEP: 0, TOKYO_MIN_LAT: 31 },
@@ -710,9 +711,22 @@ async function initOnline() {
   if (!be) return;
   try { await withTimeout(be.init(), 9000); NET.be = be; } catch (e) { NET.be = null; }
 }
+// stats.json（{t, n:[県], h:[県], q:{問題番号:[県1のa,b,c, 県2のa,b,c, …]}}）を、ST の形（q{番号}_{県}a など）にもどす
+function unpackStats(j) {
+  const d = { t: j.t || 0 };
+  (j.n || []).forEach((v, i) => { if (v) d['n' + (i + 1)] = v; }); (j.h || []).forEach((v, i) => { if (v) d['h' + (i + 1)] = v; });
+  for (const s in j.q || {}) j.q[s].forEach((v, i) => { if (v) d[`q${s}_${Math.floor(i / 3) + 1}${'abc'[i % 3]}`] = v; });
+  return d;
+}
 async function refreshStats(force) {
   const cache = lsGet('sk.stats', null);
   if (!force && cache && Date.now() - cache.at < CONFIG.CACHE_MIN * 60000) { ST = cache.d; NET.state = 'ok'; NET.loadedAt = cache.at; rebuildModel(); return; }
+  if (CONFIG.STATS_URL && !PARAMS.has('offline') && !PARAMS.has('mock')) {   // ふだんは まとめファイルを読む
+    try {
+      const j = await withTimeout(fetch(CONFIG.STATS_URL, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('stats ' + r.status); return r.json(); }), 8000);
+      ST = unpackStats(j); NET.state = 'ok'; NET.loadedAt = Date.now(); lsSet('sk.stats', { at: NET.loadedAt, d: ST }); rebuildModel(); return;
+    } catch (e) { }   // 読めない時は、下の Firebase から読む
+  }
   if (!NET.be) { if (cache) { ST = cache.d; rebuildModel(); } return; }
   try { ST = await withTimeout(NET.be.load(), 8000); NET.state = 'ok'; NET.loadedAt = Date.now(); lsSet('sk.stats', { at: NET.loadedAt, d: ST }); }
   catch (e) { NET.state = 'off'; if (cache) ST = cache.d; }
