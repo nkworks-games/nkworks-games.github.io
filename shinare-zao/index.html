@@ -1192,7 +1192,7 @@ function updateRig(dt){
     FI.leanV = (FI.leanV || 0) + ((lt - (FI.lean || 0)) * 45 - FI.leanV * 5) * dt; FI.lean = (FI.lean || 0) + FI.leanV * dt;
     if (G.falling) G.falling += dt; LEAN.drop = G.falling ? Math.min(1.6, G.falling * 1.4) : 0;
     LEAN.yaw = 0; LEAN.a = FI.lean; LEAN.feet = G.feet + (G.falling ? Math.min(0.8, G.falling) : 0); if (FUNYA) headWobble(dt, FI.leanV);
-    const tip = drawRod(phi, -b, spin); SK.tip.copy(tip);
+    const tip = drawRod(phi, b, spin); SK.tip.copy(tip);   // 糸に引かれて、竿先は海の方（前・下）へしなる
     const far = st === 'retrieve' ? FI.dist : st === 'catch' || st === 'cut' ? 0 : FI.dist;
     if (far > 0.5){ const hd = G.cur.head || 0, fr = far + CONFIG.WATER * 0.15, end = new THREE.Vector3(0.36 - Math.sin(hd) * fr, 0, -Math.cos(hd) * fr); M.sinker.visible = false; lineCurve(tip, end, st === 'fight' ? 0.02 : 0.06 * (1 - (FI.T || 0))); }
     else { M.sinker.visible = st !== 'catch'; if (!SK.on) sinkerHang(); M.sinker.position.copy(SK.p); lineCurve(tip, SK.p, 0); }
