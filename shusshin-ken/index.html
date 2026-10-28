@@ -102,7 +102,7 @@ a{color:inherit;}
 .rvAct .btn{min-height:42px;font-size:14px;}
 .rvAct .btn:disabled{opacity:.4;}
 .rvTip{font-size:10.5px;font-weight:800;color:var(--sub);margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:6px;}
-.rvTip .lnk{padding:4px 2px;font-size:11px;}
+.rvTip .lnk{padding:4px 2px;font-size:11px;white-space:nowrap;}
 #rvLogBox{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 48px);max-height:60%;overflow:auto;z-index:8;}
 #rvLogBox h3{font-size:14px;margin-bottom:6px;}
 #rvLogBox ol{padding-left:1.4em;font-size:12.5px;font-weight:800;line-height:1.55;}
@@ -290,7 +290,7 @@ a{color:inherit;}
         <div class="rvLabel"><span>質問をえらぶ（1ターン）</span><button class="lnk" id="rvFold">地図を広げる ▼</button></div>
         <div id="rvCands"></div>
         <div class="row rvAct"><button class="btn sub" id="rvHint"></button><button class="btn sub" id="rvLog"></button><button class="btn main" id="rvGuess">当てる</button></div>
-        <p class="rvTip"><span>地図をタップで「ここかな？」の目印</span><button class="lnk" id="rvGiveUp">ギブアップ</button></p>
+        <p class="rvTip"><span>地図タップで「ここかな？」→その辺りの質問に</span><button class="lnk" id="rvGiveUp">ギブアップ</button></p>
         <button class="btn sub" id="rvUnfold">質問にもどる ▲</button>
       </div>
     </section>
@@ -1218,7 +1218,7 @@ function closeCredit() { $('credit').classList.add('hide'); SCREEN = CREDIT_FROM
 
 // ===== [SEC:REVERSE] =====
 // 逆モード「当ててみる」：コンピュータが決めた県を、2択の質問で当てる
-const RV = { daily: false, target: 0, turns: 0, log: [], asked: new Set(), crossed: new Set(), marks: new Set(), hints: 0, order: [], ptr: 0, cands: [], done: false, win: false, key: '' };
+const RV = { daily: false, target: 0, turns: 0, log: [], asked: new Set(), crossed: new Set(), marks: new Set(), hints: 0, seed: 0, cands: [], done: false, win: false, key: '' };
 const REV_POOL = QS.map((_, i) => i).filter(i => !QS[i].late);   // 地元のテレビ局の問題は出さない
 const INLAND = [8, 9, 10, 18, 19, 20, 24, 28];   // 海に面していない県（栃木・群馬・埼玉・山梨・長野・岐阜・滋賀・奈良）
 function jstKey() { return new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); }
@@ -1236,24 +1236,67 @@ function startRev(daily) {
     if (d && d.key === key && d.done) { rvRestore(d); rvShowResult(true); return; }   // 今日はもう終わっている：結果を見せる
     if (d && d.key === key) { rvRestore(d); hidePin(); setVisual('rev'); show('rev'); rvRender(); return; }   // とちゅうから再開
   }
-  // 今日の県は、日付から決まる（日本中で同じ県・同じ質問の出方）
+  // 今日の県は、日付から決まる（日本中で同じ県。同じ選び方をすれば、同じ質問が出る）
   const rnd = daily ? mulberry(hashStr('shusshin-ken:' + key)) : Math.random;
-  Object.assign(RV, { daily, target: Math.floor(rnd() * N), turns: 0, log: [], asked: new Set(), crossed: new Set(), marks: new Set(), hints: 0, order: shuffle(REV_POOL.slice(), rnd), ptr: 0, cands: [], done: false, win: false, key });
+  Object.assign(RV, { daily, target: Math.floor(rnd() * N), turns: 0, log: [], asked: new Set(), crossed: new Set(), marks: new Set(), hints: 0, seed: daily ? 0 : Math.floor(Math.random() * 1e9), cands: [], done: false, win: false, key });
   rvNextCands(); rvSave();
   hidePin(); $('rvLogBox').classList.add('hide'); $('rvCard').classList.remove('mini'); setVisual('rev'); show('rev'); rvRender();
 }
-function rvSave() { if (RV.daily) lsSet('sk.daily', { key: RV.key, target: RV.target, turns: RV.turns, log: RV.log, asked: [...RV.asked], crossed: [...RV.crossed], marks: [...RV.marks], hints: RV.hints, order: RV.order, ptr: RV.ptr, cands: RV.cands, done: RV.done, win: RV.win }); }
-function rvRestore(d) { Object.assign(RV, { daily: true, key: d.key, target: d.target, turns: d.turns, log: d.log, asked: new Set(d.asked), crossed: new Set(d.crossed), marks: new Set(d.marks), hints: d.hints, order: d.order, ptr: d.ptr, cands: d.cands, done: d.done, win: d.win }); }
-function rvNextCands() { const c = []; while (c.length < CONFIG.REV.CHOICES && RV.ptr < RV.order.length) { const qi = RV.order[RV.ptr++]; if (!RV.asked.has(qi)) c.push(qi); } RV.cands = c; }
+function rvSave() { if (RV.daily) lsSet('sk.daily', { key: RV.key, target: RV.target, turns: RV.turns, log: RV.log, asked: [...RV.asked], crossed: [...RV.crossed], marks: [...RV.marks], hints: RV.hints, cands: RV.cands, done: RV.done, win: RV.win }); }
+function rvRestore(d) { Object.assign(RV, { daily: true, key: d.key, target: d.target, turns: d.turns, log: d.log, asked: new Set(d.asked), crossed: new Set(d.crossed), marks: new Set(d.marks), hints: d.hints, seed: 0, cands: d.cands, done: d.done, win: d.win }); }
+// 質問の候補：「ここかな？」の県（目印がないときは、×でなく、これまでの答えとヒントに合いそうな県）の
+// あいだで、答えが分かれる質問を出す。関東に目印をつけたら、関東の中で答えが分かれる質問が出る。
+function rvWeights(useMarks) {
+  const w = new Array(N).fill(0), hs = RV.log.filter(x => x.t === 'h');
+  for (let k = 0; k < N; k++) {
+    if (RV.crossed.has(k)) continue;
+    let v = 1;
+    for (const x of RV.log) if (x.t === 'q' && (shareA(x.qi, k) >= 0.5) !== x.a) v *= 0.3;   // これまでの答えと合わない県は軽く
+    hs.forEach((x, i) => { if (rvHintText(i + 1, k) !== x.text) v *= 0.05; });   // ヒントと合わない県はほぼ0
+    w[k] = v;
+  }
+  const mk = useMarks ? [...RV.marks].filter(k => w[k] > 0) : [];
+  if (!mk.length) { const t = w.reduce((a, b) => a + b, 0) || 1; return w.map(v => v / t); }
+  const tm = mk.reduce((a, k) => a + w[k], 0), to = w.reduce((a, v, k) => a + (RV.marks.has(k) ? 0 : v), 0) || 1;
+  return w.map((v, k) => RV.marks.has(k) ? v / tm : 0.25 * v / to);   // 目印の県が8割、ほかは2割
+}
+function rvScore(qi, w) {
+  let pa = 0, m = 0, v = 0;
+  for (let k = 0; k < N; k++) if (w[k]) { const s = shareA(qi, k); if (s >= 0.5) pa += w[k]; m += w[k] * s; }
+  for (let k = 0; k < N; k++) if (w[k]) v += w[k] * (shareA(qi, k) - m) ** 2;
+  const t = w.reduce((a, b) => a + b, 0), p = pa / t, h = p <= 0 || p >= 1 ? 0 : -(p * Math.log2(p) + (1 - p) * Math.log2(1 - p));
+  return h + Math.sqrt(v / t);   // 答えが半々に分かれるほど高い（＋割合の差も少し見る）
+}
+function rvNextCands() {
+  const list = REV_POOL.filter(qi => !RV.asked.has(qi)), srt = a => [...a].sort((x, y) => x - y).join('.');
+  const rnd = mulberry(hashStr(`${RV.key}:${RV.seed}:${RV.turns}:${srt(RV.marks)}:${srt(RV.crossed)}`));
+  let w = rvWeights(true), sc = list.map(qi => [qi, rvScore(qi, w)]), best = Math.max(0, ...sc.map(x => x[1]));
+  if (best < 0.15) { w = rvWeights(false); sc = list.map(qi => [qi, rvScore(qi, w)]); best = Math.max(0, ...sc.map(x => x[1])); }   // 分かれる質問がないときは、残っている県ぜんぶで
+  sc.sort((a, b) => b[1] - a[1]);
+  const pool = sc.filter(x => x[1] >= best * 0.7).slice(0, 12), c = [], sides = [], groups = [];
+  const side = qi => w.map((v, k) => v > 0.002 ? (shareA(qi, k) >= 0.5 ? 'a' : 'b') : '').join('');
+  for (const strict of [true, false]) {
+    const rest = pool.filter(x => !c.includes(x[0]));
+    while (c.length < CONFIG.REV.CHOICES && rest.length) {
+      const ws = rest.map(x => x[1] ** 3); let r = rnd() * ws.reduce((a, b) => a + b, 0), j = 0;
+      while (j < rest.length - 1 && (r -= ws[j]) > 0) j++;
+      const [[qi]] = rest.splice(j, 1), sd = side(qi), g = QS[qi].g;
+      if (strict && (sides.includes(sd) || (g && groups.includes(g)))) continue;   // 同じ分かれ方・同じ仲間の質問は並べない
+      c.push(qi); sides.push(sd); if (g) groups.push(g);
+    }
+  }
+  for (const [qi] of sc) { if (c.length >= CONFIG.REV.CHOICES) break; if (!c.includes(qi)) c.push(qi); }
+  RV.cands = c;
+}
 // コンピュータの答え：多い方の答えと、その県の人の約何割か
 function rvAnswer(qi) {
   const q = QS[qi], s = shareA(qi, RV.target), a = s >= 0.5, r = Math.round(Math.max(s, 1 - s) * 10);
   return { a, label: a ? q.a : q.b, ratio: r >= 10 ? 'ほぼ全員' : r <= 5 ? '半々くらい' : `約${r}割` };
 }
-function rvHintText(n) {
-  if (n === 1) return RV.target <= EAST_LAST ? '東日本' : '西日本';
-  if (n === 2) return INLAND.includes(RV.target) ? '海に面していない' : '海に面している';
-  return REGIONS[PREFS[RV.target][2]] + '地方';
+function rvHintText(n, k = RV.target) {
+  if (n === 1) return k <= EAST_LAST ? '東日本' : '西日本';
+  if (n === 2) return INLAND.includes(k) ? '海に面していない' : '海に面している';
+  return REGIONS[PREFS[k][2]] + '地方';
 }
 function rvLogText(x) {
   if (x.t === 'q') return `${QS[x.qi].q} → ${x.label}（地元の人の${x.ratio}）`;
@@ -1269,19 +1312,19 @@ function rvAsk(qi) {
 }
 function rvHint() {
   if (RV.done || RV.hints >= CONFIG.REV.HINTS) return;
-  RV.turns++; RV.hints++; RV.log.push({ t: 'h', text: rvHintText(RV.hints) }); rvSave(); rvRender();
+  RV.turns++; RV.hints++; RV.log.push({ t: 'h', text: rvHintText(RV.hints) }); rvNextCands(); rvSave(); rvRender();
 }
 function rvGuess(k) {
   if (RV.done) return;
   RV.turns++;
   if (k === RV.target) { RV.log.push({ t: 'o', k }); rvFinish(true); return; }
-  RV.crossed.add(k); RV.marks.delete(k); RV.log.push({ t: 'x', k }); rvSave();
+  RV.crossed.add(k); RV.marks.delete(k); RV.log.push({ t: 'x', k }); rvNextCands(); rvSave();
   show('rev'); setVisual('rev'); rvRender(); toast(`${fullName(k)}ではありません`);
 }
 function rvToggleMark(k) {
   if (RV.done || RV.crossed.has(k)) return;
   if (RV.marks.has(k)) RV.marks.delete(k); else RV.marks.add(k);
-  rvSave(); setVisual('rev');
+  rvNextCands(); rvSave(); setVisual('rev'); rvRender();   // 目印に合わせて、質問の候補を出しなおす
 }
 function rvRender() {
   const d = RV.key.split('-');
@@ -1485,7 +1528,7 @@ new ResizeObserver(onResize).observe($('game'));
 // 自動テスト用（遊ぶのには使わない）
 window.__sk = {
   G, QS, PREFS, CONFIG, get M() { return M; }, get PRIOR() { return PRIOR; }, get ST() { return ST; }, get screen() { return SCREEN; }, get net() { return NET; },
-  RV, startRev, rvAsk, rvHint, rvGuess, rvToggleMark, rvShareText,
+  RV, startRev, rvAsk, rvHint, rvGuess, rvToggleMark, rvShareText, rvNextCands, shareA,
   screenOf(k) { const c = prefInfo[k].c, v = new THREE.Vector3(c[0], 0.1, c[1]).project(cam), r = $('c').getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; },
   get scene() { return scene; }, get renderer() { return renderer; }, prefMeshes, snapshotMap, setVisual, CAMS, prefInfo, partOf, PARTS, get FOCUS() { return FOCUS; }, get JP() { return JP; },
   setStats(d) { ST = d; rebuildModel(); }, get K() { return K; }, posterior, pickNext, makeAvail, oddsOf, oddsText, shareText, makeShareImage, get SHARE() { return SHARE; },
