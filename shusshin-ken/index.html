@@ -76,6 +76,7 @@ a{color:inherit;}
 .btn.alt{background:var(--a);box-shadow:0 4px 0 #c4513a;}
 #tMain .btn+.btn,#tRev .btn+.btn{margin-top:8px;}
 #tRev .tnote{font-size:12px;font-weight:800;color:var(--sub);margin-bottom:8px;}
+#tMain .tnote{font-size:11.5px;font-weight:700;color:var(--sub);text-align:center;margin:6px 0 0;}
 /* 逆モード（当ててみる） */
 #rvTop{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 8px) 10px 0;display:flex;align-items:center;gap:8px;z-index:6;}
 #rvTop::before{content:'';position:absolute;left:0;right:0;top:0;height:calc(100% + 26px);background:linear-gradient(rgba(11,22,38,.85),rgba(11,22,38,0));z-index:-1;pointer-events:none;}
@@ -216,6 +217,7 @@ a{color:inherit;}
         <div id="tMain">
           <button class="btn main" id="startBtn">当ててもらう<small>2択の質問で、あなたの出身地を当てます</small></button>
           <button class="btn main alt" id="revBtn">当ててみる<small>コンピュータの出身地を、あなたが当てます</small></button>
+          <p class="tnote">出身地＝15歳までに いちばん長く住んだ所</p>
         </div>
         <div id="tRev" class="hide">
           <p class="tnote" id="tRevNote">質問をえらんで、少ないターンで当てよう</p>
@@ -329,8 +331,10 @@ const CONFIG = {
   FIRST_Q: '',            // 1問目を決めておく時は問題のid（空なら毎回ランダム）
   POOL_RATE: 1,           // 最初の10問に使う問題を、全体のこの割合だけランダムに選ぶ（1＝毎回すべての問題から一番しぼれる問題を選ぶ。出だしは「県民の日」か「雪」から始まる決まった流れになる）
   OFF_QS: ['bon_month', 'imoni_meat', 'tokoroten', 'zouni_mochi_yaku'],
+  EARLY_N: 5,             // 最初のこの問数は、地元だけの問題（「はい」が多い県が2県以下）を出さず、地方を分ける広い問題だけにする（「最初から狙い撃ち」と言われたため）
+  WIDE_MIN: 3,            // 広い問題とみなす、答えが分かれる県の数（少ない方の側で数える）
   USE_SKIP: false,        // 「どちらでもない・知らない」を押したことを、県の判定に使うか（「知らない・覚えてない・両方」など意味がまざるので使わない。押した数の集計は続ける）
-  LOG_VER: 1,             // まちがいの記録につける判定のしくみの版（判定や質問の選び方を変えたら1つ上げて、前と比べる）   // 当ててもらうモードで出さない問題（しぼる力が弱く「知らない」が多い）
+  LOG_VER: 2,             // まちがいの記録につける判定のしくみの版（判定や質問の選び方を変えたら1つ上げて、前と比べる）   // 当ててもらうモードで出さない問題（しぼる力が弱く「知らない」が多い）
   TRUST: 0.85,            // 調査データをどれくらい信じるか（1＝そのまま、0＝まったく信じない）
   SKIP_PRIOR: 0.06,       // 「どちらでもない・知らない」を押す人の割合の はじめの値（どの県も同じ＝最初は判定に影響しない）
   SKIP_STRENGTH: 20,      // その はじめの値を「何人ぶん」として数えるか（「知らない」が集まると県ごとの差が効いてくる）
@@ -605,6 +609,7 @@ let ST = {};       // みんなの答えの集計（q{番号}_{県コード}a / 
 let M = [];        // M[問題][県]：その県の人がAを選ぶ確率（判定に使う値）
 let PRIOR = [];    // 答える前の、各県の確率
 let K = [];        // K[問題][県]：その県の人が「どちらでもない・知らない」を押す確率
+let WIDE = [];     // WIDE[問題]：広い問題か（地元だけの問題でないか）
 function soft(p) { p = clamp(p, 0.03, 0.97); return 0.5 + (p - 0.5) * CONFIG.TRUST; }
 function counts(q, k) { return [ST[`q${q.s}_${k + 1}a`] || 0, ST[`q${q.s}_${k + 1}b`] || 0]; }
 function rebuildModel() {
@@ -615,6 +620,7 @@ function rebuildModel() {
   const base = POP.map(x => Math.pow(x, CONFIG.POP_POW)), bs = sum(base);
   const pr = base.map((x, k) => CONFIG.PRIOR_PLAYS * x / bs + (ST['n' + (k + 1)] || 0)), ps = sum(pr);
   PRIOR = pr.map(x => x / ps);
+  WIDE = M.map(m => { const hi = m.filter(x => x >= 0.35).length; return Math.min(hi, N - hi) >= CONFIG.WIDE_MIN; });
 }
 // 境界線で見せる「Aを選ぶ人の割合」（調査のはじめの値＋みんなの答え）
 function shareA(qi, k) { const q = QS[qi], S = CONFIG.PRIOR_STRENGTH, [a, b] = counts(q, k); return (S * q.p[k] / 100 + a) / (S + a + b); }
@@ -630,7 +636,7 @@ function entropy(v) { let h = 0; for (const x of v) if (x > 1e-12) h -= x * Math
 // 次の問題をえらぶ：答えでいちばん候補がしぼれる（情報が多い）問題の中から、少しだけランダムに
 // 遊ぶたびに、最初の10問で使う問題をランダムに選ぶ（延長戦では全部の問題を使う）
 function makeAvail(rnd = Math.random) { const s = new Set(); QS.forEach((q, i) => { if (rnd() < CONFIG.POOL_RATE) s.add(i); }); return s; }
-function pickNext(ans, skipped, post, rnd = Math.random, avail = null) {
+function pickNext(ans, skipped, post, rnd = Math.random, avail = null, early = true) {
   const used = new Set([...ans.map(x => x.qi), ...skipped]);
   if (!used.size && CONFIG.FIRST_Q) { const f = QS.findIndex(q => q.id === CONFIG.FIRST_Q); if (f >= 0) return f; }
   const useAvail = avail && ans.length < CONFIG.NQ;
@@ -638,6 +644,7 @@ function pickNext(ans, skipped, post, rnd = Math.random, avail = null) {
   const H0 = entropy(post), cands = [];
   QS.forEach((q, i) => {
     if (used.has(i) || CONFIG.OFF_QS.includes(q.id) || (q.g && (gc[q.g] || 0) >= (CONFIG.GROUP_MAX[q.g] ?? 1))) return;
+    if (early && ans.length < CONFIG.EARLY_N && !WIDE[i]) return;   // 最初のうちは広い問題だけ
     if (q.late && ans.length < CONFIG.NQ) return;   // 地元のテレビ局の問題などは、延長戦に入ってからだけ
     if (useAvail && !avail.has(i)) return;
     const m = M[i]; let pa = 0; for (let k = 0; k < N; k++) pa += post[k] * m[k];
@@ -648,7 +655,7 @@ function pickNext(ans, skipped, post, rnd = Math.random, avail = null) {
     }
     cands.push([i, Math.max(1e-9, H0 - (pa * ha + (1 - pa) * hb))]);
   });
-  if (!cands.length) return useAvail ? pickNext(ans, skipped, post, rnd, null) : -1;
+  if (!cands.length) return useAvail ? pickNext(ans, skipped, post, rnd, null, early) : early && ans.length < CONFIG.EARLY_N ? pickNext(ans, skipped, post, rnd, avail, false) : -1;
   const best = Math.max(...cands.map(c => c[1]));
   const pool = cands.filter(c => c[1] >= best * CONFIG.PICK_SLACK), w = pool.map(c => Math.pow(c[1], CONFIG.PICK_POW));
   let r = rnd() * sum(w);
@@ -1483,7 +1490,7 @@ window.__sk = {
   RV, startRev, rvAsk, rvHint, rvGuess, rvToggleMark, rvShareText,
   screenOf(k) { const c = prefInfo[k].c, v = new THREE.Vector3(c[0], 0.1, c[1]).project(cam), r = $('c').getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; },
   get scene() { return scene; }, get renderer() { return renderer; }, prefMeshes, snapshotMap, setVisual, CAMS, prefInfo, partOf, PARTS, get FOCUS() { return FOCUS; }, get JP() { return JP; },
-  setStats(d) { ST = d; rebuildModel(); }, get K() { return K; }, posterior, pickNext, makeAvail, oddsOf, oddsText, shareText, makeShareImage, get SHARE() { return SHARE; },
+  setStats(d) { ST = d; rebuildModel(); }, get K() { return K; }, get WIDE() { return WIDE; }, posterior, pickNext, makeAvail, oddsOf, oddsText, shareText, makeShareImage, get SHARE() { return SHARE; },
   // 各県の人が「調査どおりに」答えたら、どれくらい当たるか（trials：1県あたりの回数）
   sim(trials = 30, seed = 1) {
     let s = seed; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
