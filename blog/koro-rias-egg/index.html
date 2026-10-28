@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>たまごは、縦に転がすと遊べなかった - N.K. Works 開発日記</title>
+<meta name="description" content="『コロリアス』は、三陸のリアス海岸を回して、割れやすいたまごを宮古まで転がすゲーム。縦にパタパタ転がる形では跳ねて海に落ちてしまうのを、横に寝かせた転がり方に変え、409kmのコースが本当に通れるかを自動で遊ぶプログラムで確かめた話。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/blog/koro-rias-egg/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:title" content="たまごは、縦に転がすと遊べなかった - N.K. Works 開発日記">
+<meta property="og:description" content="『コロリアス』は、三陸のリアス海岸を回して、割れやすいたまごを宮古まで転がすゲーム。縦にパタパタ転がる形では跳ねて海に落ちてしまうのを、横に寝かせた転がり方に変え、409kmのコースが本当に通れるかを自動で遊ぶプログラムで確かめた話。">
+<meta property="og:url" content="https://nkworks-games.com/blog/koro-rias-egg/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/assets/site.css">
+<script>
+(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous'; s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();
+</script>
+</head>
+<body>
+
+<header class="site-h"><div class="wrap">
+<a class="logo" href="/">N.K. Works</a>
+<nav class="nav"><a href="/games/">ゲーム</a><a href="/blog/" aria-current="page">開発日記</a><a href="/about.html">運営者情報</a></nav>
+</div></header>
+
+<main><div class="wrap"><article class="post">
+<p class="crumb"><a href="/">トップ</a> › <a href="/blog/">開発日記</a></p>
+<h1>たまごは、縦に転がすと遊べなかった</h1><p class="post-meta">2026年10月28日 ・ N.K. Works</p>
+<p>『コロリアス』は、三陸のリアス海岸を回したり動かしたりして、割れやすいたまごを牡鹿半島から宮古まで転がして運ぶゲームです。同じ海岸線を使った『タテリアス』を作っている時に、「このギザギザの上で、すぐ割れるものを転がしたらどうなるだろう」と思いついたのが始まりでした。</p>
+<h2>回すのは、たまごではなく海岸</h2>
+<p>たまごを直接動かすのではなく、海岸を丸ごと回したり、指で動かしたりします。重力はいつも下向きなので、海岸を少し傾けると、たまごが坂を転がりはじめます。岬の先を回る時は、たまごの下の地面がいつも平らになるように、少しずつ海岸を回し続けることになります。</p>
+<p>回す中心は、いつもたまごの位置にしました。たまごから遠い所を中心にすると、回したとたんに地面がたまごにぶつかってきて、それだけで割れてしまうからです。</p>
+<h2>下るほど、海が近づいてしまう</h2>
+<p>最初は、海を画面の下に固定していました。ところが、坂を下ってたまごを進めるたびに、少しずつ海に近づいていきます。数十秒で、たまごが海についてしまいました。そこで海は、たまごが最後に海岸にふれていた高さの少し下に、ゆっくりついてくるようにしました。こうすると、ふつうに転がしている間は海に落ちず、岬から大きく落ちた時だけ海に落ちます。</p>
+<h2>たまごが、小さなすき間にはさまる</h2>
+<p>海岸線は、国の地図のデータから取った本物の形です。そのままだと、たまごより細いすき間や、小さな段差がたくさんあって、たまごがはさまって動かなくなる所がありました。そこで、たまごが通れないほど口のせまいすき間はふさぎ、小さなでこぼこはならしています。入り江や岬の大きな形は、そのまま残しています。</p>
+<h2>縦に転がすと、跳ねて海へ</h2>
+<p>いちばん苦労したのが、たまごの転がり方です。最初は、たまごが縦にパタパタと転がるようにしました。転がるたびに高さが変わるので、いかにもたまごらしい動きになります。ところが、少し速くなるとガタガタ跳ねて地面からはなれ、そのまま岬から落ちてしまいました。ゆるい坂では、とがった方を下にしたまま止まって、まったく動かないこともありました。</p>
+<p>本物のたまごも、縦には転がらず、横に寝て転がります。そこで、たまごを横に寝かせて転がすようにしました。そのかわり、たまごは重さが少しかたよっているので、重い方が下に来たがって、転がる速さが波打つようにしています。ゆるい坂だと止まりやすく、急な坂だと急に速くなる。このクセが、たまごの難しさです。</p>
+<h2>409kmを、本当に通れるのか</h2>
+<p>コースは約409kmあります。もし途中に、どうやっても通れない場所があったら、そこから先はだれも行けません。そこで、海岸を回して転がす自動のプログラムを作り、10kmおきの41か所から、それぞれ25秒ずつ遊ばせました。ガラス玉では41か所中38か所がそのまま進み、コースの全部の区間がつながっていて、宮古まで通れることを確かめました。自動のプログラムでも、通しでは約9分かかります。人が遊ぶと、15〜25分くらいになりそうです。</p>
+<h2>割れない「ビー玉」</h2>
+<p>割れたら最初からやり直しなので、宮古までの道のりはかなり長く感じます。そこで、割れない「ビー玉」も入れました。ビー玉は海に落ちても、少し前の場所からやり直せます。まずはビー玉でコースの形と回し方に慣れてから、たまごに挑戦するのがおすすめです。</p>
+<h2>この記事のゲーム</h2><ul class="grid"><li><a class="card" href="/games/koro-rias/"><div class="th"><img src="/games/koro-rias/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>コロリアス</b><span>リアス海岸を回して、割れものを宮古まで。</span><em>2026年10月28日 公開</em></div></a></li></ul>
+<h2>ほかの日記</h2><ul class="list"><li><a href="/blog/shusshin-kimete/"><em>2026年10月27日</em><b>2択10問では、半分しか当たらなかった</b><span>『出身地、当てます』は、2択の質問で出身地を当てるゲーム。はじめは半分しか当たらなかったのを、県ごとの「決め手の質問」と延長戦で、8割5分ほどまで上げた話。</span></a></li><li><a href="/blog/cap-drop-ball/"><em>2026年10月26日</em><b>落ちる球だけ投げていれば、だれにも打たれなかった</b><span>『キャップ野球』は、ペットボトルのキャップで遊ぶ体育館の野球。落ちる球だけで打たれなかったCPUの打者に、同じ球を見るほど慣れていくしくみを入れ、打つ側には「ちぢむ円」の目安を足した話。</span></a></li><li><a href="/blog/momotaro-speed/"><em>2026年10月25日</em><b>「ライドなんだから」で、どんぶらこが時速190kmになった</b><span>『桃太郎ライド』は、桃になって川を流れるゲーム。のんびり時速40kmで流れていた桃を、カメラや風の線で速く見せ、コースを3kmにのばして、時速190kmまで上げた話。</span></a></li></ul>
+<div class="ad-box"><p class="lbl">広告</p>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</article></div></main>
+<footer class="site-f"><div class="wrap">
+<p><a href="/">トップ</a> ・ <a href="/games/">ゲーム一覧</a> ・ <a href="/blog/">開発日記</a> ・ <a href="/about.html">運営者情報・お問い合わせ</a> ・ <a href="/privacy-policy.html">プライバシーポリシー</a></p>
+<p>&copy; 2026 N.K. Works</p>
+</div></footer>
+</body>
+</html>
