@@ -150,9 +150,8 @@ const CONFIG = {
   SMOOTH_PASS: 8,       // 小さなでこぼこをならす回数（玉が小さな段差にはまらないように）
   BRIDGE: 0.9,          // これより口がせまい入り江・すき間はふさぐ（玉がはさまって動けなくなるのを防ぐ）
   SEA_Y: 0,             // スタート時の海面の高さ
-  SEA_GAP: 25,          // 海面は、海岸にふれていた高さのこれだけ下（大きくショートカットするほど落ちた時だけ海に落ちる）
+  SEA_SHORTCUT: 0.2,    // 海面は、海岸にふれていた高さから「スタート〜宮古の直線きょり」のこの割合だけ下（ステージの1/5くらいを一気にショートカットするほど落ちた時だけ海に落ちる）
   SEA_FOLLOW: 1.2,      // 上り坂で海面が上がってくる速さ（下り坂ではすぐ下がる）
-  START_H: 25,          // スタート時、海面からどれだけ上に置くか
   // 転がるもの（R=半径、BREAK_V=これ以上の速さでぶつかると割れる、WOBBLE=重さのかたよりで転がりがクセのある強さ）
   EGG:  {R: 0.33, BREAK_V: 5.2, BOUNCE: 0.10, ROLL_DRAG: 0.7, WOBBLE: 0.16},
   BALL: {R: 0.36, BREAK_V: 4.5, BOUNCE: 0.20, ROLL_DRAG: 0.10, WOBBLE: 0},
@@ -272,6 +271,7 @@ function buildWorld(){
   W.minX=minX;W.maxX=maxX;W.yTop=e[1];W.yBot=co[tip][1];
   const segN=i=>{const s=W.segs[Math.min(i,W.nCoast-1)];return [s.nx,s.ny];};W.segN=segN;
   const gi=W.goalTown.i,gn=segN(gi);W.goal={x:co[gi][0]+gn[0]*1.6,y:co[gi][1]+gn[1]*1.6};
+  W.seaGap=Math.hypot(W.goal.x-co[start][0],W.goal.y-co[start][1])*CONFIG.SEA_SHORTCUT;  // 海面は、海岸にふれていた高さのこれだけ下
 }
 
 // ===== [SEC:PHYSICS] =====
@@ -287,8 +287,8 @@ function placeAtStart(idx){
   const co=W.coast,i=idx===undefined?W.start:idx,[nx,ny]=W.segN(i),h=SHAPE.R;
   L.th=Math.PI/2-Math.atan2(ny,nx);L.w=0;L.wq=0;L.vx=L.vy=0;
   const lx=co[i][0]+nx*(h+0.02),ly=co[i][1]+ny*(h+0.02);
-  const [rx,ry]=rotV(lx,ly,L.th);L.x=-rx;L.y=CONFIG.SEA_Y+CONFIG.START_H-ry;L.tx=L.x;L.ty=L.y;
-  Object.assign(B,{x:0,y:CONFIG.SEA_Y+CONFIG.START_H,vx:0,vy:0,phi:0,spin:0,contact:true,nx:0,ny:1,ci:i,broken:false,maxImpact:0,vt:0});
+  const [rx,ry]=rotV(lx,ly,L.th);L.x=-rx;L.y=CONFIG.SEA_Y+W.seaGap-ry;L.tx=L.x;L.ty=L.y;
+  Object.assign(B,{x:0,y:CONFIG.SEA_Y+W.seaGap,vx:0,vy:0,phi:0,spin:0,contact:true,nx:0,ny:1,ci:i,broken:false,maxImpact:0,vt:0});
   B.lx=lx;B.ly=ly;
 }
 function rotateLand(d){const px=B.x,py=B.y;
@@ -367,7 +367,7 @@ function checkProgress(){
 function respawn(){sfxSplash();spawnSplash(B.x);G.falls++;
   let i=B.lastCi;const back=W.S[i]-CONFIG.RESPAWN_BACK;while(i>W.start&&W.S[i]>back)i--;
   const keepX=B.x;placeAtStart(i);B.lastCi=i;const dx=keepX-B.x;L.x+=dx;L.tx+=dx;B.x+=dx;  // 横方向はそのまま（カメラが飛ばないように）
-  G.seaY=B.y-CONFIG.SEA_GAP;cam.y=B.y;showToast('ドボン！','少し前からやり直し');}
+  G.seaY=B.y-W.seaGap;cam.y=B.y;showToast('ドボン！','少し前からやり直し');}
 function breakIt(cx,cy,nx,ny){if(G.over)return;B.broken=true;objMesh.visible=false;
   if(G.kind==='egg'){sfxCrack();spawnBits(cx,cy,nx,ny,60,[0xfff6e8,0xf3e3c8,0xffc21a,0xffb000]);addSplat(cx,cy,nx,ny);}
   else{sfxShatter();spawnBits(cx,cy,nx,ny,80,[0xc8f0ff,0x9fd8ff,0xffffff,0xff7ab8]);}
@@ -463,7 +463,7 @@ function sfxChime(){tone(988,'triangle',0.2,0.35);tone(1319,'triangle',0.2,0.5,0
 function sfxFanfare(){[523,659,784,1047].forEach((f,i)=>tone(f,'triangle',0.22,i<3?0.25:0.9,i*0.13));[659,784,1047,1319].forEach((f,i)=>tone(f,'sine',0.08,i<3?0.25:0.9,i*0.13));}
 function updateAudio(){if(!AU.ctx)return;const t=AU.ctx.currentTime,on=G.state==='play'&&!G.paused&&!G.over&&B.contact,rv=on?Math.abs(B.vt||0):0;
   AU.roll.g.gain.setTargetAtTime(clamp(rv/8,0,1)*(G.kind==='egg'?0.22:0.16),t,0.05);AU.roll.fl.frequency.setTargetAtTime((G.kind==='egg'?180:420)+rv*60,t,0.05);
-  AU.waves.g.gain.setTargetAtTime(0.15*Math.exp(-Math.max(0,cam.y-G.seaY)/14)*(0.7+0.3*Math.sin(t*0.9)),t,0.2);}
+  AU.waves.g.gain.setTargetAtTime(0.15*Math.exp(-Math.max(0,cam.y-G.seaY)/W.seaGap*1.8)*(0.7+0.3*Math.sin(t*0.9)),t,0.2);}  // 波の音は海に近づくほど大きく（ふつうに転がしている時は、海面がいつもの深さにある時の大きさ）
 
 // ===== [SEC:RENDER] =====
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
@@ -687,7 +687,7 @@ function simulate(dt){
   updateRotation(dt);
   const n=Math.max(1,Math.ceil(dt*CONFIG.STEP_HZ)),h=dt/n;
   for(let i=0;i<n&&!G.over;i++){if(G.started)stepPhysics(h);else{/* はじめて操作するまでは止めておく */}}
-  if(B.contact&&!G.over){const tg=B.y-CONFIG.SEA_GAP;G.seaY=tg<G.seaY?tg:G.seaY+(tg-G.seaY)*Math.min(1,dt*CONFIG.SEA_FOLLOW);}  // 下る時はすぐ下がるので、普通に遊んでいれば海には届かない
+  if(B.contact&&!G.over){const tg=B.y-W.seaGap;G.seaY=tg<G.seaY?tg:G.seaY+(tg-G.seaY)*Math.min(1,dt*CONFIG.SEA_FOLLOW);}  // 下る時はすぐ下がるので、普通に遊んでいれば海には届かない
   if(!G.over&&B.y<G.seaY+0.05&&G.kind==='marble'){respawn();return;}
   if(!G.over&&B.y<G.seaY+0.05){sfxSplash();spawnSplash(B.x);objMesh.visible=false;finish('sea');}
   if(!G.over)checkProgress();
