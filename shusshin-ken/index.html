@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>出身地、当てます</title>
-<meta name="description" content="2択10問で、あなたの出身地を当てます。肉じゃがの肉は牛？豚？ 答えるたびに3Dの日本地図が光って候補がしぼられ、最後に空からピンが落ちてきます。遊ぶ人が増えるほど、よく当たるようになります。">
+<meta name="description" content="2択の質問に答えるだけで、あなたの出身地を当てます。肉じゃがの肉は牛？豚？ 答えるたびに3Dの日本地図が光って候補がしぼられ、最後に空からピンが落ちてきます。遊ぶ人が増えるほど、よく当たるようになります。">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
 <meta property="og:type" content="website">
 <meta property="og:title" content="出身地、当てます">
-<meta property="og:description" content="2択10問で、あなたの出身地を当てます。">
+<meta property="og:description" content="2択の質問に答えるだけで、あなたの出身地を当てます。">
 <meta property="og:url" content="https://nkworks-games.com/shusshin-ken/">
 <meta property="og:image" content="https://nkworks-games.com/shusshin-ken/card.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -211,7 +211,7 @@ a{color:inherit;}
     <header id="hud" class="hide"><div id="prog"></div><button id="quit">やめる</button></header>
 
     <section id="title" class="scr hide">
-      <div class="logo"><small>2択10問で</small><h1>出身地、<br>当てます</h1><p>肉じゃがの肉は、牛？ 豚？</p></div>
+      <div class="logo"><small>2択の質問で</small><h1>出身地、<br>当てます</h1><p>肉じゃがの肉は、牛？ 豚？</p></div>
       <div class="card" id="tSheet">
         <div id="tMain">
           <button class="btn main" id="startBtn">当ててもらう<small>2択の質問で、あなたの出身地を当てます</small></button>
@@ -328,7 +328,9 @@ const CONFIG = {
   EXTRA_CONF: 0.95,       // 10問終わって、いちばん有力な県の確率がこれ未満なら延長戦（延長中にこれを超えたら終わり）
   FIRST_Q: '',            // 1問目を決めておく時は問題のid（空なら毎回ランダム）
   POOL_RATE: 1,           // 最初の10問に使う問題を、全体のこの割合だけランダムに選ぶ（1＝毎回すべての問題から一番しぼれる問題を選ぶ。出だしは「県民の日」か「雪」から始まる決まった流れになる）
-  OFF_QS: ['bon_month', 'imoni_meat', 'tokoroten', 'zouni_mochi_yaku'],   // 当ててもらうモードで出さない問題（しぼる力が弱く「知らない」が多い）
+  OFF_QS: ['bon_month', 'imoni_meat', 'tokoroten', 'zouni_mochi_yaku'],
+  USE_SKIP: false,        // 「どちらでもない・知らない」を押したことを、県の判定に使うか（「知らない・覚えてない・両方」など意味がまざるので使わない。押した数の集計は続ける）
+  LOG_VER: 1,             // まちがいの記録につける判定のしくみの版（判定や質問の選び方を変えたら1つ上げて、前と比べる）   // 当ててもらうモードで出さない問題（しぼる力が弱く「知らない」が多い）
   TRUST: 0.85,            // 調査データをどれくらい信じるか（1＝そのまま、0＝まったく信じない）
   SKIP_PRIOR: 0.06,       // 「どちらでもない・知らない」を押す人の割合の はじめの値（どの県も同じ＝最初は判定に影響しない）
   SKIP_STRENGTH: 20,      // その はじめの値を「何人ぶん」として数えるか（「知らない」が集まると県ごとの差が効いてくる）
@@ -338,7 +340,7 @@ const CONFIG = {
   PRIOR_PLAYS: 3000,      // 「遊んだ人の県の割合」を混ぜる時の、人口の重み（人数）
   PICK_SLACK: 0.85,       // 次の問題：いちばん役に立つ問題の何割以上の役立ち度の中からえらぶ（1＝いつも同じ問題）
   PICK_POW: 4,            // その中で、役に立つ問題ほど出やすくする強さ
-  GROUP_MAX: { zoni: 2, tv: 0 }, // 同じ話題の問題を1回で何問まで出すか（書いてない話題は1問まで。0＝出さない：地元テレビ局の問題は「ずるい」ので出さない）
+  GROUP_MAX: { zoni: 2, tv: 0, kyoto_city: 2 }, // 同じ話題の問題を1回で何問まで出すか（書いてない話題は1問まで。0＝出さない：地元テレビ局の問題は「ずるい」ので出さない）
   REV: { CHOICES: 3, HINTS: 3 },   // 逆モード：毎ターンの質問の候補数・ヒントの数
   SEKI_LO: 0.38, SEKI_HI: 0.62, // 東日本である確率がこの間なら「関ケ原の住人」
   SHARDS: 8,              // みんなの答えを入れる箱の数（同時に書きこめる人数をふやす。1箱に1秒1回ほどが目安）
@@ -558,15 +560,15 @@ const QS = [{"s":1,"id":"nikujaga","t":"肉じゃがの肉","q":"子どもの頃
 {"s":190,"id":"kochi_sawachi","t":"皿鉢料理","q":"子どもの頃、親せきが集まる日やお祭りの時に、家で「皿鉢（さわち）料理」（大きなお皿に、すし・刺身・煮物などをまとめて盛り合わせたもの）が出た？","a":"出た","b":"出なかった","g":null,"basis":"estimated","p":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,4,4,5,75,2,2,2,2,2,2,2,2],"src":[["農林水産省","うちの郷土料理：皿鉢料理 高知県","","https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/sawachiryori_kochi.html"]]},
 {"s":191,"id":"okinawa_pork_tamago","t":"ポーク卵","q":"子どもの頃、家で「ポーク卵」（缶詰のポーク〈ランチョンミート〉を焼いて、卵焼きと一緒に食べるおかず）がよく出た？","a":"よく出た","b":"あまり・ない","g":null,"basis":"estimated","p":[4,4,4,4,4,4,4,4,4,4,4,4,5,5,4,4,4,4,4,4,4,4,4,4,4,4,5,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8,90],"src":[["琉球新報","ポーク卵おにぎり進化 高級品登場、専門店は海外進出","2019","https://ryukyushimpo.jp/news/entry-915650.html"]]},
 {"s":192,"id":"okinawa_san_a","t":"サンエー","q":"子どもの頃、家族の買い物で「サンエー」（沖縄のスーパー・ショッピングセンター）によく行った？","a":"よく行った","b":"行かない・知らない","g":null,"basis":"estimated","p":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,90],"src":[["株式会社サンエー","2026年2月期 決算説明資料（店舗数）","2026","https://www.san-a.co.jp/common/uploads/2026/04/82e421f8e2b190aa544aa5fded630257.pdf"]]},
-{"s": 193, "id": "kyoto_marutake", "t": "まるたけえびす", "q": "子どもの頃、「まる たけ えびす に おし おいけ…」（京都の通りの名前を順番に歌う数え歌）を歌えた？", "a": "歌えた", "b": "歌えない・知らない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10, 65, 6, 4, 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["京阪電気鉄道", "京都通 「通り名の数え歌」", "2016", "https://www.keihan.co.jp/navi/kyoto_tsu/tsu201612.html"], ["京阪電気鉄道", "京都通 通り名と町名", "2011", "https://www.keihan.co.jp/navi/kyoto_tsu/tsu201103.html"]]},
-{"s": 194, "id": "kyoto_ennichi", "t": "弘法さん・天神さん", "q": "子どもの頃、「弘法さん」（東寺の縁日・毎月21日）や「天神さん」（北野天満宮の縁日・毎月25日）に行った？", "a": "行った", "b": "行ってない・知らない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10, 55, 8, 5, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["京阪電気鉄道", "京都通 「弘法さん」と「天神さん」", "2023", "https://www.keihan.co.jp/navi/kyoto_tsu/tsu202301.html"], ["GIGAZINE", "京都・東寺の弘法市", "2009", "https://gigazine.net/news/20090323_kyoto_koboichi/"]]},
+{"s": 193, "id": "kyoto_marutake", "t": "まるたけえびす", "q": "子どもの頃、「まる たけ えびす に おし おいけ…」（京都の通りの名前を順番に歌う数え歌）を歌えた？", "a": "歌えた", "b": "歌えない・知らない", "g": "kyoto_city", "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10, 65, 6, 4, 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["京阪電気鉄道", "京都通 「通り名の数え歌」", "2016", "https://www.keihan.co.jp/navi/kyoto_tsu/tsu201612.html"], ["京阪電気鉄道", "京都通 通り名と町名", "2011", "https://www.keihan.co.jp/navi/kyoto_tsu/tsu201103.html"]]},
+{"s": 194, "id": "kyoto_ennichi", "t": "弘法さん・天神さん", "q": "子どもの頃、「弘法さん」（東寺の縁日・毎月21日）や「天神さん」（北野天満宮の縁日・毎月25日）に行った？", "a": "行った", "b": "行ってない・知らない", "g": "kyoto_city", "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10, 55, 8, 5, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["京阪電気鉄道", "京都通 「弘法さん」と「天神さん」", "2023", "https://www.keihan.co.jp/navi/kyoto_tsu/tsu202301.html"], ["GIGAZINE", "京都・東寺の弘法市", "2009", "https://gigazine.net/news/20090323_kyoto_koboichi/"]]},
 {"s": 195, "id": "kanagawa_tvk", "t": "tvk", "q": "子どもの頃、家のテレビで「tvk」（テレビ神奈川。神奈川の地元テレビ局）をよく見てた？", "a": "見てた", "b": "見てない・映らない", "g": "tv", "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 5, 20, 70, 2, 2, 2, 2, 3, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["総務省 関東総合通信局", "地上デジタルテレビジョン放送局の免許（神奈川県内の中継局）", "", "https://www.soumu.go.jp/soutsu/kanto/bc/digital/menkyo/kanagawa/zushi.pdf"], ["Wikipedia", "テレビ神奈川", "2026閲覧", "https://ja.wikipedia.org/wiki/テレビ神奈川"]], "late": 1},
 {"s": 196, "id": "chiba_tv", "t": "チバテレ", "q": "子どもの頃、家のテレビで「チバテレ」（千葉テレビ放送。千葉の地元テレビ局）をよく見てた？", "a": "見てた", "b": "見てない・映らない", "g": "tv", "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 10, 2, 2, 8, 68, 12, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["千葉県", "県政に関する世論調査（第60回）", "2020", "https://www.pref.chiba.lg.jp/kouhou/yoron/yoronchousa/r02-60/documents/60q44.pdf"], ["Wikipedia", "千葉テレビ放送", "2026閲覧", "https://ja.wikipedia.org/wiki/千葉テレビ放送"]], "late": 1},
 {"s": 197, "id": "tochigi_familyland", "t": "とちのきファミリーランド", "q": "子どもの頃、遊園地「とちのきファミリーランド」（宇都宮の遊園地）に行った？", "a": "行った", "b": "行ってない・知らない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 5, 10, 75, 10, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["いこーよ", "とちのきファミリーランド（施設情報）", "2026閲覧", "https://iko-yo.net/facilities/1028"]]},
 {"s": 198, "id": "kochi_icecurin", "t": "アイスクリン", "q": "子どもの頃、道ばたのパラソルの下で売っている高知の「アイスクリン」（シャリっとした昔ながらのアイス）を食べた？", "a": "食べた", "b": "食べてない・知らない", "g": null, "basis": "estimated", "p": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 3, 15, 12, 20, 82, 3, 3, 3, 3, 3, 3, 3, 3], "src": [["macaroni", "高知のご当地アイス「アイスクリン」", "", "https://macaro-ni.jp/62283"], ["なっぷマガジン", "高知のご当地グルメ", "", "https://www.nap-camp.com/mag/864"]]},
 {"s": 199, "id": "saga_sicilian", "t": "シシリアンライス", "q": "子どもの頃、「シシリアンライス」（ご飯に焼いたお肉と生野菜をのせ、マヨネーズをかけた佐賀の料理）を食べた？", "a": "食べた", "b": "食べてない・知らない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 60, 6, 3, 2, 2, 2, 2], "src": [["地球の歩き方", "佐賀のご当地グルメ「シシリアンライス」", "", "https://www.arukikata.co.jp/webmagazine/259348/"]]},
 {"s": 200, "id": "shimane_izumo_hatsumode", "t": "出雲大社の初詣", "q": "子どもの頃、初詣は「出雲大社」に行くことが多かった？", "a": "多かった", "b": "ちがう", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 18, 55, 4, 4, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["出雲市", "観光入込客数の資料", "", "https://www.city.izumo.shimane.jp/www/contents/1642035761410/files/siryou4.pdf"], ["るるぶ&more.", "出雲大社の初詣", "", "https://rurubu.jp/andmore/spot/80033306/hatsumode"]]},
-{"s": 201, "id": "kyoto_gion_yoiyama", "t": "祇園祭の宵山", "q": "子どもの頃、夏の「祇園祭」の宵山（山鉾が並び、夜店が出る晩）に行った？", "a": "行った", "b": "行ってない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 5, 2, 2, 3, 2, 2, 5, 28, 62, 14, 7, 12, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["nippon.com", "祇園祭を支える京都町衆の「おもてなし」（宵山の山鉾と夜店）", "2013", "https://www.nippon.com/ja/views/b03301/"]]},
+{"s": 201, "id": "kyoto_gion_yoiyama", "t": "祇園祭の宵山", "q": "子どもの頃、夏の「祇園祭」の宵山（山鉾が並び、夜店が出る晩）に行った？", "a": "行った", "b": "行ってない", "g": "kyoto_city", "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 5, 2, 2, 3, 2, 2, 5, 28, 62, 14, 7, 12, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["nippon.com", "祇園祭を支える京都町衆の「おもてなし」（宵山の山鉾と夜店）", "2013", "https://www.nippon.com/ja/views/b03301/"]]},
 {"s": 202, "id": "osaka_tenjinmatsuri", "t": "天神祭", "q": "子どもの頃、夏の「天神祭」（大阪天満宮のお祭り。大川に船が出て、花火が上がる）に行った？", "a": "行った", "b": "行ってない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 5, 7, 38, 12, 10, 6, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["ニッポン旅マガジン", "大阪天満宮の夏の祭礼「天神祭」｜日本三大祭の船渡御と花火", "", "https://tabi-mag.jp/osaka-tenjinsai/"]]},
 {"s": 203, "id": "saga_maruboro", "t": "丸ぼうろ", "q": "子どもの頃、おやつに「丸ぼうろ」（手のひらくらいの丸くて平たい焼き菓子。たまごボーロとはちがう）をよく食べた？", "a": "よく食べた", "b": "あまり・知らない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 20, 68, 28, 8, 5, 4, 4, 2], "src": [["All About ニュース", "佐賀県らしさを感じる「佐賀県のお土産」ランキング（2位 丸ぼうろ）", "2026", "https://news.allabout.co.jp/articles/o/109541/"]]},
 {"s": 204, "id": "iwate_koiwai", "t": "小岩井農場", "q": "子どもの頃、遠足や家族で「小岩井農場」（牛や羊のいる大きな牧場。まきば園）に行った？", "a": "行った", "b": "行ってない・知らない", "g": null, "basis": "estimated", "p": [3, 15, 80, 15, 18, 5, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["るるぶ&more.", "小岩井農場（岩手県雫石町。まきば園）", "", "https://rurubu.jp/andmore/spot/80003021"]]},
@@ -619,8 +621,8 @@ function shareA(qi, k) { const q = QS[qi], S = CONFIG.PRIOR_STRENGTH, [a, b] = c
 // skips：「どちらでもない・知らない」を押した問題（その県の人が知らないと答える確率も手がかりにする）
 function posterior(ans, prior = PRIOR, skips = []) {
   const lp = prior.map(Math.log);
-  for (const x of ans) { const m = M[x.qi], kk = K[x.qi]; for (let k = 0; k < N; k++) lp[k] += Math.log((1 - kk[k]) * (x.a ? m[k] : 1 - m[k])); }
-  for (const qi of skips) { const kk = K[qi]; for (let k = 0; k < N; k++) lp[k] += Math.log(kk[k]); }
+  for (const x of ans) { const m = M[x.qi], kk = K[x.qi]; for (let k = 0; k < N; k++) lp[k] += Math.log((CONFIG.USE_SKIP ? 1 - kk[k] : 1) * (x.a ? m[k] : 1 - m[k])); }
+  if (CONFIG.USE_SKIP) for (const qi of skips) { const kk = K[qi]; for (let k = 0; k < N; k++) lp[k] += Math.log(kk[k]); }
   const mx = Math.max(...lp), e = lp.map(v => Math.exp(v - mx)), s = sum(e);
   return e.map(v => v / s);
 }
@@ -670,7 +672,8 @@ const rankOf = (post, k) => post.filter(x => x > post[k]).length + 1;
 // ===== [SEC:ONLINE] =====
 // 項目名 q{番号}_… の問題番号から、どの箱（0＝s0、1＝s0_1 …）に入れるかを決める（t・n・h は いつも 0）
 const PARTS = Math.min(CONFIG.MAX_PARTS, Math.ceil(Math.max(...QS.map(q => q.s)) / CONFIG.QS_PER_DOC));
-const partOf = k => { const m = /^q(\d+)_/.exec(k); return m ? Math.min(PARTS - 1, Math.floor((+m[1] - 1) / CONFIG.QS_PER_DOC)) : 0; };
+const partOf = k => { if (k[0] === 'z') return PARTS - 1;   // まちがいの記録（z…）は s0_1 などへ（1つの箱に1回で書く項目を40以内にするため）
+  const m = /^q(\d+)_/.exec(k); return m ? Math.min(PARTS - 1, Math.floor((+m[1] - 1) / CONFIG.QS_PER_DOC)) : 0; };
 // みんなの答え：Firebase（Firestore）。箱（shusshinShards/s0〜）に数を足していく。つながらない時は調査データだけで動く
 class FirebaseOnline {
   constructor() { this.kind = 'firebase'; this.uid = null; }
@@ -742,6 +745,12 @@ async function submitPlay(ans, truth, hit, skips = []) {
   if (hit) f['h' + (truth + 1)] = 1;
   for (const x of ans) f[`q${QS[x.qi].s}_${truth + 1}${x.a ? 'a' : 'b'}`] = 1;
   for (const qi of skips.slice(0, CONFIG.SKIP_SEND_MAX)) f[`q${QS[qi].s}_${truth + 1}c`] = 1;   // 「知らない」も集める
+  // まちがいの記録（どれも1つずつ数えるだけ。だれの答えかは分からない）
+  const V = CONFIG.LOG_VER, h1 = hit ? 1 : 0, g = G.guess, g10 = G.guess10 >= 0 ? G.guess10 : g;
+  f[`zx${V}_${truth + 1}_${g + 1}`] = 1;                                         // 本当の県 × 予想した県
+  f[`zc${V}_${Math.min(9, Math.floor(Math.max(...G.post) * 10))}_${h1}`] = 1;   // 予想した県の確率（10%きざみ）× 当たったか
+  f[`zl${V}_${ans.length}_${h1}`] = 1;                                           // 答えた問題の数 × 当たったか
+  f[`ze${V}_${g10 === truth ? 1 : 0}${h1}`] = 1;                                 // 10問の時点で当たっていたか × 最後に当たったか
   try {
     await withTimeout(NET.be.submit(f), 10000);
     lsSet('sk.sent', true);
@@ -1060,7 +1069,7 @@ function renderTitleStat() {
 function goTitle() { hidePin(); setVisual('title'); renderTitleStat(); $('tMain').classList.remove('hide'); $('tRev').classList.add('hide'); show('title'); }
 function startQuiz() {
   shareSeq++; SHARE = null;
-  Object.assign(G, { ans: [], skipped: [], qi: -1, post: PRIOR.slice(), guess: -1, truth: -1, hit: false, seki: false, lock: false, sendState: '', ext: false, skipAtExt: 0, extMax: CONFIG.EXTRA_MAX, avail: makeAvail() });
+  Object.assign(G, { ans: [], skipped: [], qi: -1, post: PRIOR.slice(), guess: -1, truth: -1, hit: false, seki: false, lock: false, sendState: '', ext: false, guess10: -1, skipAtExt: 0, extMax: CONFIG.EXTRA_MAX, avail: makeAvail() });
   $('extBanner').classList.remove('on'); $('guessNow').classList.add('hide'); $('prog').classList.remove('ext');
   hidePin(); setVisual('quiz', { post: G.post });
   $('prog').innerHTML = [...Array(CONFIG.NQ)].map(() => '<i></i>').join('') + '<b id="progN"></b>';
@@ -1083,6 +1092,7 @@ async function startExtra() {
   $('extBanner').classList.remove('on');
 }
 async function nextQ(first) {
+  if (G.ans.length + G.skipped.length >= CONFIG.NQ + CONFIG.EXTRA_MAX) { if (G.ans.length) finishQuiz(); else goTitle(); return; }   // 「知らない」もふくめて、全部でこの数になったら必ず終わる
   const n = G.ans.length, conf = Math.max(...G.post);
   if (n >= CONFIG.NQ) {
     if (!G.ext && CONFIG.EXTRA_MAX > 0 && conf < CONFIG.EXTRA_CONF) await startExtra();
@@ -1102,6 +1112,7 @@ function answer(a) {
   if (G.lock || SCREEN !== 'quiz' || G.qi < 0) return; G.lock = true;
   $(a ? 'chA' : 'chB').classList.add('press'); $(a ? 'chB' : 'chA').classList.add('dim');
   G.ans.push({ qi: G.qi, a }); G.post = posterior(G.ans, PRIOR, G.skipped);
+  if (G.ans.length === CONFIG.NQ) G.guess10 = G.post.indexOf(Math.max(...G.post));   // 10問の時点の予想（記録用）
   setVisual('quiz', { post: G.post }); camToPost(G.post); renderProg();
   setTimeout(() => nextQ(false), CONFIG.NEXT_DELAY);
 }
@@ -1354,7 +1365,7 @@ async function makeShareImage() {
   x.drawImage(snapshotMap(780, 1200), 0, 0);
   const R = 800, RW = 360, F = '"Dela Gothic One", sans-serif', FR = '"M PLUS Rounded 1c", sans-serif';
   x.textBaseline = 'alphabetic'; x.fillStyle = '#fff'; fitFont(x, '出身地、当てます', RW, 44, F); x.fillText('出身地、当てます', R, 118);
-  x.fillStyle = '#ffc93c'; x.font = `800 24px ${FR}`; x.fillText('2択10問で、出身地を当てる', R, 160);
+  x.fillStyle = '#ffc93c'; x.font = `800 24px ${FR}`; x.fillText('2択の質問で、出身地を当てる', R, 160);
   x.fillStyle = 'rgba(255,255,255,.18)'; x.fillRect(R, 196, RW, 3);
   const kind = kindText();
   x.fillStyle = '#cfd8e6'; fitFont(x, kind, RW, 28, FR, '800'); x.fillText(kind, R, 300);

@@ -45,6 +45,8 @@ out = {
     'n': [st.get('n%d' % (i + 1), 0) for i in range(N)],
     'h': [st.get('h%d' % (i + 1), 0) for i in range(N)],
     'q': dict(sorted(q.items(), key=lambda x: int(x[0]))),
+    # まちがいの記録（zx=本当の県×予想、zc=確率×当たり、zl=問題数×当たり、ze=10問時点×最後）
+    'z': dict(sorted((k, v) for k, v in st.items() if k.startswith('z'))),
 }
 
 old_t = -1
