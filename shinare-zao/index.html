@@ -582,7 +582,7 @@ function setFlagLabel(g, txt){ if (g.userData.lab){ g.remove(g.userData.lab); g.
 
 // ===== [SEC:MODEL] =====
 const GY = beachH(0);   // 釣り人の足もとの高さ
-const RIG = { shR: new THREE.Vector3(0.2, GY + 1.42, 0), shL: new THREE.Vector3(-0.2, GY + 1.42, 0) };
+const RIG = { shR: new THREE.Vector3(0.21, GY + 1.48, 0), shL: new THREE.Vector3(-0.21, GY + 1.48, 0) };
 const std = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.85 }, o));
 const unitCyl = (r0, r1, seg = 8) => { const g = new THREE.CylinderGeometry(r1, r0, 1, seg); g.translate(0, 0.5, 0); return g; };   // 下が r0、上が r1、長さ1（0〜1）
 const YV = new THREE.Vector3(0, 1, 0), tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3();
@@ -636,7 +636,8 @@ function buildAngler(){
 // 竿の点（根元から先へ）。phi＝根元の角度、b＝しなり（rad）。グリップ（右手）の位置も返す
 const ROD_S0 = 0.24;   // ここより根元側はしならない（長さの割合）
 const GRIP_S = 0.12;   // 右手の位置（長さの割合）
-function gripPos(phi, out = new THREE.Vector3()){ return out.set(0.36, GY + 1.55 + 0.25 * Math.cos(phi), -0.25 * Math.sin(phi)); }
+// 投げる時は頭の上を回り、釣りの時（R.pose＝1）は腰の前で持つ
+function gripPos(phi, out = new THREE.Vector3()){ const p = R.pose || 0; return out.set(lerp(0.34, 0.27, p), GY + lerp(1.62 + 0.22 * Math.cos(phi), 1.1, p), lerp(-0.22 * Math.sin(phi), -0.3, p)); }
 function rodPoints(phi, b, pts){
   const L = CONFIG.ROD_LEN, n = M.rodN, gp = gripPos(phi, new THREE.Vector3());
   const dir0 = new THREE.Vector3(0, Math.cos(phi), -Math.sin(phi));
@@ -654,9 +655,10 @@ function drawRod(phi, b, reelSpin = 0){
   const gp = rodPts.grip, d0 = rodPts[2].clone().sub(rodPts[1]).normalize(), dn = new THREE.Vector3(0, d0.z, -d0.y);   // 竿の下がわ
   M.reel.position.copy(gp).addScaledVector(dn, 0.09); M.reel.quaternion.setFromUnitVectors(YV, dn.clone().negate()); M.handle.rotation.x = reelSpin;
   // 腕：右手はリール、左手はグリップのおしり
-  const butt = rodPts[0];
-  const h1 = limb(M.arms[0].up, M.arms[0].lo, RIG.shR, gp.clone().addScaledVector(dn, 0.03), 0.3, 0.3, new THREE.Vector3(0.6, -0.7, 0.4)); M.arms[0].hand.position.copy(h1);
-  const h2 = limb(M.arms[1].up, M.arms[1].lo, RIG.shL, butt, 0.31, 0.31, new THREE.Vector3(-0.5, -0.8, 0.3)); M.arms[1].hand.position.copy(h2);
+  // 釣りの時は、右手はリールのハンドル、左手はリールの少し先をにぎる
+  const p = R.pose || 0, rh = gp.clone().addScaledVector(dn, 0.03 + 0.05 * p).add(new THREE.Vector3(0.05 * p, 0, 0)), lh = rodPts[0].clone().lerp(rodPts[2].clone().lerp(rodPts[3], 0.55), p);
+  const h1 = limb(M.arms[0].up, M.arms[0].lo, RIG.shR, rh, 0.3, 0.3, new THREE.Vector3(0.7, -1, 0.3)); M.arms[0].hand.position.copy(h1);
+  const h2 = limb(M.arms[1].up, M.arms[1].lo, RIG.shL, lh, 0.31, 0.31, new THREE.Vector3(-0.7, -1, 0.3)); M.arms[1].hand.position.copy(h2);
   return rodPts[M.rodN];
 }
 // 画面に向いた帯（太さはピクセルで指定）。糸と光の尾に使う
@@ -726,8 +728,8 @@ function buildFishModel(f){
 
 // ===== [SEC:CAST] =====
 // 竿の動き。phi＝根元の角度、w＝その速さ、b＝しなり（竿先が根元よりどれだけ遅れているか、−が遅れ）、bv＝しなりの速さ
-const R = { phi: CONFIG.PHI_REST * D2R, w: 0, b: 0, bv: 0, target: CONFIG.PHI_REST * D2R, stopped: false, stopT: 0, T: 0, Tpeak: 0, simT: 0, held: false };
-function rodReset(){ Object.assign(R, { phi: CONFIG.PHI_REST * D2R, w: 0, b: 0, bv: 0, target: CONFIG.PHI_REST * D2R, stopped: false, stopT: 0, T: 0, Tpeak: 0 }); }
+const R = { phi: CONFIG.PHI_REST * D2R, w: 0, b: 0, bv: 0, target: CONFIG.PHI_REST * D2R, stopped: false, stopT: 0, T: 0, Tpeak: 0, simT: 0, held: false, pose: 0 };
+function rodReset(){ Object.assign(R, { phi: CONFIG.PHI_REST * D2R, w: 0, b: 0, bv: 0, target: CONFIG.PHI_REST * D2R, stopped: false, stopT: 0, T: 0, Tpeak: 0, pose: 0 }); }
 function rodStep(h){
   const C = CONFIG; let a;
   if (R.stopped){ a = 0; R.w = 0; R.phi = C.PHI_STOP * D2R; }
@@ -1013,7 +1015,7 @@ function updateRig(dt){
     let hk = 0; if (FI.hookAnim > 0){ FI.hookAnim -= dt; hk = Math.sin((1 - FI.hookAnim / 0.35) * Math.PI) * 0.5; }
     phi = (st === 'catch' ? 20 : 52) * D2R - hk; b = FI.bend + Math.max(-0.05, -FI.twitch * 0.06) + (FI.out ? Math.sin(clock * 40) * 0.01 : 0);
     if (st === 'fight' && FI.mode === 'run') b += Math.sin(clock * 23) * 0.015 * FI.F;
-    R.phi = phi; R.b = 0; R.w = R.bv = 0;
+    R.phi = phi; R.b = 0; R.w = R.bv = 0; R.pose += (1 - R.pose) * Math.min(1, dt * 5);
     const tip = drawRod(phi, -b, spin); SK.tip.copy(tip);
     const far = st === 'retrieve' ? FI.dist : st === 'catch' || st === 'cut' ? 0 : FI.dist;
     if (far > 0.5){ const end = new THREE.Vector3(0.36, 0, -(far + CONFIG.WATER * 0.15)); M.sinker.visible = false; lineCurve(tip, end, st === 'fight' ? 0.02 : 0.06 * (1 - (FI.T || 0))); }
