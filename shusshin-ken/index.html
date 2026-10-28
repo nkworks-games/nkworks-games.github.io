@@ -327,7 +327,8 @@ const CONFIG = {
   EXTRA_MAX: 25,          // 延長戦で追加する問題の最大数（「どちらでもない・知らない」も1問と数える。10問の間に押した分もふくめて、全部で NQ＋EXTRA_MAX 問まで）
   EXTRA_CONF: 0.95,       // 10問終わって、いちばん有力な県の確率がこれ未満なら延長戦（延長中にこれを超えたら終わり）
   FIRST_Q: '',            // 1問目を決めておく時は問題のid（空なら毎回ランダム）
-  POOL_RATE: 0.3,         // 遊ぶたびに、最初の10問に使う問題を全体のこの割合だけランダムに選ぶ（毎回ちがう問題が出るように）
+  POOL_RATE: 1,           // 最初の10問に使う問題を、全体のこの割合だけランダムに選ぶ（1＝毎回すべての問題から一番しぼれる問題を選ぶ。出だしは「県民の日」か「雪」から始まる決まった流れになる）
+  OFF_QS: ['bon_month', 'imoni_meat', 'tokoroten', 'zouni_mochi_yaku'],   // 当ててもらうモードで出さない問題（しぼる力が弱く「知らない」が多い）
   TRUST: 0.85,            // 調査データをどれくらい信じるか（1＝そのまま、0＝まったく信じない）
   SKIP_PRIOR: 0.06,       // 「どちらでもない・知らない」を押す人の割合の はじめの値（どの県も同じ＝最初は判定に影響しない）
   SKIP_STRENGTH: 20,      // その はじめの値を「何人ぶん」として数えるか（「知らない」が集まると県ごとの差が効いてくる）
@@ -634,7 +635,7 @@ function pickNext(ans, skipped, post, rnd = Math.random, avail = null) {
   const gc = {}; for (const qi of used) { const g = QS[qi].g; if (g) gc[g] = (gc[g] || 0) + 1; }
   const H0 = entropy(post), cands = [];
   QS.forEach((q, i) => {
-    if (used.has(i) || (q.g && (gc[q.g] || 0) >= (CONFIG.GROUP_MAX[q.g] ?? 1))) return;
+    if (used.has(i) || CONFIG.OFF_QS.includes(q.id) || (q.g && (gc[q.g] || 0) >= (CONFIG.GROUP_MAX[q.g] ?? 1))) return;
     if (q.late && ans.length < CONFIG.NQ) return;   // 地元のテレビ局の問題などは、延長戦に入ってからだけ
     if (useAvail && !avail.has(i)) return;
     const m = M[i]; let pa = 0; for (let k = 0; k < N; k++) pa += post[k] * m[k];

@@ -5,10 +5,7 @@ on:
     - cron: '7,37 * * * *'
   workflow_dispatch:
   push:
-    branches: [main]
-    paths:
-      - '.github/workflows/shusshin-stats.yml'
-      - '.github/scripts/shusshin_stats.py'
+    branches: [main]   # 予定の時刻に動かない時の予備（サイトを更新した時にも作り直す）
 permissions:
   contents: write
 concurrency:
