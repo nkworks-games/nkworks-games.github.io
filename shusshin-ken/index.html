@@ -335,14 +335,15 @@ const CONFIG = {
   NQ: 10,                 // 答える問題の数
   EXTRA_MAX: 25,          // 延長戦で追加する問題の最大数（「どちらでもない・知らない」も1問と数える。10問の間に押した分もふくめて、全部で NQ＋EXTRA_MAX 問まで）
   EXTRA_CONF: 0.95,       // 10問終わって、いちばん有力な県の確率がこれ未満なら延長戦（延長中にこれを超えたら終わり）
+  CHECK: { MAX: 2, MIN_P: 0.01, MIN_KL: 1 },   // 最後の確認：終わる前に、1位と2位の県（2位の確率がMIN_P以上）を見分ける問題を、MAX問まで聞く（カードは全部で NQ+EXTRA_MAX+1 まで）
   FIRST_Q: '',            // 1問目を決めておく時は問題のid（空なら毎回ランダム）
   POOL_RATE: 1,           // 最初の10問に使う問題を、全体のこの割合だけランダムに選ぶ（1＝毎回すべての問題から一番しぼれる問題を選ぶ。出だしは「県民の日」か「雪」から始まる決まった流れになる）
-  OFF_QS: ['bon_month', 'imoni_meat', 'tokoroten', 'zouni_mochi_yaku'],
+  OFF_QS: ['bon_month', 'imoni_meat', 'tokoroten', 'zouni_mochi_yaku'],   // 当ててもらうモードで出さない問題（しぼる力が弱く「知らない」が多い）
   EARLY_N: 5,             // 最初のこの問数は、EARLY_IDS の問題（店・商品・施設などの名前が出ない、地方を分ける広い問題）だけにする（「最初から狙い撃ち」「2問目でスガキヤ」と言われたため）
   EARLY_IDS: ['snow', 'kenmin_no_hi', 'kenmin_11gatsu', 'fuyu_kaminari', 'chugaku_bento', 'nikujaga', 'zouni_mochi_shape', 'zoni_shiromiso', 'udon_tsuyu', 'nikuman_sujoyu', 'sekihan_amanatto', 'natto', 'sake_buri', 'katsudon_style', 'okonomiyaki', 'dagojiru', 'karau', 'tsugu', 'gohan_moru', 'gohan_yosoru', 'butajiru', 'tsukue_tsuru', 'mebachiko', 'meibo', 'erai', 'kansai_keehen', 'shitou', 'sogan'],
   USE_SKIP: false,        // 「どちらでもない・知らない」を押したことを、県の判定に使うか（「知らない・覚えてない・両方」など意味がまざるので使わない。押した数の集計は続ける）
-  LOG_VER: 4,             // まちがいの記録につける判定のしくみの版（判定や質問の選び方を変えたら1つ上げて、前と比べる）。4＝「たぶん」を足した
-  MAYBE_W: 0.5,           // 「たぶんこっち」の答えの強さ（1＝ふつうの答えと同じ、0＝使わない）   // 当ててもらうモードで出さない問題（しぼる力が弱く「知らない」が多い）
+  LOG_VER: 5,             // まちがいの記録につける判定のしくみの版（判定や質問の選び方を変えたら1つ上げて、前と比べる）。4＝「たぶん」、5＝最後の確認・7問追加
+  MAYBE_W: 0.5,           // 「たぶんこっち」の答えの強さ（1＝ふつうの答えと同じ、0＝使わない）
   TRUST: 0.85,            // 調査データをどれくらい信じるか（1＝そのまま、0＝まったく信じない）
   SKIP_PRIOR: 0.06,       // 「どちらでもない・知らない」を押す人の割合の はじめの値（どの県も同じ＝最初は判定に影響しない）
   SKIP_STRENGTH: 20,      // その はじめの値を「何人ぶん」として数えるか（「知らない」が集まると県ごとの差が効いてくる）
@@ -593,7 +594,14 @@ const QS = [{"s":1,"id":"nikujaga","t":"肉じゃがの肉","q":"子どもの頃
 {"s": 211, "id": "nagasaki_shoronagashi", "t": "精霊流し", "q": "子どもの頃、お盆の「精霊流し」（飾った船を引いて、爆竹を鳴らしながら歩く）をした・見に行った？", "a": "した・見た", "b": "ない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 25, 75, 15, 2, 2, 2, 2], "src": [["長崎市（ナガジン！）", "長崎の精霊流し（精霊船と爆竹）", "2017", "https://www.city.nagasaki.lg.jp/nagazine/arukukotsu/index201707.html"]]},
 {"s": 212, "id": "sogan", "t": "「そがん」", "q": "「そんな（こと）」を「そがん（こと）」って言う？", "a": "言う", "b": "言わない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10, 5, 15, 10, 2, 2, 2, 2, 25, 80, 80, 70, 10, 15, 10, 2], "src": [["佐賀県", "佐賀県の方言（標準語「そんな」＝「そがん」）", "", "https://www.pref.saga.lg.jp/kiji00366322/3_66322_123033_up_2e13jbev.pdf"]]},
 {"s": 213, "id": "nara_kakinoha", "t": "柿の葉ずし", "q": "子どもの頃、家で「柿の葉ずし」（柿の葉で包んだ押しずし）をよく食べた？", "a": "よく食べた", "b": "あまり・知らない", "g": null, "basis": "estimated", "p": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10, 2, 2, 2, 2, 2, 2, 10, 2, 8, 12, 6, 55, 35, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "src": [["農林水産省 近畿農政局", "うちの郷土料理（奈良県）柿の葉寿司", "", "https://www.maff.go.jp/kinki/keiei/tiiki_syokuhin/wasyoku/nara.html"]]},
-{"s": 214, "id": "chiba_kamogawa", "t": "鴨川シーワールド", "q": "子どもの頃、遠足や家族で「鴨川シーワールド」（シャチのショーがある水族館）に行った？", "a": "行った", "b": "行ってない・知らない", "g": null, "basis": "estimated", "p": [3, 3, 3, 3, 3, 3, 3, 25, 15, 15, 30, 72, 35, 20, 3, 3, 3, 3, 8, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], "src": [["いこーよ", "鴨川シーワールド（施設情報）", "", "https://iko-yo.net/facilities/1130"]]}];
+{"s": 214, "id": "chiba_kamogawa", "t": "鴨川シーワールド", "q": "子どもの頃、遠足や家族で「鴨川シーワールド」（シャチのショーがある水族館）に行った？", "a": "行った", "b": "行ってない・知らない", "g": null, "basis": "estimated", "p": [3, 3, 3, 3, 3, 3, 3, 25, 15, 15, 30, 72, 35, 20, 3, 3, 3, 3, 8, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], "src": [["いこーよ", "鴨川シーワールド（施設情報）", "", "https://iko-yo.net/facilities/1130"]]},
+{"s":215,"id":"kyoto_okuribi","t":"五山送り火","q":"子どもの頃、お盆の「五山送り火」（大文字など、山に火で文字や形をえがく）を見た？","a":"見た","b":"見てない","g":null,"basis":"estimated","p":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,5,2,2,2,2,2,4,25,70,12,6,8,4,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],"src":[["京都市公式 京都観光Navi","京都五山送り火（毎年8月16日）","2025","https://ja.kyoto.travel/news/format.php?id=451"]]},
+{"s":216,"id":"kyoto_tango_barazushi","t":"丹後ばらずし","q":"子どもの頃、家で「ばらずし」（さばのおぼろをのせた、丹後の押しずし。まつぶた寿司）を食べた？","a":"食べた","b":"食べてない・知らない","g":null,"basis":"estimated","p":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,1,1,1,1,1,1,18,1,4,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"src":[["JR西日本","郷土の旬をいただく 丹後ばらずし（京都府北部・丹後地方の郷土料理）","","https://www.westjr.co.jp/company/info/issue/bsignal/20_vol_190/kyodo/"]]},
+{"s":217,"id":"gifu_ukai","t":"長良川の鵜飼","q":"子どもの頃、「長良川の鵜飼」（夜の川で、鵜が魚をとる）を見に行った？","a":"見に行った","b":"行ってない","g":null,"basis":"estimated","p":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,4,2,3,50,3,12,5,4,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],"src":[["文化遺産オンライン（文化庁）","長良川鵜飼観覧船操船技術（岐阜市の無形民俗文化財）","","https://online.bunka.go.jp/heritages/detail/260859"]]},
+{"s":218,"id":"gifu_valor","t":"バロー","q":"子どもの頃、家族の買い物でスーパー「バロー」によく行った？","a":"よく行った","b":"行ってない・知らない","g":null,"basis":"estimated","p":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,15,12,12,1,12,75,4,25,12,12,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"src":[["バローホールディングス","SM バロー大和ストアー 開設のお知らせ（岐阜県内のバローは71店舗）","2024","https://valorholdings.co.jp/wp-content/uploads/2024/04/20240401SM.pdf"]]},
+{"s":219,"id":"nara_yamayaki","t":"若草山の山焼き","q":"子どもの頃、1月の「若草山の山焼き」（奈良の山の草を焼き、花火も上がる）を見た？","a":"見た","b":"見てない・知らない","g":null,"basis":"estimated","p":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,5,5,2,40,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],"src":[["神戸新聞NEXT","奈良の夜空を焦がす炎と花火…「若草山の山焼き」（毎年1月の第4土曜日）","2022","https://www.kobe-np.co.jp/rentoku/omoshiro/202201/sp/0014989757.shtml?pg=amp"]]},
+{"s":220,"id":"iwate_reimen","t":"盛岡冷麺","q":"子どもの頃、焼肉屋などで「盛岡冷麺」をよく食べた？","a":"よく食べた","b":"あまり・知らない","g":null,"basis":"estimated","p":[3,15,65,12,12,5,5,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],"src":[["岩手県","学びたっぷり、盛岡散策（盛岡冷麺）","","https://www.pref.iwate.jp/_res/projects/default_project/_page_/001/012/521/moriokasannsaku2.pdf"]]},
+{"s":221,"id":"niigata_sasadango","t":"笹団子","q":"子どもの頃、家で「笹団子」（よもぎ団子を笹の葉で包んだもの）をよく食べた？","a":"よく食べた","b":"あまり・知らない","g":null,"basis":"estimated","p":[2,2,2,2,2,5,10,2,2,4,2,2,2,2,70,4,2,2,2,5,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],"src":[["にいがた観光ナビ（新潟県観光協会）","新潟の郷土料理（笹団子：中越・下越と会津の一部で食べられてきた）","","https://niigata-kankou.or.jp/feature/kyodoryori"]]}];
 
 // ===== [SEC:UTIL] =====
 const $ = id => document.getElementById(id);
@@ -667,6 +675,21 @@ function pickNext(ans, skipped, post, rnd = Math.random, avail = null, early = t
   let r = rnd() * sum(w);
   for (let j = 0; j < pool.length; j++) { r -= w[j]; if (r <= 0) return pool[j][0]; }
   return pool[pool.length - 1][0];
+}
+// 最後の確認：終わる前に、1位の県と2位の県を見分ける問題（2つの県で答えがいちばんちがう問題）を選ぶ。なければ -1
+function checkQ(ans, skipped, post, done) {
+  const C = CONFIG.CHECK; if (done >= C.MAX) return -1;
+  let top = 0; for (let k = 1; k < N; k++) if (post[k] > post[top]) top = k;
+  let r = -1; for (let k = 0; k < N; k++) if (k !== top && post[k] >= C.MIN_P && (r < 0 || post[k] > post[r])) r = k;
+  if (r < 0) return -1;
+  const used = new Set([...ans.map(x => x.qi), ...skipped]), gc = {}; for (const qi of used) { const g = QS[qi].g; if (g) gc[g] = (gc[g] || 0) + 1; }
+  let best = -1, bs = C.MIN_KL;
+  QS.forEach((q, i) => {
+    if (used.has(i) || CONFIG.OFF_QS.includes(q.id) || (q.g && (gc[q.g] || 0) >= (CONFIG.GROUP_MAX[q.g] ?? 1))) return;
+    const a = M[i][top], b = M[i][r], v = (a - b) * Math.log(a * (1 - b) / (b * (1 - a)));
+    if (v > bs) { bs = v; best = i; }
+  });
+  return best;
 }
 // この答え方をする人は、日本で何人に1人か（県ごとの人口で重みづけ）
 function oddsOf(ans) {
@@ -1082,7 +1105,7 @@ function renderTitleStat() {
 function goTitle() { hidePin(); setVisual('title'); renderTitleStat(); $('tMain').classList.remove('hide'); $('tRev').classList.add('hide'); show('title'); }
 function startQuiz() {
   shareSeq++; SHARE = null;
-  Object.assign(G, { ans: [], skipped: [], qi: -1, post: PRIOR.slice(), guess: -1, truth: -1, hit: false, seki: false, lock: false, sendState: '', ext: false, guess10: -1, skipAtExt: 0, extMax: CONFIG.EXTRA_MAX, avail: makeAvail() });
+  Object.assign(G, { ans: [], skipped: [], qi: -1, post: PRIOR.slice(), guess: -1, truth: -1, hit: false, seki: false, lock: false, sendState: '', ext: false, guess10: -1, skipAtExt: 0, extMax: CONFIG.EXTRA_MAX, checks: 0, avail: makeAvail() });
   $('extBanner').classList.remove('on'); $('guessNow').classList.add('hide'); $('prog').classList.remove('ext');
   hidePin(); setVisual('quiz', { post: G.post });
   $('prog').innerHTML = [...Array(CONFIG.NQ)].map(() => '<i></i>').join('') + '<b id="progN"></b>';
@@ -1105,20 +1128,25 @@ async function startExtra() {
   $('extBanner').classList.remove('on');
 }
 async function nextQ(first) {
-  if (G.ans.length + G.skipped.length >= CONFIG.NQ + CONFIG.EXTRA_MAX) { if (G.ans.length) finishQuiz(); else goTitle(); return; }   // 「知らない」もふくめて、全部でこの数になったら必ず終わる
+  let qi = -1, chk = false;
+  const stop = () => {   // 終わる前に「最後の確認」があれば、それを聞く（送る答えが1回40個までなので、カードは全部で NQ+EXTRA_MAX+1 枚まで）
+    if (G.ans.length + G.skipped.length >= CONFIG.NQ + CONFIG.EXTRA_MAX + 1) return true;
+    const c = checkQ(G.ans, G.skipped, G.post, G.checks); if (c < 0) return true; G.checks++; qi = c; chk = true; return false;
+  };
+  if (G.ans.length + G.skipped.length >= CONFIG.NQ + CONFIG.EXTRA_MAX && (!G.ans.length || stop())) { if (G.ans.length) finishQuiz(); else goTitle(); return; }   // 「知らない」もふくめて、全部でこの数になったら必ず終わる
   const n = G.ans.length, conf = Math.max(...G.post);
-  if (n >= CONFIG.NQ) {
+  if (!chk && n >= CONFIG.NQ) {
     if (!G.ext && CONFIG.EXTRA_MAX > 0 && conf < CONFIG.EXTRA_CONF) await startExtra();
-    else if (!G.ext || extCount() >= G.extMax || conf >= CONFIG.EXTRA_CONF) { finishQuiz(); return; }
+    else if ((!G.ext || extCount() >= G.extMax || conf >= CONFIG.EXTRA_CONF) && stop()) { finishQuiz(); return; }
   }
-  const qi = pickNext(G.ans, G.skipped, G.post, Math.random, G.avail);
+  if (!chk) qi = pickNext(G.ans, G.skipped, G.post, Math.random, G.avail);
   if (qi < 0) { if (G.ans.length) finishQuiz(); else goTitle(); return; }
   const card = $('qCard');
   if (!first) { card.classList.add('out'); await sleep(200); }
   G.qi = qi; const q = QS[qi];
-  $('qNum').textContent = `Q${G.ans.length + 1}` + (G.ext ? '（延長戦）' : ''); $('qText').textContent = q.q; $('qText').classList.toggle('long', q.q.length > 38); $('chA').textContent = q.a; $('chB').textContent = q.b;
+  $('qNum').textContent = `Q${G.ans.length + 1}` + (chk ? '（最後の確認）' : G.ext ? '（延長戦）' : ''); $('qText').textContent = q.q; $('qText').classList.toggle('long', q.q.length > 38); $('chA').textContent = q.a; $('chB').textContent = q.b;
   for (const id of ['chA', 'chB', 'mbA', 'mbB']) $(id).classList.remove('press', 'dim');
-  renderProg(); card.classList.remove('out'); G.lock = false;
+  renderProg(); if (chk) $('progN').textContent = '確認'; card.classList.remove('out'); G.lock = false;
   requestAnimationFrame(() => { measureFocus(); applyView(); });
 }
 function answer(a, maybe = false) {
@@ -1540,7 +1568,7 @@ window.__sk = {
   RV, startRev, rvAsk, rvHint, rvGuess, rvToggleMark, rvShareText, rvNextCands, shareA,
   screenOf(k) { const c = prefInfo[k].c, v = new THREE.Vector3(c[0], 0.1, c[1]).project(cam), r = $('c').getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; },
   get scene() { return scene; }, get renderer() { return renderer; }, prefMeshes, snapshotMap, setVisual, CAMS, prefInfo, partOf, PARTS, get FOCUS() { return FOCUS; }, get JP() { return JP; },
-  setStats(d) { ST = d; rebuildModel(); }, get K() { return K; }, posterior, pickNext, makeAvail, oddsOf, oddsText, shareText, makeShareImage, get SHARE() { return SHARE; },
+  setStats(d) { ST = d; rebuildModel(); }, get K() { return K; }, posterior, pickNext, checkQ, makeAvail, oddsOf, oddsText, shareText, makeShareImage, get SHARE() { return SHARE; },
   // 各県の人が「調査どおりに」答えたら、どれくらい当たるか（trials：1県あたりの回数）
   sim(trials = 30, seed = 1) {
     let s = seed; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
