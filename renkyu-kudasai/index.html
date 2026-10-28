@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>連休をください</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="休みの数は増やさずに、動かすだけで連休を作り、激務の毎日を何日もちこたえられるかを競うゲーム。残業・トラブル・休日出勤は運しだい。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<meta name="theme-color" content="#f6f0e3">
+<meta property="og:type" content="website">
+<meta property="og:title" content="連休をください">
+<meta property="og:description" content="休みの数は増やさずに、動かすだけ。何日もちこたえる？">
+<meta property="og:url" content="https://nkworks-games.com/renkyu-kudasai/">
+<meta property="og:image" content="https://nkworks-games.com/renkyu-kudasai/card.png">
+<link rel="canonical" href="https://nkworks-games.com/renkyu-kudasai/">
+<meta name="twitter:card" content="summary_large_image">
+<script>(function(){if(/(^|\.)nkworks-games\.com$/.test(location.hostname)){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350';document.head.appendChild(s);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#f6f0e3;font-family:"M PLUS Rounded 1c",system-ui,sans-serif;color:#1f2f46;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer;color:#1f2f46}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;padding:max(6px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left))}
+#hud{width:100%;max-width:470px;flex-shrink:0}
+.hrow{display:flex;align-items:center;gap:8px;height:40px}
+#monthLab{font-size:20px;font-weight:800;white-space:nowrap}
+#dayLab{font-size:13px;font-weight:800;color:#5d6b7d;white-space:nowrap}
+.hsp{flex:1}
+.ibtn{flex-shrink:0;width:38px;height:38px;border-radius:50%;border:3px solid #1f2f46;background:#fff;font:800 15px/1 "M PLUS Rounded 1c",sans-serif}
+.hprow{display:flex;align-items:center;gap:8px;height:34px}
+#face{font-size:26px;width:32px;text-align:center;line-height:1}
+#hpBar{position:relative;flex:1;height:26px;border:3px solid #1f2f46;border-radius:14px;background:#fff;overflow:hidden}
+#hpFill{position:absolute;left:0;top:0;bottom:0;width:100%;background:#3fbf6a;transition:width .3s,background-color .3s}
+#hpTxt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:#1f2f46;text-shadow:0 0 3px #fff,0 0 3px #fff}
+#hpLab{font-size:12px;font-weight:800;white-space:nowrap}
+#swapRow{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;white-space:nowrap}
+#swapDots{display:flex;gap:3px}
+#swapDots i{width:12px;height:12px;border-radius:50%;border:2px solid #1f2f46;background:#ffc93c;display:block}
+#swapDots i.u{background:#fff;border-color:#b6bfca}
+#legend{width:100%;max-width:470px;display:flex;gap:9px;justify-content:center;flex-wrap:wrap;font-size:11px;font-weight:800;color:#5d6b7d;padding:4px 0 0;flex-shrink:0}
+#legend span{display:flex;align-items:center;gap:3px;white-space:nowrap}
+#legend i{display:block;width:13px;height:13px;border-radius:3px}
+#legend .lw{background:repeating-linear-gradient(45deg,#e6e9ee 0 3px,#c7ced8 3px 5px)}
+#legend .lr{background:repeating-linear-gradient(45deg,#ffe6cc 0 3px,#f2b27c 3px 5px)}
+#legend .lb{background:repeating-linear-gradient(45deg,#ebe3fb 0 3px,#c4b2ee 3px 5px)}
+#legend .ld{background:#e2553a}
+#legend .lo{background:#ffc93c;border:2px solid #b97a00;border-radius:50%}
+#hint{width:100%;max-width:470px;min-height:40px;margin-top:2px;padding:5px 10px;border-radius:12px;background:#1f2f46;color:#fff;font-size:13.5px;font-weight:800;line-height:1.5;display:flex;align-items:center;justify-content:center;text-align:center;flex-shrink:0}
+#hint b{color:#ffc93c}
+#stage{position:relative;flex:1;width:100%;min-height:0;display:flex;justify-content:center;align-items:center}
+#board{display:block;touch-action:none}
+#banner{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);pointer-events:none;background:#fff;border:3px solid #1f2f46;border-radius:18px;box-shadow:0 5px 0 #1f2f46;padding:10px 18px;text-align:center;min-width:200px;max-width:92%}
+#banner .e{font-size:40px;line-height:1.1}
+#banner .t{font-size:20px;font-weight:800;line-height:1.3}
+#banner .s{font-size:13px;font-weight:800;color:#5d6b7d;line-height:1.5}
+#banner.bad .t{color:#d2412a}
+#banner.good .t{color:#2f9a55}
+.pop{animation:pop .3s ease-out}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(.6);opacity:0}70%{transform:translate(-50%,-50%) scale(1.06);opacity:1}100%{transform:translate(-50%,-50%) scale(1)}}
+#toast{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);pointer-events:none;background:rgba(31,47,70,.92);color:#fff;font-size:13.5px;font-weight:800;padding:7px 14px;border-radius:999px;white-space:nowrap;transition:opacity .25s;opacity:0}
+#toast.on{opacity:1}
+#ctrl{width:100%;max-width:470px;flex-shrink:0;display:flex;gap:8px;justify-content:center;align-items:center;padding:8px 0 calc(10px + env(safe-area-inset-bottom));min-height:72px}
+.big{font-size:19px;font-weight:800;padding:12px 24px;border-radius:999px;border:3px solid #1f2f46;background:#ffc93c;box-shadow:0 5px 0 #1f2f46;min-width:200px}
+.big:active{transform:translateY(4px);box-shadow:0 1px 0 #1f2f46}
+.big:disabled{background:#e4e7ec;color:#8a96a5;box-shadow:0 5px 0 #8a96a5;border-color:#8a96a5}
+.sml{font-size:14px;font-weight:800;padding:9px 14px;border-radius:999px;border:3px solid #1f2f46;background:#fff;min-width:96px}
+.sml:active{transform:translateY(2px)}
+.sml:disabled{color:#a3adb9;border-color:#b6bfca}
+.sml.on{background:#ffc93c}
+#ctrl .big{min-width:0;flex:1;max-width:280px;padding:12px 10px}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px max(16px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));text-align:center;z-index:5;overflow-y:auto;background:rgba(31,47,70,.74)}
+.screen>:first-child{margin-top:auto}.screen>:last-child{margin-bottom:auto}
+#title{background:#f6f0e3}
+#result,#monthEnd{background:rgba(31,47,70,.86)}
+.logo{font-weight:800;font-size:clamp(54px,15vw,92px);line-height:1.04;letter-spacing:2px}
+.logo .k{display:inline-block;color:#d2412a;transform:rotate(-3deg)}
+.deco{display:flex;gap:5px;justify-content:center;margin:2px 0}
+.deco i{width:30px;height:30px;border-radius:7px;display:block;background:repeating-linear-gradient(45deg,#e4e7ec 0 4px,#c2c9d3 4px 6px)}
+.deco i.o{background:none;position:relative}
+.deco i.o:after{content:"休";position:absolute;inset:2px;border-radius:50%;background:#ffc93c;border:2px solid #b97a00;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;font-style:normal}
+.deco i.d{background:#e2553a}
+.lead{font-size:clamp(14px,3.9vw,17px);font-weight:800;line-height:1.7}
+.lead b{color:#d2412a}
+.bestBox{font-size:14px;font-weight:800;line-height:1.6;min-height:1.6em}
+.bestBox b{color:#d2412a;font-size:1.3em}
+.tday{font-size:12px;font-weight:800;color:#5d6b7d}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.fine{font-size:11px;line-height:1.6;color:#5d6b7d;max-width:340px}
+.adwrap{margin:40px auto 0;min-height:50px;width:320px;max-width:100%;display:flex;justify-content:center;flex-shrink:0}
+.adwrap ins{display:inline-block;width:320px;height:50px}
+.card{background:#fff;border:3px solid #1f2f46;border-radius:20px;box-shadow:0 6px 0 #1f2f46;padding:16px 16px 18px;max-width:460px;width:100%;text-align:left}
+.card h2{font-size:22px;font-weight:800;text-align:center;margin-bottom:8px}
+.card .big{display:block;margin:14px auto 0}
+.hstep{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:2px dashed #e6dfcf}
+.hstep:first-of-type{border-top:none}
+.hic{flex:0 0 48px;height:48px;border-radius:14px;background:#fbf3dc;display:flex;align-items:center;justify-content:center;font-size:24px}
+.htx{font-size:13.5px;line-height:1.6}
+.htx b{color:#d2412a}
+.wt{color:#fff;font-size:30px;font-weight:800;line-height:1.3;text-shadow:0 3px 0 rgba(0,0,0,.25)}
+.wt small{display:block;font-size:15px;opacity:.9}
+.slist{width:100%;font-size:14px;line-height:1.5}
+.slist .it{display:flex;gap:8px;align-items:baseline;padding:5px 2px;border-top:1px solid #eee6d6}
+.slist .it:first-child{border-top:none}
+.slist .k{flex:1;font-weight:800;color:#5d6b7d}
+.slist .v{font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
+.slist .v.r{color:#d2412a}
+.slist .v.g{color:#2f9a55}
+.slist .v .r{color:#d2412a}.slist .v .g{color:#2f9a55}
+.next{margin-top:10px;padding:8px 10px;border-radius:12px;background:#fbf3dc;font-size:13px;font-weight:800;line-height:1.6;text-align:center}
+.rbig{color:#fff;font-size:clamp(56px,16vw,86px);font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;text-shadow:0 4px 0 rgba(0,0,0,.25)}
+.rbig small{font-size:.36em}
+.rsub{color:#fff;font-size:15px;font-weight:800;line-height:1.6}
+.rnew{font-size:17px;font-weight:800;color:#ffc93c;min-height:1.2em}
+.stag{display:inline-block;font-size:15px;font-weight:800;background:#ffc93c;border:3px solid #1f2f46;border-radius:999px;padding:3px 14px;transform:rotate(-3deg)}
+#rImg{display:block;width:100%;height:auto;border-radius:12px;border:2px solid #e6dfcf;margin:4px 0 6px}
+.badge{display:inline-block;font-size:13px;font-weight:800;background:#ff8fb1;color:#fff;border:3px solid #1f2f46;border-radius:999px;padding:2px 12px;transform:rotate(-3deg)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="hrow"><div id="monthLab">1か月目</div><div id="dayLab">通算 0日</div><div class="hsp"></div><div id="swapRow"><span>交換</span><span id="swapDots"></span></div><button class="ibtn" id="pauseBtn" aria-label="一時停止">Ⅱ</button></div>
+    <div class="hprow"><div id="face">😄</div><div id="hpLab">体力</div><div id="hpBar"><div id="hpFill"></div><div id="hpTxt">100</div></div></div>
+  </div>
+  <div id="hint"></div>
+  <div id="legend"><span><i class="lw"></i>出勤</span><span><i class="lr"></i>追い込み</span><span><i class="lb"></i>繁忙</span><span><i class="ld"></i>締切</span><span><i class="lo"></i>休み</span></div>
+  <div id="stage"><canvas id="board"></canvas><div id="banner" class="hidden"><div class="e" id="bnE"></div><div class="t" id="bnT"></div><div class="s" id="bnS"></div></div><div id="toast"></div></div>
+  <div id="ctrl">
+    <button class="sml" id="undoBtn">1つもどす</button>
+    <button class="big" id="goBtn">この休みで はじめる</button>
+    <button class="sml" id="moveBtn">休みを動かす</button>
+    <button class="sml" id="speedBtn">▶▶ はやく</button>
+    <button class="big" id="resumeRunBtn">つづける</button>
+  </div>
+</div>
+
+<div id="title" class="screen hidden">
+  <div class="badge">試遊版</div>
+  <div class="logo">連休を<br><span class="k">ください</span></div>
+  <div class="deco"><i></i><i></i><i class="o"></i><i class="o"></i><i class="o"></i><i></i><i class="d"></i></div>
+  <p class="lead">休みの数は<b>8日のまま</b>。動かすだけ。<br>残業・トラブルを見越して連休を作り、<br>激務の毎日を<b>何日もちこたえる？</b></p>
+  <div class="bestBox" id="bestBox"></div>
+  <button class="big" id="playBtn">出勤する</button>
+  <div class="row"><button class="sml" id="howBtn">あそびかた</button><button class="sml" id="muteBtn">音：あり</button></div>
+  <p class="tday" id="tday"></p>
+  <p class="fine">このゲームの「出勤」「休み」は架空のコマです。実際の会社や休みの制度とは関係ありません。</p>
+  <div class="adwrap" id="ad1"></div>
+</div>
+
+<div id="howto" class="screen hidden">
+  <div class="card">
+    <h2>あそびかた</h2>
+    <div class="hstep"><div class="hic">🗓️</div><div class="htx">1か月は28日。そのうち<b>休みは8日</b>（黄色い玉）。休みの玉を<b>出勤の日（しま模様）へ動かす</b>と、休みと出勤が入れかわる。動かせるのは<b>1か月に6回</b>まで。休みの数は増えない。</div></div>
+    <div class="hstep"><div class="hic">💪</div><div class="htx">出勤すると体力が減る。<b>6連勤から先は、1日ごとにぐんと減る</b>。休むと回復。連休は<b>2日目・3日目…と回復が大きくなる</b>。体力は100まで。</div></div>
+    <div class="hstep"><div class="hic">🔥</div><div class="htx"><b>締切</b>の日は休めない。その前の3日（オレンジ）は<b>残業しやすい</b>。紫の帯の<b>繁忙</b>は、減りが大きくトラブルも多い。🔒の休みは動かせない。</div></div>
+    <div class="hstep"><div class="hic">🎲</div><div class="htx"><b>残業・トラブル・休日出勤</b>は運しだい。下のグラフは、運を平均したときの<b>体力の見通し</b>。0に近い日があぶない。</div></div>
+    <div class="hstep"><div class="hic">⏸️</div><div class="htx">使わなかった交換は、<b>月の途中でも</b>「休みを動かす」で使える（動かせるのは次の日から先）。休日出勤になったら、<b>代休</b>を入れる日を選ぶ。</div></div>
+    <div class="hstep"><div class="hic">📅</div><div class="htx">月をこえると、体力はそのまま次の月へ。月ごとに<b>だんだんきつく</b>なる。体力が0になったら終わり。<b>何日もちこたえられる？</b></div></div>
+    <button class="big" id="howOk">わかった！</button>
+  </div>
+</div>
+
+<div id="pause" class="screen hidden">
+  <p class="wt">ひと休み</p>
+  <button class="big" id="resumeBtn">つづける</button>
+  <div class="row"><button class="sml" id="restartBtn">さいしょから</button><button class="sml" id="quitBtn">タイトルへ</button></div>
+  <div class="row"><button class="sml" id="pHowBtn">あそびかた</button><button class="sml" id="pMuteBtn">音：あり</button></div>
+</div>
+
+<div id="monthEnd" class="screen hidden">
+  <p class="wt" id="meTitle">1か月目 のりきった！</p>
+  <div class="card">
+    <div class="slist" id="meList"></div>
+    <div class="next" id="meNext"></div>
+    <button class="big" id="nextBtn">つぎの月へ</button>
+  </div>
+</div>
+
+<div id="result" class="screen hidden">
+  <p class="wt" id="rTitle">力つきた…</p>
+  <p class="rbig" id="rBig">0<small>日</small></p>
+  <p class="rsub" id="rSub"></p>
+  <p class="rnew" id="rNew"></p>
+  <div class="stag" id="rStyle"></div>
+  <div class="card">
+    <img id="rImg" alt="この回の休みと体力のまとめ">
+    <div class="slist" id="rList"></div>
+    <button class="big" id="againBtn">もう一回</button>
+    <div class="row" style="margin-top:12px"><button class="sml" id="shareBtn">Xにポスト</button><button class="sml" id="saveBtn">画像を保存</button></div>
+    <div class="row" style="margin-top:8px"><button class="sml" id="toTitleBtn">タイトルへ</button></div>
+  </div>
+  <div class="adwrap" id="ad2"></div>
+</div>
+
+<script>
+'use strict';
+// ===== ルール（ゲームの中身） =====
+const DAYS = 28, OFFS = 8, SWAPS = 6, HPMAX = 100;
+const P = {
+  base: 2.6, baseM: 0.45, busyX: 1.5, k0: 5, kp: 2, dl: 10,
+  rec: [8, 15, 24, 32],
+  tr: 10, ot: 5,
+  pTr: 0.05, pTrM: 0.01, pTrDl: 0.35, pTrBusy: 0.06,
+  pOt: 0.15, pOtM: 0.02, pOtRamp: 0.35, pOtBusy: 0.15,
+  pGood: 0.12,
+  pCall: 0.03, pCallM: 0.015, pCallRamp: 0.10, pCallBusy: 0.08,
+  pPhone: 0.06, pPhoneM: 0.01,
+};
+function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function nDlOf(m){ return m < 2 ? 1 : m < 5 ? 2 : 3; }
+function busyLenOf(m){ return m >= 1 ? Math.min(4 + m, 10) : 0; }
+
+// 盤面は日付と月で決まる（同じ日なら、だれでも同じ盤面）
+function genMonth(seed, m){
+  const r = mulberry(hashStr(seed + ':' + m));
+  const ri = n => Math.floor(r() * n);
+  const C = Array.from({ length: DAYS }, () => ({ off: false, lock: false, dl: false, ramp: false, busy: false }));
+  const nDl = nDlOf(m), dls = [];
+  for (let tries = 0; dls.length < nDl && tries < 500; tries++){
+    const d = 4 + ri(DAYS - 5);
+    if (dls.every(x => Math.abs(x - d) >= 6)) dls.push(d);
+  }
+  for (const d of dls){ C[d].dl = true; C[d].lock = true; for (let k = 1; k <= 3; k++) if (d - k >= 0 && !C[d - k].dl) C[d - k].ramp = true; }
+  const len = busyLenOf(m);
+  if (len){ const s = ri(DAYS - len + 1); for (let i = s; i < s + len; i++) C[i].busy = true; }
+  const nLock = m === 0 ? 1 : 1 + ri(2);
+  let placed = 0;
+  for (let tries = 0; placed < nLock && tries < 500; tries++){
+    const d = ri(DAYS);
+    if (C[d].dl || C[d].off || C[d].ramp) continue;
+    C[d].off = true; C[d].lock = true; placed++;
+  }
+  // 残りの休みは、ばらばらに散らしておく（はじめから連休はない）
+  const rest = OFFS - placed, step = DAYS / rest, off0 = r() * step;
+  for (let i = 0; i < rest; i++){
+    let d = Math.floor(off0 + i * step + (r() - 0.5) * step * 0.5);
+    d = Math.max(0, Math.min(DAYS - 1, d));
+    let tries = 0;
+    while ((C[d].off || C[d].dl || (d > 0 && C[d - 1].off) || (d < DAYS - 1 && C[d + 1].off)) && tries < 60){ d = (d + 1 + ri(3)) % DAYS; tries++; }
+    if (C[d].off || C[d].dl){ for (d = 0; d < DAYS && (C[d].off || C[d].dl); d++); }
+    C[d].off = true;
+  }
+  return C;
+}
+function probs(c, m){
+  return {
+    tr: Math.min(0.6, P.pTr + P.pTrM * m + (c.dl ? P.pTrDl : 0) + (c.busy ? P.pTrBusy : 0)),
+    ot: Math.min(0.85, P.pOt + P.pOtM * m + (c.ramp ? P.pOtRamp : 0) + (c.busy ? P.pOtBusy : 0)),
+    call: c.lock ? 0 : Math.min(0.4, P.pCall + P.pCallM * m + (c.ramp ? P.pCallRamp : 0) + (c.busy ? P.pCallBusy : 0)),
+    phone: P.pPhone + P.pPhoneM * m,
+  };
+}
+function workBase(c, m, k){ return (P.base + P.baseM * m) * (c.busy ? P.busyX : 1) + Math.max(0, k - P.k0) * P.kp + (c.dl ? P.dl : 0); }
+function recOf(k){ return P.rec[Math.min(k, P.rec.length) - 1]; }
+
+// 1日すすめる。st = {hp, ws, os}（ws=連勤の日数, os=連休の日数）、u = 乱数3つ
+function stepDay(c, m, st, u){
+  const p = probs(c, m), ev = [];
+  let off = c.off, call = false;
+  if (off && u[0] < p.call){ off = false; call = true; ev.push('call'); }
+  let d;
+  if (!off){
+    const k = st.ws + 1; let w = workBase(c, m, k), extra = 0;
+    if ((call ? u[2] : u[0]) < p.tr){ extra += P.tr; ev.push('tr'); }
+    if (u[1] < p.ot){ extra += P.ot; ev.push('ot'); }
+    if (!extra && !call && u[2] < P.pGood){ if (u[2] < P.pGood / 2){ w *= 0.5; ev.push('teiji'); } else { extra -= 5; ev.push('sashi'); } }
+    d = -(w + extra); st.ws = k; st.os = 0;
+  } else {
+    const k = st.os + 1; let rec = recOf(k);
+    if (u[1] < p.phone){ rec *= 0.5; ev.push('phone'); }
+    else if (u[2] < 0.10){ rec *= 1.3; ev.push('gussuri'); }
+    d = rec; st.os = k; st.ws = 0;
+  }
+  const before = st.hp;
+  st.hp = Math.max(0, Math.min(HPMAX, st.hp + d));
+  return { d: st.hp - before, raw: d, ev, call };
+}
+// 見通し：運を平均で入れた体力の線（from日目から月末まで）
+function project(C, m, st0, from){
+  const st = { hp: st0.hp, ws: st0.ws, os: st0.os }, out = [];
+  for (let i = from; i < DAYS; i++){
+    const c = C[i], p = probs(c, m);
+    let d;
+    if (!c.off){ const k = st.ws + 1; d = -(workBase(c, m, k) + p.tr * P.tr + p.ot * P.ot); st.ws = k; st.os = 0; }
+    else { const k = st.os + 1; d = recOf(k) * (1 - 0.5 * p.phone) * (1 - p.call) - p.call * workBase(c, m, 1); st.os = k; st.ws = 0; }
+    st.hp = Math.max(0, Math.min(HPMAX, st.hp + d)); out.push(st.hp);
+  }
+  return out;
+}
+// 連休・連勤のかたまり。carry = 前の月から続いている日数 {ws, os}
+function runs(C, carry){
+  const out = []; let s = 0;
+  for (let i = 1; i <= DAYS; i++) if (i === DAYS || C[i].off !== C[s].off){
+    const r = { s, e: i - 1, off: C[s].off, n: i - s, carry: 0 };
+    if (s === 0 && carry) r.carry = r.off ? carry.os : carry.ws;
+    r.n += r.carry; out.push(r); s = i;
+  }
+  return out;
+}
+
+// ===== 保存 =====
+const $ = id => document.getElementById(id);
+const SAVE_KEY = 'renkyuKudasai.v1';
+const SV = { best: 0, bestDay: '', mute: false, fast: false, seen: false, plays: 0 };
+function loadSave(){ try { Object.assign(SV, JSON.parse(localStorage.getItem(SAVE_KEY) || '{}')); } catch (e) {} }
+function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); } catch (e) {} }
+function jstDate(){ return new Date(Date.now() + 9 * 3600e3); }
+function todaySeed(){ return 'R' + jstDate().toISOString().slice(0, 10).replace(/-/g, ''); }
+
+// ===== 音 =====
+const AU = { ctx: null };
+function au(){
+  if (SV.mute) return null;
+  if (!AU.ctx){ try { AU.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (AU.ctx.state === 'suspended') AU.ctx.resume();
+  return AU.ctx;
+}
+function tone(f, type, vol, dur, delay, f2){
+  const C = au(); if (!C) return;
+  const t = C.currentTime + (delay || 0), o = C.createOscillator(), g = C.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(C.destination); o.start(t); o.stop(t + dur + 0.03);
+}
+function thud(vol){
+  const C = au(); if (!C) return;
+  const n = Math.floor(C.sampleRate * 0.25), b = C.createBuffer(1, n, C.sampleRate), a = b.getChannelData(0);
+  for (let i = 0; i < n; i++) a[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+  const s = C.createBufferSource(), f = C.createBiquadFilter(), g = C.createGain();
+  f.type = 'lowpass'; f.frequency.value = 700; g.gain.value = vol; s.buffer = b; s.connect(f); f.connect(g); g.connect(C.destination); s.start();
+}
+const SFX = {
+  pick(){ tone(660, 'sine', 0.12, 0.09); },
+  drop(){ tone(523, 'triangle', 0.14, 0.1); tone(784, 'triangle', 0.12, 0.14, 0.06); },
+  undo(){ tone(600, 'sine', 0.1, 0.12, 0, 380); },
+  nope(){ tone(180, 'square', 0.05, 0.12); },
+  work(){ tone(196, 'triangle', 0.07, 0.07); },
+  off(k){ const f = 660 * Math.pow(1.122, Math.min(k, 6) - 1); tone(f, 'sine', 0.09, 0.18); tone(f * 1.5, 'sine', 0.05, 0.22, 0.05); },
+  bad(){ thud(0.5); tone(150, 'sawtooth', 0.08, 0.3, 0, 70); },
+  ot(){ tone(330, 'triangle', 0.06, 0.12, 0, 260); },
+  good(){ tone(784, 'sine', 0.1, 0.1); tone(1046, 'sine', 0.1, 0.14, 0.07); },
+  call(){ for (let i = 0; i < 3; i++){ tone(1320, 'square', 0.04, 0.06, i * 0.12); tone(1100, 'square', 0.04, 0.06, i * 0.12 + 0.06); } },
+  clear(){ [523, 659, 784, 1046].forEach((f, i) => tone(f, 'triangle', 0.12, 0.25, i * 0.09)); },
+  down(){ tone(440, 'triangle', 0.15, 1.0, 0, 90); thud(0.6); },
+};
+
+// ===== ゲームの状態 =====
+let G = null;
+const EVI = { tr: ['💥', 'トラブル'], ot: ['🌙', '残業'], teiji: ['🏃', '定時ダッシュ'], sashi: ['🍩', '差し入れ'], call: ['📞', '休日出勤'], phone: ['📱', '休みなのに電話'], gussuri: ['😴', 'ぐっすり'] };
+function newGame(){
+  G = {
+    seed: todaySeed(), m: -1, C: null, st: { hp: HPMAX, ws: 0, os: 0 }, i: 0, total: 0, swaps: SWAPS,
+    trails: [], months: [], hpLog: [], offLog: [], phase: 'plan', sel: -1, drag: null, preview: null, ghost: null,
+    anim: [], floats: [], shake: 0, timer: 0, callDay: -1, monthStart: null,
+    stats: { tr: 0, ot: 0, call: 0, phone: 0, teiji: 0, sashi: 0, gussuri: 0, swaps: 0, maxOff: 0, maxWork: 0, dl: 0 },
+    mstats: null,
+  };
+  SV.plays++; writeSave();
+  startMonth(0);
+}
+function startMonth(m){
+  G.m = m; G.C = genMonth(G.seed, m); G.i = 0; G.swaps = SWAPS; G.sel = -1; G.preview = null; G.ghost = null; G.trails = []; G.phase = 'plan';
+  G.monthStart = { hp: G.st.hp, ws: G.st.ws, os: G.st.os };
+  G.mstats = { tr: 0, ot: 0, call: 0, phone: 0, maxOff: 0, maxWork: 0, hp0: G.st.hp };
+  setCtrl(); showGameUI(); updateHud();
+  const nb = busyLenOf(m), nd = nDlOf(m);
+  if (m === 0) setHint('休み（<b>黄色い玉</b>）をタップして、出勤の日へ動かそう<br>下のグラフは、体力の見通し');
+  else setHint(`${m + 1}か月目：締切<b>${nd}つ</b>・繁忙<b>${nb}日</b>${m >= 2 ? '・トラブルが増えてきた' : ''}`);
+  if (G.st.ws >= 3) toast(`前の月から ${G.st.ws}連勤中`);
+}
+function cell(i){ return G.C[i]; }
+function canPick(i){ const c = cell(i); return !!c && c.off && !c.lock && i >= G.i; }
+function canDrop(i){ const c = cell(i); return !!c && !c.off && !c.lock && i >= G.i; }
+function curProj(){ return project(G.C, G.m, G.st, G.i); }
+function doSwap(a, b){
+  if (G.swaps <= 0){ toast('今月の交換は使いきった'); SFX.nope(); return; }
+  const before = curProj();
+  G.C[a].off = false; G.C[b].off = true; G.C[b].moved = true;
+  G.trails.push({ a, b, kind: 'swap' }); G.swaps--; G.stats.swaps++;
+  G.ghost = { pts: before, from: G.i, t0: performance.now() };
+  G.anim.push({ a, b, t0: performance.now(), dur: 280 });
+  G.sel = -1; G.preview = null; SFX.drop();
+  const after = curProj();
+  const d = Math.round(after[after.length - 1]) - Math.round(before[before.length - 1]);
+  toast(`見通しの月末 ${Math.round(before[before.length - 1])} → ${Math.round(after[after.length - 1])}（${d >= 0 ? '+' : ''}${d}）`);
+  setCtrl(); updateHud();
+}
+function undoSwap(){
+  const t = G.trails[G.trails.length - 1];
+  if (!t || t.kind !== 'swap' || t.a < G.i || t.b < G.i) return;
+  G.trails.pop(); G.C[t.b].off = false; G.C[t.b].moved = false; G.C[t.a].off = true; G.swaps++; G.stats.swaps--;
+  G.ghost = null; G.sel = -1; SFX.undo(); setCtrl(); updateHud();
+}
+function canUndo(){ const t = G && G.trails[G.trails.length - 1]; return !!t && t.kind === 'swap' && t.a >= G.i && t.b >= G.i; }
+
+// ===== 1日ずつ進める =====
+function startRun(){
+  G.phase = 'run'; G.sel = -1; G.preview = null; G.ghost = null; setCtrl();
+  setHint(G.swaps > 0 ? `出勤中…　残りの交換（${G.swaps}回）は「休みを動かす」で使える` : '出勤中…');
+  schedule(450);
+}
+function schedule(ms){ clearTimeout(G.timer); G.timer = setTimeout(tick, ms); }
+function dayDelay(big){ return SV.fast ? (big ? 650 : 190) : (big ? 1250 : 520); }
+function tick(){
+  if (!G || G.phase !== 'run') return;
+  if (G.i >= DAYS){ endMonth(); return; }
+  const i = G.i, c = cell(i);
+  const r = stepDay(c, G.m, G.st, [Math.random(), Math.random(), Math.random()]);
+  c.done = true; c.d = r.d; c.ev = r.ev; c.hp = G.st.hp; c.wasOff = c.off && !r.call;
+  if (r.call){ c.off = false; c.called = true; }
+  G.hpLog.push(G.st.hp); G.offLog.push(c.wasOff); G.total++; G.i++;
+  for (const e of r.ev){ G.stats[e]++; if (G.mstats[e] !== undefined) G.mstats[e]++; }
+  if (c.dl) G.stats.dl++;
+  G.stats.maxOff = Math.max(G.stats.maxOff, G.st.os); G.stats.maxWork = Math.max(G.stats.maxWork, G.st.ws);
+  G.mstats.maxOff = Math.max(G.mstats.maxOff, G.st.os); G.mstats.maxWork = Math.max(G.mstats.maxWork, G.st.ws);
+  // 見せ方
+  const ctr = cellCenter(i), dTxt = (r.d >= 0 ? '+' : '−') + Math.abs(Math.round(r.d));
+  G.floats.push({ x: ctr.x, y: ctr.y - L.cs * 0.3, txt: dTxt, col: r.d >= 0 ? '#2f9a55' : '#d2412a', t0: performance.now() });
+  let big = false;
+  if (r.ev.includes('call')){ SFX.call(); banner('📞', '休日出勤！', `${i + 1}日目の休みが、出勤に…`, 'bad'); big = true; G.shake = performance.now(); }
+  else if (r.ev.includes('tr')){ SFX.bad(); banner('💥', 'トラブル発生！', c.dl ? '締切の日に、よりによって' : `体力 −${P.tr}`, 'bad'); big = true; G.shake = performance.now(); }
+  else if (c.dl){ SFX.bad(); banner('🔥', '締切！', `${dTxt}`, 'bad'); big = true; }
+  else if (r.ev.includes('phone')){ SFX.ot(); banner('📱', '休みなのに電話', '回復が半分に', 'bad'); big = true; }
+  else if (r.ev.includes('teiji')){ SFX.good(); banner('🏃', '定時ダッシュ！', '減りが半分', 'good'); big = true; }
+  else if (r.ev.includes('sashi')){ SFX.good(); banner('🍩', '差し入れ', '体力 +5', 'good'); big = true; }
+  else if (r.ev.includes('gussuri')){ SFX.good(); banner('😴', 'ぐっすり', '回復が1.3倍', 'good'); big = true; }
+  else if (r.ev.includes('ot')){ SFX.ot(); }
+  else if (c.wasOff) SFX.off(G.st.os); else SFX.work();
+  updateHud();
+  if (G.st.hp <= 0){ gameOver(); return; }
+  if (r.call){ startCall(i); return; }
+  if (G.i >= DAYS){ schedule(dayDelay(big) + 250); return; }
+  schedule(dayDelay(big));
+}
+function startCall(i){
+  const cand = []; for (let j = i + 1; j < DAYS; j++) if (canDrop(j)) cand.push(j);
+  if (!cand.length){ setTimeout(() => { banner('📞', '代休は…', '今月はもう入れる日がない', 'bad'); }, 900); schedule(dayDelay(true) + 1300); return; }
+  G.phase = 'call'; G.callDay = i; setCtrl();
+  setTimeout(() => { if (G.phase === 'call'){ hideBanner(); setHint(`📞 ${i + 1}日目は休日出勤。<b>代休</b>を入れる日をタップ`); } }, 900);
+}
+function placeDaikyu(j){
+  const i = G.callDay;
+  G.C[j].off = true; G.C[j].daikyu = true; G.trails.push({ a: i, b: j, kind: 'daikyu' });
+  G.anim.push({ a: i, b: j, t0: performance.now(), dur: 320 }); SFX.drop();
+  G.phase = 'run'; G.callDay = -1; setCtrl(); setHint(`${j + 1}日目に代休を入れた`); schedule(700);
+}
+function endMonth(){
+  G.phase = 'month'; setCtrl();
+  G.months.push(snapMonth());
+  SFX.clear();
+  const ms = G.mstats, m = G.m;
+  $('meTitle').textContent = `${m + 1}か月目 のりきった！`;
+  $('meList').innerHTML = [
+    ['体力', `${Math.round(ms.hp0)} → <span class="${G.st.hp >= ms.hp0 ? 'g' : 'r'}">${Math.round(G.st.hp)}</span>`],
+    ['いちばん長い連休', `${ms.maxOff}日`],
+    ['いちばん長い連勤', `${ms.maxWork}日`],
+    ['残業／トラブル', `${ms.ot}回／${ms.tr}回`],
+    ['休日出勤／休みに電話', `${ms.call}回／${ms.phone}回`],
+  ].map(([k, v]) => `<div class="it"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+  const nm = m + 1;
+  $('meNext').innerHTML = `つぎは ${nm + 1}か月目：締切 ${nDlOf(nm)}つ・繁忙 ${busyLenOf(nm)}日${nm >= 2 ? '<br>出勤の減りも、トラブルも、すこしずつ増える' : ''}${G.st.ws >= 3 ? `<br>（${G.st.ws}連勤のまま、月をまたぐ）` : ''}`;
+  setTimeout(() => { if (G.phase === 'month') show('monthEnd'); }, 500);
+}
+function snapMonth(dead){ return { m: G.m, C: G.C.map(c => Object.assign({}, c)), trails: G.trails.slice(), carry: Object.assign({}, G.monthStart), upto: G.i, dead: !!dead }; }
+function gameOver(){
+  G.phase = 'over'; setCtrl(); clearTimeout(G.timer);
+  G.months.push(snapMonth(true));
+  SFX.down(); G.shake = performance.now();
+  setTimeout(() => banner('😵', '力つきた…', `通算 ${G.total}日目`, 'bad'), 350);
+  setHint('体力が0になった');
+  setTimeout(showResult, 2200);
+}
+
+// ===== 画面まわり =====
+const cv = $('board'), ctx = cv.getContext('2d');
+let L = { cs: 50, gap: 16, W: 350, H: 400, dpr: 1, chartY: 0, chartH: 100 };
+let PAT = null;
+function show(id){ $(id).classList.remove('hidden'); }
+function hide(id){ $(id).classList.add('hidden'); }
+function hideScreens(){ for (const s of ['title', 'howto', 'pause', 'monthEnd', 'result']) hide(s); }
+function showGameUI(){ hideScreens(); hideBanner(); lastStage = ''; relayout(); }
+function setHint(h){ $('hint').innerHTML = '<div>' + h + '</div>'; }
+let toastT = 0;
+function toast(t){ const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('on'), 1800); }
+let bannerT = 0;
+function banner(e, t, s, cls){
+  $('bnE').textContent = e; $('bnT').textContent = t; $('bnS').textContent = s || '';
+  const b = $('banner'); b.className = cls || ''; void b.offsetWidth; b.classList.add('pop');
+  clearTimeout(bannerT); bannerT = setTimeout(hideBanner, SV.fast ? 750 : 1150);
+}
+function hideBanner(){ $('banner').classList.add('hidden'); }
+function setCtrl(){
+  const ph = G ? G.phase : 'plan', vis = { undoBtn: 0, goBtn: 0, moveBtn: 0, speedBtn: 0, resumeRunBtn: 0 };
+  if (ph === 'plan'){ vis.undoBtn = 1; vis.goBtn = 1; }
+  else if (ph === 'run'){ vis.moveBtn = 1; vis.speedBtn = 1; }
+  else if (ph === 'move'){ vis.undoBtn = 1; vis.resumeRunBtn = 1; }
+  for (const k in vis) $(k).classList.toggle('hidden', !vis[k]);
+  $('undoBtn').disabled = !canUndo();
+  $('moveBtn').disabled = !G || G.swaps <= 0 || G.i >= DAYS;
+  $('moveBtn').textContent = G && G.swaps > 0 ? `休みを動かす（${G.swaps}）` : '交換なし';
+  $('speedBtn').classList.toggle('on', SV.fast);
+  $('pauseBtn').classList.toggle('hidden', !G || ph === 'over' || ph === 'month');
+}
+function faceOf(hp){ return hp >= 75 ? '😄' : hp >= 50 ? '🙂' : hp >= 30 ? '😓' : hp >= 12 ? '😩' : hp > 0 ? '😵‍💫' : '😵'; }
+function updateHud(){
+  if (!G) return;
+  const hp = G.st.hp;
+  $('monthLab').textContent = `${G.m + 1}か月目`;
+  $('dayLab').textContent = `通算 ${G.total}日`;
+  $('hpTxt').textContent = Math.round(hp) + ' / ' + HPMAX;
+  const f = $('hpFill'); f.style.width = Math.max(0, hp) + '%'; f.style.backgroundColor = hp >= 55 ? '#3fbf6a' : hp >= 28 ? '#f2b630' : '#e2553a';
+  $('face').textContent = faceOf(hp);
+  $('swapDots').innerHTML = Array.from({ length: SWAPS }, (_, k) => `<i class="${k < G.swaps ? '' : 'u'}"></i>`).join('');
+  $('undoBtn').disabled = !canUndo();
+}
+
+// ----- 配置 -----
+function layout(){
+  const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
+  const W = Math.min(w, 460), gap = 17;
+  const need = cs => gap + 4 * (cs + gap) + 6 + Math.max(92, cs * 2.1);
+  let cs = Math.floor(W / 7);
+  while (need(cs) > h - 4 && cs > 30) cs--;
+  L.cs = cs; L.gap = gap; L.W = cs * 7; L.chartY = gap + 4 * (cs + gap) + 2; L.chartH = Math.floor(Math.max(92, Math.min(h - L.chartY - 8, cs * 3))); L.H = L.chartY + L.chartH + 4;
+  L.dpr = Math.min(3, window.devicePixelRatio || 1);
+  cv.width = Math.round(L.W * L.dpr); cv.height = Math.round(L.H * L.dpr);
+  cv.style.width = L.W + 'px'; cv.style.height = L.H + 'px';
+  PAT = makePats(ctx, L.dpr);
+}
+function makePats(c, dpr){
+  const mk = (bg, fg) => {
+    const s = Math.round(8 * dpr), p = document.createElement('canvas'); p.width = p.height = s;
+    const x = p.getContext('2d'); x.fillStyle = bg; x.fillRect(0, 0, s, s); x.strokeStyle = fg; x.lineWidth = 2 * dpr; x.beginPath();
+    for (let k = -1; k <= 1; k++){ x.moveTo(k * s, s); x.lineTo(k * s + s, 0); } x.stroke();
+    const pat = c.createPattern(p, 'repeat');
+    if (pat.setTransform && window.DOMMatrix) pat.setTransform(new DOMMatrix().scale(1 / dpr));
+    return pat;
+  };
+  return { work: mk('#e6e9ee', '#c7ced8'), ramp: mk('#ffe6cc', '#f2b27c'), busy: mk('#ebe3fb', '#c4b2ee') };
+}
+function cellRect(i, o){ const cs = o ? o.cs : L.cs, gap = o ? o.gap : L.gap, x0 = o ? o.x : 0, y0 = o ? o.y : 0; return { x: x0 + (i % 7) * cs, y: y0 + gap + Math.floor(i / 7) * (cs + gap), w: cs, h: cs }; }
+function cellCenter(i, o){ const r = cellRect(i, o); return { x: r.x + r.w / 2, y: r.y + r.h / 2 + r.h * 0.06 }; }
+function hit(e){
+  const b = cv.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top;
+  for (let i = 0; i < DAYS; i++){ const r = cellRect(i); if (x >= r.x && x < r.x + r.w && y >= r.y - L.gap * 0.4 && y < r.y + r.h + L.gap * 0.4) return i; }
+  return -1;
+}
+function rr(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+const FONT = '"M PLUS Rounded 1c",system-ui,sans-serif';
+
+// 休みの玉
+function drawBall(c, x, y, rad, kind, lift){
+  c.save();
+  if (lift){ c.fillStyle = 'rgba(31,47,70,.22)'; c.beginPath(); c.ellipse(x, y + rad * 0.95, rad * 0.8, rad * 0.25, 0, 0, Math.PI * 2); c.fill(); y -= rad * 0.35; }
+  c.fillStyle = kind === 'lock' ? '#ffd76e' : kind === 'daikyu' ? '#ffe08a' : '#ffc93c';
+  c.strokeStyle = '#b97a00'; c.lineWidth = Math.max(2, rad * 0.12);
+  c.beginPath(); c.arc(x, y, rad, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.ellipse(x - rad * 0.35, y - rad * 0.42, rad * 0.3, rad * 0.17, -0.5, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#7a4d00'; c.font = `800 ${Math.round(rad * 0.95)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(kind === 'daikyu' ? '代' : '休', x, y + rad * 0.06);
+  if (kind === 'lock'){ // 小さな南京錠
+    const s = rad * 0.42, lx = x + rad * 0.72, ly = y - rad * 0.7;
+    c.fillStyle = '#1f2f46'; c.strokeStyle = '#1f2f46'; c.lineWidth = s * 0.28;
+    c.beginPath(); c.arc(lx, ly - s * 0.25, s * 0.42, Math.PI, 0); c.stroke();
+    rr(c, lx - s * 0.62, ly - s * 0.25, s * 1.24, s * 0.95, s * 0.18); c.fill();
+  }
+  c.restore();
+}
+
+// カレンダー（ゲーム中と、結果の画像で同じものを使う）
+// o = {x, y, cs, gap, C, trails, carry, upto, live}
+function drawCalendar(c, o){
+  const { C, cs, gap } = o;
+  const R = runs(C, o.carry);
+  // 連休・連勤の帯
+  for (const r of R){
+    if (!(r.off && r.n >= 2) && !(!r.off && r.n >= 6)) continue;
+    for (let row = Math.floor(r.s / 7); row <= Math.floor(r.e / 7); row++){
+      const a = Math.max(r.s, row * 7), b = Math.min(r.e, row * 7 + 6), ra = cellRect(a, o);
+      c.fillStyle = r.off ? '#ffeaa6' : (r.n >= 9 ? '#ffb4a6' : '#ffd3c9');
+      rr(c, ra.x + 1, ra.y + 1, (b - a + 1) * cs - 2, cs - 2, cs * 0.24); c.fill();
+    }
+  }
+  // マス
+  for (let i = 0; i < DAYS; i++){
+    const q = C[i], r = cellRect(i, o), pad = cs * 0.08, cx = r.x + cs / 2, cy = r.y + cs / 2 + cs * 0.06;
+    if (q.dl){
+      c.fillStyle = '#e2553a'; rr(c, r.x + pad, r.y + pad, cs - pad * 2, cs - pad * 2, cs * 0.16); c.fill();
+      c.fillStyle = '#fff'; c.font = `800 ${Math.round(cs * 0.27)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('締切', cx, cy + cs * 0.04);
+    } else if (!q.off){
+      const pt = o.pats || PAT; c.fillStyle = q.ramp ? pt.ramp : q.busy ? pt.busy : pt.work;
+      rr(c, r.x + pad, r.y + pad, cs - pad * 2, cs - pad * 2, cs * 0.14); c.fill();
+      if (q.called){ c.font = `${Math.round(cs * 0.36)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('📞', cx, cy); }
+    } else {
+      if (q.busy || q.ramp){ c.fillStyle = q.ramp ? '#ffe6cc' : '#ebe3fb'; rr(c, r.x + pad, r.y + pad, cs - pad * 2, cs - pad * 2, cs * 0.14); c.fill(); }
+      const lifted = o.live && G && (G.sel === i) && !(G.drag && G.drag.moved);
+      const hidden = o.live && G && ((G.drag && G.drag.moved && G.drag.i === i) || G.anim.some(an => an.b === i));
+      if (!hidden) drawBall(c, cx, cy, cs * 0.33, q.lock ? 'lock' : q.daikyu ? 'daikyu' : 'off', lifted);
+    }
+    // 日付
+    c.fillStyle = q.dl ? '#fff' : '#5d6b7d'; c.font = `800 ${Math.round(cs * 0.2)}px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'top';
+    c.fillText(String(i + 1), r.x + pad + 2, r.y + pad + 1);
+    // すぎた日
+    if (q.done){
+      if (o.live){ c.fillStyle = 'rgba(246,240,227,.5)'; rr(c, r.x + 1, r.y + 1, cs - 2, cs - 2, cs * 0.16); c.fill(); }
+      const ev = (q.ev || []).filter(e => e !== 'call')[0];
+      if (ev){ c.font = `${Math.round(cs * 0.26)}px ${FONT}`; c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(EVI[ev][0], r.x + cs - pad, r.y + pad - 1); }
+      if (o.live){
+        c.font = `800 ${Math.round(cs * 0.22)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'bottom';
+        c.lineWidth = 3; c.strokeStyle = '#fff'; const t = (q.d >= 0 ? '+' : '−') + Math.abs(Math.round(q.d));
+        c.strokeText(t, cx, r.y + cs - 1); c.fillStyle = q.d >= 0 ? '#2f9a55' : '#d2412a'; c.fillText(t, cx, r.y + cs - 1);
+      }
+    }
+    // たどりつかなかった日（結果の画像）
+    if (o.upto != null && i >= o.upto){ c.fillStyle = 'rgba(246,240,227,.72)'; c.fillRect(r.x, r.y, cs, cs); }
+  }
+  // 連休・連勤の数
+  for (const r of R){
+    let txt = null, bg, fg;
+    if (r.off && r.n >= 2){ txt = `${r.n}連休`; bg = '#ffc93c'; fg = '#1f2f46'; }
+    else if (!r.off && r.n >= 6){ txt = `${r.n}連勤`; bg = r.n >= 9 ? '#b8321d' : '#e2553a'; fg = '#fff'; }
+    if (!txt) continue;
+    if (r.carry) txt = '←' + txt;
+    const ls = (r.s % 7 >= 5 && Math.floor(r.e / 7) > Math.floor(r.s / 7)) ? (Math.floor(r.s / 7) + 1) * 7 : r.s;
+    const ra = cellRect(ls, o), fs = Math.round(gap * 0.66);
+    c.font = `800 ${fs}px ${FONT}`; const tw = c.measureText(txt).width + fs * 0.9;
+    const x = Math.min(ra.x + 1, o.x + 7 * cs - tw - 1), y = ra.y - gap + 1;
+    c.fillStyle = bg; rr(c, x, y, tw, gap - 2, (gap - 2) / 2); c.fill();
+    c.fillStyle = fg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, x + tw / 2, y + (gap - 2) / 2 + 0.5);
+  }
+  // 移した跡
+  for (const t of (o.trails || [])) drawTrail(c, o, t.a, t.b, t.kind);
+}
+function drawTrail(c, o, a, b, kind){
+  const p = cellCenter(a, o), q = cellCenter(b, o), cs = o.cs;
+  const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2, dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy) || 1;
+  const bend = Math.min(cs * 0.9, len * 0.3), nx = -dy / len, ny = dx / len, sg = dx >= 0 ? -1 : 1;
+  const cx = mx + nx * bend * sg, cy = my + ny * bend * sg;
+  c.save();
+  c.strokeStyle = kind === 'daikyu' ? 'rgba(93,107,125,.75)' : 'rgba(43,108,176,.75)'; c.lineWidth = Math.max(2, cs * 0.06); c.lineCap = 'round';
+  if (kind === 'daikyu') c.setLineDash([cs * 0.12, cs * 0.12]);
+  c.beginPath(); c.moveTo(p.x, p.y); c.quadraticCurveTo(cx, cy, q.x, q.y); c.stroke(); c.setLineDash([]);
+  c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.arc(p.x, p.y, cs * 0.09, 0, Math.PI * 2); c.fill(); c.stroke();
+  const ang = Math.atan2(q.y - cy, q.x - cx), ah = cs * 0.2, ex = q.x - Math.cos(ang) * cs * 0.3, ey = q.y - Math.sin(ang) * cs * 0.3;
+  c.fillStyle = c.strokeStyle; c.beginPath(); c.moveTo(ex, ey); c.lineTo(ex - Math.cos(ang - 0.5) * ah, ey - Math.sin(ang - 0.5) * ah); c.lineTo(ex - Math.cos(ang + 0.5) * ah, ey - Math.sin(ang + 0.5) * ah); c.closePath(); c.fill();
+  c.restore();
+}
+// 体力の見通しグラフ
+function drawChart(c, x, y, w, h){
+  c.fillStyle = '#fff'; rr(c, x + 1, y + 1, w - 2, h - 2, 12); c.fill(); c.strokeStyle = '#1f2f46'; c.lineWidth = 2; c.stroke();
+  const top = y + 22, bot = y + h - 10, px = b => x + 10 + (b / DAYS) * (w - 20), py = v => bot - (Math.max(0, v) / HPMAX) * (bot - top);
+  c.fillStyle = 'rgba(226,85,58,.13)'; c.fillRect(px(0), py(20), px(DAYS) - px(0), py(0) - py(20));
+  c.strokeStyle = '#eee6d6'; c.lineWidth = 1;
+  for (const v of [50, 100]){ c.beginPath(); c.moveTo(px(0), py(v)); c.lineTo(px(DAYS), py(v)); c.stroke(); }
+  for (const b of [7, 14, 21]){ c.beginPath(); c.moveTo(px(b), top); c.lineTo(px(b), bot); c.stroke(); }
+  const line = (pts, from, start, col, wdt, dash, alpha) => {
+    c.save(); c.globalAlpha = alpha == null ? 1 : alpha; c.strokeStyle = col; c.lineWidth = wdt; c.lineJoin = 'round'; if (dash) c.setLineDash(dash);
+    c.beginPath(); c.moveTo(px(from), py(start)); pts.forEach((v, k) => c.lineTo(px(from + k + 1), py(v))); c.stroke(); c.restore();
+  };
+  // ここまでの体力
+  const past = []; for (let k = 0; k < G.i; k++) past.push(G.C[k].hp);
+  if (past.length) line(past, 0, G.monthStart.hp, '#1f2f46', 3.5);
+  const now = performance.now();
+  if (G.ghost && now - G.ghost.t0 < 1600) line(G.ghost.pts, G.ghost.from, G.st.hp, '#8a96a5', 2, [4, 4], 1 - (now - G.ghost.t0) / 1600);
+  const pr = G.i < DAYS && G.phase !== 'over' ? curProj() : [];
+  if (pr.length) line(pr, G.i, G.st.hp, '#2b6cb0', 2.5, [7, 5]);
+  if (G.preview) line(G.preview, G.i, G.st.hp, '#f08c00', 3, [7, 4]);
+  // いまの点
+  c.fillStyle = '#1f2f46'; c.beginPath(); c.arc(px(G.i), py(G.st.hp), 4, 0, Math.PI * 2); c.fill();
+  // 文字
+  const show = G.preview || pr;
+  c.font = `800 12px ${FONT}`; c.textBaseline = 'middle'; c.textAlign = 'left'; c.fillStyle = '#1f2f46';
+  c.fillText(G.phase === 'plan' || G.phase === 'move' ? '見通し（運は平均）' : '体力の見通し', x + 10, y + 12);
+  if (show.length){
+    const zi = show.findIndex(v => v <= 0.01);
+    c.textAlign = 'right';
+    if (zi >= 0){
+      c.fillStyle = '#d2412a'; c.fillText(`${G.i + zi + 1}日目に力つきそう`, x + w - 10, y + 12);
+      const zx = px(G.i + zi + 1); c.beginPath(); c.arc(zx, py(0), 6, 0, Math.PI * 2); c.fill();
+    } else {
+      const mn = Math.min(...show), end = show[show.length - 1];
+      c.fillStyle = mn < 20 ? '#d2412a' : '#1f2f46';
+      c.fillText(`最低 ${Math.round(mn)}・月末 ${Math.round(end)}`, x + w - 10, y + 12);
+    }
+  }
+}
+function draw(){
+  if (!G || !G.C) return;
+  const c = ctx, now = performance.now();
+  c.setTransform(L.dpr, 0, 0, L.dpr, 0, 0); c.clearRect(0, 0, L.W, L.H);
+  c.save();
+  if (now - G.shake < 380){ const k = (1 - (now - G.shake) / 380) * 5; c.translate((Math.random() - 0.5) * k, (Math.random() - 0.5) * k); }
+  const o = { x: 0, y: 0, cs: L.cs, gap: L.gap, C: G.C, trails: G.trails, carry: G.monthStart, live: true };
+  drawCalendar(c, o);
+  // 動かせる日の目印
+  const pickMode = G.phase === 'plan' || G.phase === 'move';
+  if ((pickMode && G.sel >= 0) || G.phase === 'call'){
+    c.save(); c.strokeStyle = G.phase === 'call' ? '#2b6cb0' : '#f08c00'; c.lineWidth = 2.5; c.setLineDash([5, 4]);
+    const a = 0.55 + 0.45 * Math.sin(now / 180);
+    c.globalAlpha = a;
+    for (let i = 0; i < DAYS; i++) if (canDrop(i) && (G.phase !== 'call' || i > G.callDay)){ const r = cellRect(i); rr(c, r.x + 3, r.y + 3, r.w - 6, r.h - 6, L.cs * 0.16); c.stroke(); }
+    c.restore();
+  }
+  // 今日
+  if (G.phase !== 'plan' && G.i < DAYS && G.phase !== 'over'){
+    const r = cellRect(G.i); c.strokeStyle = '#1f2f46'; c.lineWidth = 3; rr(c, r.x + 1.5, r.y + 1.5, r.w - 3, r.h - 3, L.cs * 0.18); c.stroke();
+  }
+  if (G.i > 0 && G.phase !== 'plan'){
+    const k = Math.min(G.i - 1, DAYS - 1), r = cellRect(k);
+    c.font = `${Math.round(L.cs * 0.42)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(faceOf(G.st.hp), r.x + r.w / 2, r.y + r.h * 0.12);
+  }
+  // 動いている玉
+  G.anim = G.anim.filter(an => now - an.t0 < an.dur);
+  for (const an of G.anim){
+    const t = Math.min(1, (now - an.t0) / an.dur), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    const p = cellCenter(an.a), q = cellCenter(an.b), hop = Math.sin(Math.PI * e) * L.cs * 0.6;
+    drawBall(c, p.x + (q.x - p.x) * e, p.y + (q.y - p.y) * e - hop, L.cs * 0.33, G.C[an.b].daikyu ? 'daikyu' : 'off', false);
+  }
+  if (G.drag && G.drag.moved) drawBall(c, G.drag.x, G.drag.y - L.cs * 0.25, L.cs * 0.36, 'off', true);
+  // 数字が浮かぶ
+  G.floats = G.floats.filter(f => now - f.t0 < 900);
+  for (const f of G.floats){
+    const t = (now - f.t0) / 900; c.globalAlpha = 1 - t * t; c.font = `800 ${Math.round(L.cs * 0.34)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.lineWidth = 4; c.strokeStyle = '#fff'; c.strokeText(f.txt, f.x, f.y - t * L.cs * 0.6); c.fillStyle = f.col; c.fillText(f.txt, f.x, f.y - t * L.cs * 0.6); c.globalAlpha = 1;
+  }
+  drawChart(c, 0, L.chartY, L.W, L.chartH);
+  c.restore();
+}
+function loop(){ draw(); requestAnimationFrame(loop); }
+
+// ----- さわる -----
+function localXY(e){ const b = cv.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; }
+function previewAt(a, b){
+  if (a < 0 || b < 0 || !canDrop(b) || G.swaps <= 0){ G.preview = null; return; }
+  G.C[a].off = false; G.C[b].off = true; G.preview = curProj(); G.C[a].off = true; G.C[b].off = false;
+}
+function whyNot(i){
+  const c = cell(i);
+  if (!c) return;
+  if (i < G.i){ toast('すぎた日は動かせない'); return; }
+  if (c.dl){ toast('🔥 締切の日は休めない'); return; }
+  if (c.lock){ toast('🔒 この休みは動かせない'); return; }
+  if (!c.off && G.sel < 0) toast(c.ramp ? `${i + 1}日目：追い込み（残業しやすい）` : c.busy ? `${i + 1}日目：繁忙（減りが大きい）` : '先に、動かしたい休み（黄色い玉）をタップ');
+}
+cv.addEventListener('pointerdown', e => {
+  if (!G) return; au();
+  const i = hit(e);
+  if (G.phase === 'call'){ if (i > G.callDay && canDrop(i)) placeDaikyu(i); else toast('代休は、この先の出勤の日に入れる'); return; }
+  if (G.phase !== 'plan' && G.phase !== 'move') return;
+  if (i < 0){ G.sel = -1; G.preview = null; return; }
+  if (canPick(i)){
+    if (G.swaps <= 0){ toast('今月の交換は使いきった'); SFX.nope(); return; }
+    const p = localXY(e);
+    G.drag = { i, x: p.x, y: p.y, sx: p.x, sy: p.y, moved: false, wasSel: G.sel === i, over: -1 };
+    if (G.sel !== i){ G.sel = i; SFX.pick(); }
+    try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+  } else if (G.sel >= 0 && canDrop(i)) doSwap(G.sel, i);
+  else { whyNot(i); if (G.sel >= 0){ G.sel = -1; G.preview = null; } }
+});
+cv.addEventListener('pointermove', e => {
+  if (!G) return;
+  const p = localXY(e);
+  if (G.drag){
+    G.drag.x = p.x; G.drag.y = p.y;
+    if (!G.drag.moved && Math.hypot(p.x - G.drag.sx, p.y - G.drag.sy) > 8) G.drag.moved = true;
+    if (G.drag.moved){ const i = hit(e); if (i !== G.drag.over){ G.drag.over = i; previewAt(G.drag.i, i); } }
+  } else if ((G.phase === 'plan' || G.phase === 'move') && G.sel >= 0 && e.pointerType === 'mouse'){
+    const i = hit(e); previewAt(G.sel, i);
+  }
+});
+function endDrag(e){
+  if (!G || !G.drag) return;
+  const d = G.drag; G.drag = null;
+  if (d.moved){ const i = hit(e); if (i >= 0 && canDrop(i)) doSwap(d.i, i); else { G.preview = null; } }
+  else if (d.wasSel){ G.sel = -1; G.preview = null; }
+}
+cv.addEventListener('pointerup', endDrag);
+cv.addEventListener('pointercancel', () => { if (G){ G.drag = null; G.preview = null; } });
+
+// ----- ボタン -----
+$('goBtn').onclick = () => { au(); startRun(); };
+$('undoBtn').onclick = () => { au(); undoSwap(); };
+$('moveBtn').onclick = () => {
+  if (!G || G.phase !== 'run' || G.swaps <= 0) return; au();
+  clearTimeout(G.timer); G.phase = 'move'; setCtrl(); hideBanner();
+  setHint(`<b>${G.i + 1}日目から先</b>の休みを動かせる（あと${G.swaps}回）`);
+};
+$('resumeRunBtn').onclick = () => { if (!G || G.phase !== 'move') return; G.sel = -1; G.preview = null; startRun(); };
+$('speedBtn').onclick = () => { SV.fast = !SV.fast; writeSave(); setCtrl(); };
+$('pauseBtn').onclick = () => {
+  if (!G || G.phase === 'over' || G.phase === 'month') return;
+  clearTimeout(G.timer); if (G.phase === 'run') G.phase = 'paused';
+  syncMute(); show('pause');
+};
+$('resumeBtn').onclick = () => { hide('pause'); if (G && G.phase === 'paused'){ G.phase = 'run'; schedule(400); } };
+$('restartBtn').onclick = () => { hide('pause'); newGame(); };
+$('quitBtn').onclick = () => { if (G) clearTimeout(G.timer); G = null; toTitle(); };
+$('pHowBtn').onclick = () => { howFrom = 'pause'; hide('pause'); show('howto'); };
+$('nextBtn').onclick = () => { hide('monthEnd'); startMonth(G.m + 1); };
+$('againBtn').onclick = () => { hide('result'); newGame(); };
+$('toTitleBtn').onclick = () => { G = null; toTitle(); };
+$('shareBtn').onclick = share;
+$('saveBtn').onclick = saveImage;
+let howFrom = 'title';
+$('howBtn').onclick = () => { howFrom = 'title'; hide('title'); show('howto'); };
+$('howOk').onclick = () => {
+  hide('howto'); SV.seen = true; writeSave();
+  if (howFrom === 'play') newGame(); else if (howFrom === 'pause') show('pause'); else show('title');
+};
+$('playBtn').onclick = () => { au(); if (!SV.seen){ howFrom = 'play'; hide('title'); show('howto'); return; } newGame(); };
+function syncMute(){ const t = SV.mute ? '音：なし' : '音：あり'; $('muteBtn').textContent = t; $('pMuteBtn').textContent = t; }
+$('muteBtn').onclick = $('pMuteBtn').onclick = () => { SV.mute = !SV.mute; writeSave(); syncMute(); if (!SV.mute){ au(); SFX.pick(); } };
+
+function ads(id){ const z = $(id); if (!z || z.firstChild || !/(^|\.)nkworks-games\.com$/.test(location.hostname)) return; z.innerHTML = '<ins class="adsbygoogle" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>'; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} }
+function toTitle(){
+  hideScreens();
+  $('bestBox').innerHTML = SV.best ? `最高記録：<b>${SV.best}日</b> もちこたえた` : '';
+  const d = jstDate(); $('tday').textContent = `今日の盤面：${d.getUTCMonth() + 1}月${d.getUTCDate()}日（毎日0時にかわる）`;
+  syncMute(); show('title'); ads('ad1');
+}
+
+// ===== 結果 =====
+function styleOf(){
+  let runsN = 0, days = 0;
+  for (let k = 0; k < G.offLog.length; k++) if (G.offLog[k]){ days++; if (k === 0 || !G.offLog[k - 1]) runsN++; }
+  const avg = runsN ? days / runsN : 0;
+  return avg >= 2.8 ? 'まとめて休む派' : avg <= 1.6 ? 'こまめに休む派' : 'ほどほどに休む派';
+}
+function survived(){ return Math.max(0, G.total - 1); }
+function showResult(){
+  hideBanner();
+  const n = survived(), isNew = n > SV.best;
+  if (isNew){ SV.best = n; SV.bestDay = todaySeed(); writeSave(); }
+  $('rBig').innerHTML = `${n}<small>日</small>`;
+  $('rSub').textContent = `もちこたえた（${G.m + 1}か月目の${G.i}日目に力つきた）`;
+  $('rNew').textContent = isNew ? '最高記録！' : SV.best ? `最高記録：${SV.best}日` : '';
+  const style = styleOf(); G.style = style;
+  $('rStyle').textContent = style;
+  const s = G.stats;
+  $('rList').innerHTML = [
+    ['いちばん長い連休', `${s.maxOff}日`, 'g'],
+    ['いちばん長い連勤', `${s.maxWork}日`, s.maxWork >= 9 ? 'r' : ''],
+    ['休みを動かした', `${s.swaps}回`, ''],
+    ['残業／トラブル', `${s.ot}回／${s.tr}回`, ''],
+    ['休日出勤／休みに電話', `${s.call}回／${s.phone}回`, ''],
+    ['定時ダッシュ／差し入れ', `${s.teiji}回／${s.sashi}回`, ''],
+  ].map(([k, v, cl]) => `<div class="it"><span class="k">${k}</span><span class="v ${cl}">${v}</span></div>`).join('');
+  const img = makeResultImage(); G.resultCanvas = img; $('rImg').src = img.toDataURL('image/png');
+  show('result'); ads('ad2');
+}
+function shareText(){
+  const s = G.stats, n = survived();
+  const a = s.maxOff >= 2 ? `最長${s.maxOff}連休を作って` : '連休は作らずに';
+  const b = s.maxWork >= 6 ? `、${s.maxWork}連勤をくぐりぬけ` : '';
+  return `連休をください。${a}${b}、${n}日もちこたえた。（${G.style}）\n#連休をください`;
+}
+function share(){
+  if (!G) return;
+  const url = 'https://nkworks-games.com/renkyu-kudasai/';
+  open('https://x.com/intent/post?text=' + encodeURIComponent(shareText()) + '&url=' + encodeURIComponent(url), '_blank', 'noopener');
+}
+function saveImage(){
+  if (!G || !G.resultCanvas) return;
+  G.resultCanvas.toBlob(async b => {
+    if (!b) return;
+    const name = `renkyu-${survived()}days.png`;
+    try {
+      const f = new File([b], name, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [f] })){ await navigator.share({ files: [f], text: shareText() }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }, 'image/png');
+}
+// 結果の画像：月ごとのカレンダー（移した跡・帯つき）と、全体の体力の線
+function makeResultImage(){
+  const W = 1080, cs = 62, gap = 26, colW = cs * 7, mx = (W - colW * 2) / 3;
+  const ms = G.months.slice(-8), rowsN = Math.ceil(ms.length / 2), calH = gap + 4 * (cs + gap) + 50;
+  const H = 250 + rowsN * calH + 300;
+  const cvs = document.createElement('canvas'); cvs.width = W; cvs.height = H;
+  const c = cvs.getContext('2d'), pats = makePats(c, 1);
+  c.fillStyle = '#f6f0e3'; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#1f2f46'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+  c.font = `800 64px ${FONT}`; c.fillText('連休をください', 60, 112);
+  c.font = `800 30px ${FONT}`; c.fillStyle = '#5d6b7d'; c.fillText(`${G.style}・最長${G.stats.maxOff}連休・最長${G.stats.maxWork}連勤`, 60, 170);
+  c.textAlign = 'right'; c.fillStyle = '#d2412a'; c.font = `800 110px ${FONT}`; c.fillText(String(survived()), W - 150, 135);
+  c.fillStyle = '#1f2f46'; c.font = `800 40px ${FONT}`; c.fillText('日', W - 100, 135);
+  c.font = `800 26px ${FONT}`; c.fillText('もちこたえた', W - 60, 180);
+  ms.forEach((mo, k) => {
+    const x = mx + (k % 2) * (colW + mx), y = 230 + Math.floor(k / 2) * calH;
+    c.fillStyle = '#1f2f46'; c.textAlign = 'left'; c.textBaseline = 'alphabetic'; c.font = `800 28px ${FONT}`;
+    c.fillText(`${mo.m + 1}か月目`, x, y + 22);
+    drawCalendar(c, { x, y: y + 30, cs, gap, C: mo.C, trails: mo.trails, carry: mo.carry, upto: mo.upto, pats });
+    if (mo.dead){
+      const last = Math.max(0, mo.upto - 1), r = cellRect(last, { x, y: y + 30, cs, gap });
+      c.font = `${Math.round(cs * 0.6)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('😵', r.x + cs / 2, r.y + cs / 2);
+    }
+  });
+  // 体力の線
+  const gy = 230 + rowsN * calH + 10, gx = 60, gw = W - 120, gh = 200;
+  c.fillStyle = '#fff'; rr(c, gx, gy, gw, gh, 18); c.fill(); c.strokeStyle = '#1f2f46'; c.lineWidth = 3; c.stroke();
+  const n = G.hpLog.length, t = gy + 46, b = gy + gh - 18, px = k => gx + 20 + (k / Math.max(28, n)) * (gw - 40), py = v => b - v / HPMAX * (b - t);
+  c.fillStyle = 'rgba(226,85,58,.13)'; c.fillRect(px(0), py(20), px(Math.max(28, n)) - px(0), py(0) - py(20));
+  c.strokeStyle = '#eee6d6'; c.lineWidth = 2;
+  for (let k = 28; k < n; k += 28){ c.beginPath(); c.moveTo(px(k), t - 10); c.lineTo(px(k), b); c.stroke(); }
+  c.strokeStyle = '#1f2f46'; c.lineWidth = 5; c.lineJoin = 'round'; c.beginPath(); c.moveTo(px(0), py(HPMAX));
+  G.hpLog.forEach((v, k) => c.lineTo(px(k + 1), py(v))); c.stroke();
+  c.fillStyle = '#1f2f46'; c.font = `800 24px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText('体力', gx + 20, gy + 24);
+  c.textAlign = 'right'; c.fillStyle = '#5d6b7d'; c.fillText(`通算${n}日目`, gx + gw - 20, gy + 24);
+  c.fillStyle = '#5d6b7d'; c.font = `800 24px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  c.fillText('nkworks-games.com/renkyu-kudasai/　#連休をください', W / 2, H - 28);
+  return cvs;
+}
+
+// ===== はじまり =====
+loadSave();
+let lastStage = '';
+function relayout(){ const st = $('stage'), k = st.clientWidth + 'x' + st.clientHeight; if (k !== lastStage && G && G.C){ lastStage = k; layout(); } }
+window.addEventListener('resize', relayout);
+if (window.ResizeObserver) new ResizeObserver(relayout).observe($('stage'));
+document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.phase === 'run') $('pauseBtn').onclick(); });
+toTitle();
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { if (G && G.C) layout(); });
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
