@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>低画質で失礼します</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="日本の海峡や湾の地図の画質を下げたり戻したりして、歩ける道を変えるパズル。画質を落とすと、海だった所を歩けます。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<meta name="theme-color" content="#f4ecd8">
+<meta property="og:type" content="website">
+<meta property="og:title" content="低画質で失礼します">
+<meta property="og:description" content="画質を落とすと、海だった所を歩ける。">
+<meta property="og:url" content="https://nkworks-games.com/teigashitsu/">
+<link rel="canonical" href="https://nkworks-games.com/teigashitsu/">
+<meta name="twitter:card" content="summary">
+<script>(function(){if(/(^|\.)nkworks-games\.com$/.test(location.hostname)){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350';document.head.appendChild(s);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f4ecd8;--ink:#1f2d3d;--sub:#5d6b78;--acc:#ff7a3d;--blue:#2f7fc0;--card:#fffaf0;--line:#dccfae;--ok:#2e9e5b;--ng:#d8443a}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:"M PLUS Rounded 1c",system-ui,sans-serif;color:var(--ink);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer;border:0;color:inherit}
+button:disabled{cursor:default;opacity:.4}
+.hidden{display:none!important}
+/* ===== 遊ぶ画面 ===== */
+#app{position:fixed;inset:0;display:grid;gap:8px;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top" "map" "lv" "act"}
+#cBar{grid-area:act;height:52px}#act{height:52px}#app.pv #act{display:none}
+#top{grid-area:top;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+#stName{min-width:0}#stName b{font-size:20px;font-weight:800}#stNo{display:inline-block;background:var(--ink);color:#fff;border-radius:6px;padding:0 7px;margin-right:6px;font-weight:800;font-size:15px;vertical-align:3px}
+#stSub{display:block;font-size:12px;color:var(--sub)}
+#stats{display:flex;align-items:center;gap:12px}
+#flagsBox{display:flex;gap:2px}#flagsBox svg{width:22px;height:22px}
+#swBox{font-size:14px;white-space:nowrap}#swN{font-size:26px;font-weight:800}#swGoal{display:block;font-size:12px;color:var(--sub)}
+#mapWrap{grid-area:map;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;min-width:0}
+#map{display:block;border-radius:10px;box-shadow:0 2px 0 var(--line),0 0 0 2px var(--line);touch-action:none;cursor:pointer}
+#hint{position:absolute;left:50%;top:10px;transform:translateX(-50%);max-width:calc(100% - 24px);background:rgba(31,45,61,.9);color:#fff;font-size:15px;line-height:1.45;padding:8px 14px;border-radius:12px;text-align:center;pointer-events:none;transition:opacity .25s;font-weight:500}
+#hint.off{opacity:0}
+#tag{position:absolute;left:12px;bottom:10px;background:rgba(255,255,255,.88);border-radius:8px;padding:3px 9px;font-size:13px;font-weight:800;pointer-events:none}
+#tag.pv{background:#fff3b0}
+#lvArea{grid-area:lv}
+#lvRow{display:flex;gap:8px}
+.lv{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);border-radius:12px;padding:8px 6px;box-shadow:0 3px 0 var(--line);height:58px;position:relative;font-size:17px;font-weight:800}
+.lv canvas{width:28px;height:28px;image-rendering:pixelated;border-radius:4px}
+.lv em{position:absolute;top:-8px;right:6px;font-style:normal;font-size:11px;font-weight:800;padding:1px 6px;border-radius:8px;background:var(--ink);color:#fff}
+.lv em:empty{display:none}
+.lv.cur{background:var(--ink);color:#fff;box-shadow:0 3px 0 #0b141d}
+.lv.cur em{background:#fff;color:var(--ink)}
+.lv.pv{background:#fff3b0;box-shadow:0 3px 0 #d8c25a,0 0 0 3px #e9c84a}
+.lv.pv em{background:#b58c00}
+.lv.pulse{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06);box-shadow:0 3px 0 var(--line),0 0 0 4px var(--acc)}}
+#cBar{display:flex;align-items:center;gap:8px;background:#fff3b0;border-radius:12px;padding:6px 8px 6px 12px;min-height:52px}
+#cMsg{flex:1;font-size:14px;line-height:1.35;font-weight:500}#cMsg b{font-weight:800}
+#cMsg.ng{color:var(--ng)}
+#cBar button{border-radius:10px;padding:10px 14px;font-size:16px;font-weight:800}
+#cNo{background:#fff}
+#cOk{background:var(--acc);color:#fff;min-width:96px;box-shadow:0 3px 0 #c95a26}
+#cOk.pulse{animation:pulse 1s infinite}
+#act{grid-area:act;display:flex;gap:8px;min-height:52px}
+#act button{flex:1;background:var(--card);border-radius:10px;padding:10px 8px;font-size:15px;font-weight:800;box-shadow:0 3px 0 var(--line)}
+/* 横長の画面：左に地図、右に情報とボタン */
+@media (min-aspect-ratio:5/4){#app{grid-template-columns:minmax(0,1fr) 280px;grid-template-rows:auto auto minmax(0,1fr) auto;grid-template-areas:"map top" "map cb" "map act" "lv act"}
+  #top{flex-direction:column;align-items:stretch;justify-content:flex-start;gap:10px}#stats{flex-direction:column;align-items:flex-start}
+  #act{align-self:end;height:auto}#act button{font-size:13px;padding:10px 4px}#app.pv #act{display:flex}
+  #cBar{grid-area:cb;height:auto;flex-wrap:wrap;padding:10px}#cMsg{flex:1 1 100%}#cBar button{flex:1}}
+/* 小さい画面 */
+@media (max-width:360px){.lv{font-size:14px;gap:4px}.lv canvas{width:20px;height:20px}#cMsg{font-size:12px}#cBar button{padding:8px 10px;font-size:15px}#cOk{min-width:70px}#act button{font-size:13px}}
+/* ===== 重ねる画面 ===== */
+.screen{position:fixed;inset:0;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;z-index:5;background:rgba(244,236,216,.96);padding:max(16px,env(safe-area-inset-top)) 12px max(16px,env(safe-area-inset-bottom))}
+.panel{width:100%;max-width:620px;margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.logo{font-size:clamp(34px,9vw,54px);font-weight:800;letter-spacing:.02em;line-height:1.15}
+.logo span{display:inline-block;background:var(--ink);color:#fff;padding:0 .18em;border-radius:.12em;margin-right:.06em;image-rendering:pixelated}
+.tagline{font-size:16px;color:var(--sub)}
+.big{background:var(--acc);color:#fff;font-size:22px;font-weight:800;border-radius:14px;padding:14px 40px;box-shadow:0 4px 0 #c95a26}
+.sml{background:var(--card);border-radius:10px;padding:9px 16px;font-size:15px;font-weight:800;box-shadow:0 3px 0 var(--line)}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#stageList{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;width:100%}
+.sc{background:var(--card);border-radius:12px;padding:10px 12px;text-align:left;box-shadow:0 3px 0 var(--line);display:flex;flex-direction:column;gap:2px;min-height:84px}
+.sc b{font-size:17px;font-weight:800}.sc b i{font-style:normal;display:inline-block;background:var(--ink);color:#fff;border-radius:5px;padding:0 6px;margin-right:6px;font-size:13px;vertical-align:2px}
+.sc small{font-size:12px;color:var(--sub)}.sc span{font-size:13px;margin-top:auto}
+.sc .st{color:#d79b00;letter-spacing:1px}
+.sc:disabled{opacity:.45}
+.note{font-size:11.5px;color:var(--sub);line-height:1.6;text-align:left;max-width:560px}
+.note a{color:var(--sub)}
+.link{color:var(--sub);font-size:14px}
+.adwrap{width:100%;min-height:0}
+.how{text-align:left;font-size:15px;line-height:1.6;background:var(--card);border-radius:12px;padding:12px 16px;width:100%}
+.how li{margin:4px 0 4px 1.1em}
+.ptitle{font-size:26px;font-weight:800}
+#rTitle{font-size:32px;font-weight:800}
+#rStage{font-size:15px;color:var(--sub)}
+#rSw{font-size:20px}#rSw b{font-size:44px;font-weight:800}
+#rStars{font-size:30px;color:#e3a600;letter-spacing:4px;line-height:1}
+#rMsg{font-size:15px;line-height:1.5}
+#rImg{width:100%;border-radius:10px;box-shadow:0 0 0 2px var(--line)}
+.new{color:var(--acc);font-weight:800}
+</style>
+</head>
+<body>
+<div id="app" class="hidden">
+  <div id="top">
+    <div id="stName"><span id="stNo">1</span><b id="stTitle"></b><small id="stSub"></small></div>
+    <div id="stats"><div id="flagsBox"></div><div id="swBox">切替 <b id="swN">0</b> 回<small id="swGoal"></small></div></div>
+  </div>
+  <div id="mapWrap"><canvas id="map"></canvas><div id="hint" class="off"></div><div id="tag"></div></div>
+  <div id="lvArea">
+    <div id="lvRow">
+      <button class="lv" data-l="0"><canvas width="24" height="24"></canvas><span>くっきり</span><em></em></button>
+      <button class="lv" data-l="1"><canvas width="24" height="24"></canvas><span>カクカク</span><em></em></button>
+      <button class="lv" data-l="2"><canvas width="24" height="24"></canvas><span>ざっくり</span><em></em></button>
+    </div>
+  </div>
+  <div id="cBar" class="hidden"><span id="cMsg"></span><button id="cNo">やめる</button><button id="cOk">決定</button></div>
+  <div id="act"><button id="bUndo">↶ 1手戻す</button><button id="bReset">最初から</button><button id="bMenu">メニュー</button></div>
+</div>
+
+<div id="title" class="screen hidden"><div class="panel">
+  <div class="logo"><span>低画質</span>で失礼します</div>
+  <p class="tagline">画質を落とすと、海だった所を歩ける。</p>
+  <button class="big" id="startBtn">はじめる</button>
+  <div id="stageList"></div>
+  <div class="row"><button class="sml" id="howBtn">あそびかた</button><button class="sml" id="muteBtn">音：あり</button></div>
+  <p class="note">※ 日本の地形をもとに簡略化した、ゲーム用の地図です。実際の移動や地理の確認には使えません。<br>地図：国土数値情報（行政区域データ）国土交通省 をもとに スマートニュース メディア研究所が加工したデータ（<a href="https://github.com/smartnews-smri/japan-topography" target="_blank" rel="noopener">japan-topography</a>）を、さらに簡略化して作成。<br>記録はこの端末の中だけに保存され、どこにも送信しません。</p>
+  <a class="link" href="/">N.K. Works トップ ›</a>
+  <div class="adwrap" id="ad1"></div>
+</div></div>
+
+<div id="menu" class="screen hidden"><div class="panel">
+  <p class="ptitle">メニュー</p>
+  <button class="big" id="mResume">つづける</button>
+  <div class="row"><button class="sml" id="mReset">最初から</button><button class="sml" id="mHow">あそびかた</button><button class="sml" id="mShare">共有する</button></div>
+  <div class="row"><button class="sml" id="mMute">音：あり</button><button class="sml" id="mTitle">面を選ぶ</button></div>
+</div></div>
+
+<div id="howto" class="screen hidden"><div class="panel">
+  <p class="ptitle">あそびかた</p>
+  <ul class="how">
+    <li><b>地図をタップ</b>すると、旅人がそこへ歩きます。海の手前で止まります。</li>
+    <li>下のボタンで<b>地図の画質</b>を変えると、歩ける所が変わります。粗くすると細い海は埋まり、細い陸や小さな島は消えます。</li>
+    <li>ボタンを押すと<b>予告</b>が出ます。「決定」で切り替わり、切替が1回ふえます。足もとが海になる切替はできません。</li>
+    <li><b>旗3本</b>は「くっきり」の時だけ取れます。3本取って<b>出口</b>へ。切替の回数が少ないほど上手です。</li>
+    <li>「1手戻す」で、直前の切替の前に戻れます（回数も戻ります）。</li>
+  </ul>
+  <p class="note" id="howPc">キーボード：1・2・3 で予告、Enter で決定、Esc でやめる、Z で1手戻す、R で最初から</p>
+  <button class="big" id="howOk">わかった</button>
+</div></div>
+
+<div id="result" class="screen hidden"><div class="panel">
+  <p id="rTitle">クリア！</p>
+  <p id="rStage"></p>
+  <p id="rSw">切替 <b id="rN">0</b> 回</p>
+  <p id="rStars"></p>
+  <p id="rMsg"></p>
+  <img id="rImg" alt="低画質の地図と本当の地図に、歩いた足あとを重ねた比較画像">
+  <div class="row"><button class="big" id="rNext">次の面へ</button></div>
+  <div class="row"><button class="sml" id="rShare">共有する</button><button class="sml" id="rSave">画像を保存</button><button class="sml" id="rAgain">もう一度</button><button class="sml" id="rTitleBtn">面を選ぶ</button></div>
+  <div class="adwrap" id="ad2"></div>
+</div></div>
+
+<script>
+'use strict';
+// ===== [SEC:CONFIG] =====
+const CONFIG = {
+  W: 144, H: 96,              // くっきりのマスの数（横・縦）
+  FS: [1, 4, 8],              // 段階ごとのマスの大きさ（くっきり・カクカク・ざっくり）
+  LEVEL_NAMES: ['くっきり', 'カクカク', 'ざっくり'],
+  WALK_SPEED: 24,             // 歩く速さ（マス/秒）
+  PICK_R: 1.4,                // 旗を取れる距離（マス）
+  EXIT_R: 1.6,                // 出口に着いたとみなす距離（マス）
+  TRAIL_STEP: 0.8,            // 足あとの間かく（マス）
+  SWITCH_STEP: 0.14,          // 切替の時、ドットがまとまる1段の時間（秒）
+  CLEAR_REVEAL: 2.2,          // クリア後、元の地図と足あとを見せる時間（秒）
+  HINT_TIME: 3.2,             // ヒントを出しておく時間（秒）
+  TUT_AUTO_DELAY: 0.5,        // 最初の面で、旅人が勝手に歩き出すまで（秒）
+  DPR_MAX: 2,                 // 画面の細かさの上限
+  SAVE_KEY: 'teigashitsu.v1',
+  URL: 'https://nkworks-games.com/teigashitsu/',
+  TAG: '#低画質で失礼します',
+  COL: { sea: '#5ba6db', sea2: '#4c97cf', wave: 'rgba(255,255,255,.22)', shallow: '#8fcdee', land: '#efe3bd', land2: '#e6d7a9', coast: '#8b7651',
+         grid: 'rgba(40,60,80,.10)', trail: 'rgba(92,60,30,.6)', trailSea: '#ff4d3d', flag: '#e8473b', pole: '#3b2f25', exit: '#c8332b', person: '#1f2d3d' },
+};
+// ===== [SEC:DATA] =====
+// 国土数値情報（行政区域データ）を スマートニュース メディア研究所 japan-topography が1%に簡素化したものから、面ごとに作成。
+// m は段階ごとの陸マスク（1マス1ビット、行ごと、左上から）。best は作者が計算で確かめた最少の切替回数。座標は [x, y]（マス）。
+const STAGES = [{"id":"kanmon","name":"関門海峡","sub":"本州と九州のあいだ","km":60,"best":2,"start":[68,38],"flags":[[74,55],[28,72],[74,84]],"exit":[44,88],"m":["AAAAAGAAD///////////////AAAAAHwAD///////////////AAAAADwAA///////////////AAAAAAQAAf//////////////AAAAAAAAAf//////////////AAAAAAAAAf//////////////AAAAAAAAAP//////////////AAAAAAAAAP//////////////AAAAAAAAAH//////////////AAAAAAAAAH//////////////AAAAAAAAAD//////////////AAAAAAAAADf/////////////AAAAAAAAAAP/////////////AAAAAAAAAAH/////////////AAAAAAAAAAD////v////////AAAAAAAAAAD////n////////AAAAAAAAAAD////D////////AAAAAAAAAAD////H////////AAAAAAAAAAD////B////////AAAAAAAAAAH///+AH///////AAAAAAAAAAH///8AAH//////AAAAAAAAAAP///4AAD//////AAAAAAAAAAP///4AAB//////AAAAAAAAAAD///8AAB//////AAAAAAAAAAD///8AAB//////AAACAAAAAAD///4AAA//////AAACAAAAAAD///QAAAf/////AAAAAAAAAAD//+AAAAf/////AAAAAAAAAAD///AAAAP/////AAAAAAAAAAH///AAAAGP////AAAAAAAgAAH//+AAAADP////AAAAAAAgABH//8AAAAAO////AAAAAAAAABH//8AAAAAB////AAAAAAAAAAD//wAAAAAB////AAAAAAAAAAD//gAAAAAA////AAAAAAAADAB//AAAAAAB////AAAAAAAADAD/+AAAAAAAf///AAAAAAAAAAD/8AAAAAAB////AAAAAAAAAAD/wDgAAAAD////AAAAAAAAAAD/gH8AAAAD////AAAAAAAAAAH/H/8AAAAD////AAAAAAAAAAH+H/8AAAAD/9//AAAAAAAAAEP8H/4AAAAB/9//AAAAAAGOAOfgP/8AAAAA/8Z/AAAADz//AP/Af/8AAAAAfwZ/AAAADB//AD/g//gAAAAAcB5/AAP4DB/+AA/B//gAAAAAMBn/AAf+fz8YAB/j//gAAAAAEAG/AAf/fn+AYA/j//gAAAAAAAA/AAf/+f/h4Afj//AAAAAAAAACAB/////vwAPn//wAAAAAAABAAD////+P3AfH//wAAAAAAAAAAP/////P9wGH//AAAAAAAAAAAP/////P/wAP//AAAAAAAAAAAP/////P/4Af//AAAAAAAAAAAP/////f/wA//4AAAAAAAAAAAf////8//+B//4AAAAAAAAAAA/////5//+P//8AAAAAAAAAAB/////z//9////AAAAAAAAAAH////+P///////AAAAAAAAAAf////4///////zAAAAAAAAAA/////P5//////yAAAAAAAAAA////9////////yAAAAAAAAAA/////////////wAAAAAAAAAA/////////////uAAAAAAAAAA/////////////8AAAAAAAAAA/////////////8AAAAAAAAAA/////////////8BgAAAAAAAA/////////////8BgAAAAAAAA/////////////wBgAAAAAAAA/////////////gBgAAAAAAAA/////////////ABgAAAAAAAA////////////3ABwAAAAAAAA////////////wAAwAAAAAAAA////////////wAAwAAAAAAAA////////////wAAwAAAAAAAA////////////wAAwAAAAAAAA////////////4AQAAAAAAAAA////////////4BwAAAAAAAAA////////////8vwAAAAAAAAA//////////////gAAAAAAAAA/////////////+AAAAAAAAAA/////////////8AAAAAAAAAA/////////////4AAAAAAAAAA/////////////2AAAAAAAAAA/////////////+AAAAAAAAAA//////////////AAAAAAAAAA//////////////AAAAAAAAAA/////////////+AAAAAAAAAA/////////////8wAAAAAAAAA//////////////4AAAAAAAAA//////////////wAAAAAAAAA//////////////gAAAAAAAAA//////////////AAAAAAAAAA//////////////AAAAAAAAAA//////////////AAAAAAAAAA","AAf///AAP///AAP///AAD///AAD8//AAD8H/AAD4H/AAD4B/AADwA/AADgA/AADcA/CXG4AnH/n4AAP/x4AAf//4AA///wAA///4AA///yAA///iAA///gAA///4AA///4AA///4AA///4AA","Af/AP/AOfAOPAMHAeHfuA/8A/8A/4A/8A/+A"]},{"id":"matsushima","name":"松島湾","sub":"湾に浮かぶ島々","km":30,"best":3,"start":[104,28],"flags":[[15,57],[59,26],[73,59]],"exit":[45,7],"m":["//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////z///////////////////////yH//////////////////////wf//////////////////////h///////////////////////x///////////////////////z//////////////////////8AH/////////////////////gAH////////////////////4AAH////////////////////gAAD///////////////////8AAAD///////////////////wAAAA///////////////////AAAAA//////////////////8AAAAA//////////////////wAAAAA//////////////////AAAAAA/////////////////8AAAAAA/////////////////wAAAAAA///////////f/////gAAAAAA///////////v////+AAAAAAA///////////j////8AAAAAAA/////////x/gv///wAAAAAAA////////+gH4B///gAAAAAAA////////+gHsA//+AAAAAAAA////////8ADgA//8AAAAAAAA////////8ABgAf/4AAAAAAAA////////4AAgAf/gAAAAAAAA////////AAAAAf/gAAAAAAAA////////EAAAAf/AAAAAAAAA////////AAAAA/+AAAAAAAAA////////AAAAA/+AAAAAAAAA////////AAAAB/8AAAAAAAAA////////AAAAAB8AAAAAAAAA////////AAAAAAcAAAAAAAAA////////AAAAAD8AAAAAAAAA////////gAAAAH8AAAAAAAAA///////+gAABYH8AAAAAAAAA///////4AAAFQH5AAAAAAAAA//////94AAAGAD9gAAAAAAAA//////4AAAAACB9gAAAAAAAA//////wAAAAAEB9gAAAAAAAA//////gAAAAEIA/wAAAAAAAA//////gAAAAAOg/wAAAAAAAA//////gAAAA99//wAAAAAAAA//////xAABA78//wAAAAAAAA///////gAD4z4//wAAAAAAAA///////wADuB88/wAAAAAAAA///////gAADB4Z/wAAAAAAAA///////AAABAYZ/4AAAAAAAA//////+AEAAAYM+YAAAAAAAA//////8AMAAAAGcGAAAAAAAA//////AAAAAAAAIBAAAAAAAA/////8AAQAAAAAAAAAAAAAAA//////AAfAAAAAGAAAAAAAAA//////2A/AAAAAGAAAAAAAAA//////8B/gAAAAAAAAAAAAAA//////8F/gAAAAAAAAAAAAAA//////4//gAAAAAAAAAAAAAA//////z//gAAAAAAAAAAAAAA//////n//wAAAAAAAAAAAAAA/////////wAAAAAAAAAAAAAA/////////4AAAAAAAAAAAAAA/////////+AAAAAAAAAAAAAA/////////+AAAAAAAAAAAAAA/////////+AAAAAAAAAAAAAA/////////8AAAAAAAAAAAAAA////////+cAAAAAAAAAAAAAA////////4AAAAAAAAAAAAAAA////////wAAAAAAAAAAAAAAA////////wAAAAAAAAAAAAAAA////////gAAAAAAAAAAAAAAA////////AAAAAAAAAAAAAAAA////////AAAAAAAAAAAAAAAA///////+AAAAAAAAAAAAAAAA/////5/wAAAAAAAAAAAAAAAA/////7+AAAAAAAAAAAAAAAAA/////78AAAAAAAAAAAAAAAAA/////w8AAAAAAAAAAAAAAAAA///4PwAAAAAAAAAAAAAAAAAA///4AAAAAAAAAAAAAAAAAAAA","/////////////////////////////7/////5/////A////8A////wA//2fAA//gOAA//AcAA//AEAA/+AMAA/4AGAA/+AuAA/8AEAA/8gAAA//wAAA//wAAA//wAAA//AAAA/+AAAA/wAAAA","///////////w//g/CA/CA+GA+AA/gA/AA+AA"]},{"id":"kujuku","name":"九十九島","sub":"入り組んだ海岸","km":25,"best":4,"start":[132,25],"flags":[[66,44],[132,71],[36,41]],"exit":[126,48],"m":["AAABn/////////////////gAAABHn/////////////////wAAADH//////////////////4AAABD//////////////////8AAABh//////////////////8AAADP//////////////////+AAAAP///////////////////AAAAP///////////////////gAAAf///////////////////wAAAf///////////////////8AAA////////////////////+AADP////////////////////AADf////////////////////AAAf////////////////////AAA/////////////////////AAH/////////////////////AAP/////////////////////AAPv////////////////////AAPP////////////////////AACP////////////////////AAAf////////////////////AAAP////////////////////AAAP////////////////////AAAP////////////////////AAOP////////////////////AAOf////////////////////AAOf////////////////////AA/f////////////////////AEH/////////////////////AGP////3////////////////AAP////n/5//////////////AAP//////7//////////////AAf///9//7//////////////AA////5//5//////////////AAfQj/5//9//////////////AAAQB/5//+//////////////AAAQD/x//8//////////////AAAARDj//8f/////////////AAAAYDP+/+f/////////////AAAAQAP+/+f/////////////AAAACAP+f+H/////////////AAAADh2ef+P/////////////AAAAD04Mf8P/////////////AAAAAc4A/4f/////////////AAAACAAA/8f/////////////AAAADAAA/4f/////////////AAAAAAwB/4f/////////////AAAAABgB/4P/////////////AAAAAAgA/gE/////////////AAAAAAAQeAAf////////////AAAAH8A4MAB/////////////AAAAH8AwAAA/////////////AAAAHkAYAAA/////////////AAAAHsAYAAB/////////////AAAAPOAAAAA/////////////AAAAPEAAAAA/////////////AAAAPAAAAAA/////////////AAAAH4AAAAL/////////////AAAAH4AAAA//////////////AAAAD8AAAA//////////////AAAAB8AAAA//////////////AAAAA8AAAD//////////////AAAAAIAAAD5/////////////AAAAAIAAADgD////////////AAAAAIAAAGAD////////////AAAAB8AAAGAD////////////AAAAD8AAAAADz///z///////AAAAD4AAAAAAG//+z///////AAAADwAAAAAACf/wZv//////AAAADAAAAEAAAf/gZH//////AAAAAAAAAEAAAf/gAH//////AAAAAAAAAAAAAP/wAB//////AAAAAAAAAAAAIf/4AB//////AAAAAAAAAAAAMf/8AD//////AAAAAAAAAAAAMf/8A///////AAAAAAAAAAAAGP/+A///////A4AAAAAAAAAAGP/+Af//////f4AAAAAAAAAAAH/+Ab///////8AAAAAAAAAAAD/+AT///////+AAAAAAAAAAAD/8AD///v///+AAAAAAAAAAAA/8AP/88H///+AAAAAAAAAAAAP4A//4cQB//+AAAAAAAAAABwM+A//wM/9//+AAAAAAAAAAAYA/A//wA////+AAAAAAAAAAAwA/A/vwD///+AAAAAAAAAAAAD//AHPwH///8AAAAAAAAAAAAD//ADnAP//98AAAAAAAAAAAAD//ADDBv//9cAAAAAAAAAAIAP//ADABP//8AAAAAAAAAAAOAP//ADgAAf/9AAAAAAAAAAAOAP//ADwAAD/5AAAAAAAAAAAGHv//gHwAOD/7AAAAAAAAAAADP///gAAAPv//AAAAAAAAAAAD///jAAAOH///AAAAAAAAAAAH///4AAAeD///AAAAAAAAAAAH///+AAA+P///","B////8B////8B/////D/////D/////B/////H/////H/////H/////AD////AE7///AA3///AAj///AQD///AQH///AAH///AQA///AAAOP/AAAPP/wAAPP/4AADOvgAAHKfAABPIPAAB/Bf","H/+P//P//P//H//Av/AP/AP/AD/ADfgBfAHD"]},{"id":"amakusa","name":"天草","sub":"島から島へ","km":60,"best":4,"start":[92,39],"flags":[[34,66],[65,66],[20,26]],"exit":[92,57],"m":["AAAAAAAAH//8AAAAAAAJ////AAAAAAAAA//8AAAAAAAc///AAAAAAAAAAf/4AAAAAAD8//4AAAAAAAAAAf/4AAAAAAH///wAAAAAAAAAAP/wAAAAAAP++AAAAAAAAAAAAOPAAAAIAAf+Z+AAAAAAAAAAAfgAAAAcAAf8D/AAAAAAAAAAA+AAAAAAAA/4B/AAAAAAAAAAA8AAAAAAAB/4B/AAAAAAAAAAAAAAAAAAAD/8BeAAAAAAAAAAAAAAAAAAAH/+AcAAAAAAAAAAAAAAAAAAAT//M4AAAAAAAAAAAAAAAAAAAAH+OQAAAAAAAAAAAAAAAAAAAAH+fAAAAAAAAAAAAAAAAAAAAAP8/AAAAAAAAAAAAAAAAAAAAAf8fAAAAAAAAAAAAAAAAAAAAA/8fAAAAAAAAAAAAAAAAAAAAA/8eAAAAAAAAAAAAAAAAAAAAA/4cAAAAAAAAAAAAAAAAAAAAA/wIAAAAAAAAAAAP4AAAAAAAABwYAAAAAAAAAAP/+AAAAAAAAAAYAAAAAAAAAAf//AAAAAAABMAQAAAAAAAAAB///AAAAAAADAAAAAHAAAHgAH///AAAAAAAAAAAAAfAAAPgAP///gAAAAAAAAAAAA/AAAPAAf///AAAAAAAAAQAAA/AAADAB////AAAAAB8AAaAAAfAAABgP////gAAAAf8AM/AABPAAAAQf////gAAAH//Af+AAAzAAAAf/////gAAAH//5/+AAAMAAAAP/////gAAAP//5/+AAADAAAAP/////gAAAf//7/8AAAAAAAAH/////gAAA/////8AAAAAAAAH/////AAAB/////4AAAfAAAAH/////AAAB/////wAAAfAAAAP/////gAAD/////wAAAfAAAAf/////wAAH/////gAAAfAAAAf/////wAA//////gAAAfAAAAf/////4AH//////gAAAPAAAAf/////8AP//////gAAAAAAAAf/////8Af//////gAAAAAAAAf/////4B///////gAAAAAAAA//////4D///////AAAAAAAAA//////gf///////AAAAAAAAB//////x///////+AAAAAAAAD//////////////8AAAAAAAAD//////////////4AAAAAAAAH//////////////4AAAAAAAAH//////////////wAAAAAAAAP//////////////gAAAAAAAAf//////////////gAAAAAAAA///////////////wAAAAAAAA///////////////wAAAABAAA///////+///////gAAAAPAAB///////8f//////gAAAAfAAB///////8Z///+//gAAAAfAAB///////wB8f/8//gAAAA/AAB///////wA8f/8//AAAAB/AAD///////wA4f/w/+AAAAD/AAD///////wA4A/h/+AAAAH/AAD///////0AwAAB/8cAAAP/AAD////////DwAAA/wcAAA//AAH///////vjgAAA4gcAAA//AAP////////gAAAAwAcAAB//AAH////////AAABAQAGAAD//AAH////////sAABAAAHAAH//AAf////////sAADAAAGAAP//AAf////////sAAADAAAAAf//AA/////////AAAGDAAAAAf//AB////////+AAAXBAAAAAH//AB////////+AAA/gAAAAAB//AB////////8AAA/wAAAAAD//AB////////8AAAH5gAAAAP//AB////////4AAADj+AAAAf//AA////////4AAADH+AAAA///AA////////8AAAAH8AAAB///AA///////v4AAAAP4AAAB///AA//////9PwAAAAfwAAAB///AA//////8fwAAAAfwAAAH///AAf/////8/wAAAAfgAAAP///AAH/////4/AAAAAPAAAAP///AAH/////8eAAAAB+AAAAH///AAHn////wcAAAAD8AAAAH///AAGBh///gAAAAAPwAAAAH///AAABh///gAAAAAAAAAAAH///AAAAgP//OAAAAAAAAAAAH///AAAc4P///AAAAAAAAAAAA///AAA/4f///AAAAAAAAAAAA///AAA+8P//+AAAAAAAAAAAJ///AAD/8f/88AAAAAAAAAADP///AAH/8f/4AAAAAAAAAAADv///AAP////wAAAAAAAAAAAD////AAP////xwAAAAAAAAAAD////AAf////hwAAAAAAAAAAH////AA/////jwAAAAAAAAAAf////","AAOAD8AAIAHYAAAAHIAAAADwAAAAGgAB4AAABH4AABA/4D3BAf4H+BA/8P+BA/8/+AA///8AB///4AD///4BD/8u4DD/8A0HD/+AAPH/8AAPH/8CgPH/8BgfD/oBAfAPAAAfDvgAAfH+AAB/","AQOAAIAAADwBHz4H3wP/wPyhPwDfxDPAHPAH"]},{"id":"omura","name":"大村湾","sub":"細い瀬戸の先へ","km":40,"best":5,"start":[64,63],"flags":[[42,51],[9,73],[100,21]],"exit":[42,15],"m":["AAAAe/+ABz//////////+AAAAAAAef/AB7//////////8AAAAAAAeYQAB///////////8AAAAAAAPAAAA//9///////84AAAAAAAGAAAAf/7///////wAAAAAAAAGAAAAP/////////gAAAAAAAAEAAAAP/////////AAAAAAAAAAAAA0P/////////gAAAAAAAAAQAA+/v////////AAAAAAAAAA4AAf/f////////AAAAAAAAAB+AAP+f////////AAAAAAAAAB/AAP+P///////+AAAAAAAAAA/4AP+f////////wAAAAAAAAAf5AP8/////////4AAAAAAAAA/9gH8/////////4AAAAAAAAA//wH8/h///////8AAAAAAAAP//4D8fg///////8AAAAAAAAA//4A/BAf//////+AAAAAAAAB//5g/xg///////+AAAAAAAAH///j/5gf///////gAAAAAAAP///z/4gf///////wAAAAAAAB///h/4gDv//////8AAAAQAAA///z/+ABn//P////gAAAcOgP///wH+AAA/GH////4AAA/+Af///wngAAA+AB////+AAAf8AP///jnAAAB+AAf////wAB/4AP///DzAAAfsAAP////wAD/8Af///P8gAAPoAAH////4AD/8Af///P+AAAeIAAD////+AP/4Af///P+AAAfAAAD/////AP/gAf////8AAAeAAAD/////Af/6Af////4AAAeAAAB////+Af/2H/////wAAAcAAAAf///+Af/3H/////AAAAIAAAAP////A//uH/////AAAAAAAAAH////g/5OH////+AAAAAAAAAA////g/wMH////+AAAAAAAAAAf///gGwAH////8AAAAAAAAAAP///wigAH////8AAAAAAAAAAH///4gAAH////4BAAAAAAAAAD///8gAAH////4BgAAAAAAAAB///+AAAD////wBwAAAAAAAAA////AAAD////wDyAAAAAAAAAf///AAAD////wD+AAAAAAAAAf///AAAB////wP/OAAAAAAAAf///AAAF////wP//gAAAAAAA////AAAE////8N//wAAAAAAAf///AAAFf///wg//wAAAAAAAf///AAAF////xL//8AAAAAAAf///AAAF////7b//8AAAAAAAP///AAAH////9///+gAAAAAAP///AAAX////9///8AAAAAAAP///AAA/////////+AAAAAAAH///AAD/////////+AAAAAAAP///AAH//////////gAAAAAAf///AAH//////////wAAAAAAf///AAP//////////gAAAAAAf///AAP//////////wAAAAAA////AAP//////////wAAAAAH////AAP//////////AAAAAAL////AAP/////////8AAAAAAf////AAP/////////4AAAAAAP////AAH/////////4AAAAAAP////AAH/////////6AAAAAAP////AAP/////////+AAAAAAP////AAP/////////+AAAAAAP////AAP/////////+AAAAAAP////AAP////////4+AAAAAAP////AAD////////x/AAAAAAP////AAB////////h/AAAAAAf////GAB////////h/AAAAAAf////HMA////////h/AAAAAAf////P/A////////h/AAAAAAf////H/j////////g+AAAAAAf////H/j////////g/AAAAAAP////H/hj///////g+AAAAAAP////H/jj///////g+AAAACAP////D/gh///////x+AAAADAP////D/Ah///////x+AAAABgH////B+Ah///////w8AAAAAwH////AeAAf//////wYAAAAA8B////AAAAf//////44AAAAA+A////AAAAf//////oQAAAAA/Af///AAAAf//////gAAAAAAfAf///AAAAf//////hgAAAAAPAP///AAAAH//////nwAAAAAHAH///AAAAH//////3gAAAAAABH///AAAAH///////gAAAAAAAP///AAAAH///////wAAAAAAAH///AAAAD///////wAAAAAAAH///AAAAD///////4AAAAAAAB///BAAAB///////4AAAAAAABn//DAAAB//////94AAAAAAAAH//HAAAA//////7wAAAAAAAAH//PAAAAf/////7gAAAAAAAAf//OAAAAf/////4gAAAEAAAAf//","A8f//gAAP/+AAI//8AAef/+AAfY//AAfcf/gc/YMP4c/4IH89/wAD+R/gAB+B/kAA/A/vAA/B//gA/D//wA/D//wA/D//gB/H//gB/D/+gB/b/+gB/Y/+gB/A/+AE/Af/AAfAf/gAfAP/AAP","Af4C/wH34XiengOHQHP8HP8HP8P/0PH4HD4D"]},{"id":"shimanami","name":"しまなみ","sub":"芸予の島めぐり","km":30,"best":5,"start":[107,44],"flags":[[82,62],[98,15],[85,34]],"exit":[110,65],"m":["//////////////+AAAAD/f////////////////+AAAABnf////////////////8AAAAAAP////////////////8AAAAAAP////////////////8AAABAAf////////////////4AAAHAAf////////////////4BgAHAAP////////////////4DgAHAAD////////////////4AgAAAAD/8//////////////4AAAAAAB/w//////////////wAeAAIAA4A//////////////wA/AAf/gAA//////////////wA/gAf/gAA//////////////wA/wAf/gAA//////////////wA/wAf/gAA//////////////wA/4Af/gAA//////////////gA/4B//wAA//////////////AB/4D//wAA////////////wAAB/4H//wAA////////////AAAD/4P//8AA////////////AAAD/8P//+AA///////////+AAAH/8P///GA////gM/+P//+AAAH/8f///+A////AAH8H//8AAAD/4f///+A///+AAAwD/gQABgD/4f///+A//f8AAAAB4AAAHwD/4f////A/+P4AAAAAAAAAPwD/wP////A5APgAAAAAAAAAfwH/gD////ggAAAAAAAAAAAAf4H/gB////wAAABgAAAAAAAAf4B/AB////wAAABwAAAAAAAA/4AfAA////wAAAAwAAAAAAAA/4AMAA////+AAAA4AAAAAAAA/8AAAAf///+AAAAYAAEAAAAB/8AAH8P///+AAAAIAAHAAAAB/8wAP+P///8AAAAAAAHAAAAB/7wA/+P///4AAAAAAAHgAAAA/3w///P///gAAAAAAAHgAAAA/37///H///AAAAAAAABAAAAAf3////n//+AAAAAAAAAAAAAAP3////j//8AAAAAAAAAAAAAABP////z//8AAAAAAAAAAAAAAAP////x//8AABgAAAAAA4AAAAf////g//8AADAAAAAAD+AAAAf////gP//gAHAAAAAAH/wAAA/////gB//wAHmAAAAAP/4AAA/////gAf/wAH+AAAAYf/8AAB/////gAf/wAH+AAAA///8AAB/////gAP/AAD+AAAB///+AAD/////AAP+AAA8AAAA///+AAD////8ADH+AAA44AAA///+AAD////wADn+BAAh8AAAf//+AAD////gAHz/BAAD+AAAf///AAD///8A4Hx/BAAH+AAAf///AAH///wB4D48BAAP+AAAP///AAH///gD8D8IDAAP+AAAP///gAP//+AH+D+AHAAf+AAAf///gAP//8AH/B+APAA/8AAef///wAP//8AH/B/A/AB/8AA/////4AP//8AP/h/A/AD/8AB/////4AP//4Af/x/A/AH/8AD/////4AP//AA//x/A/AH/4AB/n///8AH/+AA//4/A/wH/4AB8D////AD/8AA//4/A+wP/4AAQD////4A/gAA//4/AMwP/4AAAD////4AIAAA//4IMMwP/wAAAD////wAAAAA//wAec4P/wAAAH////wAAAAA//gA+e8f/wAAAB////wAAAAA//AA+f+//gAAAB////wAAAAA/+AB8////gHAAP////wAAAAA/4AB8////AHgAB////wAAAAA/wcB8///+AHgAB////gAAAAA4H+Bwf//8AAAAB////gAAAAAAH/Dwc//8AAAAD////gAAAQAAP+DwY//4AAAAD////gAAQwAAP8DwA//wAAAAD////wAA/wAAH8DwA//gAAAAD////w4B/4AAEYDwA//gAAAAD////x8H/gAAAADwA//gAAAAD////j///gAAAADgA//gAAAAD////j///wAACAGAA//gAAD+D////j///wAACAAAA//gAAD/j////x///wAAOAAAA//gAA///////5///wAAMAAAA//gAB///////8f//4AAcAAAA//wAB///////4f//8AAYAAAA//wAB///////wf///AAIAAAA//gAD///////n/////wAAAAA+DAAH//////4P/////4AAAAAwAAAH//////wP////+AAAAAAAAAAP///4APAH////4AAAAAAAAAAf///gAAACH///4AAAAAAAAAA////AAAAAD///gAAAAAAAAAGD///AAAAAD/z/gAAAAAAAAAOH//+AAAAAB/B/wAAAAAAAAGMD//AAAAAAB/B/4AAAAAAAAPAD/+AAAAAAA+A/8AAAAAA","///8AP///8AP///8AE///8xw///ozw///B38+AAJz+AAAMj+AAAcN/AAAP/8AAAH+8MA8H+OED8H8cDB+PyUHH+PjZOF/PH5uB/gHF+A/AGF8A/ABk4A/bAA4P//gA4f//4AA/AfwAAeAGwA","/+D/+k/4sACuAD+AR2JziZ7Nw4Jw5Az/gHDg"]}];
+// ===== [SEC:UTIL] =====
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const show = id => $(id).classList.remove('hidden'), hide = id => $(id).classList.add('hidden');
+const W = CONFIG.W, H = CONFIG.H;
+const idx = (x, y) => y * W + x;
+function decodeMask(b64, w, h) {
+  const bin = atob(b64), out = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) out[i] = (bin.charCodeAt(i >> 3) >> (7 - (i & 7))) & 1;
+  return out;
+}
+function expand(blk, bw, f) { // ブロック単位のマスクを、くっきりのマス単位に広げる
+  const o = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) o[idx(x, y)] = blk[((y / f) | 0) * bw + ((x / f) | 0)];
+  return o;
+}
+function shrink(m, f) { // 半分以上が陸なら陸（アニメの途中の段階用）
+  const bw = Math.ceil(W / f), bh = Math.ceil(H / f), b = new Uint8Array(bw * bh);
+  for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+    let n = 0, t = 0;
+    for (let y = by * f; y < Math.min(H, by * f + f); y++) for (let x = bx * f; x < Math.min(W, bx * f + f); x++) { t++; n += m[idx(x, y)]; }
+    b[by * bw + bx] = n * 2 >= t ? 1 : 0;
+  }
+  return { blk: b, bw, bh, f };
+}
+// ===== [SEC:MAP] =====
+function label(m) { // 上下左右でつながった陸に番号をつける
+  const lab = new Int32Array(W * H).fill(-1), q = new Int32Array(W * H); let n = 0;
+  for (let s = 0; s < W * H; s++) {
+    if (!m[s] || lab[s] >= 0) continue;
+    let h = 0, t = 0; q[t++] = s; lab[s] = n;
+    while (h < t) {
+      const c = q[h++], x = c % W, y = (c / W) | 0;
+      if (x > 0 && m[c - 1] && lab[c - 1] < 0) { lab[c - 1] = n; q[t++] = c - 1; }
+      if (x < W - 1 && m[c + 1] && lab[c + 1] < 0) { lab[c + 1] = n; q[t++] = c + 1; }
+      if (y > 0 && m[c - W] && lab[c - W] < 0) { lab[c - W] = n; q[t++] = c - W; }
+      if (y < H - 1 && m[c + W] && lab[c + W] < 0) { lab[c + W] = n; q[t++] = c + W; }
+    }
+    n++;
+  }
+  return lab;
+}
+function prepStage(st) {
+  const lv = CONFIG.FS.map((f, i) => {
+    const bw = Math.ceil(W / f), bh = Math.ceil(H / f), blk = decodeMask(st.m[i], bw, bh), m = expand(blk, bw, f);
+    return { f, bw, bh, blk, m, lab: label(m) };
+  });
+  return Object.assign({}, st, { lv, half: shrink(lv[0].m, 2), layers: {} });
+}
+const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+function findPath(m, from, to) { // 8方向（角のすりぬけなし）の最短の道
+  if (from === to) return [];
+  const prev = new Int32Array(W * H).fill(-1), q = new Int32Array(W * H); let h = 0, t = 0;
+  prev[from] = from; q[t++] = from;
+  while (h < t) {
+    const c = q[h++]; if (c === to) break;
+    const x = c % W, y = (c / W) | 0;
+    for (const [dx, dy] of DIRS) {
+      const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      const n = idx(nx, ny); if (!m[n] || prev[n] >= 0) continue;
+      if (dx && dy && (!m[idx(nx, y)] || !m[idx(x, ny)])) continue;
+      prev[n] = c; q[t++] = n;
+    }
+  }
+  if (prev[to] < 0) return null;
+  const cells = []; for (let c = to; c !== from; c = prev[c]) cells.push(c);
+  return cells.reverse();
+}
+function los(m, ax, ay, bx, by) { // まっすぐ歩いても陸だけを通るか
+  const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 0.2); let px = Math.floor(ax), py = Math.floor(ay);
+  for (let i = 1; i <= n; i++) {
+    const t = i / n, x = Math.floor(ax + (bx - ax) * t), y = Math.floor(ay + (by - ay) * t);
+    if (x === px && y === py) continue;
+    if (!m[idx(x, y)]) return false;
+    if (x !== px && y !== py && (!m[idx(x, py)] || !m[idx(px, y)])) return false;
+    px = x; py = y;
+  }
+  return true;
+}
+function smoothPath(m, sx, sy, cells) {
+  const pts = cells.map(c => [c % W + 0.5, ((c / W) | 0) + 0.5]), out = [];
+  let cx = sx, cy = sy, i = 0;
+  while (i < pts.length) {
+    let j = pts.length - 1;
+    while (j > i && !los(m, cx, cy, pts[j][0], pts[j][1])) j--;
+    out.push(pts[j]); cx = pts[j][0]; cy = pts[j][1]; i = j + 1;
+  }
+  return out;
+}
+function nearestInComp(lab, comp, tx, ty) {
+  let best = -1, bd = 1e9;
+  for (let i = 0; i < W * H; i++) {
+    if (lab[i] !== comp) continue;
+    const dx = i % W + 0.5 - tx, dy = ((i / W) | 0) + 0.5 - ty, d = dx * dx + dy * dy;
+    if (d < bd) { bd = d; best = i; }
+  }
+  return best;
+}
+// ===== [SEC:GAME] =====
+const G = { state: 'title', si: 0, S: null, level: 0, preview: null, P: { x: 0, y: 0, dir: 1, walk: 0 }, path: [], pending: null, blockedStop: false,
+  taken: [false, false, false], switches: 0, stack: [], trail: [], anim: null, clear: null, maxLevel: 0, tut: -1, tutT: 0, hintT: 0, hintSticky: false,
+  noteT: {}, save: { best: {} }, muted: false, unlockAll: /[?&]all\b/.test(location.search) };
+const cellOf = () => idx(clamp(Math.floor(G.P.x), 0, W - 1), clamp(Math.floor(G.P.y), 0, H - 1));
+const curLv = () => G.S.lv[G.level];
+function loadSave() { try { const s = JSON.parse(localStorage.getItem(CONFIG.SAVE_KEY) || '{}'); G.save.best = s.best || {}; G.muted = !!s.muted; G.seenHow = !!s.how; } catch (e) { } }
+function writeSave() { try { localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify({ best: G.save.best, muted: G.muted, how: G.seenHow ? 1 : 0 })); } catch (e) { } }
+function unlocked(i) { return G.unlockAll || i === 0 || G.save.best[STAGES[i - 1].id] != null; }
+function startStage(i) {
+  G.si = i; if (!STAGES[i].lv) STAGES[i] = prepStage(STAGES[i]); G.S = STAGES[i];
+  resetStage(); G.state = 'play';
+  hide('title'); hide('result'); hide('menu'); hide('howto'); show('app');
+  $('stNo').textContent = i + 1; $('stTitle').textContent = G.S.name; $('stSub').textContent = G.S.sub;
+  $('swGoal').textContent = '目標 ' + G.S.best + ' 回' + (G.save.best[G.S.id] != null ? '・ベスト ' + G.save.best[G.S.id] + ' 回' : '');
+  layout();
+  G.tut = i === 0 ? 0 : -1; G.tutT = 0; pulse(-1);
+  if (G.tut < 0) hint(STAGE_HINTS[G.S.id] || '', false);
+  else hint('旅人を、向こう岸の旗まで歩かせます', true);
+  auInit();
+}
+function resetStage() {
+  const S = G.S; G.level = 0; G.preview = null; G.P.x = S.start[0] + 0.5; G.P.y = S.start[1] + 0.5; G.P.dir = 1;
+  G.path = []; G.pending = null; G.blockedStop = false; G.taken = [false, false, false]; G.switches = 0; G.stack = []; G.trail = [{ x: G.P.x, y: G.P.y, l: 0 }];
+  G.anim = null; G.clear = null; G.maxLevel = 0; G.noteT = {};
+  pickCheck(); updateUI();
+}
+function goTo(tx, ty) { // tx,ty はマスの座標（小数）
+  const lv = curLv(), here = cellOf(), comp = lv.lab[here];
+  if (comp < 0) return;
+  const cx = clamp(Math.floor(tx), 0, W - 1), cy = clamp(Math.floor(ty), 0, H - 1);
+  let to = idx(cx, cy), blocked = false;
+  if (lv.lab[to] !== comp) { to = nearestInComp(lv.lab, comp, tx, ty); blocked = true; }
+  const cells = findPath(lv.m, here, to) || [];
+  G.path = smoothPath(lv.m, G.P.x, G.P.y, cells);
+  if (!blocked) { G.path.push([clamp(tx, 0, W - 0.01), clamp(ty, 0, H - 0.01)]); fixLastPoint(lv.m, to); }
+  G.pending = blocked ? { x: tx, y: ty } : null; G.blockedStop = blocked;
+  if (!G.path.length) arrived();
+}
+function fixLastPoint(m, to) { // 最後の点は、タップした場所（同じマスの中）。まっすぐ行けない時はマスの中心で止める
+  const p = G.path[G.path.length - 1], prev = G.path.length > 1 ? G.path[G.path.length - 2] : [G.P.x, G.P.y];
+  if (idx(Math.floor(p[0]), Math.floor(p[1])) !== to || !los(m, prev[0], prev[1], p[0], p[1])) G.path.pop();
+}
+function arrived() {
+  if (G.blockedStop) {
+    G.blockedStop = false;
+    const d = G.pending ? Math.hypot(G.pending.x - G.P.x, G.pending.y - G.P.y) : 0;
+    if (d > 1.5) { sfxBump(); G.bumpT = 1.2; onEvent('stop'); }
+  }
+}
+function updateWalk(dt) {
+  if (!G.path.length) { G.P.walk = 0; return; }
+  let rem = CONFIG.WALK_SPEED * dt; G.P.walk += dt;
+  while (rem > 0 && G.path.length) {
+    const [wx, wy] = G.path[0], dx = wx - G.P.x, dy = wy - G.P.y, d = Math.hypot(dx, dy);
+    if (Math.abs(dx) > 0.05) G.P.dir = dx > 0 ? 1 : -1;
+    if (d <= rem) { G.P.x = wx; G.P.y = wy; rem -= d; G.path.shift(); }
+    else { G.P.x += dx / d * rem; G.P.y += dy / d * rem; rem = 0; }
+  }
+  const last = G.trail[G.trail.length - 1];
+  if (Math.hypot(last.x - G.P.x, last.y - G.P.y) >= CONFIG.TRAIL_STEP) G.trail.push({ x: G.P.x, y: G.P.y, l: G.level });
+  if (!G.path.length) arrived();
+}
+function sameComp(lv, a, b) { return lv.lab[a] >= 0 && lv.lab[a] === lv.lab[b]; }
+function pickCheck() {
+  const here = cellOf(), S = G.S;
+  S.flags.forEach((f, i) => {
+    if (G.taken[i]) return;
+    const d = Math.hypot(f[0] + 0.5 - G.P.x, f[1] + 0.5 - G.P.y), fc = idx(f[0], f[1]);
+    if (d > CONFIG.PICK_R) return;
+    if (G.level === 0 && sameComp(S.lv[0], here, fc)) { G.taken[i] = true; sfxFlag(); updateUI(); onEvent('flag'); }
+    else if (G.level !== 0 && !G.path.length) note('coarseFlag', '旗は「くっきり」の時だけ取れます');
+  });
+  const e = S.exit, ec = idx(e[0], e[1]);
+  if (Math.hypot(e[0] + 0.5 - G.P.x, e[1] + 0.5 - G.P.y) <= CONFIG.EXIT_R && sameComp(curLv(), here, ec)) {
+    const left = G.taken.filter(t => !t).length;
+    if (!left) startClear();
+    else if (!G.path.length) note('exitEarly', '出口です。旗があと ' + left + ' 本');
+  }
+}
+function canSwitch(l) { return G.S.lv[l].m[cellOf()] === 1; }
+function setPreview(l) {
+  if (G.state !== 'play' || G.anim) return;
+  if (l === G.level || l === G.preview) { cancelPreview(); return; }
+  G.preview = l; sfxPreview(); updateUI(); onEvent('preview');
+}
+function cancelPreview() { if (G.preview == null) return; G.preview = null; updateUI(); }
+function confirmSwitch() {
+  if (G.state !== 'play' || G.anim || G.preview == null) return;
+  const l = G.preview;
+  if (!canSwitch(l)) { sfxNo(); hint('足もとが海になるので、切り替えられません。陸の上まで歩いてから決定しよう', false); return; }
+  G.stack.push({ level: G.level, x: G.P.x, y: G.P.y, taken: G.taken.slice(), switches: G.switches, trail: G.trail.length, pending: G.pending, maxLevel: G.maxLevel });
+  G.path = []; G.switches++; G.maxLevel = Math.max(G.maxLevel, l);
+  startAnim(G.level, l, 'switch'); G.level = l; G.preview = null;
+  sfxSwitch(l > G.stack[G.stack.length - 1].level); updateUI(); onEvent('switch');
+}
+function undo() {
+  if (G.state !== 'play' || G.anim || !G.stack.length) return;
+  const s = G.stack.pop(), from = G.level;
+  G.level = s.level; G.P.x = s.x; G.P.y = s.y; G.taken = s.taken; G.switches = s.switches; G.trail.length = s.trail; G.pending = s.pending; G.maxLevel = s.maxLevel;
+  G.path = []; G.preview = null; startAnim(from, s.level, 'undo'); sfxUndo(); updateUI();
+}
+function restart() { if (G.state !== 'play') return; resetStage(); if (G.tut >= 0) { G.tut = 0; G.tutT = 0; pulse(-1); hint('旅人を、向こう岸の旗まで歩かせます', true); } sfxUndo(); }
+function startAnim(from, to, kind) {
+  const sizes = [1, 2, 4, 8], a = sizes.indexOf(CONFIG.FS[from]), b = sizes.indexOf(CONFIG.FS[to]), step = a < b ? 1 : -1, seq = [];
+  for (let i = a + step; i !== b + step; i += step) seq.push(sizes[i]);
+  G.anim = { seq, t: 0, dur: CONFIG.SWITCH_STEP * seq.length, kind };
+}
+function onAnimEnd(a) {
+  if (a.kind === 'switch' && G.pending) { const p = G.pending; goTo(p.x, p.y); }
+  if (a.kind === 'clear') { G.clear.revealT = 0; sfxReveal(); }
+  pickCheck();
+}
+function startClear() {
+  if (G.clear) return;
+  G.path = []; G.preview = null; G.state = 'clearing'; G.clear = { revealT: -1, shown: false };
+  sfxClear(); hint('出口に到着！ 画質を戻すと…赤い足あとは、本当は海の上でした', true);
+  if (G.level !== 0) startAnim(G.level, 0, 'clear'); else { G.clear.revealT = 0; sfxReveal(); }
+  updateUI();
+}
+function update(dt) {
+  if (G.state !== 'play' && G.state !== 'clearing') return;
+  if (G.hintT > 0 && !G.hintSticky) { G.hintT -= dt; if (G.hintT <= 0) $('hint').classList.add('off'); }
+  if (G.bumpT > 0) G.bumpT -= dt;
+  if (G.anim) { G.anim.t += dt; if (G.anim.t >= G.anim.dur) { const a = G.anim; G.anim = null; onAnimEnd(a); } return; }
+  if (G.state === 'clearing') {
+    if (G.clear.revealT >= 0) { G.clear.revealT += dt; if (G.clear.revealT >= CONFIG.CLEAR_REVEAL && !G.clear.shown) { G.clear.shown = true; showResult(); } }
+    return;
+  }
+  tutUpdate(dt);
+  updateWalk(dt); pickCheck(); updateConfirmBar();
+}
+// ----- ヒントと最初の面の案内 -----
+const STAGE_HINTS = {
+  matsushima: '「ざっくり」にすると、広い海もまとめて埋まります',
+  kujuku: '「ざっくり」では、小さな島や細い陸が消えます',
+  amakusa: '旗を取る順番も、切替の回数に関わります',
+  omura: '細い瀬戸は、粗くすると渡れます。でも細い陸は消えます',
+  shimanami: '島から島へ。3つの画質を使い分けよう',
+};
+function hint(text, sticky) { const h = $('hint'); if (!text) { h.classList.add('off'); G.hintSticky = false; return; } h.textContent = text; h.classList.remove('off'); G.hintT = CONFIG.HINT_TIME; G.hintSticky = !!sticky; }
+function note(key, text) { const t = performance.now(); if (G.noteT[key] && t - G.noteT[key] < 6000) return; G.noteT[key] = t; if (!G.hintSticky) hint(text, false); }
+function pulse(l) { document.querySelectorAll('.lv').forEach(b => b.classList.toggle('pulse', +b.dataset.l === l)); }
+function tutUpdate(dt) {
+  if (G.tut === 0) { G.tutT += dt; if (G.tutT >= CONFIG.TUT_AUTO_DELAY) { G.tut = 1; const f = G.S.flags[0]; goTo(f[0] + 0.5, f[1] + 0.5); } }
+  else if (G.tut === 4 && G.level !== 0 && !G.path.length) { G.tut = 5; hint('旗は「くっきり」の時だけ取れます。「くっきり」に戻そう', true); pulse(0); }
+}
+function onEvent(ev) {
+  if (G.tut < 0) { if (ev === 'stop') note('stop', 'この先は海。画質を変えると、歩ける所が変わります'); return; }
+  if (ev === 'stop' && G.tut <= 1 && G.level === 0) { G.tut = 2; hint('海で止まりました。下の「カクカク」を押してみよう', true); pulse(1); }
+  else if (ev === 'preview' && G.tut === 2) { G.tut = 3; hint('これは予告。水路が陸になります。「決定」で切り替え', true); pulse(-1); }
+  else if (ev === 'switch' && G.tut === 3) { G.tut = 4; hint('海だった所が陸に！ そのまま歩きます', false); }
+  else if (ev === 'switch' && G.tut === 5 && G.level === 0) { G.tut = 6; pulse(-1); }
+  else if (ev === 'flag' && G.tut >= 4 && G.tut < 7) { G.tut = 7; hint('旗をあと2本取って、出口（赤い門）へ。切替は少ないほど上手', true); pulse(-1); setTimeout(() => { if (G.tut === 7 && G.hintSticky) { G.hintSticky = false; G.hintT = 2; } }, 4500); }
+}
+// ===== [SEC:RENDER] =====
+const cv = $('map'), ctx = cv.getContext('2d');
+let SC = 4; // 1マスの大きさ（キャンバスの画素）
+let DPR = 1;
+function layout() {
+  if (G.state !== 'play' && G.state !== 'clearing') return;
+  const wrap = $('mapWrap'), aw = wrap.clientWidth, ah = wrap.clientHeight;
+  let w = aw, h = aw * H / W; if (h > ah) { h = ah; w = ah * W / H; }
+  w = Math.max(120, Math.floor(w)); h = Math.floor(w * H / W);
+  DPR = Math.min(CONFIG.DPR_MAX, window.devicePixelRatio || 1);
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const bw = Math.round(w * DPR), bh = Math.round(h * DPR);
+  if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; STAGES.forEach(s => { if (s.layers) s.layers = {}; }); }
+  SC = cv.width / W;
+}
+function hash(a, b) { let h = (a * 374761393 + b * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+function drawSea(c, x0, y0, s, f) {
+  if (f === 1) {
+    const g = c.createLinearGradient(x0, y0, x0, y0 + H * s); g.addColorStop(0, CONFIG.COL.sea); g.addColorStop(1, CONFIG.COL.sea2);
+    c.fillStyle = g; c.fillRect(x0, y0, W * s, H * s);
+    c.strokeStyle = CONFIG.COL.wave; c.lineWidth = Math.max(1, s * 0.22); c.lineCap = 'round'; c.beginPath();
+    for (let i = 0; i < 70; i++) { const x = x0 + hash(i, 1) * W * s, y = y0 + hash(i, 2) * H * s, l = s * (1.6 + hash(i, 3) * 1.6); c.moveTo(x, y); c.quadraticCurveTo(x + l * 0.5, y - s * 0.6, x + l, y); }
+    c.stroke();
+  } else {
+    const bw = Math.ceil(W / f), bh = Math.ceil(H / f);
+    for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+      const v = hash(bx * f, by * f + 7);
+      c.fillStyle = v < 0.33 ? CONFIG.COL.sea : v < 0.66 ? CONFIG.COL.sea2 : '#54a0d6';
+      c.fillRect(x0 + Math.round(bx * f * s), y0 + Math.round(by * f * s), Math.round((bx + 1) * f * s) - Math.round(bx * f * s), Math.round((by + 1) * f * s) - Math.round(by * f * s));
+    }
+  }
+}
+function msPaths(m, x0, y0, s) { // くっきり：マスの中心どうしを結ぶ、なめらかな海岸線（マーチングスクエア）
+  const fill = new Path2D(), line = new Path2D();
+  const v = (x, y) => m[idx(clamp(x, 0, W - 1), clamp(y, 0, H - 1))];
+  const P = (x, y) => [x0 + (x + 0.5) * s, y0 + (y + 0.5) * s];
+  const poly = pts => { fill.moveTo(...P(...pts[0])); for (let k = 1; k < pts.length; k++) fill.lineTo(...P(...pts[k])); fill.closePath(); };
+  const seg = (a, b) => { line.moveTo(...P(...a)); line.lineTo(...P(...b)); };
+  for (let y = -1; y < H; y++) for (let x = -1; x < W; x++) {
+    const a = v(x, y), b = v(x + 1, y), c = v(x + 1, y + 1), d = v(x, y + 1), k = a * 8 + b * 4 + c * 2 + d;
+    if (!k) continue;
+    const tl = [x, y], tr = [x + 1, y], br = [x + 1, y + 1], bl = [x, y + 1], T = [x + 0.5, y], R = [x + 1, y + 0.5], B = [x + 0.5, y + 1], L = [x, y + 0.5];
+    if (k === 15) { poly([tl, tr, br, bl]); continue; }
+    if (k === 10) { poly([tl, T, L]); poly([br, B, R]); seg(T, L); seg(B, R); continue; } // ななめの陸どうしはつながらない
+    if (k === 5) { poly([tr, R, T]); poly([bl, L, B]); seg(T, R); seg(L, B); continue; }
+    const pts = [], ring = [[tl, a], [T, -1], [tr, b], [R, -2], [br, c], [B, -3], [bl, d], [L, -4]];
+    const edge = { '-1': [a, b], '-2': [b, c], '-3': [c, d], '-4': [d, a] }, mids = [];
+    for (const [p, val] of ring) {
+      if (val === 1) pts.push(p);
+      else if (val < 0) { const e = edge[val]; if (e[0] !== e[1]) { pts.push(p); mids.push(p); } }
+    }
+    poly(pts); if (mids.length === 2) seg(mids[0], mids[1]);
+  }
+  return { fill, line };
+}
+function blockLines(blk, bw, bh, f, x0, y0, s) { // カクカク・ざっくり：陸と海のさかい目
+  const line = new Path2D(), X = i => x0 + Math.round(i * f * s), Y = j => y0 + Math.round(j * f * s);
+  const v = (x, y) => (x < 0 || y < 0 || x >= bw || y >= bh) ? -1 : blk[y * bw + x];
+  for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) {
+    const a = v(x, y);
+    const r = v(x + 1, y); if (r >= 0 && r !== a) { line.moveTo(X(x + 1), Y(y)); line.lineTo(X(x + 1), Y(y + 1)); }
+    const d = v(x, y + 1); if (d >= 0 && d !== a) { line.moveTo(X(x), Y(y + 1)); line.lineTo(X(x + 1), Y(y + 1)); }
+  }
+  return line;
+}
+function blockOf(S, f) { if (f === 1) return null; if (f === 2) return S.half; const l = S.lv[CONFIG.FS.indexOf(f)]; return { blk: l.blk, bw: l.bw, bh: l.bh, f }; }
+function drawLayerTo(c, S, f, x0, y0, s) { // 地図1枚（f=マスの大きさ）をかく
+  c.save(); c.beginPath(); c.rect(x0, y0, W * s, H * s); c.clip();
+  drawSea(c, x0, y0, s, f);
+  if (f === 1) {
+    const { fill, line } = msPaths(S.lv[0].m, x0, y0, s);
+    c.lineJoin = 'round'; c.lineCap = 'round';
+    c.strokeStyle = CONFIG.COL.shallow; c.lineWidth = s * 1.1; c.stroke(line);
+    c.fillStyle = CONFIG.COL.land; c.fill(fill);
+    c.strokeStyle = CONFIG.COL.coast; c.lineWidth = Math.max(1, s * 0.28); c.stroke(line);
+  } else {
+    const b = blockOf(S, f), X = i => x0 + Math.round(i * f * s), Y = j => y0 + Math.round(j * f * s);
+    for (let y = 0; y < b.bh; y++) for (let x = 0; x < b.bw; x++) {
+      if (!b.blk[y * b.bw + x]) continue;
+      c.fillStyle = hash(x * f + 3, y * f) < 0.5 ? CONFIG.COL.land : CONFIG.COL.land2;
+      c.fillRect(X(x), Y(y), X(x + 1) - X(x), Y(y + 1) - Y(y));
+    }
+    c.strokeStyle = CONFIG.COL.grid; c.lineWidth = Math.max(1, s * 0.12); c.beginPath();
+    for (let x = 1; x < b.bw; x++) { c.moveTo(X(x), y0); c.lineTo(X(x), y0 + H * s); }
+    for (let y = 1; y < b.bh; y++) { c.moveTo(x0, Y(y)); c.lineTo(x0 + W * s, Y(y)); }
+    c.stroke();
+    c.strokeStyle = CONFIG.COL.coast; c.lineWidth = Math.max(1, s * 0.3); c.stroke(blockLines(b.blk, b.bw, b.bh, f, x0, y0, s));
+  }
+  c.restore();
+}
+function layer(f) { // 画面の大きさごとに1回だけかいて、とっておく
+  const S = G.S; if (S.layers[f]) return S.layers[f];
+  const off = document.createElement('canvas'); off.width = cv.width; off.height = cv.height;
+  drawLayerTo(off.getContext('2d'), S, f, 0, 0, SC);
+  return (S.layers[f] = off);
+}
+function outline(f) { // 予告中に、いまの陸のふちを点線で見せる
+  const S = G.S, key = 'o' + f; if (S.layers[key]) return S.layers[key];
+  return (S.layers[key] = f === 1 ? msPaths(S.lv[0].m, 0, 0, SC).line : (b => blockLines(b.blk, b.bw, b.bh, f, 0, 0, SC))(blockOf(S, f)));
+}
+function dispF() {
+  if (G.anim) { const k = Math.min(G.anim.seq.length - 1, Math.floor(G.anim.t / CONFIG.SWITCH_STEP)); return G.anim.seq[k]; }
+  if (G.clear) return 1;
+  return CONFIG.FS[G.preview != null ? G.preview : G.level];
+}
+function drawFlag(c, x, y, sz, done, ghost) {
+  c.save(); c.translate(x, y); c.globalAlpha = ghost ? 0.55 : 1;
+  c.lineCap = 'round'; c.strokeStyle = CONFIG.COL.pole; c.lineWidth = sz * 0.12;
+  c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -sz); c.stroke();
+  c.fillStyle = done ? '#9aa3ab' : CONFIG.COL.flag; c.beginPath(); c.moveTo(0, -sz); c.lineTo(sz * 0.72, -sz * 0.78); c.lineTo(0, -sz * 0.52); c.closePath(); c.fill();
+  c.strokeStyle = '#fff'; c.lineWidth = sz * 0.06; c.stroke();
+  c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(0, 0, sz * 0.22, sz * 0.08, 0, 0, Math.PI * 2); c.fill();
+  c.restore();
+}
+function drawExit(c, x, y, sz, open) { // 出口は小さな赤い門
+  c.save(); c.translate(x, y); c.globalAlpha = open ? 1 : 0.8;
+  c.fillStyle = 'rgba(0,0,0,.22)'; c.beginPath(); c.ellipse(0, 0, sz * 0.6, sz * 0.14, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = CONFIG.COL.exit; c.strokeStyle = '#fff'; c.lineWidth = sz * 0.07;
+  const post = (px) => { c.beginPath(); c.rect(px - sz * 0.07, -sz * 0.8, sz * 0.14, sz * 0.8); c.fill(); c.stroke(); };
+  post(-sz * 0.34); post(sz * 0.34);
+  c.beginPath(); c.rect(-sz * 0.6, -sz * 0.98, sz * 1.2, sz * 0.16); c.fill(); c.stroke();
+  c.beginPath(); c.rect(-sz * 0.46, -sz * 0.72, sz * 0.92, sz * 0.1); c.fill(); c.stroke();
+  c.restore();
+}
+function drawPerson(c, x, y, sz, walk, dir) {
+  c.save(); c.translate(x, y);
+  c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(0, 0, sz * 0.3, sz * 0.1, 0, 0, Math.PI * 2); c.fill();
+  const bob = walk ? Math.abs(Math.sin(walk * 14)) * sz * 0.08 : 0, sw = walk ? Math.sin(walk * 14) * sz * 0.16 : 0;
+  c.translate(0, -bob); c.scale(dir, 1);
+  c.strokeStyle = CONFIG.COL.person; c.lineCap = 'round'; c.lineWidth = sz * 0.14;
+  c.beginPath(); c.moveTo(0, -sz * 0.35); c.lineTo(-sw, -sz * 0.02); c.moveTo(0, -sz * 0.35); c.lineTo(sw, -sz * 0.02); c.stroke();
+  c.fillStyle = '#e8743b'; c.beginPath(); c.roundRect ? c.roundRect(-sz * 0.18, -sz * 0.78, sz * 0.36, sz * 0.46, sz * 0.1) : c.rect(-sz * 0.18, -sz * 0.78, sz * 0.36, sz * 0.46); c.fill();
+  c.fillStyle = '#7a5230'; c.beginPath(); c.rect(-sz * 0.3, -sz * 0.74, sz * 0.14, sz * 0.32); c.fill();
+  c.fillStyle = '#ffe2c4'; c.strokeStyle = CONFIG.COL.person; c.lineWidth = sz * 0.06; c.beginPath(); c.arc(0, -sz * 0.92, sz * 0.17, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.fillStyle = '#f2c94c'; c.beginPath(); c.ellipse(0, -sz * 1.04, sz * 0.26, sz * 0.07, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.restore();
+}
+function drawTrail(c, x0, y0, s, sz, reveal, m0) {
+  for (const p of G.trail) {
+    const sea = reveal && !m0[idx(clamp(Math.floor(p.x), 0, W - 1), clamp(Math.floor(p.y), 0, H - 1))];
+    c.fillStyle = sea ? CONFIG.COL.trailSea : CONFIG.COL.trail;
+    c.beginPath(); c.arc(x0 + p.x * s, y0 + p.y * s, sea ? sz * 1.6 : sz, 0, Math.PI * 2); c.fill();
+  }
+}
+function drawObjects(c, x0, y0, s, U) { // 旗・出口・旅人（U=画面の文字や印の大きさの単位）
+  const S = G.S, fine = !G.clear && G.level === 0 && !G.anim;
+  drawExit(c, x0 + (S.exit[0] + 0.5) * s, y0 + (S.exit[1] + 0.8) * s, U * 1.25, G.taken.every(t => t));
+  S.flags.forEach((f, i) => drawFlag(c, x0 + (f[0] + 0.5) * s, y0 + (f[1] + 0.8) * s, U * 1.3, G.taken[i], !G.taken[i] && !fine && !G.clear));
+  drawPerson(c, x0 + G.P.x * s, y0 + (G.P.y + 0.3) * s, U * 1.35, G.P.walk, G.P.dir);
+}
+function draw() {
+  if (G.state !== 'play' && G.state !== 'clearing') return;
+  const f = dispF(), S = G.S, U = 12 * DPR;
+  ctx.drawImage(layer(f), 0, 0);
+  if (G.preview != null && !G.anim) { // 予告：変わった後の地図に、いまの陸のふちを点線で
+    ctx.save(); ctx.setLineDash([U * 0.35, U * 0.3]); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = Math.max(1.5, DPR * 1.6); ctx.stroke(outline(CONFIG.FS[G.level])); ctx.restore();
+  }
+  const reveal = G.clear && G.clear.revealT >= 0;
+  drawTrail(ctx, 0, 0, SC, Math.max(1.2, U * 0.13), reveal, S.lv[0].m);
+  if (reveal) { // 元の海の上の足あと
+    const k = Math.min(1, G.clear.revealT / 0.6); ctx.save(); ctx.globalAlpha = k; ctx.fillStyle = 'rgba(255,255,255,.92)';
+    const sp = G.trail.filter(p => !S.lv[0].m[idx(clamp(Math.floor(p.x), 0, W - 1), clamp(Math.floor(p.y), 0, H - 1))]);
+    if (sp.length) { const p = sp[Math.floor(sp.length / 2)]; pill(ctx, '海の上を歩いた', p.x * SC, p.y * SC - U * 1.4, U); }
+    ctx.restore();
+  }
+  drawObjects(ctx, 0, 0, SC, U);
+  if (G.preview != null && !G.anim) { // 足もとの〇×
+    const ok = canSwitch(G.preview), x = G.P.x * SC, y = (G.P.y + 0.3) * SC;
+    ctx.save(); ctx.lineWidth = DPR * 3; ctx.strokeStyle = ok ? '#2e9e5b' : '#d8443a'; ctx.setLineDash(ok ? [] : [DPR * 4, DPR * 3]);
+    ctx.beginPath(); ctx.ellipse(x, y, U * 0.9, U * 0.38, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
+  if (G.bumpT > 0 && !G.path.length) { // 海で止まった
+    ctx.save(); ctx.globalAlpha = Math.min(1, G.bumpT * 2); pill(ctx, 'ここから先は海', G.P.x * SC, (G.P.y - 1.2) * SC - U * 1.6, U); ctx.restore();
+  }
+}
+function pill(c, text, x, y, U) {
+  c.save(); c.font = `800 ${Math.round(U * 1.05)}px "M PLUS Rounded 1c",sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const w = c.measureText(text).width + U * 1.1, h = U * 1.7;
+  x = clamp(x, w / 2 + 2, cv.width - w / 2 - 2); y = clamp(y, h / 2 + 2, cv.height - h / 2 - 2);
+  c.fillStyle = 'rgba(31,45,61,.88)'; c.beginPath(); c.roundRect ? c.roundRect(x - w / 2, y - h / 2, w, h, h / 2) : c.rect(x - w / 2, y - h / 2, w, h); c.fill();
+  c.fillStyle = '#fff'; c.fillText(text, x, y); c.restore();
+}
+// ===== [SEC:SHARE] =====
+function makeCompare() { // 比較画像：左が低画質で歩いた地図、右が本当の地図と足あと
+  const S = G.S, C = document.createElement('canvas'); C.width = 1200; C.height = 630; const c = C.getContext('2d');
+  c.fillStyle = '#f4ecd8'; c.fillRect(0, 0, 1200, 630);
+  const F = '"M PLUS Rounded 1c",sans-serif';
+  c.fillStyle = '#1f2d3d'; c.font = `800 40px ${F}`; c.textBaseline = 'alphabetic'; c.fillText('低画質で失礼します', 40, 70);
+  c.font = `800 30px ${F}`; c.textAlign = 'right'; c.fillText(`${S.name}　切替 ${G.switches}回`, 1160, 68); c.textAlign = 'left';
+  const pw = 552, ph = pw * H / W, s = pw / W, lx = 32, rx = 616, py = 118, lf = CONFIG.FS[Math.max(1, G.maxLevel)];
+  const panel = (x, f, reveal, cap) => {
+    drawLayerTo(c, S, f, x, py, s);
+    drawTrail(c, x, py, s, 2.6, reveal, S.lv[0].m);
+    drawExit(c, x + (S.exit[0] + 0.5) * s, py + (S.exit[1] + 0.8) * s, 16, true);
+    S.flags.forEach(fl => drawFlag(c, x + (fl[0] + 0.5) * s, py + (fl[1] + 0.8) * s, 17, false, false));
+    drawPerson(c, x + G.P.x * s, py + (G.P.y + 0.3) * s, 18, 0, 1);
+    c.strokeStyle = '#dccfae'; c.lineWidth = 4; c.strokeRect(x, py, pw, ph);
+    c.fillStyle = '#1f2d3d'; c.font = `800 26px ${F}`; c.fillText(cap, x + 4, py + ph + 40);
+  };
+  panel(lx, lf, false, `${CONFIG.LEVEL_NAMES[CONFIG.FS.indexOf(lf)]}（低画質）`);
+  panel(rx, 1, true, 'くっきり（本当の地図）');
+  c.fillStyle = '#ff4d3d'; c.beginPath(); c.arc(rx + 368, py + ph + 31, 9, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#5d6b78'; c.font = `500 22px ${F}`; c.fillText('＝海の上の足あと', rx + 382, py + ph + 39);
+  c.fillStyle = '#1f2d3d'; c.font = `800 28px ${F}`; c.fillText('画質を落としたら、海を歩けました。', 40, 600);
+  c.fillStyle = '#5d6b78'; c.font = `500 20px ${F}`; c.textAlign = 'right'; c.fillText('nkworks-games.com/teigashitsu/ ※ゲーム用の簡略地図', 1160, 600);
+  return C;
+}
+function shareText(cleared) {
+  return (cleared ? `画質を落としたら海を歩けました。${G.S.name}、切替${G.switches}回。` : '地図をきれいにしたら、先へ行けなくなりました。') + '\n' + CONFIG.TAG;
+}
+function pageUrl() { const u = location.href.split(/[?#]/)[0]; return /^https?:/.test(u) ? u : CONFIG.URL; }
+function shareX(text) { open('https://x.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(pageUrl()), '_blank'); }
+async function shareResult() {
+  const text = shareText(true);
+  try {
+    if (G.shareBlob && navigator.canShare) {
+      const file = new File([G.shareBlob], 'teigashitsu.png', { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: text + '\n' + pageUrl() }); return; }
+    }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  shareX(text);
+}
+function saveImage() { const a = document.createElement('a'); a.href = $('rImg').src; a.download = `teigashitsu-${G.S.id}.png`; document.body.appendChild(a); a.click(); a.remove(); }
+// ===== [SEC:UI] =====
+function flagSvg(on) { return `<svg viewBox="0 0 24 24"><path d="M6 21V3" stroke="#3b2f25" stroke-width="2.4" stroke-linecap="round"/><path d="M7 3.5l12 3.6-12 3.6z" fill="${on ? '#e8473b' : '#cfc6b3'}"/></svg>`; }
+function stars(n, best) { return n <= best ? '★★★' : n <= best + 2 ? '★★☆' : '★☆☆'; }
+function updateUI() {
+  if (!G.S) return;
+  $('flagsBox').innerHTML = G.taken.map(flagSvg).join('');
+  $('swN').textContent = G.switches;
+  document.querySelectorAll('.lv').forEach(b => {
+    const l = +b.dataset.l; b.classList.toggle('cur', l === G.level); b.classList.toggle('pv', l === G.preview);
+    b.querySelector('em').textContent = l === G.level ? 'いま' : l === G.preview ? '予告中' : '';
+  });
+  $('bUndo').disabled = !G.stack.length;
+  const tag = $('tag'); tag.classList.toggle('pv', G.preview != null);
+  tag.textContent = G.clear ? 'くっきり（本当の地図）' : G.preview != null ? `予告：${CONFIG.LEVEL_NAMES[G.preview]}` : `画質：${CONFIG.LEVEL_NAMES[G.level]}`;
+  if (G.preview == null) hide('cBar'); else show('cBar');
+  $('app').classList.toggle('pv', G.preview != null);
+  updateConfirmBar(true);
+}
+let lastOk = null;
+function updateConfirmBar(force) {
+  if (G.preview == null) { lastOk = null; return; }
+  const ok = canSwitch(G.preview); if (!force && ok === lastOk) return; lastOk = ok;
+  const m = $('cMsg'); m.classList.toggle('ng', !ok);
+  m.innerHTML = ok ? `足もとは陸。<b>決定</b>で「${CONFIG.LEVEL_NAMES[G.preview]}」に（切替+1）` : '足もとが海になります。<b>陸まで歩いて</b>から決定';
+  $('cOk').disabled = !ok; $('cOk').classList.toggle('pulse', ok && G.tut === 3);
+}
+function showResult() {
+  const S = G.S, n = G.switches, prev = G.save.best[S.id], first = prev == null, better = !first && n < prev;
+  if (first || better) { G.save.best[S.id] = n; writeSave(); }
+  $('rStage').textContent = `${G.si + 1}. ${S.name}`; $('rN').textContent = n; $('rStars').textContent = stars(n, S.best);
+  let msg = n < S.best ? '作者の最少回数より少ない！？ すごい' : n === S.best ? `作者の最少回数（${S.best}回）と同じ！ お見事` : `作者の最少回数は ${S.best}回。あと ${n - S.best}回 へらせます`;
+  msg += '<br>' + (first ? '<span class="new">はじめてのクリア！</span>' : better ? `<span class="new">ベスト更新！</span>（前は ${prev}回）` : `ベスト ${prev}回`);
+  $('rMsg').innerHTML = msg;
+  const C = makeCompare(); $('rImg').src = C.toDataURL('image/png'); G.shareBlob = null; C.toBlob(b => { G.shareBlob = b; });
+  const nx = G.si + 1 < STAGES.length; $('rNext').textContent = nx ? '次の面へ' : '面を選ぶ'; $('rTitleBtn').classList.toggle('hidden', !nx);
+  hint(''); G.state = 'result'; show('result'); ads('ad2');
+}
+function ads(id) { const z = $(id); if (!z || z.firstChild || !/(^|\.)nkworks-games\.com$/.test(location.hostname)) return; z.innerHTML = '<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>'; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { /* 広告が出ない時も枠は残す */ } }
+function toTitle() {
+  G.state = 'title'; hide('app'); hide('result'); hide('menu'); hide('howto'); show('title');
+  const list = $('stageList'); list.innerHTML = '';
+  STAGES.forEach((s, i) => {
+    const b = document.createElement('button'), best = G.save.best[s.id], ok = unlocked(i);
+    b.className = 'sc'; b.disabled = !ok;
+    b.innerHTML = `<b><i>${i + 1}</i>${s.name}</b><small>${s.sub}</small><span>${ok ? (best != null ? `<span class="st">${stars(best, s.best)}</span> ベスト ${best}回／目標 ${s.best}回` : `目標 ${s.best}回`) : '🔒 前の面をクリアすると遊べます'}</span>`;
+    b.onclick = () => { auInit(); startStage(i); };
+    list.appendChild(b);
+  });
+  const next = STAGES.findIndex(s => G.save.best[s.id] == null);
+  $('startBtn').textContent = next < 0 ? 'もう一度 1面から' : next === 0 ? 'はじめる' : `つづき（${next + 1}面）から`;
+  $('startBtn').onclick = () => { auInit(); if (!G.seenHow && next <= 0) { G.seenHow = true; writeSave(); } startStage(Math.max(0, next)); };
+  refreshMute(); ads('ad1');
+}
+function refreshMute() { $('muteBtn').textContent = $('mMute').textContent = G.muted ? '音：なし' : '音：あり'; if (AU.master) AU.master.gain.value = G.muted ? 0 : 0.7; }
+function openHow() { show('howto'); }
+function mapTap(e) {
+  if (G.state !== 'play' || G.anim) return;
+  const r = cv.getBoundingClientRect(); let tx = (e.clientX - r.left) / r.width * W, ty = (e.clientY - r.top) / r.height * H;
+  const near = [...G.S.flags, G.S.exit].find(p => Math.hypot(p[0] + 0.5 - tx, p[1] + 0.3 - ty) < 2.2); // 旗や出口の近くは、その場所へ
+  if (near) { tx = near[0] + 0.5; ty = near[1] + 0.5; }
+  if (G.tut >= 0 && G.tut < 2) G.tut = 1;
+  sfxTap(); goTo(tx, ty);
+}
+function lvIcons() { // ボタンの小さな絵：丸い島を3つの画質で
+  document.querySelectorAll('.lv canvas').forEach((cn, i) => {
+    const c = cn.getContext('2d'), f = CONFIG.FS[i];
+    for (let y = 0; y < 24; y += f) for (let x = 0; x < 24; x += f) {
+      let n = 0, t = 0; for (let yy = y; yy < y + f; yy++) for (let xx = x; xx < x + f; xx++) { t++; if (Math.hypot(xx - 11.5, yy - 11.5) < 9 && !(xx > 13 && yy < 8)) n++; }
+      c.fillStyle = n * 2 >= t ? '#e6d7a9' : '#5ba6db'; c.fillRect(x, y, f, f);
+    }
+  });
+}
+cv.addEventListener('pointerdown', e => { e.preventDefault(); mapTap(e); });
+document.querySelectorAll('.lv').forEach(b => b.addEventListener('click', () => { auInit(); setPreview(+b.dataset.l); }));
+$('cOk').onclick = confirmSwitch; $('cNo').onclick = cancelPreview;
+$('bUndo').onclick = undo; $('bReset').onclick = restart;
+$('bMenu').onclick = () => { if (G.state !== 'play') return; G.state = 'menu'; show('menu'); };
+$('mResume').onclick = () => { hide('menu'); G.state = 'play'; };
+$('mReset').onclick = () => { hide('menu'); G.state = 'play'; restart(); };
+$('mHow').onclick = () => openHow('menu');
+$('mShare').onclick = () => shareX(shareText(false));
+$('mTitle').onclick = toTitle;
+$('mMute').onclick = $('muteBtn').onclick = () => { G.muted = !G.muted; writeSave(); refreshMute(); };
+$('howBtn').onclick = () => openHow('title');
+$('howOk').onclick = () => { hide('howto'); G.seenHow = true; writeSave(); };
+$('rNext').onclick = () => { if (G.si + 1 < STAGES.length) startStage(G.si + 1); else toTitle(); };
+$('rAgain').onclick = () => startStage(G.si);
+$('rTitleBtn').onclick = toTitle;
+$('rShare').onclick = shareResult; $('rSave').onclick = saveImage;
+addEventListener('keydown', e => {
+  if (G.state !== 'play') return;
+  const k = e.key;
+  if (k === '1' || k === '2' || k === '3') setPreview(+k - 1);
+  else if (k === 'Enter') confirmSwitch();
+  else if (k === 'Escape') cancelPreview();
+  else if (k === 'z' || k === 'Z' || k === 'Backspace') undo();
+  else if (k === 'r' || k === 'R') restart();
+  else return;
+  e.preventDefault();
+});
+addEventListener('resize', () => { layout(); });
+if (window.ResizeObserver) new ResizeObserver(() => layout()).observe($('mapWrap'));
+// ===== [SEC:AUDIO] =====
+const AU = { ctx: null, master: null, noise: null };
+function auInit() {
+  if (AU.ctx) { if (AU.ctx.state === 'suspended') AU.ctx.resume(); return; }
+  try {
+    const C = new (window.AudioContext || window.webkitAudioContext)(); AU.ctx = C; AU.master = C.createGain(); AU.master.gain.value = G.muted ? 0 : 0.7; AU.master.connect(C.destination);
+    const b = C.createBuffer(1, C.sampleRate, C.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; AU.noise = b;
+  } catch (e) { AU.ctx = null; }
+}
+function tone(f, type, peak, dec, t0 = 0, f2 = null) {
+  if (!AU.ctx) return; const C = AU.ctx, t = C.currentTime + t0, o = C.createOscillator(), g = C.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dec);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  o.connect(g); g.connect(AU.master); o.start(t); o.stop(t + dec + 0.05);
+}
+function nburst(f, q, peak, dec, t0 = 0) {
+  if (!AU.ctx) return; const C = AU.ctx, t = C.currentTime + t0, s = C.createBufferSource(), fl = C.createBiquadFilter(), g = C.createGain();
+  s.buffer = AU.noise; fl.type = 'bandpass'; fl.frequency.value = f; fl.Q.value = q;
+  g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+  s.connect(fl); fl.connect(g); g.connect(AU.master); s.start(t); s.stop(t + dec + 0.05);
+}
+function sfxTap() { tone(880, 'sine', 0.08, 0.06); }
+function sfxBump() { tone(220, 'sine', 0.22, 0.25, 0, 110); nburst(700, 1.2, 0.12, 0.18); }
+function sfxPreview() { tone(660, 'square', 0.05, 0.07); tone(990, 'square', 0.05, 0.07, 0.07); }
+function sfxSwitch(coarser) { const fs = coarser ? [1200, 900, 600, 400] : [400, 600, 900, 1200]; fs.forEach((f, i) => tone(f, 'square', 0.07, 0.09, i * 0.05)); nburst(coarser ? 500 : 2500, 0.8, 0.12, 0.25); }
+function sfxNo() { tone(160, 'sawtooth', 0.12, 0.22); tone(150, 'sawtooth', 0.1, 0.22, 0.12); }
+function sfxUndo() { tone(700, 'triangle', 0.1, 0.12, 0, 350); }
+function sfxFlag() { tone(988, 'triangle', 0.2, 0.3); tone(1319, 'triangle', 0.2, 0.45, 0.1); }
+function sfxClear() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 'triangle', 0.2, i < 3 ? 0.22 : 0.8, i * 0.12)); }
+function sfxReveal() { [1568, 1319, 1047].forEach((f, i) => tone(f, 'sine', 0.08, 0.5, i * 0.09)); }
+// ===== [SEC:TEST] =====
+// 動作確認用（ブラウザの開発ツールから使う）：__T.tap(x,y) で地図のマスをタップ、__T.tick(秒) で時間を進める
+window.__T = {
+  G, STAGES, start: i => startStage(i),
+  tap: (x, y) => { if (G.state === 'play' && !G.anim) goTo(x + 0.5, y + 0.5); },
+  preview: setPreview, confirm: confirmSwitch, undo, restart, cancel: cancelPreview,
+  tick: (sec, dt = 1 / 60) => { for (let t = 0; t < sec; t += dt) update(dt); draw(); },
+  cell: () => [Math.floor(G.P.x), Math.floor(G.P.y)],
+};
+// ===== [SEC:MAIN] =====
+let lastT = 0;
+function frame(t) {
+  const dt = Math.min(0.05, (t - lastT) / 1000 || 0); lastT = t;
+  if (!window.__T.paused) update(dt);
+  draw(); requestAnimationFrame(frame);
+}
+loadSave(); lvIcons(); toTitle();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { STAGES.forEach(s => { if (s.layers) s.layers = {}; }); });
+const q = location.search.match(/[?&]s=(\d)/); if (q && STAGES[+q[1] - 1]) startStage(+q[1] - 1);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
