@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>連休をください</title>
+<title>休ませてください</title>
 <meta name="robots" content="noindex">
 <meta name="description" content="休みの数は増やさずに、動かすだけで連休を作り、激務の毎日を何日もちこたえられるかを競うゲーム。残業・トラブル・休日出勤は運しだい。">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
 <meta name="theme-color" content="#f6f0e3">
 <meta property="og:type" content="website">
-<meta property="og:title" content="連休をください">
+<meta property="og:title" content="休ませてください">
 <meta property="og:description" content="休みの数は増やさずに、動かすだけ。何日もちこたえる？">
-<meta property="og:url" content="https://nkworks-games.com/renkyu-kudasai/">
-<meta property="og:image" content="https://nkworks-games.com/renkyu-kudasai/card.png">
-<link rel="canonical" href="https://nkworks-games.com/renkyu-kudasai/">
+<meta property="og:url" content="https://nkworks-games.com/yasumasete-kudasai/">
+<meta property="og:image" content="https://nkworks-games.com/yasumasete-kudasai/card.png">
+<link rel="canonical" href="https://nkworks-games.com/yasumasete-kudasai/">
 <meta name="twitter:card" content="summary_large_image">
 <script>(function(){if(/(^|\.)nkworks-games\.com$/.test(location.hostname)){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350';document.head.appendChild(s);}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -155,7 +155,7 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
 
 <div id="title" class="screen hidden">
   <div class="badge">試遊版</div>
-  <div class="logo">連休を<br><span class="k">ください</span></div>
+  <div class="logo">休ませて<br><span class="k">ください</span></div>
   <div class="deco"><i></i><i></i><i class="o"></i><i class="o"></i><i class="o"></i><i></i><i class="d"></i></div>
   <p class="lead">休みの数は<b>8日のまま</b>。動かすだけ。<br>残業・トラブルを見越して連休を作り、<br>激務の毎日を<b>何日もちこたえる？</b></p>
   <div class="modes" role="radiogroup" aria-label="むずかしさ"><button id="modeN" role="radio">ノーマル</button><button id="modeH" role="radio">ハード</button></div>
@@ -1124,18 +1124,18 @@ function shareText(){
   const s = G.stats, n = survived();
   const a = s.maxOff >= 2 ? `最長${s.maxOff}連休を作って` : '連休は作らずに';
   const b = s.maxWork >= 6 ? `、${s.maxWork}連勤をくぐりぬけ` : '';
-  return `連休をください${G.mode === 'hard' ? '【ハード】' : ''}。${a}${b}、${n}日もちこたえた。（${G.style}）\n#連休をください`;
+  return `休ませてください${G.mode === 'hard' ? '【ハード】' : ''}。${a}${b}、${n}日もちこたえた。（${G.style}）\n#休ませてください`;
 }
 function share(){
   if (!G) return;
-  const url = 'https://nkworks-games.com/renkyu-kudasai/';
+  const url = 'https://nkworks-games.com/yasumasete-kudasai/';
   open('https://x.com/intent/post?text=' + encodeURIComponent(shareText()) + '&url=' + encodeURIComponent(url), '_blank', 'noopener');
 }
 function saveImage(){
   if (!G || !G.resultCanvas) return;
   G.resultCanvas.toBlob(async b => {
     if (!b) return;
-    const name = `renkyu-${survived()}days.png`;
+    const name = `yasumasete-${survived()}days.png`;
     try {
       const f = new File([b], name, { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [f] })){ await navigator.share({ files: [f], text: shareText() }); return; }
@@ -1153,8 +1153,8 @@ function makeResultImage(){
   const c = cvs.getContext('2d'), pats = makePats(c, 1);
   c.fillStyle = '#f6f0e3'; c.fillRect(0, 0, W, H);
   c.fillStyle = '#1f2f46'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
-  c.font = `800 64px ${FONT}`; c.fillText('連休をください', 60, 112);
-  const mw = c.measureText('連休をください').width, hard = G.mode === 'hard';
+  c.font = `800 64px ${FONT}`; c.fillText('休ませてください', 60, 112);
+  const mw = c.measureText('休ませてください').width, hard = G.mode === 'hard';
   c.font = `800 26px ${FONT}`; const tw = c.measureText(MODE.name).width + 32;
   c.fillStyle = hard ? '#d2412a' : '#5d6b7d'; rr(c, 60 + mw + 18, 72, tw, 40, 20); c.fill();
   c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(MODE.name, 60 + mw + 18 + tw / 2, 93);
@@ -1185,7 +1185,7 @@ function makeResultImage(){
   c.fillStyle = '#1f2f46'; c.font = `800 24px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText('体力', gx + 20, gy + 24);
   c.textAlign = 'right'; c.fillStyle = '#5d6b7d'; c.fillText(`通算${n}日目`, gx + gw - 20, gy + 24);
   c.fillStyle = '#5d6b7d'; c.font = `800 24px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-  c.fillText('nkworks-games.com/renkyu-kudasai/　#連休をください', W / 2, H - 28);
+  c.fillText('nkworks-games.com/yasumasete-kudasai/　#休ませてください', W / 2, H - 28);
   return cvs;
 }
 
