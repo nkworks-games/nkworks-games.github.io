@@ -66,6 +66,11 @@ button{font-family:inherit;cursor:pointer;color:#1d2a3a}
 #rTags span{display:inline-block;margin:3px;padding:3px 11px;border-radius:999px;border:2px solid #1d2a3a;font-size:13px;font-weight:800;background:#fff7e0}
 #rCom{margin-top:10px;font-size:15px;line-height:1.7;font-weight:500}
 #rBest{margin-top:6px;font-size:14px;font-weight:800}
+.follow{margin:18px auto 0;max-width:340px;background:#fff;border:3px solid #1d2a3a;border-radius:16px;padding:10px 12px 12px}
+.follow .fl{font-size:15px;font-weight:800}
+.follow .fs{font-size:12px;font-weight:500;opacity:.75;margin-top:2px}
+.fbtn{display:inline-block;margin-top:8px;padding:8px 16px;border-radius:999px;background:#000;color:#fff;font-size:14px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #555}
+.fbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #555}
 .adwrap{margin:24px auto 0;min-height:50px;width:320px;max-width:100%;display:flex;justify-content:center}
 .adwrap ins{display:inline-block;width:320px;height:50px}
 .zh{font-size:26px;font-weight:800}
@@ -123,6 +128,7 @@ button{font-family:inherit;cursor:pointer;color:#1d2a3a}
   </div>
   <div class="row" style="margin-top:16px"><button class="big" id="againBtn">もう一度描く</button></div>
   <div class="row"><button class="sml" id="shareBtn">Xでシェア</button><button class="sml" id="rZukanBtn">エンディング図鑑</button></div>
+  <div class="follow"><p class="fl">作者をフォロー</p><p class="fs">新しいゲームのお知らせをしています</p><a class="fbtn" id="followBtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
   <button class="link" id="rTitleBtn">タイトルへ</button>
   <div class="adwrap" id="ad2"></div>
 </div></div>
@@ -162,6 +168,7 @@ const CONFIG = {
   VOL: 0.8,           // 全体の音量
   SAVE_KEY: 'kokumindo.v1',
   URL: 'https://nkworks-games.com/kokumindo/',
+  FOLLOW_X: 'vyaPudzd1E54661', // 結果画面の「作者をフォロー」のXアカウント
 };
 
 // ===== [SEC:DATA] =====
@@ -1526,7 +1533,7 @@ function showResult() {
   $('rNum').textContent = r.pct; $('rEnd').textContent = `END ${r.n}「${e.name}」`; $('rCom').textContent = e.com;
   $('rNew').classList.toggle('hidden', !r.newEnd);
   $('rTags').innerHTML = advice(r.s).map(s => `<span>${s}</span>`).join('');
-  $('rBest').textContent = r.newBest && SV.plays > 1 ? `ベスト更新！ 最高 ${SV.best}%` : `これまでの最高 ${SV.best}%`;
+  $('rBest').textContent = SV.best < 0 ? '' : r.newBest && SV.plays > 1 ? `ベスト更新！ 最高 ${SV.best}%` : `これまでの最高 ${SV.best}%`; // ?end= で見た時はまだ記録がない
   $('rZukanBtn').textContent = `エンディング図鑑 ${Object.keys(SV.ends).length}/4`;
   const cv = $('rFlag'), w = cv.clientWidth || 300, h = w / 1.5, d = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.round(w * d); cv.height = Math.round(h * d);
@@ -1557,6 +1564,7 @@ function share() {
   open('https://x.com/intent/post?text=' + encodeURIComponent(txt) + '&url=' + encodeURIComponent(CONFIG.URL), '_blank', 'noopener');
 }
 function ads(id) { const z = $(id); if (!z || z.firstChild || !/(^|\.)nkworks-games\.com$/.test(location.hostname)) return; z.innerHTML = '<ins class="adsbygoogle" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>'; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} }
+$('followBtn').href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; $('followBtn').textContent = `𝕏 @${CONFIG.FOLLOW_X} をフォロー`;
 function muteLabel() { $('muteBtn').classList.toggle('off', SV.mute); }
 $('startBtn').onclick = () => { ac(); startDraw(); };
 $('zukanBtn').onclick = () => openZukan('title');
