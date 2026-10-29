@@ -21,7 +21,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--bg);overflow:hidden;font-family:'M PLUS Rounded 1c',system-ui,-apple-system,'Hiragino Maru Gothic ProN',sans-serif;color:var(--cream);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;}
 button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer;}
-#app{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;padding-bottom:env(safe-area-inset-bottom);}
 #game{position:relative;flex:1 1 auto;width:100%;max-width:520px;min-height:0;overflow:hidden;touch-action:none;background:#2a0508;}
 #c{position:absolute;inset:0;width:100%;height:100%;display:block;}
 #ad-gap{flex:0 0 75px;width:100%;}
@@ -222,7 +222,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
         <h1>めぐれ！<br><em>赤血球</em></h1>
       </div>
       <div id="course-list"></div>
-      <div class="title-foot"><button class="link" id="btn-howto">あそびかた</button><span>N.K. Works<a class="nkw-info" href="/games/megure-sekkekkyu/">説明・ほかのゲーム ›</a></span></div>
+      <div class="title-foot"><button class="link" id="btn-howto">あそびかた</button><span>N.K. Works<a data-google-vignette="false" class="nkw-info" href="/games/megure-sekkekkyu/">説明・ほかのゲーム ›</a></span></div>
     </div>
 
     <div id="howto" class="screen">
@@ -261,9 +261,7 @@ button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer
     <button id="btn-mute" aria-label="音のオン・オフ"><svg class="on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg><svg class="off" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3zm13.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z"/></svg></button>
     <div id="loading">よみこみ中…</div>
   </div>
-  <div id="ad-gap"></div>
-  <div id="ad-wrap">
-  </div>
+  <!-- ゲーム中の広告バナーはなし（細かい操作が必要なため。2026-10-29） -->
 </div>
 <div id="rotate"><svg viewBox="0 0 64 64"><rect x="20" y="6" width="24" height="44" rx="4"/><path d="M50 40a18 18 0 0 1-14 16M36 56l4-4M36 56l5 2"/></svg>スマホを縦にして遊んでください</div>
 <script type="module">

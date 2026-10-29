@@ -72,6 +72,8 @@ figure.inline figcaption{font-size:.8rem;color:var(--sub);text-align:center;marg
 /* 広告（記事の最後） */
 .ad-box{margin:2.6rem 0 0;padding-top:1rem;border-top:1px dashed var(--line);min-height:60px}
 .ad-box .lbl{font-size:.7rem;color:var(--sub);margin:0 0 4px}
+/* 広告（一覧の途中）：上下を点線で区切って、カードとまちがえないように */
+.ad-box.mid{margin:1.8rem 0;padding:1rem 0;border-bottom:1px dashed var(--line)}
 /* フッター */
 .site-f{border-top:1px solid var(--line);color:var(--sub);font-size:.86rem;padding:22px 0 36px}
 .site-f a{color:var(--sub)}

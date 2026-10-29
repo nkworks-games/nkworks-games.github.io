@@ -18,7 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ad:50px; --gap:75px; --safeB:env(safe-area-inset-bottom,0px); --safeT:env(safe-area-inset-top,0px);
+  --ad:0px; --gap:0px; --safeB:env(safe-area-inset-bottom,0px); --safeT:env(safe-area-inset-top,0px);
   --gameH:calc(100vh - var(--ad) - var(--gap) - var(--safeB));
   --gold:#ffcc4d; --cyan:#6fd8ff; --ink:#0a0f22; --glass:rgba(9,13,30,.62); --line:rgba(255,255,255,.14);
 }
@@ -205,7 +205,7 @@ h2{margin:4px 0 10px;font-size:34px;font-weight:800;letter-spacing:1px}
     <div class="settings">
       <div class="seg">なぞる感度 <button data-sens="0.8">低い</button><button data-sens="1">ふつう</button><button data-sens="1.25">高い</button></div>
     </div>
-    <div class="credit">N.K. Works<a class="nkw-info" href="/games/planet-strikeout/">遊び方・ほかのゲーム ›</a></div>
+    <div class="credit">N.K. Works<a data-google-vignette="false" class="nkw-info" href="/games/planet-strikeout/">遊び方・ほかのゲーム ›</a></div>
   </div></div>
 
   <!-- card (arrival / stage end) -->
@@ -253,9 +253,7 @@ h2{margin:4px 0 10px;font-size:34px;font-weight:800;letter-spacing:1px}
   スマホを縦にして遊んでください
 </div>
 
-<div id="adGap"></div>
-<div id="adArea"><div class="slot">
-</div></div>
+<!-- ゲーム中の広告バナーはなし（細かい操作が必要なため。2026-10-29） -->
 
 <script type="module">
 import * as THREE from 'three';

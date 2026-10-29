@@ -18,7 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Dela+Gothic+One&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ad:50px; --gap:75px; --safeB:env(safe-area-inset-bottom,0px); --safeT:env(safe-area-inset-top,0px);
+  --ad:0px; --gap:0px; --safeB:env(safe-area-inset-bottom,0px); --safeT:env(safe-area-inset-top,0px);
   --gameH:calc(100vh - var(--ad) - var(--gap) - var(--safeB));
   --paper:#f7efe0; --gold:#ffc94a; --shu:#e5482c; --ink:#1b120b; --glass:rgba(28,18,10,.58); --line:rgba(255,236,205,.18);
 }
@@ -165,7 +165,7 @@ h2{margin:4px 0 8px;font-size:26px;font-weight:800}
     <button class="btn" id="startBtn">はじめる</button>
     <button class="btn sub" id="demoBtn">お手本を見る</button>
     <div class="best" id="bestLine"></div>
-    <div class="credit">N.K. Works<a class="nkw-info" href="/games/milliken/">遊び方・ほかのゲーム ›</a></div>
+    <div class="credit">N.K. Works<a data-google-vignette="false" class="nkw-info" href="/games/milliken/">遊び方・ほかのゲーム ›</a></div>
   </div></div>
 
   <!-- result -->
@@ -206,9 +206,7 @@ h2{margin:4px 0 8px;font-size:26px;font-weight:800}
   スマホを縦にして遊んでください
 </div>
 
-<div id="adGap"></div>
-<div id="adArea"><div class="slot">
-</div></div>
+<!-- ゲーム中の広告バナーはなし（細かい操作が必要なため。2026-10-29） -->
 
 <script type="module">
 import * as THREE from 'three';
