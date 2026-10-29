@@ -77,6 +77,19 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
 .sml:disabled{color:#a3adb9;border-color:#b6bfca}
 .sml.on{background:#ffc93c}
 #ctrl .big{min-width:0;flex:1;max-width:280px;padding:12px 10px}
+#hand{width:100%;max-width:470px;flex-shrink:0;display:flex;align-items:stretch;gap:6px;padding:6px 0 0;overflow-x:auto}
+#hand .hl{flex-shrink:0;align-self:center;font-size:11px;font-weight:800;color:#5d6b7d;line-height:1.3;text-align:center}
+.card2{flex:0 0 auto;display:flex;align-items:center;gap:3px;border:3px solid #1f2f46;border-radius:12px;background:#fff;padding:5px 9px;font-size:13.5px;font-weight:800;white-space:nowrap}
+.card2.on{background:#a8e08f;transform:translateY(-2px);box-shadow:0 2px 0 #1f2f46}
+.card2.offer{flex:1 1 0;min-width:0;flex-direction:column;gap:1px;padding:5px 3px;background:#fffbe9}
+.card2.offer span{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.card2.offer small{font-size:10.5px;line-height:1.25;color:#5d6b7d;white-space:normal;text-align:center}
+.card2:focus-visible,.opt:focus-visible{outline:3px solid #2b6cb0;outline-offset:2px}
+.opt{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;border:3px solid #1f2f46;border-radius:16px;background:#fff;box-shadow:0 4px 0 #1f2f46;padding:8px 6px}
+.opt b{font-size:16px;font-weight:800}
+.opt small{font-size:11.5px;font-weight:800;color:#5d6b7d;line-height:1.3}
+.opt:active{transform:translateY(3px);box-shadow:0 1px 0 #1f2f46}
+#optA{background:#fffbe9}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px max(16px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));text-align:center;z-index:5;overflow-y:auto;background:rgba(31,47,70,.74)}
 .screen>:first-child{margin-top:auto}.screen>:last-child{margin-bottom:auto}
 #title{background:#f6f0e3}
@@ -144,12 +157,15 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
   </div>
   <div id="legend"><span><i class="lw"></i>出勤</span><span><i class="lr"></i>追い込み</span><span><i class="lb"></i>繁忙</span><span><i class="ld"></i>締切</span><span><i class="lo"></i>休み</span></div>
   <div id="stage"><canvas id="board"></canvas><div id="banner" class="hidden"><div class="e" id="bnE"></div><div class="t" id="bnT"></div><div class="s" id="bnS"></div></div><div id="toast"></div></div>
+  <div id="hand" class="hidden"></div>
   <div id="ctrl">
     <button class="sml" id="undoBtn">1つもどす</button>
     <button class="big" id="goBtn">この休みで はじめる</button>
     <button class="sml" id="moveBtn">休みを動かす</button>
     <button class="sml" id="speedBtn">▶▶ はやく</button>
     <button class="big" id="resumeRunBtn">つづける</button>
+    <button class="opt hidden" id="optA"><b></b><small></small></button>
+    <button class="opt hidden" id="optB"><b></b><small></small></button>
   </div>
 </div>
 
@@ -175,7 +191,9 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
     <div class="hstep"><div class="hic">💪</div><div class="htx">出勤すると体力が減る。<b>6連勤から先は、1日ごとにぐんと減る</b>。休むと回復。連休は<b>2日目・3日目…と回復が大きくなる</b>。体力は100まで。</div></div>
     <div class="hstep"><div class="hic">🔥</div><div class="htx"><b>締切</b>の日は休めない。その前の3日（オレンジ）は<b>残業しやすい</b>。紫の帯の<b>繁忙</b>は、減りが大きくトラブルも多い。🔒の休みは動かせない。</div></div>
     <div class="hstep"><div class="hic">🎲</div><div class="htx"><b>残業・トラブル・休日出勤</b>は運しだい。下のグラフは、運を平均したときの<b>体力の見通し</b>。0に近い日があぶない。</div></div>
-    <div class="hstep"><div class="hic">⏸️</div><div class="htx">使わなかった交換は、<b>月の途中でも</b>「休みを動かす」で使える（動かせるのは次の日から先）。休日出勤になったら、<b>代休</b>を入れる日を選ぶ。</div></div>
+    <div class="hstep"><div class="hic">🃏</div><div class="htx">毎月はじめに、<b>作戦カードを3枚から1枚</b>えらぶ。カードは<b>日に置いて</b>使う。🏃定時で帰る・🤝根回し（トラブルなし。締切の日は減りも半分）・📵電源オフ（その連休は呼び出しなし）・🛏️いい枕・🌴有給休暇（休みが1日ふえる）。</div></div>
+    <div class="hstep"><div class="hic">⏸️</div><div class="htx">使わなかった交換やカードは、<b>月の途中でも</b>「作戦タイム」で使える（次の日から先）。</div></div>
+    <div class="hstep"><div class="hic">❓</div><div class="htx">トラブルが起きたら<b>「いま直す」か「あとまわし」</b>。休みに呼び出されたら<b>「出る」（代休をもらう）か「出ない」</b>（来月の交換が1回へる）。</div></div>
     <div class="hstep"><div class="hic">🔥</div><div class="htx"><b>ハード</b>は、交換が<b>1か月に4回</b>だけ。締切が1つ多く、1か月目から繁忙があり、トラブルや休日出勤もよく起きる。記録はノーマルとハードで別。</div></div>
     <div class="hstep"><div class="hic">📅</div><div class="htx">月をこえると、体力はそのまま次の月へ。月ごとに<b>だんだんきつく</b>なる。体力が0になったら終わり。<b>何日もちこたえられる？</b></div></div>
     <button class="big" id="howOk">わかった！</button>
@@ -227,7 +245,7 @@ let MODE = MODES.normal;
 const P = {
   base: 2.6, baseM: 0.45, busyX: 1.5, k0: 5, kp: 2, dl: 10,
   rec: [8, 15, 24, 32],
-  tr: 10, ot: 5,
+  tr: 10, ot: 5, trLater: 3, trDebt: 9,
   pTr: 0.05, pTrM: 0.01, pTrDl: 0.35, pTrBusy: 0.06,
   pOt: 0.15, pOtM: 0.02, pOtRamp: 0.35, pOtBusy: 0.15,
   pGood: 0.12,
@@ -273,29 +291,64 @@ function genMonth(seed, m){
 }
 function probs(c, m){
   return {
-    tr: Math.min(0.7, (P.pTr + P.pTrM * m + (c.dl ? P.pTrDl : 0) + (c.busy ? P.pTrBusy : 0)) * MODE.trX),
-    ot: Math.min(0.9, P.pOt + P.pOtM * m + (c.ramp ? P.pOtRamp : 0) + (c.busy ? P.pOtBusy : 0) + MODE.otAdd),
-    call: c.lock ? 0 : Math.min(0.5, (P.pCall + P.pCallM * m + (c.ramp ? P.pCallRamp : 0) + (c.busy ? P.pCallBusy : 0)) * MODE.callX),
-    phone: (P.pPhone + P.pPhoneM * m) * MODE.phoneX,
+    tr: c.card === 'nema' ? 0 : Math.min(0.7, (P.pTr + P.pTrM * m + (c.dl ? P.pTrDl : 0) + (c.busy ? P.pTrBusy : 0)) * MODE.trX),
+    ot: c.card === 'teiji' ? 0 : Math.min(0.9, P.pOt + P.pOtM * m + (c.ramp ? P.pOtRamp : 0) + (c.busy ? P.pOtBusy : 0) + MODE.otAdd),
+    call: c.lock || c.shield ? 0 : Math.min(0.5, (P.pCall + P.pCallM * m + (c.ramp ? P.pCallRamp : 0) + (c.busy ? P.pCallBusy : 0)) * MODE.callX),
+    phone: c.shield ? 0 : (P.pPhone + P.pPhoneM * m) * MODE.phoneX,
   };
 }
-function workBase(c, m, k){ return (P.base + P.baseM * m) * MODE.drainX * (c.busy ? P.busyX : 1) + Math.max(0, k - P.k0) * P.kp + (c.dl ? P.dl : 0); }
+function workBase(c, m, k){
+  const b = ((P.base + P.baseM * m) * MODE.drainX * (c.busy ? P.busyX : 1) + Math.max(0, k - P.k0) * P.kp) * (c.card === 'teiji' ? 0.5 : 1);
+  return b + (c.dl ? P.dl * (c.card === 'nema' ? 0.5 : 1) : 0);
+}
 function recOf(k){ return P.rec[Math.min(k, P.rec.length) - 1]; }
+function recOn(c, k){ return recOf(k) * (c.card === 'makura' ? 1.5 : 1); }
 
-// 1日すすめる。st = {hp, ws, os}（ws=連勤の日数, os=連休の日数）、u = 乱数3つ
-function stepDay(c, m, st, u){
+// 作戦カード：毎月3枚から1枚えらび、日に置いて使う
+const CARDS = {
+  teiji: { name: '定時で帰る', sh: '定時', ic: '🏃', on: 'work', desc: '減り半分・残業なし', w: 3 },
+  nema: { name: '根回し', sh: '根回し', ic: '🤝', on: 'work', desc: 'トラブルなし', w: 3 },
+  power: { name: '電源オフ', sh: '電源オフ', ic: '📵', on: 'off', desc: '連休に呼び出しなし', w: 2 },
+  makura: { name: 'いい枕', sh: '枕', ic: '🛏️', on: 'off', desc: '回復1.5倍', w: 2 },
+  yukyu: { name: '有給休暇', sh: '有給', ic: '🌴', on: 'work', desc: '休みが1日ふえる', w: 1 },
+};
+function cardOffer(seed, m){
+  const r = mulberry(hashStr(seed + ':card:' + m)), ids = Object.keys(CARDS), out = [];
+  while (out.length < 3){
+    const left = ids.filter(id => !out.includes(id)), tot = left.reduce((a, id) => a + CARDS[id].w, 0);
+    let x = r() * tot; for (const id of left){ x -= CARDS[id].w; if (x < 0){ out.push(id); break; } }
+  }
+  return out;
+}
+// 電源オフのある連休は、全部の日が守られる
+function refreshShield(C){
+  for (let s = 0; s < DAYS;){
+    let e = s; while (e + 1 < DAYS && C[e + 1].off === C[s].off) e++;
+    let on = false; if (C[s].off) for (let i = s; i <= e; i++) if (C[i].card === 'power') on = true;
+    for (let i = s; i <= e; i++) C[i].shield = on;
+    s = e + 1;
+  }
+}
+
+// 1日すすめる。st = {hp, ws, os, debt}（ws=連勤の日数, os=連休の日数, debt=あとまわしにした仕事）、u = 乱数3つ
+// opt.noCall：呼び出しに出ない、opt.later：トラブルをあとまわし
+function stepDay(c, m, st, u, opt){
+  opt = opt || {};
   const p = probs(c, m), ev = [];
   let off = c.off, call = false;
-  if (off && u[0] < p.call){ off = false; call = true; ev.push('call'); }
+  if (off && !opt.noCall && u[0] < p.call){ off = false; call = true; ev.push('call'); }
+  if (c.card && c.card !== 'yukyu' && (off ? CARDS[c.card].on === 'off' : CARDS[c.card].on === 'work')) ev.push('c_' + c.card);
   let d;
   if (!off){
-    const k = st.ws + 1; let w = workBase(c, m, k), extra = 0;
-    if ((call ? u[2] : u[0]) < p.tr){ extra += P.tr; ev.push('tr'); }
+    const k = st.ws + 1; let w = workBase(c, m, k), extra = st.debt || 0;
+    if (extra) ev.push('debt');
+    st.debt = 0;
+    if ((call ? u[2] : u[0]) < p.tr){ ev.push('tr'); if (opt.later){ extra += P.trLater; st.debt = P.trDebt; ev.push('later'); } else extra += P.tr; }
     if (u[1] < p.ot){ extra += P.ot; ev.push('ot'); }
     if (!extra && !call && u[2] < P.pGood){ if (u[2] < P.pGood / 2){ w *= 0.5; ev.push('teiji'); } else { extra -= 5; ev.push('sashi'); } }
     d = -(w + extra); st.ws = k; st.os = 0;
   } else {
-    const k = st.os + 1; let rec = recOf(k);
+    const k = st.os + 1; let rec = recOn(c, k);
     if (u[1] < p.phone){ rec *= 0.5; ev.push('phone'); }
     else if (u[2] < 0.10){ rec *= 1.3; ev.push('gussuri'); }
     d = rec; st.os = k; st.ws = 0;
@@ -306,12 +359,12 @@ function stepDay(c, m, st, u){
 }
 // 見通し：運を平均で入れた体力の線（from日目から月末まで）
 function project(C, m, st0, from){
-  const st = { hp: st0.hp, ws: st0.ws, os: st0.os }, out = [];
+  const st = { hp: st0.hp, ws: st0.ws, os: st0.os, debt: st0.debt || 0 }, out = [];
   for (let i = from; i < DAYS; i++){
     const c = C[i], p = probs(c, m);
     let d;
-    if (!c.off){ const k = st.ws + 1; d = -(workBase(c, m, k) + p.tr * P.tr + p.ot * P.ot); st.ws = k; st.os = 0; }
-    else { const k = st.os + 1; d = recOf(k) * (1 - 0.5 * p.phone) * (1 - p.call) - p.call * workBase(c, m, 1); st.os = k; st.ws = 0; }
+    if (!c.off){ const k = st.ws + 1; d = -(workBase(c, m, k) + p.tr * P.tr + p.ot * P.ot + st.debt); st.debt = 0; st.ws = k; st.os = 0; }
+    else { const k = st.os + 1; d = recOn(c, k) * (1 - 0.5 * p.phone) * (1 - p.call) - p.call * workBase(c, m, 1); st.os = k; st.ws = 0; }
     st.hp = Math.max(0, Math.min(HPMAX, st.hp + d)); out.push(st.hp);
   }
   return out;
@@ -375,59 +428,99 @@ const SFX = {
 
 // ===== ゲームの状態 =====
 let G = null;
-const EVI = { tr: ['💥', 'トラブル'], ot: ['🌙', '残業'], teiji: ['🏃', '定時ダッシュ'], sashi: ['🍩', '差し入れ'], call: ['📞', '休日出勤'], phone: ['📱', '休みなのに電話'], gussuri: ['😴', 'ぐっすり'] };
+const EVI = { tr: ['💥', 'トラブル'], ot: ['🌙', '残業'], teiji: ['🏃', '定時ダッシュ'], sashi: ['🍩', '差し入れ'], call: ['📞', '休日出勤'], phone: ['📱', '休みなのに電話'], gussuri: ['😴', 'ぐっすり'], later: ['📄', 'あとまわし'], ignore: ['📵', '呼び出し無視'], debt: ['📄', '後始末'] };
 function newGame(){
   MODE = MODES[SV.mode] || MODES.normal;
   G = {
-    mode: MODE.id, seed: todaySeed() + (MODE.id === 'hard' ? 'H' : ''), m: -1, C: null, st: { hp: HPMAX, ws: 0, os: 0 }, i: 0, total: 0, swaps: MODE.swaps,
+    mode: MODE.id, seed: todaySeed() + (MODE.id === 'hard' ? 'H' : ''), m: -1, C: null, st: { hp: HPMAX, ws: 0, os: 0, debt: 0 }, i: 0, total: 0, swaps: MODE.swaps,
+    hand: [], offer: null, selCard: -1, acts: [], swapPenalty: 0, pend: null,
     trails: [], months: [], hpLog: [], offLog: [], phase: 'plan', sel: -1, drag: null, preview: null, ghost: null,
     anim: [], floats: [], shake: 0, timer: 0, callDay: -1, monthStart: null,
-    stats: { tr: 0, ot: 0, call: 0, phone: 0, teiji: 0, sashi: 0, gussuri: 0, swaps: 0, maxOff: 0, maxWork: 0, dl: 0 },
+    stats: { tr: 0, ot: 0, call: 0, phone: 0, teiji: 0, sashi: 0, gussuri: 0, swaps: 0, maxOff: 0, maxWork: 0, dl: 0, cards: 0, later: 0, ignore: 0 },
     mstats: null,
   };
   SV.plays++; writeSave();
   startMonth(0);
 }
 function startMonth(m){
-  G.m = m; G.C = genMonth(G.seed, m); G.i = 0; G.swaps = MODE.swaps; G.sel = -1; G.preview = null; G.ghost = null; G.trails = []; G.phase = 'plan';
+  G.m = m; G.C = genMonth(G.seed, m); G.i = 0; G.sel = -1; G.preview = null; G.ghost = null; G.trails = []; G.phase = 'plan';
+  const pen = G.swapPenalty; G.swaps = Math.max(1, MODE.swaps - pen); G.swapPenalty = 0;
+  G.acts = []; G.offer = cardOffer(G.seed, m); G.selCard = -1; refreshShield(G.C);
   G.monthStart = { hp: G.st.hp, ws: G.st.ws, os: G.st.os };
   G.mstats = { tr: 0, ot: 0, call: 0, phone: 0, maxOff: 0, maxWork: 0, hp0: G.st.hp };
   setCtrl(); showGameUI(); updateHud();
   const nb = busyLenOf(m), nd = nDlOf(m);
   G.scene = { kind: 'plan', ev: [], k: 0, t0: performance.now() };
-  if (m === 0) setMsg('休みの玉をタップして、出勤の日へ動かそう', '下のグラフは体力の見通し（運は平均）');
-  else setMsg(`${m + 1}か月目：締切 ${nd}つ・繁忙 ${nb}日`, m >= 2 ? 'トラブルも、すこしずつ増えてきた' : '休みを動かして、連休を作ろう');
-  if (G.st.ws >= 3) toast(`前の月から ${G.st.ws}連勤中`);
+  setMsg(m === 0 ? '盤面を見て、まず作戦カードを1枚えらぼう' : `${m + 1}か月目：締切 ${nd}つ・繁忙 ${nb}日`, '↓ 下の3枚から（盤面を見てから選べる）');
+  if (pen) toast(`呼び出しに出なかったので、今月の交換は${pen}回へった`);
+  else if (G.st.ws >= 3) toast(`前の月から ${G.st.ws}連勤中`);
 }
 function cell(i){ return G.C[i]; }
-function canPick(i){ const c = cell(i); return !!c && c.off && !c.lock && i >= G.i; }
+function canPick(i){ const c = cell(i); return !!c && c.off && !c.lock && !c.yukyu && i >= G.i; }
 function canDrop(i){ const c = cell(i); return !!c && !c.off && !c.lock && i >= G.i; }
 function curProj(){ return project(G.C, G.m, G.st, G.i); }
 function doSwap(a, b){
   if (G.swaps <= 0){ toast('今月の交換は使いきった'); SFX.nope(); return; }
-  const before = curProj();
+  const before = curProj(), ret = [];
+  // 動かした日に置いてあったカードは、手もとにもどる
+  for (const x of [a, b]) if (G.C[x].card){ ret.push({ i: x, id: G.C[x].card }); G.hand.push(G.C[x].card); G.C[x].card = null; }
   G.C[a].off = false; G.C[b].off = true; G.C[b].moved = true;
-  G.trails.push({ a, b, kind: 'swap' }); G.swaps--; G.stats.swaps++;
-  G.ghost = { pts: before, from: G.i, t0: performance.now() };
+  G.trails.push({ a, b, kind: 'swap' }); G.acts.push({ t: 'swap', a, b, ret }); G.swaps--; G.stats.swaps++;
   G.anim.push({ a, b, t0: performance.now(), dur: 280 });
   G.sel = -1; G.preview = null; SFX.drop();
-  const after = curProj();
-  const d = Math.round(after[after.length - 1]) - Math.round(before[before.length - 1]);
-  toast(`見通しの月末 ${Math.round(before[before.length - 1])} → ${Math.round(after[after.length - 1])}（${d >= 0 ? '+' : ''}${d}）`);
+  afterChange(before, ret.length ? '（カードは手もとへ）' : '');
+}
+function afterChange(before, note){
+  refreshShield(G.C);
+  G.ghost = { pts: before, from: G.i, t0: performance.now() };
+  const after = curProj(), b0 = Math.round(before[before.length - 1]), a0 = Math.round(after[after.length - 1]), d = a0 - b0;
+  toast(`見通しの月末 ${b0} → ${a0}（${d >= 0 ? '+' : ''}${d}）${note || ''}`);
   setCtrl(); updateHud();
 }
-function undoSwap(){
-  const t = G.trails[G.trails.length - 1];
-  if (!t || t.kind !== 'swap' || t.a < G.i || t.b < G.i) return;
-  G.trails.pop(); G.C[t.b].off = false; G.C[t.b].moved = false; G.C[t.a].off = true; G.swaps++; G.stats.swaps--;
-  G.ghost = null; G.sel = -1; SFX.undo(); setCtrl(); updateHud();
+function canCard(i, id){
+  const c = cell(i); if (!c || i < G.i || c.card || c.done) return false;
+  return CARDS[id].on === 'work' ? !c.off && (id !== 'yukyu' || (!c.dl && !c.lock)) : c.off;
 }
-function canUndo(){ const t = G && G.trails[G.trails.length - 1]; return !!t && t.kind === 'swap' && t.a >= G.i && t.b >= G.i; }
+function placeCard(i){
+  const id = G.hand[G.selCard], c = cell(i), before = curProj();
+  c.card = id; if (id === 'yukyu'){ c.off = true; c.yukyu = true; }
+  G.hand.splice(G.selCard, 1); G.selCard = -1; G.acts.push({ t: 'card', i, id });
+  SFX.drop(); afterChange(before, '');
+  planMsg(`${CARDS[id].ic} ${CARDS[id].name}を${i + 1}日目に置いた`);
+}
+function takeCard(id){
+  if (!G.offer || !G.offer.includes(id)) return;
+  G.hand.push(id); G.offer = null; SFX.pick(); setCtrl(); selectCard(G.hand.length - 1);
+}
+function selectCard(k){
+  if (G.selCard === k){ G.selCard = -1; planMsg(); renderHand(); return; }
+  const cd = CARDS[G.hand[k]]; G.selCard = k; G.sel = -1; G.preview = null;
+  setMsg(`${cd.ic} ${cd.name}：${cd.desc}`, G.hand[k] === 'yukyu' ? '休みにしたい出勤の日をタップ' : cd.on === 'work' ? '使う出勤の日をタップ' : '使う休みの日をタップ');
+  renderHand();
+}
+function planMsg(head){
+  if (G.phase === 'move') setMsg(head || `<b>${G.i + 1}日目から先</b>の休みとカードを動かせる`, `交換あと${G.swaps}回・カード${G.hand.length}枚`);
+  else setMsg(head || '休みの玉をタップして、出勤の日へ動かそう', G.hand.length ? `カードは${G.hand.length}枚。タップして日に置ける` : '下のグラフは体力の見通し（運は平均）');
+}
+function undoSwap(){
+  if (!canUndo()) return;
+  const t = G.acts.pop();
+  if (t.t === 'swap'){
+    for (let k = G.trails.length - 1; k >= 0; k--){ const r = G.trails[k]; if (r.kind === 'swap' && r.a === t.a && r.b === t.b){ G.trails.splice(k, 1); break; } }
+    G.C[t.b].off = false; G.C[t.b].moved = false; G.C[t.a].off = true; G.swaps++; G.stats.swaps--;
+    for (const r of t.ret){ const k = G.hand.lastIndexOf(r.id); if (k >= 0){ G.hand.splice(k, 1); G.C[r.i].card = r.id; } }
+  } else {
+    const c = G.C[t.i];
+    if (c.card === t.id){ c.card = null; if (t.id === 'yukyu'){ c.off = false; c.yukyu = false; } G.hand.push(t.id); }
+  }
+  refreshShield(G.C); G.ghost = null; G.sel = -1; G.selCard = -1; SFX.undo(); setCtrl(); updateHud(); planMsg();
+}
+function canUndo(){ const t = G && G.acts && G.acts[G.acts.length - 1]; return !!t && (t.t === 'swap' ? t.a >= G.i && t.b >= G.i : t.i >= G.i); }
 
 // ===== 1日ずつ進める =====
 function startRun(){
-  G.phase = 'run'; G.sel = -1; G.preview = null; G.ghost = null; setCtrl();
-  setMsg('出勤！', G.swaps > 0 ? `残りの交換${G.swaps}回は「休みを動かす」で使える` : '');
+  G.phase = 'run'; G.sel = -1; G.selCard = -1; G.preview = null; G.ghost = null; setCtrl();
+  setMsg('出勤！', G.swaps > 0 || G.hand.length ? '残りの交換やカードは「作戦タイム」で使える' : '');
   schedule(250);
 }
 function schedule(ms){ clearTimeout(G.timer); G.timer = setTimeout(tick, ms); }
@@ -436,12 +529,49 @@ function dayDelay(lv){ return SV.fast ? [130, 220, 420][lv] : [300, 480, 780][lv
 function tick(){
   if (!G || G.phase !== 'run') return;
   if (G.i >= DAYS){ endMonth(); return; }
-  const i = G.i, c = cell(i);
-  const r = stepDay(c, G.m, G.st, [Math.random(), Math.random(), Math.random()]);
+  const i = G.i, c = cell(i), u = [Math.random(), Math.random(), Math.random()];
+  const st = Object.assign({}, G.st), r = stepDay(c, G.m, st, u);
+  if (r.call || r.ev.includes('tr')){ G.pend = { i, u, kind: r.call ? 'call' : 'tr' }; G.phase = 'choice'; showChoice(); return; }
+  G.st = st; finishDay(i, c, r);
+}
+// トラブル・呼び出しの時は、プレイヤーがえらぶ
+function pendResult(opt){ const st = Object.assign({}, G.st), r = stepDay(cell(G.pend.i), G.m, st, G.pend.u, opt); return { st, r }; }
+function sgn(d){ d = Math.round(d); return (d >= 0 ? '+' : '−') + Math.abs(d); }
+function setOpt(id, t, sub){ $(id).querySelector('b').textContent = t; $(id).querySelector('small').textContent = sub; }
+function showChoice(){
+  const p = G.pend, i = p.i, c = cell(i), hp = Math.round(G.st.hp);
+  setCtrl(); hideBanner(); G.shake = performance.now();
+  if (p.kind === 'call'){
+    const go = pendResult({}), no = pendResult({ noCall: true });
+    SFX.call(); G.scene = { kind: 'call', ev: ['call'], k: 1, t0: performance.now() };
+    setMsg(`📞 ${i + 1}日目、休みの日に呼び出し！`, `出る？　いまの体力 ${hp}`);
+    setOpt('optA', '🏢 出勤する', `この日 ${sgn(go.r.d)}・代休を1日もらう`);
+    setOpt('optB', '📵 電話に出ない', `休める ${sgn(no.r.d)}・来月の交換 −1`);
+  } else {
+    const fix = pendResult({}), later = pendResult({ later: true });
+    SFX.bad(); G.scene = { kind: 'work', ev: ['tr'], k: G.st.ws + 1, dl: c.dl, busy: c.busy, ramp: c.ramp, t0: performance.now() };
+    setMsg(`💥 ${i + 1}日目、${c.dl ? '締切の日に' : ''}トラブル発生！`, `どうする？　いまの体力 ${hp}`);
+    setOpt('optA', '🔧 いま直す', `この日 ${sgn(fix.r.d)}${fix.st.hp <= 0 ? '（力つきる）' : ''}`);
+    setOpt('optB', '📄 あとまわし', `この日 ${sgn(later.r.d)}・つぎの出勤 −${P.trDebt}`);
+  }
+}
+function choose(k){
+  if (!G || G.phase !== 'choice' || !G.pend) return; au();
+  const p = G.pend, c = cell(p.i);
+  let res;
+  if (p.kind === 'call'){
+    if (k === 0){ res = pendResult({}); if (res.r.ev.includes('tr')){ p.kind = 'tr'; showChoice(); return; } }
+    else { res = pendResult({ noCall: true }); res.r.ev.push('ignore'); G.swapPenalty++; }
+  } else res = pendResult(k === 0 ? {} : { later: true });
+  G.pend = null; G.phase = 'run'; G.st = res.st; setCtrl(); finishDay(p.i, c, res.r);
+}
+function finishDay(i, c, r){
+  if (r.call && c.card){ G.hand.push(c.card); c.card = null; }
+  if (c.card) G.stats.cards++;
   c.done = true; c.d = r.d; c.ev = r.ev; c.hp = G.st.hp; c.wasOff = c.off && !r.call;
-  if (r.call){ c.off = false; c.called = true; }
+  if (r.call){ c.off = false; c.called = true; refreshShield(G.C); }
   G.hpLog.push(G.st.hp); G.offLog.push(c.wasOff); G.total++; G.i++;
-  for (const e of r.ev){ G.stats[e]++; if (G.mstats[e] !== undefined) G.mstats[e]++; }
+  for (const e of r.ev){ if (e in G.stats) G.stats[e]++; if (e in G.mstats) G.mstats[e]++; }
   if (c.dl) G.stats.dl++;
   G.stats.maxOff = Math.max(G.stats.maxOff, G.st.os); G.stats.maxWork = Math.max(G.stats.maxWork, G.st.ws);
   G.mstats.maxOff = Math.max(G.mstats.maxOff, G.st.os); G.mstats.maxWork = Math.max(G.mstats.maxWork, G.st.ws);
@@ -449,11 +579,11 @@ function tick(){
   const ctr = cellCenter(i), dTxt = (r.d >= 0 ? '+' : '−') + Math.abs(Math.round(r.d));
   G.floats.push({ x: ctr.x, y: ctr.y - L.cs * 0.3, txt: dTxt, col: r.d >= 0 ? '#2f9a55' : '#d2412a', t0: performance.now() });
   let lv = 0;
-  if (r.ev.includes('call')){ SFX.call(); lv = 2; G.shake = performance.now(); }
-  else if (r.ev.includes('tr')){ SFX.bad(); lv = 2; G.shake = performance.now(); }
+  if (r.ev.includes('call') || r.ev.includes('tr') || r.ev.includes('ignore')){ lv = 1; }
   else if (c.dl){ SFX.bad(); lv = 2; }
   else if (r.ev.includes('phone')){ SFX.ot(); lv = 2; }
-  else if (r.ev.includes('teiji') || r.ev.includes('sashi') || r.ev.includes('gussuri')){ SFX.good(); lv = 2; }
+  else if (r.ev.includes('teiji') || r.ev.includes('sashi') || r.ev.includes('gussuri') || r.ev.includes('c_teiji') || r.ev.includes('c_makura')){ SFX.good(); lv = 2; }
+  else if (r.ev.includes('debt')){ SFX.ot(); lv = 1; }
   else if (r.ev.includes('ot')){ SFX.ot(); lv = 1; }
   else if (c.wasOff) SFX.off(G.st.os); else SFX.work();
   G.scene = { kind: r.call ? 'call' : c.wasOff ? 'off' : 'work', ev: r.ev, k: c.wasOff ? G.st.os : G.st.ws, dl: c.dl, busy: c.busy, ramp: c.ramp, t0: performance.now() };
@@ -471,15 +601,22 @@ function dayText(i, c, r){
   if (c.wasOff){
     const k = G.st.os;
     let what = k === 1 ? 'ひたすら寝る' : k === 2 ? '家でのんびり' : k % 2 ? '温泉で、ととのう' : '海でぼんやり';
-    if (ev.includes('phone')) what = '📱 休みなのに仕事の電話…';
+    if (ev.includes('ignore')) what = '📵 呼び出しを無視して休んだ';
+    else if (ev.includes('phone')) what = '📱 休みなのに仕事の電話…';
     else if (ev.includes('gussuri')) what = '😴 ぐっすり眠れた！';
+    else if (ev.includes('c_makura')) what = '🛏️ いい枕でぐっすり';
+    else if (ev.includes('c_power')) what = '📵 電源を切って、のんびり';
     return [`${i + 1}日目　休み${k >= 2 ? `（${k}連休目）` : ''}${c.daikyu ? '・代休' : ''}`, `${what} ${dn}${d === 0 ? '（もう満タン）' : ''}`];
   }
   const k = G.st.ws;
   let what = k >= 9 ? 'もう限界…' : k >= 6 ? 'へとへと…' : c.ramp ? '締切が近い…' : c.busy ? '仕事が山積み' : 'カタカタ…';
   if (c.dl) what = ev.includes('tr') ? '🔥 締切の日に、よりによってトラブル！' : '🔥 締切の日！';
-  else if (ev.includes('tr')) what = ev.includes('ot') ? '💥 トラブル発生！ そのまま残業…' : '💥 トラブル発生！';
+  else if (ev.includes('later')) what = '💥 トラブル！ あとまわしにした';
+  else if (ev.includes('tr')) what = ev.includes('ot') ? '💥 トラブル発生！ そのまま残業…' : '💥 トラブルを直した';
+  else if (ev.includes('debt')) what = '📄 あとまわしにした仕事の後始末…';
+  else if (ev.includes('c_teiji')) what = '🏃 定時で帰った！';
   else if (ev.includes('ot')) what = '🌙 残業。終電ぎりぎり…';
+  else if (ev.includes('c_nema')) what = '🤝 根回しのおかげで平和';
   else if (ev.includes('teiji')) what = '🏃 定時ダッシュ！';
   else if (ev.includes('sashi')) what = '🍩 差し入れをもらった！';
   return [`${i + 1}日目　出勤${k >= 2 ? `（${k}連勤目）` : ''}${c.busy ? '・繁忙' : ''}`, `${what} ${dn}`];
@@ -492,7 +629,8 @@ function startCall(i){
 }
 function placeDaikyu(j){
   const i = G.callDay;
-  G.C[j].off = true; G.C[j].daikyu = true; G.trails.push({ a: i, b: j, kind: 'daikyu' });
+  if (G.C[j].card){ G.hand.push(G.C[j].card); G.C[j].card = null; }
+  G.C[j].off = true; G.C[j].daikyu = true; G.trails.push({ a: i, b: j, kind: 'daikyu' }); refreshShield(G.C);
   G.anim.push({ a: i, b: j, t0: performance.now(), dur: 320 }); SFX.drop();
   G.phase = 'run'; G.callDay = -1; setCtrl(); setMsg(`${j + 1}日目に代休を入れた`, ''); schedule(350);
 }
@@ -510,7 +648,7 @@ function endMonth(){
     ['休日出勤／休みに電話', `${ms.call}回／${ms.phone}回`],
   ].map(([k, v]) => `<div class="it"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
   const nm = m + 1;
-  $('meNext').innerHTML = `つぎは ${nm + 1}か月目：締切 ${nDlOf(nm)}つ・繁忙 ${busyLenOf(nm)}日${nm >= 2 ? '<br>出勤の減りも、トラブルも、すこしずつ増える' : ''}${G.st.ws >= 3 ? `<br>（${G.st.ws}連勤のまま、月をまたぐ）` : ''}`;
+  $('meNext').innerHTML = `つぎは ${nm + 1}か月目：締切 ${nDlOf(nm)}つ・繁忙 ${busyLenOf(nm)}日${nm >= 2 ? '<br>出勤の減りも、トラブルも、すこしずつ増える' : ''}${G.st.ws >= 3 ? `<br>（${G.st.ws}連勤のまま、月をまたぐ）` : ''}${G.st.debt ? `<br>あとまわしの仕事が、つぎの出勤日に −${G.st.debt}` : ''}${G.swapPenalty ? `<br>呼び出しに出なかったので、交換が${G.swapPenalty}回へる` : ''}<br>作戦カードは手もとに${G.hand.length}枚`;
   G.scene = { kind: 'cheer', ev: [], k: 0, t0: performance.now() };
   setMsg(`${m + 1}か月目、のりきった！`, `体力 ${Math.round(G.st.hp)} のまま、つぎの月へ`);
   setTimeout(() => { if (G.phase === 'month') show('monthEnd'); }, 900);
@@ -545,17 +683,38 @@ function banner(e, t, s, cls){
 }
 function hideBanner(){ $('banner').classList.add('hidden'); }
 function setCtrl(){
-  const ph = G ? G.phase : 'plan', vis = { undoBtn: 0, goBtn: 0, moveBtn: 0, speedBtn: 0, resumeRunBtn: 0 };
+  const ph = G ? G.phase : 'plan', vis = { undoBtn: 0, goBtn: 0, moveBtn: 0, speedBtn: 0, resumeRunBtn: 0, optA: 0, optB: 0 };
   if (ph === 'plan'){ vis.undoBtn = 1; vis.goBtn = 1; }
   else if (ph === 'run'){ vis.moveBtn = 1; vis.speedBtn = 1; }
   else if (ph === 'move'){ vis.undoBtn = 1; vis.resumeRunBtn = 1; }
+  else if (ph === 'choice'){ vis.optA = 1; vis.optB = 1; }
   for (const k in vis) $(k).classList.toggle('hidden', !vis[k]);
   $('undoBtn').disabled = !canUndo();
-  $('moveBtn').disabled = !G || G.swaps <= 0 || G.i >= DAYS;
-  $('moveBtn').textContent = G && G.swaps > 0 ? `休みを動かす（${G.swaps}）` : '交換なし';
+  $('goBtn').disabled = !!(G && G.offer);
+  $('goBtn').textContent = G && G.offer ? 'カードをえらぼう' : 'この休みで はじめる';
+  const canMove = G && (G.swaps > 0 || G.hand.length) && G.i < DAYS;
+  $('moveBtn').disabled = !canMove;
+  $('moveBtn').textContent = canMove ? '⏸ 作戦タイム' : '作戦なし';
+  renderHand();
   $('speedBtn').classList.toggle('on', SV.fast);
   $('pauseBtn').classList.toggle('hidden', !G || ph === 'over' || ph === 'month');
 }
+function renderHand(){
+  const el = $('hand'), ph = G ? G.phase : '';
+  if (!G || (ph !== 'plan' && ph !== 'move') || (!G.hand.length && !(ph === 'plan' && G.offer))){ el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  if (ph === 'plan' && G.offer){
+    el.innerHTML = '<span class="hl">1枚<br>えらぶ</span>' + G.offer.map(id => `<button class="card2 offer" data-o="${id}"><span>${CARDS[id].ic} ${CARDS[id].name}</span><small>${CARDS[id].desc}</small></button>`).join('');
+  } else {
+    el.innerHTML = '<span class="hl">作戦<br>カード</span>' + (G.hand.length ? G.hand.map((id, k) => `<button class="card2${G.selCard === k ? ' on' : ''}" data-h="${k}">${CARDS[id].ic} ${CARDS[id].sh}</button>`).join('') : '<span class="hl">（なし）</span>');
+  }
+}
+$('hand').onclick = e => {
+  const b = e.target.closest('button'); if (!b || !G) return; au();
+  if (b.dataset.o) takeCard(b.dataset.o); else if (b.dataset.h != null) selectCard(+b.dataset.h);
+};
+$('optA').onclick = () => choose(0);
+$('optB').onclick = () => choose(1);
 function faceOf(hp){ return hp >= 75 ? '😄' : hp >= 50 ? '🙂' : hp >= 30 ? '😓' : hp >= 12 ? '😩' : hp > 0 ? '😵‍💫' : '😵'; }
 function updateHud(){
   if (!G) return;
@@ -573,9 +732,9 @@ function updateHud(){
 function layout(){
   const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
   const W = Math.min(w, 460), gap = 17;
-  const chMin = h < 380 ? 72 : 92, need = cs => gap + 4 * (cs + gap) + 6 + Math.max(chMin, cs * 2.1);
+  const chMin = h < 300 ? 58 : h < 380 ? 72 : 92, need = cs => gap + 4 * (cs + gap) + 6 + Math.max(chMin, cs * 2.1);
   let cs = Math.floor(W / 7);
-  while (need(cs) > h - 4 && cs > 30) cs--;
+  while (need(cs) > h - 4 && cs > 22) cs--;
   L.cs = cs; L.gap = gap; L.W = cs * 7; L.chartY = gap + 4 * (cs + gap) + 2; L.chartH = Math.floor(Math.max(chMin, Math.min(h - L.chartY - 8, cs * 3))); L.H = L.chartY + L.chartH + 4;
   L.dpr = Math.min(3, window.devicePixelRatio || 1);
   cv.width = Math.round(L.W * L.dpr); cv.height = Math.round(L.H * L.dpr);
@@ -607,12 +766,13 @@ const FONT = '"M PLUS Rounded 1c",system-ui,sans-serif';
 function drawBall(c, x, y, rad, kind, lift){
   c.save();
   if (lift){ c.fillStyle = 'rgba(31,47,70,.22)'; c.beginPath(); c.ellipse(x, y + rad * 0.95, rad * 0.8, rad * 0.25, 0, 0, Math.PI * 2); c.fill(); y -= rad * 0.35; }
-  c.fillStyle = kind === 'lock' ? '#ffd76e' : kind === 'daikyu' ? '#ffe08a' : '#ffc93c';
-  c.strokeStyle = '#b97a00'; c.lineWidth = Math.max(2, rad * 0.12);
+  const yk = kind === 'yukyu';
+  c.fillStyle = yk ? '#a8e08f' : kind === 'lock' ? '#ffd76e' : kind === 'daikyu' ? '#ffe08a' : '#ffc93c';
+  c.strokeStyle = yk ? '#4f8f35' : '#b97a00'; c.lineWidth = Math.max(2, rad * 0.12);
   c.beginPath(); c.arc(x, y, rad, 0, Math.PI * 2); c.fill(); c.stroke();
   c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.ellipse(x - rad * 0.35, y - rad * 0.42, rad * 0.3, rad * 0.17, -0.5, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#7a4d00'; c.font = `800 ${Math.round(rad * 0.95)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.fillText(kind === 'daikyu' ? '代' : '休', x, y + rad * 0.06);
+  c.fillStyle = yk ? '#2f5f1f' : '#7a4d00'; c.font = `800 ${Math.round(rad * 0.95)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(yk ? '有' : kind === 'daikyu' ? '代' : '休', x, y + rad * 0.06);
   if (kind === 'lock'){ // 小さな南京錠
     const s = rad * 0.42, lx = x + rad * 0.72, ly = y - rad * 0.7;
     c.fillStyle = '#1f2f46'; c.strokeStyle = '#1f2f46'; c.lineWidth = s * 0.28;
@@ -650,7 +810,7 @@ function drawCalendar(c, o){
       if (q.busy || q.ramp){ c.fillStyle = q.ramp ? '#ffe6cc' : '#ebe3fb'; rr(c, r.x + pad, r.y + pad, cs - pad * 2, cs - pad * 2, cs * 0.14); c.fill(); }
       const lifted = o.live && G && (G.sel === i) && !(G.drag && G.drag.moved);
       const hidden = o.live && G && ((G.drag && G.drag.moved && G.drag.i === i) || G.anim.some(an => an.b === i));
-      if (!hidden) drawBall(c, cx, cy, cs * 0.33, q.lock ? 'lock' : q.daikyu ? 'daikyu' : 'off', lifted);
+      if (!hidden) drawBall(c, cx, cy, cs * 0.33, q.lock ? 'lock' : q.yukyu ? 'yukyu' : q.daikyu ? 'daikyu' : 'off', lifted);
     }
     // 日付
     c.fillStyle = q.dl ? '#fff' : '#5d6b7d'; c.font = `800 ${Math.round(cs * 0.2)}px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'top';
@@ -658,7 +818,7 @@ function drawCalendar(c, o){
     // すぎた日
     if (q.done){
       if (o.live){ c.fillStyle = 'rgba(246,240,227,.5)'; rr(c, r.x + 1, r.y + 1, cs - 2, cs - 2, cs * 0.16); c.fill(); }
-      const ev = (q.ev || []).filter(e => e !== 'call')[0];
+      const ev = (q.ev || []).filter(e => EVI[e] && e !== 'call')[0];
       if (ev){ c.font = `${Math.round(cs * 0.26)}px ${FONT}`; c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(EVI[ev][0], r.x + cs - pad, r.y + pad - 1); }
       if (o.live){
         c.font = `800 ${Math.round(cs * 0.22)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'bottom';
@@ -666,13 +826,19 @@ function drawCalendar(c, o){
         c.strokeText(t, cx, r.y + cs - 1); c.fillStyle = q.d >= 0 ? '#2f9a55' : '#d2412a'; c.fillText(t, cx, r.y + cs - 1);
       }
     }
+    // 置いたカード
+    if (q.card && q.card !== 'yukyu'){
+      const rd = cs * 0.17, ix = r.x + cs - pad - rd + 1, iy = r.y + cs - pad - rd + 1;
+      c.fillStyle = '#fff'; c.strokeStyle = '#4f8f35'; c.lineWidth = 2; c.beginPath(); c.arc(ix, iy, rd, 0, Math.PI * 2); c.fill(); c.stroke();
+      c.font = `${Math.round(rd * 1.3)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(CARDS[q.card].ic, ix, iy + 1);
+    }
     // たどりつかなかった日（結果の画像）
     if (o.upto != null && i >= o.upto){ c.fillStyle = 'rgba(246,240,227,.72)'; c.fillRect(r.x, r.y, cs, cs); }
   }
   // 連休・連勤の数
   for (const r of R){
     let txt = null, bg, fg;
-    if (r.off && r.n >= 2){ txt = `${r.n}連休`; bg = '#ffc93c'; fg = '#1f2f46'; }
+    if (r.off && r.n >= 2){ txt = `${C[r.s].shield ? '📵' : ''}${r.n}連休`; bg = '#ffc93c'; fg = '#1f2f46'; }
     else if (!r.off && r.n >= 6){ txt = `${r.n}連勤`; bg = r.n >= 9 ? '#b8321d' : '#e2553a'; fg = '#fff'; }
     if (!txt) continue;
     if (r.carry) txt = '←' + txt;
@@ -756,6 +922,14 @@ function draw(){
     for (let i = 0; i < DAYS; i++) if (canDrop(i) && (G.phase !== 'call' || i > G.callDay)){ const r = cellRect(i); rr(c, r.x + 3, r.y + 3, r.w - 6, r.h - 6, L.cs * 0.16); c.stroke(); }
     c.restore();
   }
+  // カードを置ける日
+  if (pickMode && G.selCard >= 0){
+    c.save(); c.strokeStyle = '#2f9a55'; c.lineWidth = 2.5; c.setLineDash([5, 4]); c.globalAlpha = 0.55 + 0.45 * Math.sin(now / 180);
+    for (let i = 0; i < DAYS; i++) if (canCard(i, G.hand[G.selCard])){ const r = cellRect(i); rr(c, r.x + 3, r.y + 3, r.w - 6, r.h - 6, L.cs * 0.16); c.stroke(); }
+    c.restore();
+  }
+  // あとまわしにした仕事がくる日
+  if (G.st.debt > 0) for (let j = G.i; j < DAYS; j++) if (!G.C[j].off){ const r = cellRect(j); c.font = `${Math.round(L.cs * 0.3)}px ${FONT}`; c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText('📄', r.x + r.w - 2, r.y + 2); break; }
   // 今日
   if (G.phase !== 'plan' && G.i < DAYS && G.phase !== 'over'){
     const r = cellRect(G.i); c.strokeStyle = '#1f2f46'; c.lineWidth = 3; rr(c, r.x + 1.5, r.y + 1.5, r.w - 3, r.h - 3, L.cs * 0.18); c.stroke();
@@ -770,7 +944,7 @@ function draw(){
   for (const an of G.anim){
     const t = Math.min(1, (now - an.t0) / an.dur), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
     const p = cellCenter(an.a), q = cellCenter(an.b), hop = Math.sin(Math.PI * e) * L.cs * 0.6;
-    drawBall(c, p.x + (q.x - p.x) * e, p.y + (q.y - p.y) * e - hop, L.cs * 0.33, G.C[an.b].daikyu ? 'daikyu' : 'off', false);
+    drawBall(c, p.x + (q.x - p.x) * e, p.y + (q.y - p.y) * e - hop, L.cs * 0.33, G.C[an.b].yukyu ? 'yukyu' : G.C[an.b].daikyu ? 'daikyu' : 'off', false);
   }
   if (G.drag && G.drag.moved) drawBall(c, G.drag.x, G.drag.y - L.cs * 0.25, L.cs * 0.36, 'off', true);
   // 数字が浮かぶ
@@ -796,6 +970,7 @@ function whyNot(i){
   if (i < G.i){ toast('すぎた日は動かせない'); return; }
   if (c.dl){ toast('🔥 締切の日は休めない'); return; }
   if (c.lock){ toast('🔒 この休みは動かせない'); return; }
+  if (c.yukyu){ toast('🌴 有給は動かせない（「1つもどす」で取り消し）'); return; }
   if (!c.off && G.sel < 0) toast(c.ramp ? `${i + 1}日目：追い込み（残業しやすい）` : c.busy ? `${i + 1}日目：繁忙（減りが大きい）` : '先に、動かしたい休み（黄色い玉）をタップ');
 }
 cv.addEventListener('pointerdown', e => {
@@ -804,6 +979,12 @@ cv.addEventListener('pointerdown', e => {
   if (G.phase === 'call'){ if (i > G.callDay && canDrop(i)) placeDaikyu(i); else toast('代休は、この先の出勤の日に入れる'); return; }
   if (G.phase !== 'plan' && G.phase !== 'move') return;
   if (i < 0){ G.sel = -1; G.preview = null; return; }
+  if (G.selCard >= 0){
+    const id = G.hand[G.selCard];
+    if (canCard(i, id)){ placeCard(i); return; }
+    if (!canPick(i)){ SFX.nope(); toast(cell(i).card ? 'この日には、もうカードがある' : i < G.i ? 'すぎた日には置けない' : id === 'yukyu' && cell(i).dl ? '締切の日は有給にできない' : CARDS[id].on === 'work' ? 'このカードは出勤の日に置く' : 'このカードは休みの日に置く'); return; }
+    G.selCard = -1; renderHand();
+  }
   if (canPick(i)){
     if (G.swaps <= 0){ toast('今月の交換は使いきった'); SFX.nope(); return; }
     const p = localXY(e);
@@ -837,12 +1018,12 @@ cv.addEventListener('pointercancel', () => { if (G){ G.drag = null; G.preview = 
 $('goBtn').onclick = () => { au(); startRun(); };
 $('undoBtn').onclick = () => { au(); undoSwap(); };
 $('moveBtn').onclick = () => {
-  if (!G || G.phase !== 'run' || G.swaps <= 0) return; au();
+  if (!G || G.phase !== 'run' || (G.swaps <= 0 && !G.hand.length)) return; au();
   clearTimeout(G.timer); G.phase = 'move'; setCtrl(); hideBanner();
   G.scene = { kind: 'plan', ev: [], k: 0, t0: performance.now() };
-  setMsg(`<b>${G.i + 1}日目から先</b>の休みを動かせる`, `交換はあと${G.swaps}回`);
+  planMsg();
 };
-$('resumeRunBtn').onclick = () => { if (!G || G.phase !== 'move') return; G.sel = -1; G.preview = null; startRun(); };
+$('resumeRunBtn').onclick = () => { if (!G || G.phase !== 'move') return; G.sel = -1; G.selCard = -1; G.preview = null; startRun(); };
 $('speedBtn').onclick = () => { SV.fast = !SV.fast; writeSave(); setCtrl(); };
 $('pauseBtn').onclick = () => {
   if (!G || G.phase === 'over' || G.phase === 'month') return;
@@ -973,7 +1154,7 @@ function monitor(cx, mode, now){
 }
 function sceneWork(S, f, now){
   const W = SC.W, cx = SC.cx, ev = S.ev || [], dead = S.kind === 'dead';
-  const tr = ev.includes('tr'), ot = ev.includes('ot'), teiji = ev.includes('teiji'), sashi = ev.includes('sashi'), call = S.kind === 'call';
+  const tr = ev.includes('tr'), ot = ev.includes('ot'), teiji = ev.includes('teiji') || ev.includes('c_teiji'), sashi = ev.includes('sashi'), call = S.kind === 'call';
   bgOffice(dead || (ot && !tr) ? 'night' : teiji ? 'dusk' : 'day');
   if (teiji){
     desk(cx); monitor(cx, 'off', now);
@@ -1087,7 +1268,7 @@ function drawScene(){
     (S.k <= 1 ? sceneSleep : S.k === 2 ? sceneRelax : S.k % 2 ? sceneOnsen : sceneBeach)(S, f, now);
     const h = SC.head;
     if (S.ev.includes('phone')){ const j = f; R(h.x + 11 + j, h.y + 1, 4, 7, PAL.k); R(h.x + 12 + j, h.y + 2, 2, 4, '#7fd4ff'); R(h.x + 10, h.y + 3 + j, 1, 2, PAL.k); R(h.x + 16, h.y + 3 + j, 1, 2, PAL.k); bubble(h.x + 2, Math.max(0, h.y - 11), '!'); }
-    if (S.ev.includes('gussuri')) for (let j = 0; j < 4; j++) if ((j + f) % 2){ const sx = h.x - 8 + j * 9, sy = h.y - 6 + (j % 2) * 4; R(sx, sy - 1, 1, 3, '#ffd84a'); R(sx - 1, sy, 3, 1, '#ffd84a'); }
+    if (S.ev.includes('gussuri') || S.ev.includes('c_makura')) for (let j = 0; j < 4; j++) if ((j + f) % 2){ const sx = h.x - 8 + j * 9, sy = h.y - 6 + (j % 2) * 4; R(sx, sy - 1, 1, 3, '#ffd84a'); R(sx - 1, sy, 3, 1, '#ffd84a'); }
   } else sceneWork(S, f, now);
 }
 
@@ -1115,6 +1296,8 @@ function showResult(){
     ['休みを動かした', `${s.swaps}回`, ''],
     ['残業／トラブル', `${s.ot}回／${s.tr}回`, ''],
     ['休日出勤／休みに電話', `${s.call}回／${s.phone}回`, ''],
+    ['作戦カードを使った', `${s.cards}枚`, ''],
+    ['あとまわし／呼び出し無視', `${s.later}回／${s.ignore}回`, ''],
     ['定時ダッシュ／差し入れ', `${s.teiji}回／${s.sashi}回`, ''],
   ].map(([k, v, cl]) => `<div class="it"><span class="k">${k}</span><span class="v ${cl}">${v}</span></div>`).join('');
   const img = makeResultImage(); G.resultCanvas = img; $('rImg').src = img.toDataURL('image/png');
