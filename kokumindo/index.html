@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>国民度チェック</title>
+<meta name="description" content="白い旗に赤い丸を一筆で描いて日の丸を完成させ、本物の日の丸とどれだけ重なるかで国民度を測るゲーム。結果しだいで4つのエンディングがある。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<meta name="theme-color" content="#f4efe3">
+<meta property="og:type" content="website">
+<meta property="og:title" content="国民度チェック">
+<meta property="og:description" content="日の丸、一筆で。あなたの国民度は何％？">
+<meta property="og:url" content="https://nkworks-games.com/kokumindo/">
+<meta property="og:image" content="https://nkworks-games.com/kokumindo/card.png">
+<link rel="canonical" href="https://nkworks-games.com/kokumindo/">
+<meta name="twitter:card" content="summary_large_image">
+<script>(function(){if(/(^|\.)nkworks-games\.com$/.test(location.hostname)){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350';document.head.appendChild(s);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#f4efe3;font-family:"M PLUS Rounded 1c",system-ui,sans-serif;color:#1d2a3a;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer;color:#1d2a3a}
+.big{display:block;margin:0 auto;min-width:220px;padding:13px 28px;border:3px solid #1d2a3a;border-radius:999px;background:#bc002d;color:#fff;font-size:20px;font-weight:800;box-shadow:0 4px 0 #1d2a3a}
+.big:active{transform:translateY(3px);box-shadow:0 1px 0 #1d2a3a}
+.sml{padding:8px 16px;border:3px solid #1d2a3a;border-radius:999px;background:#fff;font-size:15px;font-weight:800;box-shadow:0 3px 0 #1d2a3a}
+.sml:active{transform:translateY(2px);box-shadow:0 1px 0 #1d2a3a}
+.link{display:inline-block;margin-top:14px;background:none;border:none;color:#1d2a3a;font-size:14px;font-weight:800;text-decoration:underline}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.scr{position:fixed;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.ico{position:fixed;z-index:5;left:max(10px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:3px solid #1d2a3a;background:#fff;font-size:20px;font-weight:800;line-height:1}
+.ico.off::after{content:"";position:absolute;left:8px;right:8px;top:50%;height:3px;background:#bc002d;transform:rotate(-40deg)}
+#skipBtn{position:fixed;z-index:5;right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));padding:9px 14px;border-radius:999px;border:3px solid #1d2a3a;background:rgba(255,255,255,.9);font-size:14px;font-weight:800}
+#title{display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;padding:max(62px,calc(env(safe-area-inset-top) + 54px)) 16px max(18px,env(safe-area-inset-bottom));overflow:hidden}
+.kick{font-size:clamp(16px,4.6vw,22px);font-weight:800;color:#bc002d;letter-spacing:.1em}
+#title h1{font-size:clamp(42px,12.5vw,66px);font-weight:800;line-height:1.1;color:#1d2a3a;text-shadow:0 3px 0 #fff,3px 0 0 #fff,-3px 0 0 #fff,0 -3px 0 #fff}
+.tdesc{max-width:400px;margin:0 auto 14px;font-size:14px;font-weight:800;line-height:1.7;background:rgba(255,255,255,.85);border-radius:14px;padding:8px 14px}
+#bestTxt{margin-top:8px;font-size:14px;font-weight:800;min-height:1.2em}
+#drawUI{position:fixed;inset:0;pointer-events:none}
+#drawHead{position:absolute;left:0;right:0;text-align:center;font-size:clamp(21px,5.8vw,30px);font-weight:800}
+#drawHead b{color:#bc002d}
+#drawSub{position:absolute;left:0;right:0;text-align:center;font-size:13px;font-weight:800;opacity:.72;padding:0 16px}
+#judge{position:absolute;left:0;right:0;text-align:center}
+#judge .jl{font-size:15px;font-weight:800}
+#judge .jn{font-size:clamp(50px,14vw,74px);font-weight:800;line-height:1;color:#bc002d;font-variant-numeric:tabular-nums}
+#judge .jn small{font-size:.42em}
+#jVerdict{font-size:18px;font-weight:800;min-height:1.4em}
+#drawWarn{position:absolute;left:0;right:0;text-align:center;font-size:16px;font-weight:800;color:#bc002d}
+#toEndBtn{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;pointer-events:auto;animation:pop .35s ease-out}
+#toEndBtn:active{transform:translateX(-50%) translateY(3px)}
+@keyframes pop{0%{opacity:0;scale:.6}70%{opacity:1;scale:1.08}100%{scale:1}}
+.panel{max-width:440px;margin:0 auto;padding:max(62px,calc(env(safe-area-inset-top) + 56px)) 16px max(28px,env(safe-area-inset-bottom));text-align:center}
+.card{background:rgba(255,255,255,.92);border:3px solid #1d2a3a;border-radius:20px;padding:16px 14px}
+.rl{font-size:15px;font-weight:800}
+.rn{font-size:clamp(68px,21vw,100px);font-weight:800;line-height:1;color:#bc002d;font-variant-numeric:tabular-nums}
+.rn small{font-size:.4em}
+.chip{display:inline-block;margin-top:6px;padding:6px 16px;border-radius:999px;background:#1d2a3a;color:#fff;font-size:16px;font-weight:800}
+.new{margin-top:6px;font-size:14px;font-weight:800;color:#bc002d}
+#rFlag{display:block;margin:14px auto 4px;width:min(300px,80vw);aspect-ratio:3/2;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+.cap{font-size:12px;font-weight:500;opacity:.75}
+.adv{margin-top:10px;font-size:13px;font-weight:800}
+#rTags span{display:inline-block;margin:3px;padding:3px 11px;border-radius:999px;border:2px solid #1d2a3a;font-size:13px;font-weight:800;background:#fff7e0}
+#rCom{margin-top:10px;font-size:15px;line-height:1.7;font-weight:500}
+#rBest{margin-top:6px;font-size:14px;font-weight:800}
+.adwrap{margin:24px auto 0;min-height:50px;width:320px;max-width:100%;display:flex;justify-content:center}
+.adwrap ins{display:inline-block;width:320px;height:50px}
+.zh{font-size:26px;font-weight:800}
+#zkSub{font-size:14px;font-weight:800;margin-top:2px}
+#zkList{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.zk{background:#fff;border:3px solid #1d2a3a;border-radius:16px;padding:8px;text-align:center}
+.zk canvas{display:block;width:100%;aspect-ratio:3/4;border-radius:10px;background:#2a3140}
+.zk .no{display:block;margin-top:6px;font-size:12px;font-weight:800;opacity:.7}
+.zk .nm{display:block;font-size:16px;font-weight:800;line-height:1.3}
+.zk .cd{display:block;font-size:11px;font-weight:500;opacity:.75;margin-top:2px}
+.zk .sml{margin-top:6px;padding:4px 14px;font-size:13px}
+.zk.lock .nm{opacity:.45}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<button id="muteBtn" class="ico" aria-label="音のオン・オフ">♪</button>
+<button id="skipBtn" class="hidden">スキップ ▶▶</button>
+
+<div id="title" class="scr">
+  <div>
+    <p class="kick">日の丸、一筆で</p>
+    <h1>国民度チェック</h1>
+  </div>
+  <div>
+    <p class="tdesc">白い旗に赤い丸を一筆で描いて、日の丸を完成させよう。本物とどれだけ重なるかで、あなたの国民度がわかります。</p>
+    <button class="big" id="startBtn">描きはじめる</button>
+    <div class="row"><button class="sml" id="zukanBtn">エンディング図鑑 <span id="zkCount">0/4</span></button></div>
+    <p id="bestTxt"></p>
+    <a data-google-vignette="false" class="link" href="/games/kokumindo/">遊び方・ほかのゲーム ›</a>
+  </div>
+</div>
+
+<div id="drawUI" class="hidden">
+  <p id="drawHead">白い旗に <b>赤い丸</b> を一筆で</p>
+  <p id="drawSub">指（マウス）をはなすと提出。描き直しはできません</p>
+  <div id="judge" class="hidden"><p class="jl">あなたの国民度は…</p><p class="jn"><span id="jNum">0</span><small>%</small></p><p id="jVerdict"></p></div>
+  <p id="drawWarn"></p>
+  <button class="big hidden" id="toEndBtn">▶ エンディングへ</button>
+</div>
+
+<div id="result" class="scr hidden"><div class="panel">
+  <div class="card">
+    <p class="rl">あなたの国民度</p>
+    <p class="rn"><span id="rNum">0</span><small>%</small></p>
+    <p><span class="chip" id="rEnd"></span></p>
+    <p id="rNew" class="new hidden">NEW！ 新しいエンディングを見ました</p>
+    <canvas id="rFlag"></canvas>
+    <p class="cap">点線が本物の日の丸（直径は旗の縦の3/5・ど真ん中）</p>
+    <p class="adv">ひとことアドバイス</p>
+    <p id="rTags"></p>
+    <p id="rCom"></p>
+    <p id="rBest"></p>
+  </div>
+  <div class="row" style="margin-top:16px"><button class="big" id="againBtn">もう一度描く</button></div>
+  <div class="row"><button class="sml" id="shareBtn">Xでシェア</button><button class="sml" id="rZukanBtn">エンディング図鑑</button></div>
+  <button class="link" id="rTitleBtn">タイトルへ</button>
+  <div class="adwrap" id="ad2"></div>
+</div></div>
+
+<div id="zukan" class="scr hidden"><div class="panel">
+  <h2 class="zh">エンディング図鑑</h2>
+  <p id="zkSub"></p>
+  <ul id="zkList"></ul>
+  <div class="row" style="margin-top:16px"><button class="sml" id="zkBack">もどる</button></div>
+</div></div>
+
+<script type="module">
+'use strict';
+// ===== [SEC:CONFIG] =====
+const CONFIG = {
+  FLAG: { W_RATE: 0.92, MAX_W: 660, TOP_MIN: 132, V_SPACE: 240, CIRCLE_D: 3 / 5 }, // 旗は縦2:横3。丸の直径は縦の3/5（日章旗の決まり）
+  BRUSH: 0.028,       // 描いている間のペンの太さ（旗の縦に対する割合）
+  LINE_FINAL: 0.006,  // 塗りつぶした後のふちの線の太さ（採点は線の内側だけで行う）
+  MIN_LEN: 0.3,       // これより短い線は描きミスとして無視（旗の縦に対する割合）
+  SCORE_H: 300,       // 採点の細かさ（旗の縦を何ピクセルで数えるか）
+  RANK: { HERO: 90, TOWN: 75, PRACTICE: 50 }, // エンディングの区切り（国民度％がこの数以上）
+  JUDGE: { FILL: 0.45, REVEAL: 0.7, COUNT: 1.8, PAUSE: 0.4 }, // 判定演出の長さ（秒）
+  ADVICE: { SIZE: 0.08, POS: 0.035, SHAPE: 0.9 }, // アドバイスを出す目安（大きさのズレ割合・位置のズレ・丸さ）
+  END_SEC: [0, 9.5, 9.5, 10.5, 13.5], // エンディングの長さ（秒）END1〜4
+  END_CARD: 1.6,      // 最後の何秒前に「END」表示を出すか
+  STAGE: { W: 360, H: 640 }, // エンディングの絵の基準サイズ
+  VOL: 0.8,           // 全体の音量
+  SAVE_KEY: 'kokumindo.v1',
+  URL: 'https://nkworks-games.com/kokumindo/',
+};
+
+// ===== [SEC:DATA] =====
+const RED = '#bc002d', INK = '#1d2a3a', PAPER = '#f4efe3', YOU = '#f2b632';
+const FONT = '"M PLUS Rounded 1c", sans-serif', MINCHO = '"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif';
+const ENDS = [null,
+  { name: 'さらば、ニッポン', verdict: 'ほとんど一致しなかった…', com: '飛行機で日本を出ていきました。日の丸を練習して、また帰ってきてください。' },
+  { name: '修行の日々', verdict: 'あまり一致しなかった', com: '家で国旗を描く練習の毎日がはじまりました。完璧な丸まで、あと少し。' },
+  { name: '町内国旗名人', verdict: '結構一致！', com: '町内会で「町内国旗名人」として表彰されました。次は日本中に知られるかも。' },
+  { name: '国民的英雄', verdict: 'ほとんど一致！！', com: '家が開き、大勢に囲まれ、ニュースも電光掲示板もあなたでいっぱい。あなたは国民的英雄です。' },
+];
+function condText(n) {
+  const R = CONFIG.RANK;
+  return ['', `国民度 ${R.PRACTICE - 1}%以下`, `国民度 ${R.PRACTICE}〜${R.TOWN - 1}%`, `国民度 ${R.TOWN}〜${R.HERO - 1}%`, `国民度 ${R.HERO}%以上`][n];
+}
+
+// ===== [SEC:UTIL] =====
+const $ = id => document.getElementById(id);
+const show = id => $(id).classList.remove('hidden');
+const hide = id => $(id).classList.add('hidden');
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const easeOut = k => 1 - (1 - k) ** 3;
+const easeIn = k => k * k * k;
+const easeIO = k => k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2;
+const easeBack = k => 1 + 2.7 * (k - 1) ** 3 + 1.7 * (k - 1) ** 2;
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+const hash = (a, b) => { const s = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return s - Math.floor(s); };
+function mix(a, b, k) {
+  const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), A = p(a), B = p(b);
+  return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(',')})`;
+}
+function kanji(n) { // 0〜199 を漢数字に
+  const d = '〇一二三四五六七八九';
+  if (n === 0) return '〇';
+  const h = Math.floor(n / 100), t = Math.floor(n / 10) % 10, o = n % 10;
+  return (h ? (h > 1 ? d[h] : '') + '百' : '') + (t ? (t > 1 ? d[t] : '') + '十' : '') + (o ? d[o] : '');
+}
+const rankOf = p => p >= CONFIG.RANK.HERO ? 4 : p >= CONFIG.RANK.TOWN ? 3 : p >= CONFIG.RANK.PRACTICE ? 2 : 1;
+
+// ===== [SEC:SAVE] =====
+const SV = { best: -1, ends: {}, mute: false, plays: 0 };
+function loadSave() {
+  try { Object.assign(SV, JSON.parse(localStorage.getItem(CONFIG.SAVE_KEY) || '{}')); } catch (e) {}
+  if (!SV.ends || typeof SV.ends !== 'object') SV.ends = {};
+}
+function writeSave() { try { localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify(SV)); } catch (e) {} }
+function packPts(pts) { // 保存用に点を間引いて丸める
+  const step = Math.ceil(pts.length / 240), out = [];
+  for (let i = 0; i < pts.length; i += step) out.push([+pts[i][0].toFixed(3), +pts[i][1].toFixed(3)]);
+  return out;
+}
+
+// ===== [SEC:AUDIO] =====
+let AC = null, BUS = null, NB = null, PEN = null;
+function ac() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function bus() {
+  const a = ac(); if (!a) return null;
+  if (!BUS) { BUS = a.createGain(); BUS.gain.value = CONFIG.VOL; BUS.connect(a.destination); }
+  return BUS;
+}
+function cutSfx() { // 鳴っている音をまとめて止める
+  if (!BUS || !AC) return;
+  const g = BUS; g.gain.setTargetAtTime(0, AC.currentTime, 0.04); setTimeout(() => g.disconnect(), 400); BUS = null;
+}
+function noiseBuf(a) {
+  if (!NB) { NB = a.createBuffer(1, a.sampleRate * 2, a.sampleRate); const d = NB.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  return NB;
+}
+function tone(f, d, o = {}) {
+  if (SV.mute) return; const a = ac(), out = bus(); if (!a || !out) return;
+  const t0 = a.currentTime + (o.at || 0), osc = a.createOscillator(), g = a.createGain();
+  osc.type = o.type || 'triangle'; osc.frequency.setValueAtTime(f, t0);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t0 + d);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(o.vol || 0.12, t0 + (o.atk || 0.01)); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+  osc.connect(g).connect(out); osc.start(t0); osc.stop(t0 + d + 0.05);
+}
+function noise(d, o = {}) {
+  if (SV.mute) return; const a = ac(), out = bus(); if (!a || !out) return;
+  const t0 = a.currentTime + (o.at || 0), src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = noiseBuf(a); src.loop = true;
+  f.type = o.ft || 'bandpass'; f.frequency.setValueAtTime(o.f || 1200, t0); if (o.fTo) f.frequency.exponentialRampToValueAtTime(o.fTo, t0 + d); f.Q.value = o.q || 0.8;
+  const v = o.vol || 0.1, atk = o.atk || 0.005, rel = o.rel || 0.05;
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + atk); g.gain.setValueAtTime(v, t0 + Math.max(atk, d - rel)); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+  src.connect(f).connect(g).connect(out); src.start(t0, Math.random()); src.stop(t0 + d + 0.05);
+}
+const SFX = {
+  pop() { tone(500, 0.12, { to: 1100, type: 'sine', vol: 0.1 }); },
+  drum(d) { const n = Math.floor(d / 0.05); for (let i = 0; i < n; i++) noise(0.045, { at: i * 0.05, ft: 'lowpass', f: 500, vol: 0.06 + 0.12 * i / n }); },
+  good() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.6, { at: i * 0.07, vol: 0.1 })); noise(0.3, { f: 5000, vol: 0.05 }); },
+  mid() { tone(659, 0.3, { vol: 0.1 }); tone(784, 0.5, { at: 0.15, vol: 0.1 }); },
+  bad() { tone(196, 0.55, { type: 'sawtooth', vol: 0.05 }); tone(185, 0.65, { type: 'sawtooth', vol: 0.04, at: 0.05 }); },
+  sad() { [523, 466, 415, 392].forEach((f, i) => tone(f, i === 3 ? 1.3 : 0.42, { at: i * 0.38, vol: 0.09 })); },
+  jet(d) { noise(d, { ft: 'lowpass', f: 250, fTo: 2400, vol: 0.2, atk: 0.8, rel: 1.6 }); tone(70, d, { type: 'sawtooth', to: 150, vol: 0.035, atk: 0.8 }); },
+  pencil() { noise(0.24, { ft: 'highpass', f: 3200, vol: 0.04 }); },
+  crumple() { for (let i = 0; i < 6; i++) noise(0.05, { at: i * 0.04 + Math.random() * 0.02, ft: 'highpass', f: 1600, vol: 0.07 }); },
+  chime() { [587, 740, 880, 1175].forEach((f, i) => tone(f, 0.9, { at: i * 0.3, type: 'sine', vol: 0.09 })); },
+  sparkle() { [1568, 2093, 2637, 3136].forEach((f, i) => tone(f, 0.3, { at: i * 0.06, type: 'sine', vol: 0.05 })); },
+  clap(d, dens) { const n = Math.floor(d * dens); for (let i = 0; i < n; i++) { const at = Math.random() * d; noise(0.035, { at, f: 1100 + Math.random() * 2000, q: 1.2, vol: (0.05 + Math.random() * 0.05) * (1 - 0.6 * at / d) }); } },
+  cheer(d) { noise(d, { f: 800, fTo: 1300, q: 0.5, vol: 0.07, atk: 0.4, rel: 1.2 }); },
+  bang() { noise(0.7, { ft: 'lowpass', f: 900, fTo: 70, vol: 0.45 }); tone(65, 0.6, { type: 'sine', to: 32, vol: 0.35 }); },
+  rumble(d) { noise(d, { ft: 'lowpass', f: 140, vol: 0.25, atk: 0.5 }); },
+  fanfare() {
+    [[523, 0, 0.16], [523, 0.17, 0.1], [523, 0.29, 0.1], [659, 0.41, 0.48], [784, 0.93, 0.16], [659, 1.1, 0.13], [784, 1.24, 0.9]].forEach(([f, at, d]) => { tone(f, d + 0.1, { at, type: 'square', vol: 0.045 }); tone(f * 2, d + 0.1, { at, vol: 0.04 }); });
+    [523, 659, 784].forEach(f => tone(f, 1.3, { at: 1.24, vol: 0.05 }));
+  },
+  fanfareS() { [[659, 0], [784, 0.14], [1047, 0.28]].forEach(([f, at]) => tone(f, 0.5, { at, type: 'square', vol: 0.04 })); tone(1047, 0.9, { at: 0.42, vol: 0.07 }); },
+  news() { [[880, 0], [1175, 0.12], [1568, 0.24]].forEach(([f, at]) => tone(f, 0.3, { at, type: 'square', vol: 0.045 })); tone(1568, 0.8, { at: 0.42, vol: 0.07 }); },
+  sting(n) {
+    if (n === 1) { tone(294, 0.5, { vol: 0.08 }); tone(220, 1.0, { at: 0.35, vol: 0.08 }); }
+    if (n === 2) { tone(523, 0.3, { vol: 0.08 }); tone(659, 0.8, { at: 0.2, vol: 0.08 }); }
+    if (n === 3) { [523, 659, 784, 1047].forEach((f, i) => tone(f, 1.0, { at: i * 0.09, vol: 0.07 })); }
+    if (n === 4) { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 1.6, { at: i * 0.06, type: 'square', vol: 0.035 })); SFX.sparkle(); }
+  },
+};
+function penStart() { // 描いている間のペンの音
+  if (SV.mute) return; const a = ac(), out = bus(); if (!a || !out) return;
+  const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  s.buffer = noiseBuf(a); s.loop = true; f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = 0.9; g.gain.value = 0;
+  s.connect(f).connect(g).connect(out); s.start(); PEN = { s, g };
+}
+function penMove(d) {
+  if (!PEN) return; const now = AC.currentTime;
+  PEN.g.gain.cancelScheduledValues(now); PEN.g.gain.setTargetAtTime(Math.min(0.07, d * 3), now, 0.015); PEN.g.gain.setTargetAtTime(0, now + 0.05, 0.04);
+}
+function penStop() { if (!PEN) return; try { PEN.s.stop(); } catch (e) {} PEN = null; }
+
+// ===== [SEC:FLAG] =====
+const F = { x: 0, y: 0, w: 0, h: 0 }; // 描く画面の旗の位置（画面のピクセル）
+let VW = 0, VH = 0, DPR = 1;
+function layoutFlag() {
+  const C = CONFIG.FLAG;
+  F.w = Math.max(150, Math.min(VW * C.W_RATE, C.MAX_W, (VH - C.V_SPACE) * 1.5)); F.h = F.w / 1.5;
+  F.x = (VW - F.w) / 2; F.y = Math.max(C.TOP_MIN, (VH - F.h) / 2 - 10);
+  $('drawHead').style.top = (F.y - 88) + 'px'; $('drawSub').style.top = (F.y - 42) + 'px';
+  $('judge').style.top = (F.y - 126) + 'px';
+  $('drawWarn').style.top = (F.y + F.h + 18) + 'px'; $('toEndBtn').style.top = (F.y + F.h + 22) + 'px';
+}
+// 点は「旗の縦＝1」の座標 [u, v]（旗は横1.5×縦1、本物の丸は中心(0.75,0.5)・半径0.3）
+function shapePath(x, pts, s, ox, oy, close = true) {
+  x.beginPath();
+  pts.forEach((p, i) => i ? x.lineTo(ox + p[0] * s, oy + p[1] * s) : x.moveTo(ox + p[0] * s, oy + p[1] * s));
+  if (close) x.closePath();
+}
+function paintShape(x, pts, s, ox, oy, fillA = 1, lw = CONFIG.LINE_FINAL) {
+  if (!pts.length) return;
+  shapePath(x, pts, s, ox, oy); x.lineJoin = x.lineCap = 'round';
+  if (fillA > 0) { x.globalAlpha = fillA; x.fillStyle = RED; x.fill(); x.globalAlpha = 1; }
+  x.lineWidth = lw * s; x.strokeStyle = RED; x.stroke();
+}
+function trueCircle(x, ox, oy, s, a = 1) { // 本物の日の丸の位置（点線）
+  if (a <= 0) return;
+  x.save(); x.globalAlpha = a; x.beginPath(); x.arc(ox + 0.75 * s, oy + 0.5 * s, CONFIG.FLAG.CIRCLE_D / 2 * s, 0, TAU);
+  x.lineWidth = Math.max(4, s * 0.02); x.strokeStyle = 'rgba(255,255,255,.85)'; x.stroke();
+  x.setLineDash([s * 0.035, s * 0.025]); x.lineWidth = Math.max(2, s * 0.01); x.strokeStyle = INK; x.stroke(); x.restore();
+}
+let scoreCv = null;
+function scoreShape(pts) { // 描いた赤と本物の丸の重なり率（重なった面積÷どちらかに入っている面積）
+  const H = CONFIG.SCORE_H, W = Math.round(H * 1.5);
+  if (!scoreCv) scoreCv = document.createElement('canvas');
+  scoreCv.width = W; scoreCv.height = H;
+  const x = scoreCv.getContext('2d', { willReadFrequently: true });
+  x.clearRect(0, 0, W, H); shapePath(x, pts, H, 0, 0); x.fillStyle = '#000'; x.fill(); // 線の真ん中をふちとして、内側だけを数える
+  const d = x.getImageData(0, 0, W, H).data, r = CONFIG.FLAG.CIRCLE_D / 2, r2 = r * r;
+  let inter = 0, uni = 0, area = 0, sx = 0, sy = 0;
+  for (let j = 0; j < H; j++) {
+    const v = (j + 0.5) / H;
+    for (let i = 0; i < W; i++) {
+      const u = (i + 0.5) / H, U = d[(j * W + i) * 4 + 3] >= 128, T = (u - 0.75) ** 2 + (v - 0.5) ** 2 <= r2;
+      if (U) { area++; sx += u; sy += v; }
+      if (U && T) inter++;
+      if (U || T) uni++;
+    }
+  }
+  const res = { pct: uni ? inter / uni * 100 : 0, area, mx: 0.75, my: 0.5, rr: 0, round: 0 };
+  if (!area) return res;
+  res.mx = sx / area; res.my = sy / area; res.rr = Math.sqrt(area / Math.PI) / H;
+  let i2 = 0, u2 = 0; const q2 = res.rr * res.rr; // 同じ面積のきれいな円とくらべて「丸さ」を出す
+  for (let j = 0; j < H; j++) {
+    const v = (j + 0.5) / H;
+    for (let i = 0; i < W; i++) {
+      const u = (i + 0.5) / H, U = d[(j * W + i) * 4 + 3] >= 128, T = (u - res.mx) ** 2 + (v - res.my) ** 2 <= q2;
+      if (U && T) i2++;
+      if (U || T) u2++;
+    }
+  }
+  res.round = u2 ? i2 / u2 : 0;
+  return res;
+}
+function makeFlagImg(pts, h = 240) {
+  const cv = document.createElement('canvas'); cv.width = Math.round(h * 1.5); cv.height = h;
+  const x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, h);
+  paintShape(x, pts, h, 0, 0, 1);
+  return cv;
+}
+function advice(s) {
+  const A = CONFIG.ADVICE, r0 = CONFIG.FLAG.CIRCLE_D / 2, out = [];
+  if (!s.area) return ['旗の上に描こう'];
+  const z = s.rr / r0 - 1;
+  if (z > A.SIZE) out.push('大きすぎ'); else if (z < -A.SIZE) out.push('小さすぎ');
+  const dx = s.mx - 0.75, dy = s.my - 0.5, dir = (dx > A.POS ? '右' : dx < -A.POS ? '左' : '') + (dy < -A.POS ? '上' : dy > A.POS ? '下' : '');
+  if (dir) out.push(dir + 'にずれ');
+  if (s.round < A.SHAPE) out.push('形がいびつ');
+  return out.length ? out : ['大きさ・位置・形 ばっちり'];
+}
+
+// ===== [SEC:KIT] =====
+// エンディングの絵の部品（座標は 360×640 の舞台）
+const SKINS = ['#f6d3b3', '#efc29a', '#e0a97e', '#f9dcc4'], HAIRS = ['#2b2b2b', '#4a3426', '#6b4a2f', '#1f1f2e', '#8a8a8a'];
+const SHIRTS = ['#e2553a', '#3f8fd8', '#3fbf6a', '#9b6bd6', '#ff7ab6', '#2fb3a8', '#f08a2c', '#5b7fb0'];
+function rrect(c, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+function circ(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, TAU); }
+function band(c, y0, y1, fill) { c.fillStyle = fill; c.fillRect(-900, y0, 2160, y1 - y0); } // 横はみ出しぶんまで塗る
+function sky(c, top, bottom, y0, y1) { const g = c.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, top); g.addColorStop(1, bottom); band(c, -900, y1, g); }
+function dip(c, t, at, col = '255,255,255') { const a = 1 - Math.abs(t - at) / 0.25; if (a > 0) { c.fillStyle = `rgba(${col},${a})`; c.fillRect(-900, -900, 2160, 2440); } }
+function cloud(c, x, y, s) {
+  c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = 'rgba(255,255,255,.92)';
+  [[0, 0, 18], [18, -9, 17], [38, 0, 18], [19, 6, 16]].forEach(([a, b, r]) => { circ(c, a, b, r); c.fill(); });
+  c.restore();
+}
+function stars(c, t, seed, n, y1) {
+  const R = rng(seed);
+  for (let i = 0; i < n; i++) { const x = -300 + R() * 960, y = R() * y1, a = 0.4 + 0.6 * Math.abs(Math.sin(t * (1 + R() * 2) + i)); c.fillStyle = `rgba(255,255,230,${a})`; c.fillRect(x, y, 2, 2); }
+}
+function person(c, x, y, s, o = {}) { // 人（足もとが x,y）。手の位置を返す
+  const skin = o.skin || SKINS[0], hair = o.hair || HAIRS[0], shirt = o.shirt || YOU;
+  let bob = 0;
+  if (o.walk != null) bob -= Math.abs(Math.sin(o.walk)) * 1.5;
+  if (o.hop != null) bob -= Math.abs(Math.sin(o.hop)) * 4;
+  c.save(); c.translate(x, y); c.scale(s, s); if (o.rot) c.rotate(o.rot); c.translate(0, bob);
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  const lg = o.walk != null ? Math.sin(o.walk) * 4 : 0;
+  c.strokeStyle = o.pants || '#3b4660'; c.lineWidth = 5.5;
+  c.beginPath(); c.moveTo(-4, -15); c.lineTo(-4.5 + lg, -1.5); c.moveTo(4, -15); c.lineTo(4.5 - lg, -1.5); c.stroke();
+  c.fillStyle = shirt; rrect(c, -10.5, -37, 21, 25, 8); c.fill();
+  if (o.tie) {
+    c.fillStyle = '#fff'; c.beginPath(); c.moveTo(-4.5, -37); c.lineTo(0, -30); c.lineTo(4.5, -37); c.fill();
+    c.fillStyle = o.tie; c.beginPath(); c.moveTo(-1.5, -34); c.lineTo(1.5, -34); c.lineTo(2.3, -24); c.lineTo(0, -21.5); c.lineTo(-2.3, -24); c.closePath(); c.fill();
+  }
+  const A = o.arms || 'down', hands = [];
+  const arm = (sx, ex, ey) => { c.strokeStyle = shirt; c.lineWidth = 5; c.beginPath(); c.moveTo(sx, -33); c.lineTo(ex, ey); c.stroke(); hands.push([ex, ey]); };
+  if (A === 'down') { arm(-9, -13, -19); arm(9, 13, -19); }
+  else if (A === 'clap') { const g = 1.8 + (0.5 + 0.5 * Math.sin(o.ph || 0)) * 5; arm(-9, -g, -29); arm(9, g, -29); }
+  else if (A === 'up') { const w = Math.sin(o.ph || 0) * 3; arm(-9, -15 + w, -57); arm(9, 15 - w, -57); }
+  else if (A === 'hold') { arm(-9, -13, -19); arm(9, 14, -50); }
+  else if (A === 'hold2') { arm(-9, -6, -26); arm(9, 6, -26); }
+  else if (A === 'give') { arm(-9, -13, -19); arm(9, 22, -30); }
+  hands.forEach(([hx, hy]) => { c.fillStyle = skin; circ(c, hx, hy, 2.9); c.fill(); });
+  const hy = -49;
+  c.fillStyle = skin; circ(c, 0, hy, 11.5); c.fill();
+  if (o.bald) { c.fillStyle = hair; circ(c, -10.6, hy + 1, 3.2); c.fill(); circ(c, 10.6, hy + 1, 3.2); c.fill(); }
+  else {
+    c.fillStyle = hair; c.beginPath(); c.arc(0, hy, 12, Math.PI, 0); c.quadraticCurveTo(4, hy - 7, -12, hy); c.fill();
+    if (o.long) { c.fillRect(-12.5, hy - 1, 4.5, 15); c.fillRect(8, hy - 1, 4.5, 15); }
+  }
+  if (o.hachi) { c.fillStyle = '#fff'; c.fillRect(-12.2, hy - 7, 24.4, 4.6); c.fillStyle = RED; circ(c, 0, hy - 4.7, 1.9); c.fill(); }
+  const m = o.mood || 'smile';
+  c.strokeStyle = '#2a2a2a'; c.fillStyle = '#2a2a2a'; c.lineWidth = 1.6;
+  if (m === 'grin') {
+    [-4.2, 4.2].forEach(ex => { c.beginPath(); c.arc(ex, hy + 1, 2.2, Math.PI, TAU); c.stroke(); });
+    c.fillStyle = '#b8323f'; c.beginPath(); c.arc(0, hy + 3.5, 4.2, 0, Math.PI); c.closePath(); c.fill();
+  } else {
+    circ(c, -4.2, hy, 1.5); c.fill(); circ(c, 4.2, hy, 1.5); c.fill();
+    if (m === 'smile') { c.beginPath(); c.arc(0, hy + 3, 3.8, Math.PI * 0.15, Math.PI * 0.85); c.stroke(); }
+    if (m === 'open') { circ(c, 0, hy + 5.5, 2.3); c.stroke(); }
+    if (m === 'sad') {
+      c.beginPath(); c.moveTo(-6.5, hy - 3); c.lineTo(-2.3, hy - 5); c.moveTo(6.5, hy - 3); c.lineTo(2.3, hy - 5); c.stroke();
+      c.beginPath(); c.arc(0, hy + 7.5, 3.6, Math.PI * 1.2, Math.PI * 1.8); c.stroke();
+    }
+    if (m === 'focus') {
+      c.beginPath(); c.moveTo(-6.5, hy - 5); c.lineTo(-2.3, hy - 3.5); c.moveTo(6.5, hy - 5); c.lineTo(2.3, hy - 3.5); c.moveTo(-2.5, hy + 5); c.lineTo(2.5, hy + 5); c.stroke();
+    }
+  }
+  if (m === 'grin' || m === 'smile') { c.fillStyle = 'rgba(255,120,130,.45)'; circ(c, -7.5, hy + 3, 2.2); c.fill(); circ(c, 7.5, hy + 3, 2.2); c.fill(); }
+  if (o.glasses) { c.strokeStyle = '#333'; c.lineWidth = 1.2; circ(c, -4.2, hy, 3.4); c.stroke(); circ(c, 4.2, hy, 3.4); c.stroke(); c.beginPath(); c.moveTo(-0.8, hy); c.lineTo(0.8, hy); c.stroke(); }
+  c.restore();
+  return hands.map(([hx, hy2]) => [x + hx * s, y + (hy2 + bob) * s]);
+}
+function back(c, x, y, s, o = {}) { // うしろ姿（座っている観客など）
+  const shirt = o.shirt || '#555', skin = o.skin || SKINS[0];
+  c.save(); c.translate(x, y); c.scale(s, s); c.lineCap = 'round';
+  if (o.ph != null) {
+    const g = 2 + (0.5 + 0.5 * Math.sin(o.ph)) * 5;
+    c.strokeStyle = shirt; c.lineWidth = 5; c.beginPath(); c.moveTo(-9, -18); c.lineTo(-g, -46); c.moveTo(9, -18); c.lineTo(g, -46); c.stroke();
+    c.fillStyle = skin; circ(c, -g, -46, 2.9); c.fill(); circ(c, g, -46, 2.9); c.fill();
+  }
+  c.fillStyle = shirt; rrect(c, -13, -22, 26, 28, 10); c.fill();
+  c.fillStyle = skin; circ(c, 0, -31, 10.5); c.fill();
+  c.fillStyle = o.hair || HAIRS[0]; if (o.bald) { c.beginPath(); c.arc(0, -29, 10.6, 0.1, Math.PI - 0.1); c.fill(); } else { circ(c, 0, -32, 10.8); c.fill(); }
+  c.restore();
+}
+function waveFlag(c, img, x, y, w, t, amp = 0.06) { // ゆれる旗（左が竿側）
+  const h = w / 1.5, N = 32, sw = img.width / N, dw = w / N;
+  for (let i = 0; i < N; i++) {
+    const k = i / N, ph = t * 5 - i * 0.31, dy = Math.sin(ph) * amp * w * k, sh = Math.cos(ph) * 0.12 * k;
+    c.drawImage(img, i * sw, 0, sw, img.height, x + i * dw, y + dy, dw + 0.7, h);
+    c.fillStyle = sh > 0 ? `rgba(255,255,255,${sh})` : `rgba(0,0,0,${-sh})`; c.fillRect(x + i * dw, y + dy, dw + 0.7, h);
+    c.fillStyle = 'rgba(0,0,0,.2)'; c.fillRect(x + i * dw, y + dy, dw + 0.7, 0.9); c.fillRect(x + i * dw, y + dy + h - 0.9, dw + 0.7, 0.9);
+  }
+}
+function flagOnPole(c, img, px, top, bottom, w, t, amp) {
+  c.strokeStyle = '#a07a3a'; c.lineWidth = Math.max(1.6, w * 0.035); c.lineCap = 'round';
+  c.beginPath(); c.moveTo(px, bottom); c.lineTo(px, top); c.stroke();
+  c.fillStyle = '#e8c35a'; circ(c, px, top - 2, Math.max(2, w * 0.045)); c.fill();
+  waveFlag(c, img, px + 1, top + 1, w, t, amp);
+}
+function confetti(c, t, seed, n, x0, x1, y0, y1) {
+  const R = rng(seed), cols = [RED, '#ffd23f', '#3fa7ff', '#3fbf6a', '#ff7ab6', '#ffffff'], span = y1 - y0;
+  for (let i = 0; i < n; i++) {
+    const x = x0 + R() * (x1 - x0), sp = 60 + R() * 90, ph = R() * TAU, yy = -R() * span + sp * t;
+    if (yy < 0) continue;
+    const y = y0 - 10 + (yy % span);
+    c.save(); c.translate(x + Math.sin(t * 3 + ph) * 8, y); c.rotate(t * 4 + ph); c.fillStyle = cols[i % cols.length];
+    c.fillRect(-3.5, -2, 7, 4 * Math.abs(Math.cos(t * 5 + ph)) + 0.6); c.restore();
+  }
+}
+function sparkle(c, x, y, r, a) {
+  if (a <= 0 || r <= 0) return;
+  c.save(); c.globalAlpha = a; c.fillStyle = '#ffe680'; c.beginPath(); c.moveTo(x, y - r);
+  c.quadraticCurveTo(x, y, x + r, y); c.quadraticCurveTo(x, y, x, y + r); c.quadraticCurveTo(x, y, x - r, y); c.quadraticCurveTo(x, y, x, y - r); c.fill(); c.restore();
+}
+function sparkles(c, t, cx, cy, rad) {
+  for (let i = 0; i < 6; i++) { const ph = (t * 1.5 + i / 6) % 1, ang = i * TAU / 6 + t * 0.5, d = rad + ph * 12; sparkle(c, cx + Math.cos(ang) * d, cy + Math.sin(ang) * d * 0.8, 8 * Math.sin(ph * Math.PI), Math.sin(ph * Math.PI)); }
+}
+function vtext(c, s, x, y, size, sp = 1.12, col = INK, font = MINCHO) { // たて書き
+  c.fillStyle = col; c.font = `700 ${size}px ${font}`; c.textAlign = 'center'; c.textBaseline = 'top';
+  [...s].forEach((ch, i) => c.fillText(ch, x, y + i * size * sp));
+}
+function captions(c, t, list) { // 下の字幕
+  for (const [a, b, txt] of list) {
+    if (t < a || t > b) continue;
+    const al = Math.min(clamp((t - a) / 0.25, 0, 1), b === Infinity ? 1 : clamp((b - t) / 0.25, 0, 1));
+    c.save(); c.globalAlpha = al; let fs = 17; c.font = `800 ${fs}px ${FONT}`; let w = c.measureText(txt).width;
+    if (w > 300) { fs = 17 * 300 / w; c.font = `800 ${fs}px ${FONT}`; w = 300; }
+    c.fillStyle = 'rgba(18,24,36,.82)'; rrect(c, 180 - w / 2 - 18, 574, w + 36, 42, 21); c.fill();
+    c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, 180, 596); c.restore();
+  }
+}
+function endCard(c, t, n, from) {
+  const D = CONFIG.END_SEC[n], t0 = D - CONFIG.END_CARD, a = seg(t, t0, t0 + 0.4);
+  if (a <= 0) return;
+  c.save(); c.globalAlpha = a;
+  c.fillStyle = 'rgba(255,255,255,.93)'; c.fillRect(-900, 232, 2160, 104);
+  c.fillStyle = RED; c.fillRect(-900, 232, 2160, 4); c.fillRect(-900, 332, 2160, 4);
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = INK; c.font = `800 16px ${FONT}`; c.fillText(`END ${n}`, 180, 258);
+  const k = easeBack(seg(t, t0, t0 + 0.45)); c.translate(180, 298); c.scale(k, k);
+  c.fillStyle = RED; c.font = `800 34px ${FONT}`; c.fillText(ENDS[n].name, 0, 0);
+  c.restore();
+  if (t < D) return;
+  const txt = from === 'zukan' ? 'タップで図鑑へ ▶' : 'タップで結果へ ▶';
+  c.save(); c.globalAlpha = 0.6 + 0.4 * Math.sin(t * 5); c.font = `800 15px ${FONT}`;
+  const w = c.measureText(txt).width + 32; c.fillStyle = INK; rrect(c, 180 - w / 2, 350, w, 34, 17); c.fill();
+  c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, 180, 367); c.restore();
+}
+const LED = new WeakMap();
+function ledDots(c) { // 電光掲示板のつぶつぶ模様
+  if (!LED.has(c)) { const p = document.createElement('canvas'); p.width = p.height = 4; const x = p.getContext('2d'); x.fillStyle = 'rgba(0,0,0,.42)'; x.fillRect(0, 3, 4, 1); x.fillRect(3, 0, 1, 4); LED.set(c, c.createPattern(p, 'repeat')); }
+  return LED.get(c);
+}
+function screen(c, x, y, w, h, on, fn) {
+  c.fillStyle = '#05060c'; rrect(c, x - 4, y - 4, w + 8, h + 8, 5); c.fill();
+  if (on <= 0) return;
+  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+  c.globalAlpha = on < 1 ? (Math.random() < 0.5 ? on : on * 0.3) : 1; fn(); c.globalAlpha = 1;
+  c.fillStyle = ledDots(c); c.fillRect(x, y, w, h); c.restore();
+  c.save(); c.shadowColor = 'rgba(255,210,140,.8)'; c.shadowBlur = 16; c.strokeStyle = 'rgba(255,230,180,.55)'; c.lineWidth = 1.5; c.strokeRect(x, y, w, h); c.restore();
+}
+function marquee(c, txt, x, y, w, h, t, speed, col) {
+  c.font = `800 ${h * 0.7}px ${FONT}`; c.fillStyle = col; c.textBaseline = 'middle'; c.textAlign = 'left';
+  const tw = c.measureText(txt).width; if (tw <= 0) return;
+  for (let px = x - ((t * speed) % tw); px < x + w; px += tw) c.fillText(txt, px, y + h / 2 + 1);
+}
+function faceShot(c, x, y, w, h, bg, t) { // 画面いっぱいの「あなた」の顔
+  c.fillStyle = bg; c.fillRect(x, y, w, h);
+  c.save(); c.translate(x + w / 2, y + h * 0.42); c.rotate(t * 0.4); c.fillStyle = 'rgba(255,255,255,.28)';
+  for (let i = 0; i < 12; i++) { c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, w + h, i * TAU / 12, i * TAU / 12 + TAU / 24); c.closePath(); c.fill(); }
+  c.restore();
+  const s = h / 36; person(c, x + w / 2, y + h * 0.42 + 49 * s, s, { arms: 'none', mood: 'grin' });
+}
+
+// ===== [SEC:END1] =====
+// ほとんど一致しなかった：飛行機で日本を出ていく
+function plane(c, x, y, s, rot, gear) {
+  c.save(); c.translate(x, y); c.scale(s, s); c.rotate(rot); c.lineJoin = 'round';
+  c.fillStyle = '#aab6c3'; c.beginPath(); c.moveTo(4, 0); c.lineTo(-14, -12); c.lineTo(-6, -12); c.lineTo(18, 0); c.closePath(); c.fill();
+  c.fillStyle = '#fff'; c.strokeStyle = '#8796a6'; c.lineWidth = 1.4;
+  c.beginPath(); c.moveTo(-62, -5); c.lineTo(46, -8); c.quadraticCurveTo(66, -7, 70, 1); c.quadraticCurveTo(66, 8, 46, 8); c.lineTo(-56, 7); c.quadraticCurveTo(-66, 4, -62, -5); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#2d4a8a'; c.beginPath(); c.moveTo(-60, -5); c.lineTo(-71, -31); c.lineTo(-59, -31); c.lineTo(-40, -6); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(-56, 0); c.lineTo(-72, -2); c.lineTo(-68, 3); c.lineTo(-54, 4); c.closePath(); c.fill();
+  c.fillStyle = '#5b6b7d'; for (let i = 0; i < 11; i++) { circ(c, -42 + i * 8, -2, 1.5); c.fill(); }
+  c.beginPath(); c.moveTo(56, -5); c.lineTo(64, -4); c.lineTo(67, -1); c.lineTo(57, -1); c.closePath(); c.fill();
+  c.fillStyle = '#2d4a8a'; c.fillRect(-56, 2.5, 104, 2);
+  c.fillStyle = '#c9d2db'; c.beginPath(); c.moveTo(-6, 3); c.lineTo(-26, 18); c.lineTo(-14, 18); c.lineTo(16, 3); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#9aa7b4'; rrect(c, -14, 9, 15, 6, 3); c.fill();
+  if (gear) { c.strokeStyle = '#555'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-10, 8); c.lineTo(-10, 13); c.moveTo(44, 8); c.lineTo(44, 13); c.stroke(); c.fillStyle = '#222'; circ(c, -10, 14, 2.5); c.fill(); circ(c, 44, 14, 2.5); c.fill(); }
+  c.restore();
+}
+function e1Lobby(c, t, E) {
+  band(c, -900, 470, '#dfe6ec'); band(c, 470, 1540, '#b9c2cc');
+  c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 2;
+  for (let i = 0; i < 7; i++) { c.beginPath(); c.moveTo(-900, 490 + i * 24); c.lineTo(1260, 490 + i * 24); c.stroke(); }
+  c.save(); c.beginPath(); c.rect(10, 60, 340, 250); c.clip();
+  sky(c, '#8cc8f0', '#e3f3fc', 60, 270); band(c, 270, 320, '#9aa4ad');
+  cloud(c, 60, 120, 1); cloud(c, 250, 96, 0.8); plane(c, 200, 262, 0.9, 0, true);
+  c.restore();
+  c.strokeStyle = '#8796a6'; c.lineWidth = 6; c.strokeRect(10, 60, 340, 250);
+  c.lineWidth = 4; [95, 180, 265].forEach(x => { c.beginPath(); c.moveTo(x, 60); c.lineTo(x, 310); c.stroke(); });
+  c.fillStyle = '#1b1f27'; rrect(c, 50, 330, 260, 84, 8); c.fill();
+  c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillStyle = '#ffb347';
+  c.font = `800 13px ${FONT}`; c.fillText('出発  DEPARTURES', 64, 347);
+  c.font = `800 16px ${FONT}`; c.fillText('09:30', 64, 373); c.fillText('海外', 132, 373); c.fillText('10:05', 64, 398); c.fillText('海外', 132, 398); c.fillText('定刻', 236, 398);
+  if (Math.sin(t * 6) > -0.3) { c.fillStyle = '#7dff8a'; c.fillText('搭乗中', 236, 373); }
+  const k = seg(t, 0.3, 3.3), x = 70 + 200 * k, walking = k > 0 && k < 1;
+  const hx = x - 19.5, hy = 520 - 28.5 - (walking ? Math.abs(Math.sin(t * 9)) * 2.2 : 0);
+  flagOnPole(c, E.img, hx - 9, hy - 30, hy + 10, 34, t, 0.03);
+  c.fillStyle = '#7a3b2e'; rrect(c, hx - 16, hy + 6, 26, 30, 4); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(hx - 16, hy + 18, 26, 3);
+  c.strokeStyle = '#333'; c.lineWidth = 2; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx - 3, hy + 6); c.stroke();
+  c.fillStyle = '#222'; circ(c, hx - 11, hy + 37, 2.5); c.fill(); circ(c, hx + 5, hy + 37, 2.5); c.fill();
+  person(c, x, 520, 1.5, { walk: walking ? t * 9 : null, mood: 'sad' });
+}
+function e1Runway(c, t, E) {
+  sky(c, '#7fbfee', '#e3f3fc', 0, 430);
+  cloud(c, 40 + t * 6, 120, 1); cloud(c, 270 + t * 4, 190, 0.8);
+  c.fillStyle = '#5f80b6'; c.beginPath(); c.moveTo(80, 432); c.lineTo(205, 300); c.lineTo(235, 300); c.lineTo(380, 432); c.closePath(); c.fill();
+  c.fillStyle = '#fff'; c.beginPath(); c.moveTo(181, 326); c.lineTo(205, 300); c.lineTo(235, 300); c.lineTo(262, 328); c.lineTo(249, 322); c.lineTo(239, 334); c.lineTo(227, 322); c.lineTo(215, 336); c.lineTo(203, 322); c.lineTo(192, 332); c.closePath(); c.fill();
+  band(c, 430, 446, '#a7d48a'); band(c, 446, 478, '#7a8087'); band(c, 478, 1540, '#86c06a');
+  c.fillStyle = '#fff'; for (let x = -900; x < 1260; x += 40) c.fillRect(x, 461, 22, 2.5);
+  let px, py, rot = 0, s = 1, gear = true;
+  if (t < 1.6) { const k = t / 1.6; px = -80 + 230 * k * k; py = 445.5; }
+  else { const p = t - 1.6; px = 150 + 260 * p / (1 + 1.5 * p); py = 445.5 - 260 * p * p / (1 + p * p); rot = -0.28 * seg(p, 0, 0.6); s = 1 / (1 + 1.4 * p); gear = p < 0.6; }
+  plane(c, px, py, s, rot, gear);
+  c.strokeStyle = '#5f9a4a'; c.lineWidth = 2;
+  for (let i = 0; i < 8; i++) { const gx = 30 + i * 9; c.beginPath(); c.moveTo(gx, 606); c.lineTo(gx + 3, 594 - (i % 3) * 3); c.stroke(); }
+  flagOnPole(c, E.img, 62, 506, 606, 80, t + 3.6, 0.07);
+}
+function end1(c, t, E) {
+  if (t < 3.6) e1Lobby(c, t, E); else e1Runway(c, t - 3.6, E);
+  dip(c, t, 3.6);
+}
+const END1_CAPS = p => [[0.2, 1.8, `国民度 ${p}%…`], [1.8, 3.55, 'あなたは そっと 荷物をまとめた'], [3.9, 6.2, 'さらば、ニッポン'], [6.2, Infinity, '描いた日の丸は 置いていった']];
+const END1_SFX = [[0.1, () => SFX.sad()], [3.6, () => SFX.jet(4.6)], [7.9, () => SFX.sting(1)]];
+
+// ===== [SEC:END2] =====
+// あまり一致しなかった：家で国旗を描く練習
+const E2_FLAGS = (() => { // だんだん上手になる練習の旗
+  const R = rng(42), L = [];
+  for (let k = 1; k < 12; k++) {
+    const bad = 1 - k / 11, pts = [], cx = 0.75 + (R() - 0.5) * 0.3 * bad, cy = 0.5 + (R() - 0.5) * 0.25 * bad, r = 0.3 * (1 + (R() - 0.5) * 0.5 * bad), w1 = R() * TAU, w2 = R() * TAU, amp = 0.12 * bad + 0.015;
+    for (let i = 0; i <= 28; i++) { const a = i / 28 * TAU, rr = r * (1 + amp * 0.7 * Math.sin(a * 2 + w1) + amp * 0.5 * Math.sin(a * 3 + w2)); pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]); }
+    L.push({ img: makeFlagImg(pts, 60), rot: (R() - 0.5) * 0.14 });
+  }
+  return L;
+})();
+const E2_BALLS = (() => { const R = rng(9), L = []; for (let i = 0; i < 12; i++) L.push([150 + R() * 200, 534 + R() * 70, 7 + R() * 3]); return L; })();
+function skyAt(f) {
+  const K = [[0, '#8fd0ff'], [0.45, '#8fd0ff'], [0.55, '#ff9f5a'], [0.63, '#26305e'], [0.9, '#26305e'], [1, '#8fd0ff']];
+  for (let i = 1; i < K.length; i++) if (f <= K[i][0]) return mix(K[i - 1][1], K[i][1], (f - K[i - 1][0]) / (K[i][0] - K[i - 1][0]));
+  return K[0][1];
+}
+function end2(c, t, E) {
+  band(c, -900, 470, '#f3e4c6'); band(c, 470, 1540, '#c8955c'); band(c, 462, 472, '#9c6b3f');
+  c.strokeStyle = 'rgba(90,50,20,.22)'; c.lineWidth = 2;
+  [500, 535, 575, 620, 670].forEach(y => { c.beginPath(); c.moveTo(-900, y); c.lineTo(1260, y); c.stroke(); });
+  // 窓（昼と夜がくり返す＝毎日）
+  const f = (t * 0.55) % 1;
+  c.fillStyle = skyAt(f); c.fillRect(24, 80, 128, 116);
+  if (f > 0.6 && f < 0.93) { c.save(); c.beginPath(); c.rect(24, 80, 128, 116); c.clip(); const R = rng(3); for (let i = 0; i < 14; i++) { c.fillStyle = '#fff8d0'; c.fillRect(28 + R() * 120, 84 + R() * 100, 2, 2); } c.fillStyle = '#fff6c8'; circ(c, 122, 108, 10); c.fill(); c.restore(); }
+  else if (f < 0.5) { c.fillStyle = '#fff3a0'; circ(c, 52, 110, 12); c.fill(); }
+  c.strokeStyle = '#fff'; c.lineWidth = 7; c.strokeRect(24, 80, 128, 116); c.lineWidth = 4; c.beginPath(); c.moveTo(88, 80); c.lineTo(88, 196); c.stroke();
+  c.fillStyle = '#d97a7a'; c.fillRect(14, 72, 16, 132); c.fillRect(146, 72, 16, 132);
+  // 日めくり
+  const day = 1 + Math.floor(99 * easeIn(seg(t, 1.0, 8.3)));
+  c.fillStyle = '#fff'; rrect(c, 40, 222, 80, 86, 4); c.fill(); c.fillStyle = RED; c.fillRect(40, 222, 80, 18);
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; c.font = `800 11px ${FONT}`; c.fillText('日めくり', 80, 231);
+  c.fillStyle = INK; c.font = `800 32px ${FONT}`; c.fillText(String(day), 80, 268); c.font = `800 13px ${FONT}`; c.fillText('日目', 80, 295);
+  // 壁にはった練習の旗（1枚目はあなたが描いた旗）
+  for (let k = 0; k < 12; k++) {
+    const tk = 1.1 + k * 0.6; if (t < tk) break;
+    const pk = easeBack(seg(t, tk, tk + 0.25)), col = k % 3, row = Math.floor(k / 3);
+    c.save(); c.translate(180 + col * 58 + 23, 62 + row * 48 + 15); c.rotate(k ? E2_FLAGS[k - 1].rot : -0.03); c.scale(pk, pk);
+    c.fillStyle = 'rgba(0,0,0,.12)'; c.fillRect(-21, -13, 46, 31);
+    c.drawImage(k ? E2_FLAGS[k - 1].img : E.img, -23, -15, 46, 30.7);
+    c.strokeStyle = 'rgba(0,0,0,.18)'; c.lineWidth = 1; c.strokeRect(-23, -15, 46, 30.7);
+    c.fillStyle = '#3f8fd8'; circ(c, 0, -14, 2.4); c.fill(); c.restore();
+  }
+  // ゴミ箱
+  c.fillStyle = '#9aa3ad'; c.beginPath(); c.moveTo(38, 470); c.lineTo(94, 470); c.lineTo(88, 532); c.lineTo(44, 532); c.closePath(); c.fill();
+  c.fillStyle = '#f2f2f2'; [[54, 466], [70, 462], [84, 467]].forEach(([x, y]) => { circ(c, x, y, 8); c.fill(); });
+  // 机と、はちまきのあなた
+  person(c, 252, 431, 1.35, { arms: 'none', mood: 'focus', hachi: true });
+  c.fillStyle = '#b98250'; c.beginPath(); c.moveTo(140, 418); c.lineTo(364, 418); c.lineTo(372, 436); c.lineTo(132, 436); c.closePath(); c.fill();
+  c.fillStyle = '#fff'; c.beginPath(); c.moveTo(196, 421); c.lineTo(262, 421); c.lineTo(266, 433); c.lineTo(192, 433); c.closePath(); c.fill();
+  const pr = (t * 1.6) % 1, a = pr * TAU;
+  c.strokeStyle = RED; c.lineWidth = 2; c.beginPath(); c.ellipse(229, 427, 10, 3.6, 0, -Math.PI / 2, -Math.PI / 2 + a); c.stroke();
+  c.fillStyle = '#8f5e32'; c.fillRect(132, 436, 240, 84); c.fillStyle = '#7a4f29'; c.fillRect(200, 452, 104, 4);
+  const hx = 229 + Math.cos(a - Math.PI / 2) * 10, hy = 427 + Math.sin(a - Math.PI / 2) * 3.6 - 2;
+  c.lineCap = 'round'; c.strokeStyle = YOU; c.lineWidth = 6.75;
+  c.beginPath(); c.moveTo(264, 387); c.lineTo(hx + 4, hy); c.moveTo(240, 387); c.lineTo(214, 426); c.stroke();
+  c.strokeStyle = '#f2c94c'; c.lineWidth = 3; c.beginPath(); c.moveTo(hx, hy + 2); c.lineTo(hx + 7, hy - 12); c.stroke();
+  c.fillStyle = SKINS[0]; circ(c, hx + 4, hy, 3.9); c.fill(); circ(c, 214, 426, 3.9); c.fill();
+  // 丸めた紙
+  const nb = Math.min(12, Math.floor(seg(t, 1.6, 9) * 13));
+  for (let i = 0; i < nb; i++) { const [bx, by, br] = E2_BALLS[i]; c.fillStyle = '#f7f7f7'; circ(c, bx, by, br); c.fill(); c.strokeStyle = '#c9c9c9'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(bx - br * 0.5, by - br * 0.2); c.lineTo(bx + br * 0.1, by + br * 0.3); c.lineTo(bx + br * 0.5, by - br * 0.3); c.stroke(); }
+}
+const END2_CAPS = p => [[0.2, 2.2, `国民度 ${p}%。おしい…`], [2.2, 5.0, 'あなたは 毎日 日の丸を描く練習をした'], [5.0, 7.6, '1日目… 30日目… 100日目…'], [7.6, Infinity, 'いつか、完璧な丸を。']];
+const END2_SFX = (() => {
+  const L = [[0.1, () => SFX.mid()]];
+  for (let i = 0; i < 12; i++) L.push([1.1 + i * 0.6, () => SFX.pencil()]);
+  [2.3, 4.1, 5.9, 7.1].forEach(at => L.push([at, () => SFX.crumple()]));
+  L.push([7.9, () => SFX.sting(2)]);
+  return L.sort((a, b) => a[0] - b[0]);
+})();
+
+// ===== [SEC:END3] =====
+// 結構一致した：町内会で表彰
+function e3Hall(c, t, E) {
+  band(c, -900, 470, '#d9b98a');
+  c.strokeStyle = 'rgba(120,80,40,.18)'; c.lineWidth = 2; for (let x = -900; x < 1260; x += 30) { c.beginPath(); c.moveTo(x, -900); c.lineTo(x, 300); c.stroke(); }
+  c.save(); c.beginPath(); c.rect(-900, 300, 2160, 120); c.clip(); // 紅白幕
+  for (let x = -900, i = 0; x < 1260; x += 20, i++) { c.fillStyle = i % 2 ? '#fff' : RED; c.fillRect(x, 300, 20, 120); }
+  c.fillStyle = 'rgba(0,0,0,.08)'; for (let x = -900; x < 1260; x += 40) c.fillRect(x + 14, 300, 8, 120);
+  c.fillStyle = '#3a2a1a'; c.fillRect(-900, 300, 2160, 5); c.restore();
+  c.strokeStyle = '#6b4a2f'; c.lineWidth = 2; c.beginPath(); c.moveTo(60, 30); c.lineTo(60, 80); c.moveTo(300, 30); c.lineTo(300, 80); c.stroke();
+  c.fillStyle = '#fffdf6'; rrect(c, 24, 80, 312, 58, 6); c.fill(); c.strokeStyle = '#c9a14a'; c.lineWidth = 2; c.stroke();
+  c.fillStyle = INK; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `800 25px ${FONT}`; c.fillText('町内国旗名人 表彰式', 180, 110);
+  [[26, 82], [334, 82]].forEach(([x, y]) => { c.fillStyle = RED; circ(c, x, y, 13); c.fill(); c.fillStyle = '#fff'; circ(c, x, y, 6); c.fill(); });
+  band(c, 420, 480, '#c99a5e'); band(c, 480, 492, '#8a6236'); band(c, 492, 1540, '#b5895a');
+  // 画架にあなたの旗
+  c.strokeStyle = '#6b4a2f'; c.lineWidth = 3; c.beginPath(); c.moveTo(38, 478); c.lineTo(58, 372); c.lineTo(78, 478); c.moveTo(58, 372); c.lineTo(58, 478); c.stroke();
+  c.fillStyle = '#6b4a2f'; c.fillRect(22, 360, 72, 50); c.drawImage(E.img, 26, 364, 64, 42.7);
+  // 町内会長
+  const giving = t > 1.6 && t < 2.8;
+  const ch = person(c, 120, 472, 1.35, { bald: true, hair: '#9a9a9a', glasses: true, shirt: '#4b4f5a', tie: '#8a1c2b', arms: giving ? 'give' : 'down' });
+  // あなた
+  const wk = seg(t, 0.2, 1.6), yx = 390 - 160 * wk, walking = wk > 0 && wk < 1, got = t > 2.6;
+  const bow = t > 2.9 && t < 3.6 ? -0.16 * Math.sin(Math.PI * seg(t, 2.9, 3.6)) : 0;
+  const yh = person(c, yx, 472, 1.35, { walk: walking ? t * 9 : null, arms: got ? 'hold2' : 'down', mood: got ? 'grin' : 'smile', rot: bow });
+  if (t > 1.6) { // 賞状
+    const from = ch[1], to = [(yh[0][0] + yh[1][0]) / 2, yh[0][1] - 4], k = easeIO(seg(t, 2.1, 2.6));
+    const cx = from[0] + (to[0] - from[0]) * k + (k < 1 ? 6 : 0), cy = from[1] + (to[1] - from[1]) * k - 6;
+    c.fillStyle = '#fffaf0'; c.fillRect(cx - 15, cy - 11, 30, 22); c.strokeStyle = '#c9a14a'; c.lineWidth = 2; c.strokeRect(cx - 13, cy - 9, 26, 18);
+  }
+  if (t > 2.7) sparkles(c, t, yx, 410, 34);
+  // 観客（うしろ姿）
+  const clap = t > 2.9;
+  [[20, '#3f8fd8', HAIRS[1]], [125, '#e2553a', HAIRS[4]], [235, '#3fbf6a', HAIRS[0]], [340, '#9b6bd6', HAIRS[2]]].forEach(([x, sh, hr], i) => back(c, x, 560, 1.2, { shirt: sh, hair: hr, ph: clap ? t * 16 + i * 1.3 : null }));
+  [[70, '#f08a2c', HAIRS[3]], [180, '#5b7fb0', HAIRS[4], true], [290, '#ff7ab6', HAIRS[0]]].forEach(([x, sh, hr, bald], i) => back(c, x, 618, 1.45, { shirt: sh, hair: hr, bald, ph: clap ? t * 15 + i * 2.1 : null }));
+}
+function e3Cert(c, t, E) {
+  band(c, -900, 1540, '#d7d79a');
+  c.strokeStyle = 'rgba(90,90,40,.2)'; c.lineWidth = 2; for (let y = -900; y < 1540; y += 18) { c.beginPath(); c.moveTo(-900, y); c.lineTo(1260, y); c.stroke(); }
+  band(c, 452, 464, '#2f3b2a');
+  const k = easeOut(seg(t, 0, 0.6));
+  c.save(); c.globalAlpha = k; c.translate(0, (1 - k) * 60);
+  c.fillStyle = 'rgba(0,0,0,.18)'; c.fillRect(32, 46, 308, 380);
+  c.fillStyle = '#fffaf0'; c.fillRect(26, 40, 308, 380);
+  c.strokeStyle = '#c9a14a'; c.lineWidth = 4; c.strokeRect(36, 50, 288, 360); c.lineWidth = 1.2; c.strokeRect(42, 56, 276, 348);
+  const p = E.pct, now = new Date();
+  vtext(c, '賞状', 292, 72, 34, 1.7);
+  vtext(c, '町内国旗名人', 250, 78, 21);
+  vtext(c, 'あなた', 216, 150, 19); vtext(c, '殿', 216, 230, 19);
+  vtext(c, `あなたは国民度${kanji(p)}％の`, 180, 78, 16.5);
+  vtext(c, '見事な日の丸を一筆で描き', 154, 78, 16.5);
+  vtext(c, '町内の名誉を高めました', 128, 78, 16.5);
+  vtext(c, 'よってこれを賞します', 102, 78, 16.5);
+  vtext(c, `令和${kanji(now.getFullYear() - 2018)}年${kanji(now.getMonth() + 1)}月${kanji(now.getDate())}日`, 76, 92, 13);
+  vtext(c, '町内会長', 54, 236, 15);
+  c.strokeStyle = RED; c.lineWidth = 2; c.strokeRect(43, 312, 22, 22); vtext(c, '印', 54, 315, 15, 1.1, RED);
+  c.restore();
+  if (t > 0.6) sparkles(c, t, 180, 230, 150);
+  // 記念品の手ぬぐい
+  const k2 = easeBack(seg(t, 2.0, 2.5));
+  if (k2 > 0) {
+    c.save(); c.translate(180, 500 + (1 - k2) * 120); c.rotate(-0.04);
+    c.fillStyle = 'rgba(0,0,0,.15)'; c.fillRect(-116, -46, 236, 100);
+    c.fillStyle = '#fbfbfb'; c.fillRect(-120, -50, 240, 100);
+    c.fillStyle = '#2c3e7a'; c.fillRect(-120, -50, 14, 100); c.fillRect(106, -50, 14, 100);
+    c.strokeStyle = '#ddd'; c.lineWidth = 1; for (let y = -48; y < 50; y += 6) { c.beginPath(); c.moveTo(-124, y); c.lineTo(-120, y); c.moveTo(120, y); c.lineTo(124, y); c.stroke(); }
+    c.fillStyle = RED; circ(c, 0, 0, 30); c.fill();
+    c.fillStyle = RED; rrect(c, 60, -66, 64, 24, 6); c.fill(); c.fillStyle = '#fff'; c.font = `800 13px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('記念品', 92, -54);
+    c.restore();
+  }
+}
+function end3(c, t, E) {
+  if (t < 5) e3Hall(c, t, E); else e3Cert(c, t - 5, E);
+  dip(c, t, 5);
+}
+const END3_CAPS = p => [[0.2, 1.8, `国民度 ${p}%！`], [1.8, 4.85, '町内会から 表彰された'], [5.1, 7.2, '「町内国旗名人」の称号を手に入れた'], [7.2, Infinity, '記念品は 国旗の手ぬぐい']];
+const END3_SFX = [[0.1, () => SFX.chime()], [2.5, () => SFX.sparkle()], [3.0, () => SFX.clap(2.6, 14)], [5.0, () => SFX.fanfareS()], [7.0, () => SFX.sparkle()], [8.9, () => SFX.sting(3)]];
+
+// ===== [SEC:END4] =====
+// ほとんど一致した：家が開いて大勢に拍手される → ニュース → 電光掲示板
+const CROWD = (() => {
+  const R = rng(77), L = [];
+  const add = (x, y, s, layer) => { const r = R(); L.push({ x, y, s, layer, shirt: SHIRTS[Math.floor(R() * SHIRTS.length)], hair: HAIRS[Math.floor(R() * HAIRS.length)], skin: SKINS[Math.floor(R() * SKINS.length)], long: R() < 0.4, mode: r < 0.2 ? 'flag' : r < 0.45 ? 'up' : 'clap', ph: R() * TAU, sp: 12 + R() * 6, delay: R() * 1.2, mood: R() < 0.6 ? 'grin' : 'smile' }); };
+  for (let x = 8; x <= 352; x += 26) add(x + (R() - 0.5) * 8, 392, 0.68, 0);
+  for (let x = 20; x <= 340; x += 30) add(x + (R() - 0.5) * 8, 416, 0.78, 0);
+  for (let x = 14; x <= 346; x += 36) if (Math.abs(x - 180) > 52) add(x + (R() - 0.5) * 6, 442, 0.88, 0);
+  [[30, 520], [80, 528], [282, 528], [332, 520]].forEach(([x, y]) => add(x, y, 1.12, 1));
+  [[22, 590], [96, 602], [266, 602], [340, 590]].forEach(([x, y]) => add(x, y, 1.3, 1));
+  return L;
+})();
+const CROWD_BACK = CROWD.filter(p => p.layer === 0);
+const CITY = (() => {
+  const R = rng(11), B = []; let x = -300;
+  while (x < 660) { const w = 50 + R() * 70, h = 170 + R() * 250; B.push({ x, w, top: 540 - h, col: ['#1a2140', '#232b52', '#151b36', '#1d2547'][Math.floor(R() * 4)], seed: Math.floor(R() * 1000) }); x += w + 3; }
+  return B;
+})();
+function e4Street(c, t) {
+  sky(c, '#6fbdf0', '#d6efff', 0, 470);
+  cloud(c, 30 + t * 5, 110, 1.1); cloud(c, 250 + t * 3, 70, 0.8); cloud(c, 160 + t * 4, 180, 0.6);
+  band(c, 470, 545, '#9fd07c'); band(c, 545, 1540, '#8a9099');
+  c.fillStyle = '#fff'; for (let x = -900; x < 1260; x += 48) c.fillRect(x, 610, 26, 3);
+  c.strokeStyle = '#6b5a4a'; c.lineWidth = 6; c.beginPath(); c.moveTo(16, 545); c.lineTo(16, 210); c.stroke();
+  c.lineWidth = 4; c.beginPath(); c.moveTo(0, 226); c.lineTo(32, 226); c.stroke();
+  c.strokeStyle = '#333'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(-900, 240); c.quadraticCurveTo(-400, 262, 0, 228); c.moveTo(32, 228); c.quadraticCurveTo(600, 262, 1260, 236); c.stroke();
+  c.fillStyle = '#7a5a3a'; c.fillRect(326, 400, 12, 80);
+  c.fillStyle = '#4fa85a'; [[332, 380, 34], [312, 400, 24], [352, 404, 24]].forEach(([x, y, r]) => { circ(c, x, y, r); c.fill(); });
+}
+function frontWall(c, withYou, t) { // 家の表の壁（下端が y=0）
+  c.fillStyle = '#f3e6cc'; c.fillRect(70, -130, 220, 130); c.strokeStyle = '#c9b48f'; c.lineWidth = 2; c.strokeRect(70, -130, 220, 130);
+  [[88, -108], [216, -108]].forEach(([x, y], i) => {
+    c.fillStyle = '#bfe4ff'; c.fillRect(x, y, 56, 46);
+    if (i === 0 && withYou) { c.save(); c.beginPath(); c.rect(x, y, 56, 46); c.clip(); person(c, x + 28, y + 64, 0.8, { arms: 'none', mood: t > 1.6 ? 'open' : 'smile' }); c.restore(); }
+    if (i === 1) { c.fillStyle = '#e8a0a0'; c.fillRect(x, y, 14, 46); c.fillRect(x + 42, y, 14, 46); }
+    c.strokeStyle = '#fff'; c.lineWidth = 4; c.strokeRect(x, y, 56, 46); c.beginPath(); c.moveTo(x + 28, y); c.lineTo(x + 28, y + 46); c.stroke();
+  });
+  c.fillStyle = '#8a5a3a'; c.fillRect(160, -72, 40, 72); c.fillStyle = '#e8c35a'; circ(c, 192, -36, 2.6); c.fill();
+}
+function roof(c) {
+  c.fillStyle = '#46557a'; c.beginPath(); c.moveTo(48, 344); c.lineTo(312, 344); c.lineTo(272, 268); c.lineTo(88, 268); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(255,255,255,.18)'; c.lineWidth = 2; for (let y = 284; y < 344; y += 15) { const k = (y - 268) / 76; c.beginPath(); c.moveTo(88 - 40 * k, y); c.lineTo(272 + 40 * k, y); c.stroke(); }
+  c.fillStyle = '#36425f'; c.fillRect(84, 262, 192, 9);
+}
+function e4House(c, t) {
+  e4Street(c, t);
+  const amp = 3.5 * seg(t, 1.6, 3.2), sx = (Math.random() - 0.5) * 2 * amp, sy = (Math.random() - 0.5) * amp;
+  c.save(); c.translate(sx, sy); c.save(); c.translate(0, 470); frontWall(c, true, t); c.restore(); roof(c); c.restore();
+  if (t > 2.0) { const k = easeBack(seg(t, 2.0, 2.3)); c.save(); c.translate(180, 222); c.scale(k, k); c.fillStyle = RED; c.strokeStyle = '#fff'; c.lineWidth = 6; c.font = `800 50px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.strokeText('！？', 0, 0); c.fillText('！？', 0, 0); c.restore(); }
+}
+function drawCrowd(c, t, tb, layer, E) {
+  CROWD.forEach((p, i) => {
+    if (p.layer !== layer) return;
+    const k = easeBack(seg(tb, 0.35 + p.delay, 0.6 + p.delay)); if (k <= 0.01) return;
+    const ph = t * p.sp + p.ph;
+    const hands = person(c, p.x, p.y, p.s * k, { shirt: p.shirt, hair: p.hair, skin: p.skin, long: p.long, mood: p.mood, arms: p.mode === 'flag' ? 'hold' : p.mode, ph, hop: p.mode === 'up' ? ph * 0.5 : null });
+    if (p.mode === 'flag') { const [hx, hy] = hands[1]; flagOnPole(c, E.img, hx, hy - 30 * p.s * k, hy + 4 * p.s * k, 26 * p.s * k, t + i, 0.08); }
+  });
+}
+function flashes(c, t) { // カメラのフラッシュ
+  for (let i = 0; i < 5; i++) {
+    const u = t * 2.6 + i * 0.37, ph = u % 1; if (ph > 0.16) continue;
+    const p = CROWD_BACK[(Math.floor(u) * 7 + i * 13) % CROWD_BACK.length], a = 1 - ph / 0.16, x = p.x + 6, y = p.y - 52 * p.s;
+    c.save(); c.globalAlpha = a; const g = c.createRadialGradient(x, y, 0, x, y, 18); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; circ(c, x, y, 18); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x - 14, y); c.lineTo(x + 14, y); c.moveTo(x, y - 14); c.lineTo(x, y + 14); c.stroke(); c.restore();
+  }
+}
+function e4Open(c, t, tb, E) {
+  e4Street(c, t);
+  drawCrowd(c, t, tb, 0, E);
+  const a = Math.PI / 2 * easeIn(seg(tb, 0.05, 0.42)), kb = Math.max(0.12, Math.cos(a));
+  c.save(); c.translate(0, 470); c.scale(1, kb); c.fillStyle = '#efe3c5'; c.fillRect(70, -130, 220, 130);
+  c.fillStyle = '#f7f0dc'; c.fillRect(166, -118, 28, 84); c.fillStyle = RED; circ(c, 180, -84, 8); c.fill(); c.restore();
+  c.fillStyle = '#c9d08a'; c.beginPath(); c.moveTo(74, 454); c.lineTo(286, 454); c.lineTo(296, 476); c.lineTo(64, 476); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(80,90,40,.3)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(145, 454); c.lineTo(142, 476); c.moveTo(215, 454); c.lineTo(218, 476); c.stroke();
+  c.fillStyle = '#6b5236'; c.fillRect(64, 476, 232, 7);
+  const yh = person(c, 180, 468, 1.3, { arms: 'hold', mood: tb > 0.5 ? 'grin' : 'open', hop: tb > 1 ? tb * 7 : null });
+  const [hx, hy] = yh[1]; flagOnPole(c, E.img, hx, hy - 52, hy + 6, 58, t, 0.06);
+  if (tb < 1.3) { c.save(); c.translate(180, 305 - 1200 * tb * tb); c.rotate(tb * 2.2); c.translate(-180, -305); roof(c); c.restore(); }
+  let af = Math.PI / 2 * easeIn(seg(tb, 0, 0.42));
+  if (tb > 0.42) af = Math.PI / 2 - 0.12 * Math.abs(Math.sin((tb - 0.42) * 14)) * Math.exp(-(tb - 0.42) * 6);
+  c.save(); c.translate(0, 470); c.scale(1, Math.cos(af) - 0.32 * Math.sin(af)); frontWall(c, false, t); c.restore();
+  if (tb > 0.4 && tb < 1.2) { const k = seg(tb, 0.4, 1.2); c.fillStyle = `rgba(200,190,170,${0.7 * (1 - k)})`; for (let x = 70; x <= 290; x += 36) { circ(c, x, 505 - k * 10, 10 + k * 22); c.fill(); } }
+  drawCrowd(c, t, tb, 1, E);
+  if (tb > 0.4) { confetti(c, tb - 0.4, 5, 70, -60, 420, -20, 640); flashes(c, t); }
+}
+function e4News(c, t, tc, E) {
+  band(c, -900, 470, '#e9dcc6'); band(c, 470, 1540, '#b98a5a');
+  c.fillStyle = '#4fa85a'; circ(c, 340, 400, 18); c.fill(); circ(c, 326, 384, 12); c.fill(); c.fillStyle = '#c0704a'; c.fillRect(328, 412, 24, 40);
+  c.fillStyle = '#5a3d27'; c.fillRect(24, 376, 312, 94); c.fillStyle = '#4a3220'; c.fillRect(24, 420, 312, 3);
+  c.fillStyle = '#222'; c.fillRect(165, 356, 30, 20);
+  c.fillStyle = '#16181d'; rrect(c, 4, 160, 352, 200, 10); c.fill();
+  c.save(); c.beginPath(); c.rect(12, 168, 336, 184); c.clip();
+  if (tc < 0.3) { c.fillStyle = '#000'; c.fillRect(12, 168, 336, 184); const h = 184 * easeOut(seg(tc, 0, 0.3)); c.fillStyle = '#fff'; c.fillRect(12, 260 - h / 2, 336, Math.max(2, h)); }
+  else {
+    const g = c.createLinearGradient(12, 168, 348, 352); g.addColorStop(0, '#173a8a'); g.addColorStop(1, '#2c74d6'); c.fillStyle = g; c.fillRect(12, 168, 336, 184);
+    c.fillStyle = 'rgba(255,255,255,.07)'; for (let i = 0; i < 5; i++) { const x = ((t * 30 + i * 90) % 450) - 60; c.beginPath(); c.moveTo(x, 168); c.lineTo(x + 30, 168); c.lineTo(x - 30, 352); c.lineTo(x - 60, 352); c.closePath(); c.fill(); }
+    c.fillStyle = RED; rrect(c, 20, 176, 58, 24, 4); c.fill(); c.fillStyle = '#fff'; c.font = `800 15px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('速報', 49, 188);
+    c.font = `800 11px ${FONT}`; c.textAlign = 'right'; c.fillText('LIVE 19:00', 340, 186);
+    c.fillStyle = '#fff'; c.fillRect(24, 208, 132, 90); c.drawImage(E.img, 26, 210, 128, 85.3);
+    c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(102, 284, 52, 14); c.fillStyle = '#fff'; c.font = `800 9px ${FONT}`; c.textAlign = 'center'; c.fillText('提供：本人', 128, 291);
+    person(c, 262, 320, 1.15, { shirt: '#2b3b5c', tie: RED, arms: 'none', mood: Math.floor(t * 7) % 2 ? 'open' : 'smile' });
+    c.fillStyle = '#dfe8f5'; c.fillRect(196, 284, 144, 16); c.fillStyle = '#9fb3d1'; c.fillRect(196, 284, 144, 3);
+    c.fillStyle = '#fff'; c.fillRect(12, 300, 336, 30); c.fillStyle = RED; c.fillRect(12, 300, 10, 30);
+    c.fillStyle = INK; c.font = `800 17px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText('完璧な日の丸を描いた人 あらわる', 30, 315);
+    c.fillStyle = '#0d1f4d'; c.fillRect(12, 330, 336, 22);
+    c.save(); c.beginPath(); c.rect(12, 330, 336, 22); c.clip();
+    marquee(c, `国民度${E.pct}％を記録　専門家「教科書のような丸」　近所の人「前から丸い人だと思っていた」　町内会長「町内の誇りです」　`, 12, 330, 336, 22, tc, 70, '#fff'); c.restore();
+  }
+  c.fillStyle = 'rgba(255,255,255,.05)'; c.beginPath(); c.moveTo(12, 168); c.lineTo(200, 168); c.lineTo(110, 352); c.lineTo(12, 352); c.closePath(); c.fill();
+  c.restore();
+  back(c, 110, 610, 1.6, { shirt: '#e2553a', hair: HAIRS[1] }); back(c, 250, 616, 1.7, { shirt: '#3fbf6a', hair: HAIRS[4], bald: true });
+}
+function e4City(c, t, td, E) {
+  sky(c, '#070b24', '#33215e', -100, 540); stars(c, t, 5, 70, 300);
+  for (let i = 0; i < 2; i++) { const ang = -Math.PI / 2 + Math.sin(t * 0.8 + i * 2.2) * 0.5, x0 = i ? 310 : 50; c.save(); c.translate(x0, 560); c.rotate(ang); c.fillStyle = 'rgba(255,240,200,.09)'; c.beginPath(); c.moveTo(0, 0); c.lineTo(760, -60); c.lineTo(760, 60); c.closePath(); c.fill(); c.restore(); }
+  const R = rng(3); for (let x = -300; x < 660; x += 40) { const h = 100 + R() * 120; c.fillStyle = '#121838'; c.fillRect(x, 540 - h - 60, 42, h + 60); }
+  CITY.forEach(b => {
+    c.fillStyle = b.col; c.fillRect(b.x, b.top, b.w, 540 - b.top);
+    for (let gx = 6; gx < b.w - 8; gx += 12) for (let gy = 10; gy < 540 - b.top - 10; gy += 16) {
+      const hsh = hash(b.seed + gx, gy); if (hsh > 0.36) continue;
+      c.fillStyle = `rgba(255,217,138,${hsh < 0.02 ? 0.4 + 0.5 * Math.abs(Math.sin(t * 3 + gx)) : 0.75})`; c.fillRect(b.x + gx, b.top + gy, 6, 8);
+    }
+  });
+  const on = d => seg(td, d, d + 0.35);
+  screen(c, 70, 96, 220, 136, on(0), () => { c.fillStyle = RED; c.fillRect(70, 96, 220, 136); c.drawImage(E.img, 78, 96, 204, 136); c.fillStyle = 'rgba(10,10,20,.82)'; c.fillRect(70, 206, 220, 26); c.fillStyle = '#ffd23f'; c.font = `800 16px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('祝・国民的英雄 誕生', 180, 220); });
+  screen(c, 12, 262, 108, 80, on(0.3), () => faceShot(c, 12, 262, 108, 80, '#ffd23f', t));
+  screen(c, 240, 252, 110, 80, on(0.5), () => { if (Math.floor(td / 0.9) % 2) faceShot(c, 240, 252, 110, 80, '#ff7ab6', t); else { c.fillStyle = '#fff'; c.fillRect(240, 252, 110, 80); c.drawImage(E.img, 245, 255, 100, 66.7); } });
+  screen(c, 14, 150, 46, 92, on(0.7), () => { c.fillStyle = '#0a0a12'; c.fillRect(14, 150, 46, 92); c.save(); c.shadowColor = '#ff5fa2'; c.shadowBlur = 10; vtext(c, 'あなた', 37, 158, 24, 1.1, '#ff8cc0', FONT); c.restore(); });
+  screen(c, 298, 150, 52, 70, on(0.9), () => faceShot(c, 298, 150, 52, 70, '#7fd3ff', t));
+  screen(c, 132, 262, 96, 60, on(1.1), () => { c.fillStyle = '#0a0a12'; c.fillRect(132, 262, 96, 60); c.fillStyle = '#ffb347'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `800 11px ${FONT}`; c.fillText('国民度', 180, 274); c.font = `800 30px ${FONT}`; c.fillText(`${E.pct}%`, 180, 302); });
+  screen(c, -400, 372, 1160, 34, on(0.2), () => { c.fillStyle = '#0a0a12'; c.fillRect(-400, 372, 1160, 34); marquee(c, `祝　国民度${E.pct}％　あなたは国民的英雄です　★　`, -400, 372, 1160, 34, td, 90, '#ffb347'); });
+  band(c, 540, 1540, '#10131f'); c.fillStyle = 'rgba(255,180,90,.08)'; c.fillRect(-900, 540, 2160, 30);
+  for (let i = 0; i < 24; i++) {
+    const x = -50 + i * 20 + hash(i, 1) * 8, y = 572 + (i % 2) * 12, w = Math.sin(t * 6 + i) * 4;
+    c.fillStyle = '#0a0d18'; circ(c, x, y, 9); c.fill(); c.fillRect(x - 12, y + 8, 24, 30);
+    if (i % 3 === 0) { c.strokeStyle = '#0a0d18'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + 8, y + 10); c.lineTo(x + 12 + w, y - 18); c.stroke(); c.fillStyle = '#fff'; c.fillRect(x + 12 + w, y - 26, 14, 9); c.fillStyle = RED; circ(c, x + 19 + w, y - 21.5, 2.6); c.fill(); }
+  }
+}
+function end4(c, t, E) {
+  if (t < 3.2) e4House(c, t);
+  else if (t < 7.4) e4Open(c, t, t - 3.2, E);
+  else if (t < 10.2) e4News(c, t, t - 7.4, E);
+  else e4City(c, t, t - 10.2, E);
+  dip(c, t, 3.2); dip(c, t, 7.4); dip(c, t, 10.2, '0,0,0');
+}
+const END4_CAPS = p => [[0.2, 2.0, `国民度 ${p}%…！？`], [2.0, 3.15, 'その時、家が——'], [3.4, 5.2, '家が 急に 開いた！'], [5.2, 7.35, '大勢の人が あなたを囲んで 拍手している'], [7.6, 10.15, 'ニュースにもなった'], [10.4, Infinity, '街の電光掲示板も あなたで いっぱい']];
+const END4_SFX = [[0.1, () => tone(440, 0.7, { to: 880, vol: 0.08 })], [1.6, () => SFX.rumble(1.6)], [3.2, () => SFX.bang()], [3.35, () => SFX.fanfare()], [3.5, () => { SFX.clap(3.8, 40); SFX.cheer(3.8); }], [7.4, () => SFX.news()], [10.2, () => SFX.fanfare()], [10.3, () => SFX.clap(3, 26)], [11.9, () => SFX.sting(4)]];
+
+const ENDINGS = [null,
+  { draw: end1, caps: END1_CAPS, sfx: END1_SFX, thumb: 5.6 },
+  { draw: end2, caps: END2_CAPS, sfx: END2_SFX, thumb: 7.2 },
+  { draw: end3, caps: END3_CAPS, sfx: END3_SFX, thumb: 3.3 },
+  { draw: end4, caps: END4_CAPS, sfx: END4_SFX, thumb: 5.8 },
+];
+
+// ===== [SEC:GAME] =====
+const G = { state: 'title', pts: [], len: 0, down: false, pid: null, jt: 0, res: null, endN: 1, et: 0, sfxI: 0, E: null, endFrom: 'result', zkFrom: 'title', drum: false, counted: false, btn: false };
+const WHITE = makeFlagImg([], 120);
+function hideAll() { ['title', 'drawUI', 'result', 'zukan', 'skipBtn'].forEach(hide); }
+function goTitle() { G.state = 'title'; cutSfx(); hideAll(); show('title'); refreshTitle(); }
+function startDraw() {
+  G.state = 'draw'; G.pts = []; G.len = 0; G.down = false; cutSfx(); hideAll();
+  show('drawUI'); show('drawHead'); show('drawSub'); hide('judge'); hide('toEndBtn'); $('drawWarn').textContent = '';
+}
+function submit() {
+  const s = scoreShape(G.pts), pct = Math.floor(s.pct), n = rankOf(pct);
+  G.res = { s, pct, n, newBest: pct > SV.best, newEnd: !SV.ends[n] };
+  SV.plays++; if (pct > SV.best) SV.best = pct;
+  if (!SV.ends[n] || pct >= SV.ends[n].pct) SV.ends[n] = { pct, pts: packPts(G.pts) };
+  writeSave();
+  G.state = 'judge'; G.jt = 0; G.drum = G.counted = G.btn = false;
+  hide('drawHead'); hide('drawSub'); show('judge'); $('jNum').textContent = '0'; $('jVerdict').textContent = '';
+  SFX.pop();
+}
+function updateJudge(dt) {
+  G.jt += dt; const J = CONFIG.JUDGE, r = G.res, c0 = J.FILL + J.REVEAL, c1 = c0 + J.COUNT;
+  if (!G.drum && G.jt >= c0) { G.drum = true; SFX.drum(J.COUNT); }
+  if (G.jt >= c0 && !G.counted) $('jNum').textContent = Math.floor(r.pct * easeOut(seg(G.jt, c0, c1)));
+  if (!G.counted && G.jt >= c1) { G.counted = true; $('jNum').textContent = r.pct; $('jVerdict').textContent = ENDS[r.n].verdict; r.n >= 3 ? SFX.good() : r.n === 2 ? SFX.mid() : SFX.bad(); }
+  if (!G.btn && G.jt >= c1 + J.PAUSE) { G.btn = true; show('toEndBtn'); }
+}
+function playEnding(n, pts, pct, from) {
+  G.state = 'ending'; G.endN = n; G.et = 0; G.sfxI = 0; G.endFrom = from; G.E = { pct, img: makeFlagImg(pts) };
+  cutSfx(); hideAll(); show('skipBtn');
+}
+function updateEnding(dt) {
+  G.et += dt; const list = ENDINGS[G.endN].sfx;
+  while (G.sfxI < list.length && list[G.sfxI][0] <= G.et) { list[G.sfxI][1](); G.sfxI++; }
+  if (G.et >= CONFIG.END_SEC[G.endN]) hide('skipBtn');
+}
+function skipEnding() {
+  if (G.state !== 'ending') return;
+  G.et = Math.max(G.et, CONFIG.END_SEC[G.endN]); G.sfxI = ENDINGS[G.endN].sfx.length; cutSfx(); hide('skipBtn');
+}
+function finishEnding() { if (G.endFrom === 'zukan') openZukan(G.zkFrom); else showResult(); }
+
+// ===== [SEC:UI] =====
+function refreshTitle() {
+  $('zkCount').textContent = `${Object.keys(SV.ends).length}/4`;
+  $('bestTxt').textContent = SV.best >= 0 ? `ベスト国民度 ${SV.best}%` : '';
+}
+function showResult() {
+  G.state = 'result'; cutSfx(); hideAll(); show('result'); $('result').scrollTop = 0;
+  const r = G.res, e = ENDS[r.n];
+  $('rNum').textContent = r.pct; $('rEnd').textContent = `END ${r.n}「${e.name}」`; $('rCom').textContent = e.com;
+  $('rNew').classList.toggle('hidden', !r.newEnd);
+  $('rTags').innerHTML = advice(r.s).map(s => `<span>${s}</span>`).join('');
+  $('rBest').textContent = r.newBest && SV.plays > 1 ? `ベスト更新！ 最高 ${SV.best}%` : `これまでの最高 ${SV.best}%`;
+  $('rZukanBtn').textContent = `エンディング図鑑 ${Object.keys(SV.ends).length}/4`;
+  const cv = $('rFlag'), w = cv.clientWidth || 300, h = w / 1.5, d = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  const x = cv.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h);
+  paintShape(x, G.pts, h, 0, 0, 1); trueCircle(x, 0, 0, h, 1);
+  ads('ad2');
+}
+function openZukan(from) {
+  G.state = 'zukan'; G.zkFrom = from; cutSfx(); hideAll(); show('zukan'); $('zukan').scrollTop = 0;
+  const got = Object.keys(SV.ends).length; $('zkSub').textContent = `${got}/4 見ました`;
+  const ul = $('zkList'); ul.innerHTML = '';
+  for (let n = 1; n <= 4; n++) {
+    const sv = SV.ends[n], li = document.createElement('li'); li.className = 'zk' + (sv ? '' : ' lock');
+    const cv = document.createElement('canvas'); cv.width = 270; cv.height = 360; const x = cv.getContext('2d');
+    if (sv) { x.setTransform(0.75, 0, 0, 0.75, 0, -75); ENDINGS[n].draw(x, ENDINGS[n].thumb, { pct: sv.pct, img: makeFlagImg(sv.pts) }); }
+    else { x.fillStyle = '#2a3140'; x.fillRect(0, 0, 270, 360); x.fillStyle = 'rgba(255,255,255,.5)'; x.font = `800 90px ${FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('？', 135, 180); }
+    li.appendChild(cv);
+    li.insertAdjacentHTML('beforeend', `<span class="no">END ${n}</span><span class="nm">${sv ? ENDS[n].name : '？？？'}</span><span class="cd">${condText(n)}${sv ? `（記録 ${sv.pct}%）` : ''}</span>`);
+    if (sv) { const b = document.createElement('button'); b.className = 'sml'; b.textContent = '見る'; b.onclick = () => playEnding(n, sv.pts, sv.pct, 'zukan'); li.appendChild(b); }
+    ul.appendChild(li);
+  }
+}
+function share() {
+  const r = G.res; if (!r) return;
+  const txt = `日の丸を一筆で描いたら、国民度 ${r.pct}% でした。\nEND${r.n}「${ENDS[r.n].name}」\n#国民度チェック`;
+  open('https://x.com/intent/post?text=' + encodeURIComponent(txt) + '&url=' + encodeURIComponent(CONFIG.URL), '_blank', 'noopener');
+}
+function ads(id) { const z = $(id); if (!z || z.firstChild || !/(^|\.)nkworks-games\.com$/.test(location.hostname)) return; z.innerHTML = '<ins class="adsbygoogle" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>'; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} }
+function muteLabel() { $('muteBtn').classList.toggle('off', SV.mute); }
+$('startBtn').onclick = () => { ac(); startDraw(); };
+$('zukanBtn').onclick = () => openZukan('title');
+$('toEndBtn').onclick = () => playEnding(G.res.n, G.pts, G.res.pct, 'result');
+$('againBtn').onclick = startDraw;
+$('shareBtn').onclick = share;
+$('rZukanBtn').onclick = () => openZukan('result');
+$('rTitleBtn').onclick = goTitle;
+$('zkBack').onclick = () => (G.zkFrom === 'result' && G.res ? showResult() : goTitle());
+$('skipBtn').onclick = skipEnding;
+$('muteBtn').onclick = () => { SV.mute = !SV.mute; writeSave(); muteLabel(); if (SV.mute) { cutSfx(); penStop(); } else ac(); };
+
+// ===== [SEC:INPUT] =====
+const CV = $('c'), CTX = CV.getContext('2d');
+const toFlag = e => [(e.clientX - F.x) / F.h, (e.clientY - F.y) / F.h];
+CV.addEventListener('pointerdown', e => {
+  ac();
+  if (G.state === 'draw' && !G.down) {
+    e.preventDefault(); G.down = true; G.pid = e.pointerId; try { CV.setPointerCapture(e.pointerId); } catch (er) {}
+    G.pts = [toFlag(e)]; G.len = 0; $('drawWarn').textContent = ''; penStart(); return;
+  }
+  if (G.state === 'ending' && G.et >= CONFIG.END_SEC[G.endN]) finishEnding();
+});
+CV.addEventListener('pointermove', e => {
+  if (!G.down || e.pointerId !== G.pid) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+  for (const ev of (evs.length ? evs : [e])) {
+    const p = toFlag(ev), q = G.pts[G.pts.length - 1], d = Math.hypot(p[0] - q[0], p[1] - q[1]);
+    if (d > 0.006) { G.pts.push(p); G.len += d; penMove(d); }
+  }
+});
+function pointerEnd(e) {
+  if (!G.down || e.pointerId !== G.pid) return;
+  G.down = false; penStop();
+  if (G.len < CONFIG.MIN_LEN) { G.pts = []; $('drawWarn').textContent = 'もっと大きく、ぐるっと描いてね'; return; } // 小さすぎる線は描きミスとして無視
+  submit();
+}
+CV.addEventListener('pointerup', pointerEnd);
+CV.addEventListener('pointercancel', pointerEnd);
+document.addEventListener('visibilitychange', () => { if (!AC) return; if (document.hidden) AC.suspend(); else AC.resume(); });
+
+// ===== [SEC:LOOP] =====
+function stage(c) { const S = CONFIG.STAGE, k = Math.min(VW / S.W, VH / S.H); c.setTransform(DPR * k, 0, 0, DPR * k, DPR * (VW - S.W * k) / 2, DPR * (VH - S.H * k) / 2); }
+function drawBackdrop(c, t, withFlag) { // タイトル・結果・図鑑の背景
+  stage(c); band(c, -900, 1540, PAPER);
+  c.save(); c.translate(180, 280); c.rotate(t * 0.05); c.fillStyle = 'rgba(188,0,45,.07)';
+  for (let i = 0; i < 16; i++) { c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, 1400, i * TAU / 16, i * TAU / 16 + TAU / 32); c.closePath(); c.fill(); }
+  c.restore();
+  if (withFlag) { c.fillStyle = 'rgba(0,0,0,.08)'; c.beginPath(); c.ellipse(96, 500, 30, 6, 0, 0, TAU); c.fill(); flagOnPole(c, WHITE, 96, 204, 500, 170, t, 0.05); }
+}
+function drawDesk(c) { // 描く画面
+  c.setTransform(DPR, 0, 0, DPR, 0, 0);
+  c.fillStyle = PAPER; c.fillRect(0, 0, VW, VH);
+  c.save(); c.shadowColor = 'rgba(0,0,0,.2)'; c.shadowBlur = 18; c.shadowOffsetY = 6; c.fillStyle = '#fff'; c.fillRect(F.x, F.y, F.w, F.h); c.restore();
+  c.strokeStyle = 'rgba(29,42,58,.25)'; c.lineWidth = 1; c.strokeRect(F.x + 0.5, F.y + 0.5, F.w - 1, F.h - 1);
+  const pts = G.pts; if (!pts.length) return;
+  const clipFlag = () => { c.save(); c.beginPath(); c.rect(F.x, F.y, F.w, F.h); c.clip(); };
+  const openLine = a => { c.save(); c.globalAlpha = a; shapePath(c, pts, F.h, F.x, F.y, false); c.lineJoin = c.lineCap = 'round'; c.lineWidth = CONFIG.BRUSH * F.h; c.strokeStyle = RED; c.stroke(); c.restore(); };
+  if (G.state === 'draw') { openLine(0.3); clipFlag(); openLine(1); c.restore(); return; }
+  const J = CONFIG.JUDGE, fa = easeOut(seg(G.jt, 0, J.FILL));
+  openLine(0.3 * (1 - fa)); clipFlag(); paintShape(c, pts, F.h, F.x, F.y, fa, CONFIG.BRUSH + (CONFIG.LINE_FINAL - CONFIG.BRUSH) * fa); c.restore();
+  trueCircle(c, F.x, F.y, F.h, seg(G.jt, J.FILL, J.FILL + J.REVEAL));
+}
+let last = 0, T = 0;
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000 || 0); last = now; T += dt;
+  const c = CTX;
+  if (G.state === 'title') drawBackdrop(c, T, true);
+  else if (G.state === 'draw' || G.state === 'judge') { if (G.state === 'judge') updateJudge(dt); drawDesk(c); }
+  else if (G.state === 'ending') { updateEnding(dt); stage(c); const D = ENDINGS[G.endN]; D.draw(c, G.et, G.E); captions(c, G.et, D.caps(G.E.pct)); endCard(c, G.et, G.endN, G.endFrom); }
+  else drawBackdrop(c, T, false);
+  requestAnimationFrame(frame);
+}
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1); VW = window.innerWidth; VH = window.innerHeight;
+  CV.width = Math.round(VW * DPR); CV.height = Math.round(VH * DPR); layoutFlag();
+}
+
+// ===== [SEC:TEST] =====
+// 確認用：?end=1〜4 でそのエンディングから（&t=秒 で途中から）
+function testShape(n) {
+  const [cx, cy, r, w] = [null, [0.45, 0.3, 0.16, 0.1], [0.82, 0.55, 0.38, 0.05], [0.76, 0.52, 0.33, 0.03], [0.75, 0.5, 0.3, 0.01]][n], pts = [];
+  for (let i = 0; i <= 60; i++) { const a = i / 60 * TAU, rr = r * (1 + w * Math.sin(a * 3)); pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]); }
+  return pts;
+}
+function runTest(q) {
+  const n = clamp(Math.round(+q.get('end')) || 4, 1, 4), pts = testShape(n), s = scoreShape(pts), pct = Math.floor(s.pct);
+  G.pts = pts; G.res = { s, pct, n, newBest: false, newEnd: false };
+  playEnding(n, pts, pct, 'result');
+  if (q.has('t')) { G.et = +q.get('t') || 0; const L = ENDINGS[n].sfx; while (G.sfxI < L.length && L[G.sfxI][0] <= G.et) G.sfxI++; }
+}
+
+// ===== [SEC:BOOT] =====
+loadSave(); resize(); window.addEventListener('resize', resize); muteLabel(); refreshTitle();
+const Q = new URLSearchParams(location.search);
+if (Q.has('end')) runTest(Q);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
