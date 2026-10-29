@@ -122,6 +122,13 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
 .rnew{font-size:17px;font-weight:800;color:#ffc93c;min-height:1.2em}
 .stag{display:inline-block;font-size:15px;font-weight:800;background:#ffc93c;border:3px solid #1f2f46;border-radius:999px;padding:3px 14px;transform:rotate(-3deg)}
 #rImg{display:block;width:100%;height:auto;border-radius:12px;border:2px solid #e6dfcf;margin:4px 0 6px}
+.modes{display:flex;border:3px solid #1f2f46;border-radius:999px;overflow:hidden;background:#fff}
+.modes button{border:0;background:transparent;font-size:16px;font-weight:800;padding:8px 10px;min-width:118px}
+.modes button.on{background:#1f2f46;color:#fff}
+.modes button#modeH.on{background:#d2412a}
+.modes button:focus-visible{outline:3px solid #2b6cb0;outline-offset:-3px}
+.modeNote{font-size:12.5px;font-weight:800;color:#5d6b7d;line-height:1.5;min-height:1.5em;margin-top:-4px}
+.mtag{flex-shrink:0;font-size:11px;font-weight:800;color:#fff;background:#d2412a;border-radius:999px;padding:2px 8px}
 .badge{display:inline-block;font-size:13px;font-weight:800;background:#ff8fb1;color:#fff;border:3px solid #1f2f46;border-radius:999px;padding:2px 12px;transform:rotate(-3deg)}
 @media (max-height:620px){#legend{display:none}#msg{font-size:13px;padding:3px 8px;margin:3px}}
 </style>
@@ -129,7 +136,7 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
 <body>
 <div id="app">
   <div id="hud">
-    <div class="hrow"><div id="monthLab">1か月目</div><div id="dayLab">通算 0日</div><div class="hsp"></div><div id="swapRow"><span>交換</span><span id="swapDots"></span></div><button class="ibtn" id="pauseBtn" aria-label="一時停止">Ⅱ</button></div>
+    <div class="hrow"><div id="monthLab">1か月目</div><span class="mtag hidden" id="modeTag">ハード</span><div id="dayLab">通算 0日</div><div class="hsp"></div><div id="swapRow"><span>交換</span><span id="swapDots"></span></div><button class="ibtn" id="pauseBtn" aria-label="一時停止">Ⅱ</button></div>
   </div>
   <div id="panel">
     <div id="sceneWrap"><canvas id="scene"></canvas><div id="hpBox"><span>体力</span><div id="hpBar"><div id="hpFill"></div></div><span id="hpTxt">100</span></div></div>
@@ -151,6 +158,8 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
   <div class="logo">連休を<br><span class="k">ください</span></div>
   <div class="deco"><i></i><i></i><i class="o"></i><i class="o"></i><i class="o"></i><i></i><i class="d"></i></div>
   <p class="lead">休みの数は<b>8日のまま</b>。動かすだけ。<br>残業・トラブルを見越して連休を作り、<br>激務の毎日を<b>何日もちこたえる？</b></p>
+  <div class="modes" role="radiogroup" aria-label="むずかしさ"><button id="modeN" role="radio">ノーマル</button><button id="modeH" role="radio">ハード</button></div>
+  <p class="modeNote" id="modeNote"></p>
   <div class="bestBox" id="bestBox"></div>
   <button class="big" id="playBtn">出勤する</button>
   <div class="row"><button class="sml" id="howBtn">あそびかた</button><button class="sml" id="muteBtn">音：あり</button></div>
@@ -167,6 +176,7 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
     <div class="hstep"><div class="hic">🔥</div><div class="htx"><b>締切</b>の日は休めない。その前の3日（オレンジ）は<b>残業しやすい</b>。紫の帯の<b>繁忙</b>は、減りが大きくトラブルも多い。🔒の休みは動かせない。</div></div>
     <div class="hstep"><div class="hic">🎲</div><div class="htx"><b>残業・トラブル・休日出勤</b>は運しだい。下のグラフは、運を平均したときの<b>体力の見通し</b>。0に近い日があぶない。</div></div>
     <div class="hstep"><div class="hic">⏸️</div><div class="htx">使わなかった交換は、<b>月の途中でも</b>「休みを動かす」で使える（動かせるのは次の日から先）。休日出勤になったら、<b>代休</b>を入れる日を選ぶ。</div></div>
+    <div class="hstep"><div class="hic">🔥</div><div class="htx"><b>ハード</b>は、交換が<b>1か月に4回</b>だけ。締切が1つ多く、1か月目から繁忙があり、トラブルや休日出勤もよく起きる。記録はノーマルとハードで別。</div></div>
     <div class="hstep"><div class="hic">📅</div><div class="htx">月をこえると、体力はそのまま次の月へ。月ごとに<b>だんだんきつく</b>なる。体力が0になったら終わり。<b>何日もちこたえられる？</b></div></div>
     <button class="big" id="howOk">わかった！</button>
   </div>
@@ -207,7 +217,13 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
 <script>
 'use strict';
 // ===== ルール（ゲームの中身） =====
-const DAYS = 28, OFFS = 8, SWAPS = 6, HPMAX = 100;
+const DAYS = 28, OFFS = 8, HPMAX = 100;
+// ノーマルとハード：ハードは交換が少なく、締切・繁忙・トラブル・休日出勤が多い
+const MODES = {
+  normal: { id: 'normal', name: 'ノーマル', swaps: 6, dlAdd: 0, busyFrom: 1, busyAdd: 0, drainX: 1, trX: 1, otAdd: 0, callX: 1, phoneX: 1 },
+  hard: { id: 'hard', name: 'ハード', swaps: 4, dlAdd: 1, busyFrom: 0, busyAdd: 1, drainX: 1.15, trX: 1.6, otAdd: 0.08, callX: 2, phoneX: 1.5 },
+};
+let MODE = MODES.normal;
 const P = {
   base: 2.6, baseM: 0.45, busyX: 1.5, k0: 5, kp: 2, dl: 10,
   rec: [8, 15, 24, 32],
@@ -220,8 +236,8 @@ const P = {
 };
 function mulberry(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-function nDlOf(m){ return m < 2 ? 1 : m < 5 ? 2 : 3; }
-function busyLenOf(m){ return m >= 1 ? Math.min(4 + m, 10) : 0; }
+function nDlOf(m){ return Math.min(3, (m < 2 ? 1 : m < 5 ? 2 : 3) + MODE.dlAdd); }
+function busyLenOf(m){ return m >= MODE.busyFrom ? Math.min(4 + m + MODE.busyAdd, 10) : 0; }
 
 // 盤面は日付と月で決まる（同じ日なら、だれでも同じ盤面）
 function genMonth(seed, m){
@@ -257,13 +273,13 @@ function genMonth(seed, m){
 }
 function probs(c, m){
   return {
-    tr: Math.min(0.6, P.pTr + P.pTrM * m + (c.dl ? P.pTrDl : 0) + (c.busy ? P.pTrBusy : 0)),
-    ot: Math.min(0.85, P.pOt + P.pOtM * m + (c.ramp ? P.pOtRamp : 0) + (c.busy ? P.pOtBusy : 0)),
-    call: c.lock ? 0 : Math.min(0.4, P.pCall + P.pCallM * m + (c.ramp ? P.pCallRamp : 0) + (c.busy ? P.pCallBusy : 0)),
-    phone: P.pPhone + P.pPhoneM * m,
+    tr: Math.min(0.7, (P.pTr + P.pTrM * m + (c.dl ? P.pTrDl : 0) + (c.busy ? P.pTrBusy : 0)) * MODE.trX),
+    ot: Math.min(0.9, P.pOt + P.pOtM * m + (c.ramp ? P.pOtRamp : 0) + (c.busy ? P.pOtBusy : 0) + MODE.otAdd),
+    call: c.lock ? 0 : Math.min(0.5, (P.pCall + P.pCallM * m + (c.ramp ? P.pCallRamp : 0) + (c.busy ? P.pCallBusy : 0)) * MODE.callX),
+    phone: (P.pPhone + P.pPhoneM * m) * MODE.phoneX,
   };
 }
-function workBase(c, m, k){ return (P.base + P.baseM * m) * (c.busy ? P.busyX : 1) + Math.max(0, k - P.k0) * P.kp + (c.dl ? P.dl : 0); }
+function workBase(c, m, k){ return (P.base + P.baseM * m) * MODE.drainX * (c.busy ? P.busyX : 1) + Math.max(0, k - P.k0) * P.kp + (c.dl ? P.dl : 0); }
 function recOf(k){ return P.rec[Math.min(k, P.rec.length) - 1]; }
 
 // 1日すすめる。st = {hp, ws, os}（ws=連勤の日数, os=連休の日数）、u = 乱数3つ
@@ -314,7 +330,7 @@ function runs(C, carry){
 // ===== 保存 =====
 const $ = id => document.getElementById(id);
 const SAVE_KEY = 'renkyuKudasai.v1';
-const SV = { best: 0, bestDay: '', mute: false, fast: false, seen: false, plays: 0 };
+const SV = { best: 0, bestDay: '', bestH: 0, mode: 'normal', mute: false, fast: false, seen: false, plays: 0 };
 function loadSave(){ try { Object.assign(SV, JSON.parse(localStorage.getItem(SAVE_KEY) || '{}')); } catch (e) {} }
 function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); } catch (e) {} }
 function jstDate(){ return new Date(Date.now() + 9 * 3600e3); }
@@ -361,8 +377,9 @@ const SFX = {
 let G = null;
 const EVI = { tr: ['💥', 'トラブル'], ot: ['🌙', '残業'], teiji: ['🏃', '定時ダッシュ'], sashi: ['🍩', '差し入れ'], call: ['📞', '休日出勤'], phone: ['📱', '休みなのに電話'], gussuri: ['😴', 'ぐっすり'] };
 function newGame(){
+  MODE = MODES[SV.mode] || MODES.normal;
   G = {
-    seed: todaySeed(), m: -1, C: null, st: { hp: HPMAX, ws: 0, os: 0 }, i: 0, total: 0, swaps: SWAPS,
+    mode: MODE.id, seed: todaySeed() + (MODE.id === 'hard' ? 'H' : ''), m: -1, C: null, st: { hp: HPMAX, ws: 0, os: 0 }, i: 0, total: 0, swaps: MODE.swaps,
     trails: [], months: [], hpLog: [], offLog: [], phase: 'plan', sel: -1, drag: null, preview: null, ghost: null,
     anim: [], floats: [], shake: 0, timer: 0, callDay: -1, monthStart: null,
     stats: { tr: 0, ot: 0, call: 0, phone: 0, teiji: 0, sashi: 0, gussuri: 0, swaps: 0, maxOff: 0, maxWork: 0, dl: 0 },
@@ -372,7 +389,7 @@ function newGame(){
   startMonth(0);
 }
 function startMonth(m){
-  G.m = m; G.C = genMonth(G.seed, m); G.i = 0; G.swaps = SWAPS; G.sel = -1; G.preview = null; G.ghost = null; G.trails = []; G.phase = 'plan';
+  G.m = m; G.C = genMonth(G.seed, m); G.i = 0; G.swaps = MODE.swaps; G.sel = -1; G.preview = null; G.ghost = null; G.trails = []; G.phase = 'plan';
   G.monthStart = { hp: G.st.hp, ws: G.st.ws, os: G.st.os };
   G.mstats = { tr: 0, ot: 0, call: 0, phone: 0, maxOff: 0, maxWork: 0, hp0: G.st.hp };
   setCtrl(); showGameUI(); updateHud();
@@ -547,7 +564,8 @@ function updateHud(){
   $('dayLab').textContent = `通算 ${G.total}日`;
   $('hpTxt').textContent = Math.round(hp);
   const f = $('hpFill'); f.style.width = Math.max(0, hp) + '%'; f.style.backgroundColor = hp >= 55 ? '#3fbf6a' : hp >= 28 ? '#f2b630' : '#e2553a';
-  $('swapDots').innerHTML = Array.from({ length: SWAPS }, (_, k) => `<i class="${k < G.swaps ? '' : 'u'}"></i>`).join('');
+  $('modeTag').classList.toggle('hidden', G.mode !== 'hard');
+  $('swapDots').innerHTML = Array.from({ length: MODE.swaps }, (_, k) => `<i class="${k < G.swaps ? '' : 'u'}"></i>`).join('');
   $('undoBtn').disabled = !canUndo();
 }
 
@@ -847,13 +865,24 @@ $('howOk').onclick = () => {
   if (howFrom === 'play') newGame(); else if (howFrom === 'pause') show('pause'); else show('title');
 };
 $('playBtn').onclick = () => { au(); if (!SV.seen){ howFrom = 'play'; hide('title'); show('howto'); return; } newGame(); };
+function bestOf(id){ return id === 'hard' ? SV.bestH : SV.best; }
+function syncMode(){
+  const h = SV.mode === 'hard';
+  $('modeN').classList.toggle('on', !h); $('modeH').classList.toggle('on', h);
+  $('modeN').setAttribute('aria-checked', String(!h)); $('modeH').setAttribute('aria-checked', String(h));
+  $('modeNote').textContent = h ? '交換は1か月に4回。締切もトラブルも多い' : '交換は1か月に6回。はじめての人に';
+  const b = bestOf(SV.mode);
+  $('bestBox').innerHTML = b ? `${h ? 'ハード' : 'ノーマル'}の最高記録：<b>${b}日</b>` : '';
+}
+$('modeN').onclick = () => { SV.mode = 'normal'; writeSave(); syncMode(); };
+$('modeH').onclick = () => { SV.mode = 'hard'; writeSave(); syncMode(); };
 function syncMute(){ const t = SV.mute ? '音：なし' : '音：あり'; $('muteBtn').textContent = t; $('pMuteBtn').textContent = t; }
 $('muteBtn').onclick = $('pMuteBtn').onclick = () => { SV.mute = !SV.mute; writeSave(); syncMute(); if (!SV.mute){ au(); SFX.pick(); } };
 
 function ads(id){ const z = $(id); if (!z || z.firstChild || !/(^|\.)nkworks-games\.com$/.test(location.hostname)) return; z.innerHTML = '<ins class="adsbygoogle" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>'; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} }
 function toTitle(){
   hideScreens();
-  $('bestBox').innerHTML = SV.best ? `最高記録：<b>${SV.best}日</b> もちこたえた` : '';
+  syncMode();
   const d = jstDate(); $('tday').textContent = `今日の盤面：${d.getUTCMonth() + 1}月${d.getUTCDate()}日（毎日0時にかわる）`;
   syncMute(); show('title'); ads('ad1');
 }
@@ -1072,11 +1101,11 @@ function styleOf(){
 function survived(){ return Math.max(0, G.total - 1); }
 function showResult(){
   hideBanner();
-  const n = survived(), isNew = n > SV.best;
-  if (isNew){ SV.best = n; SV.bestDay = todaySeed(); writeSave(); }
+  const n = survived(), hard = G.mode === 'hard', best = bestOf(G.mode), isNew = n > best;
+  if (isNew){ if (hard) SV.bestH = n; else { SV.best = n; SV.bestDay = todaySeed(); } writeSave(); }
   $('rBig').innerHTML = `${n}<small>日</small>`;
-  $('rSub').textContent = `もちこたえた（${G.m + 1}か月目の${G.i}日目に力つきた）`;
-  $('rNew').textContent = isNew ? '最高記録！' : SV.best ? `最高記録：${SV.best}日` : '';
+  $('rSub').textContent = `もちこたえた（${MODE.name}・${G.m + 1}か月目の${G.i}日目に力つきた）`;
+  $('rNew').textContent = isNew ? `${MODE.name}の最高記録！` : best ? `${MODE.name}の最高記録：${best}日` : '';
   const style = styleOf(); G.style = style;
   $('rStyle').textContent = style;
   const s = G.stats;
@@ -1095,7 +1124,7 @@ function shareText(){
   const s = G.stats, n = survived();
   const a = s.maxOff >= 2 ? `最長${s.maxOff}連休を作って` : '連休は作らずに';
   const b = s.maxWork >= 6 ? `、${s.maxWork}連勤をくぐりぬけ` : '';
-  return `連休をください。${a}${b}、${n}日もちこたえた。（${G.style}）\n#連休をください`;
+  return `連休をください${G.mode === 'hard' ? '【ハード】' : ''}。${a}${b}、${n}日もちこたえた。（${G.style}）\n#連休をください`;
 }
 function share(){
   if (!G) return;
@@ -1125,7 +1154,12 @@ function makeResultImage(){
   c.fillStyle = '#f6f0e3'; c.fillRect(0, 0, W, H);
   c.fillStyle = '#1f2f46'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
   c.font = `800 64px ${FONT}`; c.fillText('連休をください', 60, 112);
-  c.font = `800 30px ${FONT}`; c.fillStyle = '#5d6b7d'; c.fillText(`${G.style}・最長${G.stats.maxOff}連休・最長${G.stats.maxWork}連勤`, 60, 170);
+  const mw = c.measureText('連休をください').width, hard = G.mode === 'hard';
+  c.font = `800 26px ${FONT}`; const tw = c.measureText(MODE.name).width + 32;
+  c.fillStyle = hard ? '#d2412a' : '#5d6b7d'; rr(c, 60 + mw + 18, 72, tw, 40, 20); c.fill();
+  c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(MODE.name, 60 + mw + 18 + tw / 2, 93);
+  c.textAlign = 'left'; c.textBaseline = 'alphabetic'; c.fillStyle = '#1f2f46';
+  c.font = `800 30px ${FONT}`; c.fillStyle = '#5d6b7d'; c.fillText(`${G.style}・${G.stats.maxOff >= 2 ? `最長${G.stats.maxOff}連休` : '連休なし'}・最長${G.stats.maxWork}連勤`, 60, 170);
   c.textAlign = 'right'; c.fillStyle = '#d2412a'; c.font = `800 110px ${FONT}`; c.fillText(String(survived()), W - 150, 135);
   c.fillStyle = '#1f2f46'; c.font = `800 40px ${FONT}`; c.fillText('日', W - 100, 135);
   c.font = `800 26px ${FONT}`; c.fillText('もちこたえた', W - 60, 180);
