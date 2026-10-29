@@ -155,7 +155,7 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
     <div id="sceneWrap"><canvas id="scene"></canvas><div id="hpBox"><span>体力</span><div id="hpBar"><div id="hpFill"></div></div><span id="hpTxt">100</span></div></div>
     <div id="msg"><div id="msg1"></div><div id="msg2"></div></div>
   </div>
-  <div id="legend"><span><i class="lw"></i>出勤</span><span><i class="lr"></i>追い込み</span><span><i class="lb"></i>繁忙</span><span><i class="ld"></i>締切</span><span><i class="lo"></i>休み</span></div>
+  <div id="legend"><span><i class="lw"></i>出勤</span><span><i class="lr"></i>追い込み</span><span><i class="lb"></i>繁忙</span><span><i class="ld"></i>締切</span><span><i class="lo"></i>休み</span><span>⚠気配</span></div>
   <div id="stage"><canvas id="board"></canvas><div id="banner" class="hidden"><div class="e" id="bnE"></div><div class="t" id="bnT"></div><div class="s" id="bnS"></div></div><div id="toast"></div></div>
   <div id="hand" class="hidden"></div>
   <div id="ctrl">
@@ -193,6 +193,7 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
     <div class="hstep"><div class="hic">🎲</div><div class="htx"><b>残業・トラブル・休日出勤</b>は運しだい。下のグラフは、運を平均したときの<b>体力の見通し</b>。0に近い日があぶない。</div></div>
     <div class="hstep"><div class="hic">🃏</div><div class="htx">毎月はじめに、<b>作戦カードを3枚から1枚</b>えらぶ。カードは<b>日に置いて</b>使う。🏃定時で帰る・🤝根回し（トラブルなし。締切の日は減りも半分）・📵電源オフ（その連休は呼び出しなし）・🛏️いい枕・🌴有給休暇（休みが1日ふえる）。</div></div>
     <div class="hstep"><div class="hic">⏸️</div><div class="htx">使わなかった交換やカードは、<b>月の途中でも</b>「作戦タイム」で使える（次の日から先）。</div></div>
+    <div class="hstep"><div class="hic">⚠️</div><div class="htx">トラブルの起きやすい日には<b>⚠（気配）</b>が出る。月のはじめに一部、残りは<b>4日前</b>に見える。根回しを置く・休みにする・体力を残すで備えよう。<b>連勤が長いほど、体力が少ないほど、ミスでトラブルが増える</b>。出勤の日をタップすると、その日の起きやすさが見える。</div></div>
     <div class="hstep"><div class="hic">❓</div><div class="htx">トラブルが起きたら<b>「いま直す」か「あとまわし」</b>。休みに呼び出されたら<b>「出る」（代休をもらう）か「出ない」</b>（来月の交換が1回へる）。</div></div>
     <div class="hstep"><div class="hic">🔥</div><div class="htx"><b>ハード</b>は、交換が<b>1か月に4回</b>だけ。締切が1つ多く、1か月目から繁忙があり、トラブルや休日出勤もよく起きる。記録はノーマルとハードで別。</div></div>
     <div class="hstep"><div class="hic">📅</div><div class="htx">月をこえると、体力はそのまま次の月へ。月ごとに<b>だんだんきつく</b>なる。体力が0になったら終わり。<b>何日もちこたえられる？</b></div></div>
@@ -238,15 +239,19 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
 const DAYS = 28, OFFS = 8, HPMAX = 100;
 // ノーマルとハード：ハードは交換が少なく、締切・繁忙・トラブル・休日出勤が多い
 const MODES = {
-  normal: { id: 'normal', name: 'ノーマル', swaps: 6, dlAdd: 0, busyFrom: 1, busyAdd: 0, drainX: 1, trX: 1, otAdd: 0, callX: 1, phoneX: 1 },
-  hard: { id: 'hard', name: 'ハード', swaps: 4, dlAdd: 1, busyFrom: 0, busyAdd: 1, drainX: 1.15, trX: 1.6, otAdd: 0.08, callX: 2, phoneX: 1.5 },
+  normal: { id: 'normal', name: 'ノーマル', swaps: 6, dlAdd: 0, busyFrom: 1, busyAdd: 0, drainX: 1, trX: 1, otAdd: 0, callX: 1, phoneX: 1, riskAdd: 0 },
+  hard: { id: 'hard', name: 'ハード', swaps: 4, dlAdd: 1, busyFrom: 0, busyAdd: 1, drainX: 1.15, trX: 1.6, otAdd: 0.08, callX: 2, phoneX: 1.5, riskAdd: 1 },
 };
 let MODE = MODES.normal;
 const P = {
   base: 2.6, baseM: 0.45, busyX: 1.5, k0: 5, kp: 2, dl: 10,
   rec: [8, 15, 24, 32],
   tr: 10, ot: 5, trLater: 3, trDebt: 9,
-  pTr: 0.05, pTrM: 0.01, pTrDl: 0.35, pTrBusy: 0.06,
+  // トラブルの気配（⚠）：その日のトラブル率に足す。4日前に見える
+  risk: [0.3, 0.45], riskLead: 4,
+  // 疲れるとミスが増える：連勤が4日をこえると1日ごとに、体力が少ないと
+  fatK: 4, fatP: 0.04, lowHp: 35, lowP: 0.05, lowHp2: 18, lowP2: 0.1,
+  pTr: 0.03, pTrM: 0.01, pTrDl: 0.35, pTrBusy: 0.06,
   pOt: 0.15, pOtM: 0.02, pOtRamp: 0.35, pOtBusy: 0.15,
   pGood: 0.12,
   pCall: 0.03, pCallM: 0.015, pCallRamp: 0.10, pCallBusy: 0.08,
@@ -287,11 +292,21 @@ function genMonth(seed, m){
     if (C[d].off || C[d].dl){ for (d = 0; d < DAYS && (C[d].off || C[d].dl); d++); }
     C[d].off = true;
   }
+  const nRisk = 3 + (m >= 2 ? 1 : 0) + (m >= 4 ? 1 : 0) + MODE.riskAdd;
+  for (let k = 0, tries = 0; k < nRisk && tries < 300; tries++){
+    const d = 1 + ri(DAYS - 1);
+    if (C[d].dl || C[d].risk) continue;
+    C[d].risk = P.risk[ri(P.risk.length)]; C[d].riskShown = d <= P.riskLead || r() < 0.5; k++;
+  }
   return C;
 }
-function probs(c, m){
+// 疲れによるミスの増え方（k=その日で何連勤目か、hp=朝の体力）
+function fatigue(k, hp){ return Math.max(0, (k || 0) - P.fatK) * P.fatP + (hp == null ? 0 : hp < P.lowHp2 ? P.lowP2 : hp < P.lowHp ? P.lowP : 0); }
+// seen=true の時は、見えている⚠だけを数える（見通し用）
+function probs(c, m, k, hp, seen){
+  const risk = c.risk && (!seen || c.riskShown) ? c.risk : 0;
   return {
-    tr: c.card === 'nema' ? 0 : Math.min(0.7, (P.pTr + P.pTrM * m + (c.dl ? P.pTrDl : 0) + (c.busy ? P.pTrBusy : 0)) * MODE.trX),
+    tr: c.card === 'nema' ? 0 : Math.min(0.8, (P.pTr + P.pTrM * m + (c.dl ? P.pTrDl : 0) + (c.busy ? P.pTrBusy : 0) + risk) * MODE.trX + fatigue(k, hp)),
     ot: c.card === 'teiji' ? 0 : Math.min(0.9, P.pOt + P.pOtM * m + (c.ramp ? P.pOtRamp : 0) + (c.busy ? P.pOtBusy : 0) + MODE.otAdd),
     call: c.lock || c.shield ? 0 : Math.min(0.5, (P.pCall + P.pCallM * m + (c.ramp ? P.pCallRamp : 0) + (c.busy ? P.pCallBusy : 0)) * MODE.callX),
     phone: c.shield ? 0 : (P.pPhone + P.pPhoneM * m) * MODE.phoneX,
@@ -334,7 +349,7 @@ function refreshShield(C){
 // opt.noCall：呼び出しに出ない、opt.later：トラブルをあとまわし
 function stepDay(c, m, st, u, opt){
   opt = opt || {};
-  const p = probs(c, m), ev = [];
+  const p = probs(c, m, st.ws + 1, st.hp), ev = [];
   let off = c.off, call = false;
   if (off && !opt.noCall && u[0] < p.call){ off = false; call = true; ev.push('call'); }
   if (c.card && c.card !== 'yukyu' && (off ? CARDS[c.card].on === 'off' : CARDS[c.card].on === 'work')) ev.push('c_' + c.card);
@@ -358,16 +373,23 @@ function stepDay(c, m, st, u, opt){
   return { d: st.hp - before, raw: d, ev, call };
 }
 // 見通し：運を平均で入れた体力の線（from日目から月末まで）
+function projStep(c, m, st){
+  const p = probs(c, m, st.ws + 1, st.hp, true);
+  let d;
+  if (!c.off){ const k = st.ws + 1; d = -(workBase(c, m, k) + p.tr * P.tr + p.ot * P.ot + st.debt); st.debt = 0; st.ws = k; st.os = 0; }
+  else { const k = st.os + 1; d = recOn(c, k) * (1 - 0.5 * p.phone) * (1 - p.call) - p.call * workBase(c, m, 1); st.os = k; st.ws = 0; }
+  st.hp = Math.max(0, Math.min(HPMAX, st.hp + d));
+}
 function project(C, m, st0, from){
   const st = { hp: st0.hp, ws: st0.ws, os: st0.os, debt: st0.debt || 0 }, out = [];
-  for (let i = from; i < DAYS; i++){
-    const c = C[i], p = probs(c, m);
-    let d;
-    if (!c.off){ const k = st.ws + 1; d = -(workBase(c, m, k) + p.tr * P.tr + p.ot * P.ot + st.debt); st.debt = 0; st.ws = k; st.os = 0; }
-    else { const k = st.os + 1; d = recOn(c, k) * (1 - 0.5 * p.phone) * (1 - p.call) - p.call * workBase(c, m, 1); st.os = k; st.ws = 0; }
-    st.hp = Math.max(0, Math.min(HPMAX, st.hp + d)); out.push(st.hp);
-  }
+  for (let i = from; i < DAYS; i++){ projStep(C[i], m, st); out.push(st.hp); }
   return out;
+}
+// その日の朝の見通し（体力・連勤）
+function stateBefore(C, m, st0, from, i){
+  const st = { hp: st0.hp, ws: st0.ws, os: st0.os, debt: st0.debt || 0 };
+  for (let j = from; j < i; j++) projStep(C[j], m, st);
+  return st;
 }
 // 連休・連勤のかたまり。carry = 前の月から続いている日数 {ws, os}
 function runs(C, carry){
@@ -529,6 +551,15 @@ function dayDelay(lv){ return SV.fast ? [130, 220, 420][lv] : [300, 480, 780][lv
 function tick(){
   if (!G || G.phase !== 'run') return;
   if (G.i >= DAYS){ endMonth(); return; }
+  // ⚠ トラブルの気配：4日前になったら見える（出勤の日なら、備えるかえらぶ）
+  const fresh = [];
+  for (let j = G.i; j < DAYS && j <= G.i + P.riskLead; j++){ const q = G.C[j]; if (q.risk && !q.riskShown){ q.riskShown = true; if (!q.off) fresh.push(j); } }
+  if (fresh.length){
+    SFX.ot();
+    if (G.swaps > 0 || G.hand.length){ G.pend = { kind: 'omen', days: fresh }; G.phase = 'choice'; showChoice(); }
+    else { setMsg(`⚠ ${fresh[0] + 1}日目にトラブルの気配`, '交換もカードもない。体力を残しておこう'); schedule(dayDelay(2)); }
+    return;
+  }
   const i = G.i, c = cell(i), u = [Math.random(), Math.random(), Math.random()];
   const st = Object.assign({}, G.st), r = stepDay(c, G.m, st, u);
   if (r.call || r.ev.includes('tr')){ G.pend = { i, u, kind: r.call ? 'call' : 'tr' }; G.phase = 'choice'; showChoice(); return; }
@@ -540,7 +571,16 @@ function sgn(d){ d = Math.round(d); return (d >= 0 ? '+' : '−') + Math.abs(d);
 function setOpt(id, t, sub){ $(id).querySelector('b').textContent = t; $(id).querySelector('small').textContent = sub; }
 function showChoice(){
   const p = G.pend, i = p.i, c = cell(i), hp = Math.round(G.st.hp);
-  setCtrl(); hideBanner(); G.shake = performance.now();
+  setCtrl(); hideBanner();
+  if (p.kind === 'omen'){
+    const j = p.days[0], st2 = stateBefore(G.C, G.m, G.st, G.i, j), pr = probs(cell(j), G.m, st2.ws + 1, st2.hp, true);
+    G.scene = { kind: 'plan', ev: [], k: 0, t0: performance.now() };
+    setMsg(`⚠ ${j + 1}日目にトラブルの気配${p.days.length > 1 ? `（ほか${p.days.length - 1}日）` : ''}`, `起きやすさ ${Math.round(pr.tr * 100)}%。備える？`);
+    setOpt('optA', '⏸ 作戦タイム', `交換${G.swaps}回・カード${G.hand.length}枚`);
+    setOpt('optB', '▶ このまま進む', '運にまかせる');
+    return;
+  }
+  G.shake = performance.now();
   if (p.kind === 'call'){
     const go = pendResult({}), no = pendResult({ noCall: true });
     SFX.call(); G.scene = { kind: 'call', ev: ['call'], k: 1, t0: performance.now() };
@@ -558,6 +598,7 @@ function showChoice(){
 function choose(k){
   if (!G || G.phase !== 'choice' || !G.pend) return; au();
   const p = G.pend, c = cell(p.i);
+  if (p.kind === 'omen'){ G.pend = null; G.phase = 'run'; if (k === 0) $('moveBtn').onclick(); else { setCtrl(); schedule(150); } return; }
   let res;
   if (p.kind === 'call'){
     if (k === 0){ res = pendResult({}); if (res.r.ev.includes('tr')){ p.kind = 'tr'; showChoice(); return; } }
@@ -608,7 +649,7 @@ function dayText(i, c, r){
     else if (ev.includes('c_power')) what = '📵 電源を切って、のんびり';
     return [`${i + 1}日目　休み${k >= 2 ? `（${k}連休目）` : ''}${c.daikyu ? '・代休' : ''}`, `${what} ${dn}${d === 0 ? '（もう満タン）' : ''}`];
   }
-  const k = G.st.ws;
+  const k = G.st.ws, risky = c.risk && !ev.includes('tr');
   let what = k >= 9 ? 'もう限界…' : k >= 6 ? 'へとへと…' : c.ramp ? '締切が近い…' : c.busy ? '仕事が山積み' : 'カタカタ…';
   if (c.dl) what = ev.includes('tr') ? '🔥 締切の日に、よりによってトラブル！' : '🔥 締切の日！';
   else if (ev.includes('later')) what = '💥 トラブル！ あとまわしにした';
@@ -616,10 +657,12 @@ function dayText(i, c, r){
   else if (ev.includes('debt')) what = '📄 あとまわしにした仕事の後始末…';
   else if (ev.includes('c_teiji')) what = '🏃 定時で帰った！';
   else if (ev.includes('ot')) what = '🌙 残業。終電ぎりぎり…';
-  else if (ev.includes('c_nema')) what = '🤝 根回しのおかげで平和';
+  else if (ev.includes('c_nema')) what = c.risk ? '🤝 根回しで、気配をつぶした' : '🤝 根回しのおかげで平和';
+  else if (risky) what = '😮‍💨 気配はあったけど、セーフ';
   else if (ev.includes('teiji')) what = '🏃 定時ダッシュ！';
   else if (ev.includes('sashi')) what = '🍩 差し入れをもらった！';
-  return [`${i + 1}日目　出勤${k >= 2 ? `（${k}連勤目）` : ''}${c.busy ? '・繁忙' : ''}`, `${what} ${dn}`];
+  const tired = fatigue(k, G.st.hp - r.d) >= 0.08 ? '　⚠ミス注意' : '';
+  return [`${i + 1}日目　出勤${k >= 2 ? `（${k}連勤目）` : ''}${c.busy ? '・繁忙' : ''}${tired}`, `${what} ${dn}`];
 }
 function startCall(i){
   const cand = []; for (let j = i + 1; j < DAYS; j++) if (canDrop(j)) cand.push(j);
@@ -832,6 +875,15 @@ function drawCalendar(c, o){
       c.fillStyle = '#fff'; c.strokeStyle = '#4f8f35'; c.lineWidth = 2; c.beginPath(); c.arc(ix, iy, rd, 0, Math.PI * 2); c.fill(); c.stroke();
       c.font = `${Math.round(rd * 1.3)}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(CARDS[q.card].ic, ix, iy + 1);
     }
+    // トラブルの気配
+    if (q.risk && q.riskShown && !q.done && !q.lock){
+      const sz = cs * 0.3, tx = r.x + cs - pad - sz - 1, ty = r.y + pad + 1;
+      c.save(); c.globalAlpha = q.off ? 0.5 : 1;
+      c.fillStyle = '#ffd84a'; c.strokeStyle = '#1f2f46'; c.lineWidth = 1.6; c.lineJoin = 'round';
+      c.beginPath(); c.moveTo(tx + sz / 2, ty); c.lineTo(tx + sz, ty + sz * 0.9); c.lineTo(tx, ty + sz * 0.9); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = '#1f2f46'; c.fillRect(tx + sz / 2 - 0.9, ty + sz * 0.3, 1.8, sz * 0.32); c.fillRect(tx + sz / 2 - 0.9, ty + sz * 0.7, 1.8, 1.8);
+      c.restore();
+    }
     // たどりつかなかった日（結果の画像）
     if (o.upto != null && i >= o.upto){ c.fillStyle = 'rgba(246,240,227,.72)'; c.fillRect(r.x, r.y, cs, cs); }
   }
@@ -964,10 +1016,16 @@ function previewAt(a, b){
   if (a < 0 || b < 0 || !canDrop(b) || G.swaps <= 0){ G.preview = null; return; }
   G.C[a].off = false; G.C[b].off = true; G.preview = curProj(); G.C[a].off = true; G.C[b].off = false;
 }
+function oddsText(i){
+  const c = cell(i), st = stateBefore(G.C, G.m, G.st, G.i, i), p = probs(c, G.m, st.ws + 1, st.hp, true);
+  const why = [c.risk && c.riskShown ? '⚠' : '', fatigue(st.ws + 1, st.hp) > 0 ? '疲れ' : ''].filter(Boolean).join('＋');
+  return `${i + 1}日目${c.dl ? '（締切）' : ''}：トラブル ${Math.round(p.tr * 100)}%${why ? `（${why}）` : ''}・残業 ${Math.round(p.ot * 100)}%`;
+}
 function whyNot(i){
   const c = cell(i);
   if (!c) return;
   if (i < G.i){ toast('すぎた日は動かせない'); return; }
+  if (!c.off && G.sel < 0){ toast(oddsText(i)); return; }
   if (c.dl){ toast('🔥 締切の日は休めない'); return; }
   if (c.lock){ toast('🔒 この休みは動かせない'); return; }
   if (c.yukyu){ toast('🌴 有給は動かせない（「1つもどす」で取り消し）'); return; }
@@ -1094,7 +1152,7 @@ const BODY_STAND = ['.wwwrrwww.', 'wwwwrrwwww', 'wwwwrrwwww', 'swwwrrwwws'];
 const LEGS = { stand: ['.pppppppp.', '.ppp..ppp.', '.ppp..ppp.', '.kkk..kkk.'], runA: ['.pppppppp.', 'pp......pp', 'kk......kk'], runB: ['.pppppppp.', '...pppp...', '...pppp...', '...kkkk...'] };
 const OUTFIT = { work: {}, casual: { w: '#4f8fd6', r: '#4f8fd6' } };
 const GLYPH = {
-  '!': ['k', 'k', 'k', '.', 'k'], '?': ['kkk', '..k', '.k.', '...', '.k.'],
+  '!': ['k', 'k', 'k', '.', 'k'], '?': ['.kk.', 'k..k', '..k.', '....', '..k.'],
   Z: ['kkkk', '..k.', '.k..', 'kkkk'], heart: ['.C.C.', 'CCCCC', '.CCC.', '..C..'],
   soul: ['.qqq.', 'qqqqq', 'qkqkq', 'qqqqq', '.qqqq', '...qq'],
   flameA: ['..y..', '.yoy.', '.ooo.', 'ooroo', '.rrr.'], flameB: ['.y...', '.oy..', '.ooo.', 'orooo', '.rrr.'],
