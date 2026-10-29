@@ -18,7 +18,7 @@
 <script>(function(){if(/(^|\.)nkworks-games\.com$/.test(location.hostname)){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350';document.head.appendChild(s);}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#f6f0e3;font-family:"M PLUS Rounded 1c",system-ui,sans-serif;color:#1f2f46;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
@@ -31,12 +31,19 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
 #dayLab{font-size:13px;font-weight:800;color:#5d6b7d;white-space:nowrap}
 .hsp{flex:1}
 .ibtn{flex-shrink:0;width:38px;height:38px;border-radius:50%;border:3px solid #1f2f46;background:#fff;font:800 15px/1 "M PLUS Rounded 1c",sans-serif}
-.hprow{display:flex;align-items:center;gap:8px;height:34px}
-#face{font-size:26px;width:32px;text-align:center;line-height:1}
-#hpBar{position:relative;flex:1;height:26px;border:3px solid #1f2f46;border-radius:14px;background:#fff;overflow:hidden}
-#hpFill{position:absolute;left:0;top:0;bottom:0;width:100%;background:#3fbf6a;transition:width .3s,background-color .3s}
-#hpTxt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:#1f2f46;text-shadow:0 0 3px #fff,0 0 3px #fff}
-#hpLab{font-size:12px;font-weight:800;white-space:nowrap}
+#panel{width:100%;max-width:470px;flex-shrink:0;border:3px solid #1f2f46;border-radius:12px;overflow:hidden;background:#1f2f46}
+#sceneWrap{position:relative;overflow:hidden;background:#dfe5ee}
+#scene{display:block;image-rendering:pixelated}
+#hpBox{position:absolute;left:5px;top:5px;display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:5px;background:rgba(31,47,70,.85);color:#fff;font:400 12px/1 "DotGothic16","M PLUS Rounded 1c",monospace;white-space:nowrap}
+#hpBar{position:relative;width:clamp(48px,16vw,90px);height:10px;border:2px solid #fff;background:#1f2f46}
+#hpFill{position:absolute;left:0;top:0;bottom:0;width:100%;background:#3fbf6a;transition:width .25s,background-color .25s}
+#hpTxt{font-size:14px;font-variant-numeric:tabular-nums;min-width:2.2em;text-align:right}
+#msg{margin:4px;padding:5px 9px;border:2px solid #fff;border-radius:6px;color:#fff;font:400 14px/1.5 "DotGothic16","M PLUS Rounded 1c",monospace}
+#msg1,#msg2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1.5em}
+#msg1{color:#ffd84a}
+#msg b{color:#ffd84a;font-weight:400}
+#msg .r{color:#ff9a86}
+#msg .g{color:#8fe0a0}
 #swapRow{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;white-space:nowrap}
 #swapDots{display:flex;gap:3px}
 #swapDots i{width:12px;height:12px;border-radius:50%;border:2px solid #1f2f46;background:#ffc93c;display:block}
@@ -49,8 +56,6 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
 #legend .lb{background:repeating-linear-gradient(45deg,#ebe3fb 0 3px,#c4b2ee 3px 5px)}
 #legend .ld{background:#e2553a}
 #legend .lo{background:#ffc93c;border:2px solid #b97a00;border-radius:50%}
-#hint{width:100%;max-width:470px;min-height:40px;margin-top:2px;padding:5px 10px;border-radius:12px;background:#1f2f46;color:#fff;font-size:13.5px;font-weight:800;line-height:1.5;display:flex;align-items:center;justify-content:center;text-align:center;flex-shrink:0}
-#hint b{color:#ffc93c}
 #stage{position:relative;flex:1;width:100%;min-height:0;display:flex;justify-content:center;align-items:center}
 #board{display:block;touch-action:none}
 #banner{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);pointer-events:none;background:#fff;border:3px solid #1f2f46;border-radius:18px;box-shadow:0 5px 0 #1f2f46;padding:10px 18px;text-align:center;min-width:200px;max-width:92%}
@@ -118,15 +123,18 @@ button{font-family:inherit;cursor:pointer;color:#1f2f46}
 .stag{display:inline-block;font-size:15px;font-weight:800;background:#ffc93c;border:3px solid #1f2f46;border-radius:999px;padding:3px 14px;transform:rotate(-3deg)}
 #rImg{display:block;width:100%;height:auto;border-radius:12px;border:2px solid #e6dfcf;margin:4px 0 6px}
 .badge{display:inline-block;font-size:13px;font-weight:800;background:#ff8fb1;color:#fff;border:3px solid #1f2f46;border-radius:999px;padding:2px 12px;transform:rotate(-3deg)}
+@media (max-height:620px){#legend{display:none}#msg{font-size:13px;padding:3px 8px;margin:3px}}
 </style>
 </head>
 <body>
 <div id="app">
   <div id="hud">
     <div class="hrow"><div id="monthLab">1か月目</div><div id="dayLab">通算 0日</div><div class="hsp"></div><div id="swapRow"><span>交換</span><span id="swapDots"></span></div><button class="ibtn" id="pauseBtn" aria-label="一時停止">Ⅱ</button></div>
-    <div class="hprow"><div id="face">😄</div><div id="hpLab">体力</div><div id="hpBar"><div id="hpFill"></div><div id="hpTxt">100</div></div></div>
   </div>
-  <div id="hint"></div>
+  <div id="panel">
+    <div id="sceneWrap"><canvas id="scene"></canvas><div id="hpBox"><span>体力</span><div id="hpBar"><div id="hpFill"></div></div><span id="hpTxt">100</span></div></div>
+    <div id="msg"><div id="msg1"></div><div id="msg2"></div></div>
+  </div>
   <div id="legend"><span><i class="lw"></i>出勤</span><span><i class="lr"></i>追い込み</span><span><i class="lb"></i>繁忙</span><span><i class="ld"></i>締切</span><span><i class="lo"></i>休み</span></div>
   <div id="stage"><canvas id="board"></canvas><div id="banner" class="hidden"><div class="e" id="bnE"></div><div class="t" id="bnT"></div><div class="s" id="bnS"></div></div><div id="toast"></div></div>
   <div id="ctrl">
@@ -369,8 +377,9 @@ function startMonth(m){
   G.mstats = { tr: 0, ot: 0, call: 0, phone: 0, maxOff: 0, maxWork: 0, hp0: G.st.hp };
   setCtrl(); showGameUI(); updateHud();
   const nb = busyLenOf(m), nd = nDlOf(m);
-  if (m === 0) setHint('休み（<b>黄色い玉</b>）をタップして、出勤の日へ動かそう<br>下のグラフは、体力の見通し');
-  else setHint(`${m + 1}か月目：締切<b>${nd}つ</b>・繁忙<b>${nb}日</b>${m >= 2 ? '・トラブルが増えてきた' : ''}`);
+  G.scene = { kind: 'plan', ev: [], k: 0, t0: performance.now() };
+  if (m === 0) setMsg('休みの玉をタップして、出勤の日へ動かそう', '下のグラフは体力の見通し（運は平均）');
+  else setMsg(`${m + 1}か月目：締切 ${nd}つ・繁忙 ${nb}日`, m >= 2 ? 'トラブルも、すこしずつ増えてきた' : '休みを動かして、連休を作ろう');
   if (G.st.ws >= 3) toast(`前の月から ${G.st.ws}連勤中`);
 }
 function cell(i){ return G.C[i]; }
@@ -401,11 +410,12 @@ function canUndo(){ const t = G && G.trails[G.trails.length - 1]; return !!t && 
 // ===== 1日ずつ進める =====
 function startRun(){
   G.phase = 'run'; G.sel = -1; G.preview = null; G.ghost = null; setCtrl();
-  setHint(G.swaps > 0 ? `出勤中…　残りの交換（${G.swaps}回）は「休みを動かす」で使える` : '出勤中…');
-  schedule(450);
+  setMsg('出勤！', G.swaps > 0 ? `残りの交換${G.swaps}回は「休みを動かす」で使える` : '');
+  schedule(250);
 }
 function schedule(ms){ clearTimeout(G.timer); G.timer = setTimeout(tick, ms); }
-function dayDelay(big){ return SV.fast ? (big ? 650 : 190) : (big ? 1250 : 520); }
+// 1日の長さ（0：ふつう 1：残業 2：大きなできごと）
+function dayDelay(lv){ return SV.fast ? [130, 220, 420][lv] : [300, 480, 780][lv]; }
 function tick(){
   if (!G || G.phase !== 'run') return;
   if (G.i >= DAYS){ endMonth(); return; }
@@ -421,33 +431,53 @@ function tick(){
   // 見せ方
   const ctr = cellCenter(i), dTxt = (r.d >= 0 ? '+' : '−') + Math.abs(Math.round(r.d));
   G.floats.push({ x: ctr.x, y: ctr.y - L.cs * 0.3, txt: dTxt, col: r.d >= 0 ? '#2f9a55' : '#d2412a', t0: performance.now() });
-  let big = false;
-  if (r.ev.includes('call')){ SFX.call(); banner('📞', '休日出勤！', `${i + 1}日目の休みが、出勤に…`, 'bad'); big = true; G.shake = performance.now(); }
-  else if (r.ev.includes('tr')){ SFX.bad(); banner('💥', 'トラブル発生！', c.dl ? '締切の日に、よりによって' : `体力 −${P.tr}`, 'bad'); big = true; G.shake = performance.now(); }
-  else if (c.dl){ SFX.bad(); banner('🔥', '締切！', `${dTxt}`, 'bad'); big = true; }
-  else if (r.ev.includes('phone')){ SFX.ot(); banner('📱', '休みなのに電話', '回復が半分に', 'bad'); big = true; }
-  else if (r.ev.includes('teiji')){ SFX.good(); banner('🏃', '定時ダッシュ！', '減りが半分', 'good'); big = true; }
-  else if (r.ev.includes('sashi')){ SFX.good(); banner('🍩', '差し入れ', '体力 +5', 'good'); big = true; }
-  else if (r.ev.includes('gussuri')){ SFX.good(); banner('😴', 'ぐっすり', '回復が1.3倍', 'good'); big = true; }
-  else if (r.ev.includes('ot')){ SFX.ot(); }
+  let lv = 0;
+  if (r.ev.includes('call')){ SFX.call(); lv = 2; G.shake = performance.now(); }
+  else if (r.ev.includes('tr')){ SFX.bad(); lv = 2; G.shake = performance.now(); }
+  else if (c.dl){ SFX.bad(); lv = 2; }
+  else if (r.ev.includes('phone')){ SFX.ot(); lv = 2; }
+  else if (r.ev.includes('teiji') || r.ev.includes('sashi') || r.ev.includes('gussuri')){ SFX.good(); lv = 2; }
+  else if (r.ev.includes('ot')){ SFX.ot(); lv = 1; }
   else if (c.wasOff) SFX.off(G.st.os); else SFX.work();
+  G.scene = { kind: r.call ? 'call' : c.wasOff ? 'off' : 'work', ev: r.ev, k: c.wasOff ? G.st.os : G.st.ws, dl: c.dl, busy: c.busy, ramp: c.ramp, t0: performance.now() };
+  const tx = dayText(i, c, r); setMsg(tx[0], tx[1]);
   updateHud();
   if (G.st.hp <= 0){ gameOver(); return; }
   if (r.call){ startCall(i); return; }
-  if (G.i >= DAYS){ schedule(dayDelay(big) + 250); return; }
-  schedule(dayDelay(big));
+  if (G.i >= DAYS){ schedule(dayDelay(lv) + 150); return; }
+  schedule(dayDelay(lv));
+}
+// その日のできごとを、2行の文に
+function dayText(i, c, r){
+  const d = Math.round(r.d), dn = `<span class="${d >= 0 ? 'g' : 'r'}">${d >= 0 ? '+' : '−'}${Math.abs(d)}</span>`, ev = r.ev;
+  if (r.call) return [`${i + 1}日目　休日出勤`, `📞 休みの日に呼び出された… ${dn}`];
+  if (c.wasOff){
+    const k = G.st.os;
+    let what = k === 1 ? 'ひたすら寝る' : k === 2 ? '家でのんびり' : k % 2 ? '温泉で、ととのう' : '海でぼんやり';
+    if (ev.includes('phone')) what = '📱 休みなのに仕事の電話…';
+    else if (ev.includes('gussuri')) what = '😴 ぐっすり眠れた！';
+    return [`${i + 1}日目　休み${k >= 2 ? `（${k}連休目）` : ''}${c.daikyu ? '・代休' : ''}`, `${what} ${dn}${d === 0 ? '（もう満タン）' : ''}`];
+  }
+  const k = G.st.ws;
+  let what = k >= 9 ? 'もう限界…' : k >= 6 ? 'へとへと…' : c.ramp ? '締切が近い…' : c.busy ? '仕事が山積み' : 'カタカタ…';
+  if (c.dl) what = ev.includes('tr') ? '🔥 締切の日に、よりによってトラブル！' : '🔥 締切の日！';
+  else if (ev.includes('tr')) what = ev.includes('ot') ? '💥 トラブル発生！ そのまま残業…' : '💥 トラブル発生！';
+  else if (ev.includes('ot')) what = '🌙 残業。終電ぎりぎり…';
+  else if (ev.includes('teiji')) what = '🏃 定時ダッシュ！';
+  else if (ev.includes('sashi')) what = '🍩 差し入れをもらった！';
+  return [`${i + 1}日目　出勤${k >= 2 ? `（${k}連勤目）` : ''}${c.busy ? '・繁忙' : ''}`, `${what} ${dn}`];
 }
 function startCall(i){
   const cand = []; for (let j = i + 1; j < DAYS; j++) if (canDrop(j)) cand.push(j);
-  if (!cand.length){ setTimeout(() => { banner('📞', '代休は…', '今月はもう入れる日がない', 'bad'); }, 900); schedule(dayDelay(true) + 1300); return; }
+  if (!cand.length){ setMsg(`📞 ${i + 1}日目は休日出勤…`, '代休を入れる日が、今月はもうない'); schedule(dayDelay(2) + 500); return; }
   G.phase = 'call'; G.callDay = i; setCtrl();
-  setTimeout(() => { if (G.phase === 'call'){ hideBanner(); setHint(`📞 ${i + 1}日目は休日出勤。<b>代休</b>を入れる日をタップ`); } }, 900);
+  setMsg(`📞 ${i + 1}日目は休日出勤…`, '<b>代休</b>を入れる日をタップしよう');
 }
 function placeDaikyu(j){
   const i = G.callDay;
   G.C[j].off = true; G.C[j].daikyu = true; G.trails.push({ a: i, b: j, kind: 'daikyu' });
   G.anim.push({ a: i, b: j, t0: performance.now(), dur: 320 }); SFX.drop();
-  G.phase = 'run'; G.callDay = -1; setCtrl(); setHint(`${j + 1}日目に代休を入れた`); schedule(700);
+  G.phase = 'run'; G.callDay = -1; setCtrl(); setMsg(`${j + 1}日目に代休を入れた`, ''); schedule(350);
 }
 function endMonth(){
   G.phase = 'month'; setCtrl();
@@ -464,16 +494,19 @@ function endMonth(){
   ].map(([k, v]) => `<div class="it"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
   const nm = m + 1;
   $('meNext').innerHTML = `つぎは ${nm + 1}か月目：締切 ${nDlOf(nm)}つ・繁忙 ${busyLenOf(nm)}日${nm >= 2 ? '<br>出勤の減りも、トラブルも、すこしずつ増える' : ''}${G.st.ws >= 3 ? `<br>（${G.st.ws}連勤のまま、月をまたぐ）` : ''}`;
-  setTimeout(() => { if (G.phase === 'month') show('monthEnd'); }, 500);
+  G.scene = { kind: 'cheer', ev: [], k: 0, t0: performance.now() };
+  setMsg(`${m + 1}か月目、のりきった！`, `体力 ${Math.round(G.st.hp)} のまま、つぎの月へ`);
+  setTimeout(() => { if (G.phase === 'month') show('monthEnd'); }, 900);
 }
 function snapMonth(dead){ return { m: G.m, C: G.C.map(c => Object.assign({}, c)), trails: G.trails.slice(), carry: Object.assign({}, G.monthStart), upto: G.i, dead: !!dead }; }
 function gameOver(){
   G.phase = 'over'; setCtrl(); clearTimeout(G.timer);
   G.months.push(snapMonth(true));
   SFX.down(); G.shake = performance.now();
-  setTimeout(() => banner('😵', '力つきた…', `通算 ${G.total}日目`, 'bad'), 350);
-  setHint('体力が0になった');
-  setTimeout(showResult, 2200);
+  G.scene = { kind: 'dead', ev: [], k: 0, t0: performance.now() };
+  setTimeout(() => banner('😵', '力つきた…', `通算 ${G.total}日目`, 'bad'), 300);
+  setMsg(`通算${G.total}日目　力つきた…`, '体力が0になった');
+  setTimeout(showResult, 1900);
 }
 
 // ===== 画面まわり =====
@@ -483,8 +516,8 @@ let PAT = null;
 function show(id){ $(id).classList.remove('hidden'); }
 function hide(id){ $(id).classList.add('hidden'); }
 function hideScreens(){ for (const s of ['title', 'howto', 'pause', 'monthEnd', 'result']) hide(s); }
-function showGameUI(){ hideScreens(); hideBanner(); lastStage = ''; relayout(); }
-function setHint(h){ $('hint').innerHTML = '<div>' + h + '</div>'; }
+function showGameUI(){ hideScreens(); hideBanner(); sceneLayout(); lastStage = ''; relayout(); }
+function setMsg(a, b){ $('msg1').innerHTML = a || ''; $('msg2').innerHTML = b || ''; }
 let toastT = 0;
 function toast(t){ const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove('on'), 1800); }
 let bannerT = 0;
@@ -512,9 +545,8 @@ function updateHud(){
   const hp = G.st.hp;
   $('monthLab').textContent = `${G.m + 1}か月目`;
   $('dayLab').textContent = `通算 ${G.total}日`;
-  $('hpTxt').textContent = Math.round(hp) + ' / ' + HPMAX;
+  $('hpTxt').textContent = Math.round(hp);
   const f = $('hpFill'); f.style.width = Math.max(0, hp) + '%'; f.style.backgroundColor = hp >= 55 ? '#3fbf6a' : hp >= 28 ? '#f2b630' : '#e2553a';
-  $('face').textContent = faceOf(hp);
   $('swapDots').innerHTML = Array.from({ length: SWAPS }, (_, k) => `<i class="${k < G.swaps ? '' : 'u'}"></i>`).join('');
   $('undoBtn').disabled = !canUndo();
 }
@@ -523,10 +555,10 @@ function updateHud(){
 function layout(){
   const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
   const W = Math.min(w, 460), gap = 17;
-  const need = cs => gap + 4 * (cs + gap) + 6 + Math.max(92, cs * 2.1);
+  const chMin = h < 380 ? 72 : 92, need = cs => gap + 4 * (cs + gap) + 6 + Math.max(chMin, cs * 2.1);
   let cs = Math.floor(W / 7);
   while (need(cs) > h - 4 && cs > 30) cs--;
-  L.cs = cs; L.gap = gap; L.W = cs * 7; L.chartY = gap + 4 * (cs + gap) + 2; L.chartH = Math.floor(Math.max(92, Math.min(h - L.chartY - 8, cs * 3))); L.H = L.chartY + L.chartH + 4;
+  L.cs = cs; L.gap = gap; L.W = cs * 7; L.chartY = gap + 4 * (cs + gap) + 2; L.chartH = Math.floor(Math.max(chMin, Math.min(h - L.chartY - 8, cs * 3))); L.H = L.chartY + L.chartH + 4;
   L.dpr = Math.min(3, window.devicePixelRatio || 1);
   cv.width = Math.round(L.W * L.dpr); cv.height = Math.round(L.H * L.dpr);
   cv.style.width = L.W + 'px'; cv.style.height = L.H + 'px';
@@ -675,7 +707,7 @@ function drawChart(c, x, y, w, h){
   // 文字
   const show = G.preview || pr;
   c.font = `800 12px ${FONT}`; c.textBaseline = 'middle'; c.textAlign = 'left'; c.fillStyle = '#1f2f46';
-  c.fillText(G.phase === 'plan' || G.phase === 'move' ? '見通し（運は平均）' : '体力の見通し', x + 10, y + 12);
+  c.fillText(G.phase === 'plan' || G.phase === 'move' ? (w < 320 ? '見通し' : '見通し（運は平均）') : (w < 320 ? '体力' : '体力の見通し'), x + 10, y + 12);
   if (show.length){
     const zi = show.findIndex(v => v <= 0.01);
     c.textAlign = 'right';
@@ -732,7 +764,7 @@ function draw(){
   drawChart(c, 0, L.chartY, L.W, L.chartH);
   c.restore();
 }
-function loop(){ draw(); requestAnimationFrame(loop); }
+function loop(){ draw(); drawScene(); requestAnimationFrame(loop); }
 
 // ----- さわる -----
 function localXY(e){ const b = cv.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; }
@@ -789,7 +821,8 @@ $('undoBtn').onclick = () => { au(); undoSwap(); };
 $('moveBtn').onclick = () => {
   if (!G || G.phase !== 'run' || G.swaps <= 0) return; au();
   clearTimeout(G.timer); G.phase = 'move'; setCtrl(); hideBanner();
-  setHint(`<b>${G.i + 1}日目から先</b>の休みを動かせる（あと${G.swaps}回）`);
+  G.scene = { kind: 'plan', ev: [], k: 0, t0: performance.now() };
+  setMsg(`<b>${G.i + 1}日目から先</b>の休みを動かせる`, `交換はあと${G.swaps}回`);
 };
 $('resumeRunBtn').onclick = () => { if (!G || G.phase !== 'move') return; G.sel = -1; G.preview = null; startRun(); };
 $('speedBtn').onclick = () => { SV.fast = !SV.fast; writeSave(); setCtrl(); };
@@ -798,7 +831,7 @@ $('pauseBtn').onclick = () => {
   clearTimeout(G.timer); if (G.phase === 'run') G.phase = 'paused';
   syncMute(); show('pause');
 };
-$('resumeBtn').onclick = () => { hide('pause'); if (G && G.phase === 'paused'){ G.phase = 'run'; schedule(400); } };
+$('resumeBtn').onclick = () => { hide('pause'); if (G && G.phase === 'paused'){ G.phase = 'run'; schedule(300); } };
 $('restartBtn').onclick = () => { hide('pause'); newGame(); };
 $('quitBtn').onclick = () => { if (G) clearTimeout(G.timer); G = null; toTitle(); };
 $('pHowBtn').onclick = () => { howFrom = 'pause'; hide('pause'); show('howto'); };
@@ -823,6 +856,210 @@ function toTitle(){
   $('bestBox').innerHTML = SV.best ? `最高記録：<b>${SV.best}日</b> もちこたえた` : '';
   const d = jstDate(); $('tday').textContent = `今日の盤面：${d.getUTCMonth() + 1}月${d.getUTCDate()}日（毎日0時にかわる）`;
   syncMute(); show('title'); ads('ad1');
+}
+
+// ===== ドット絵の欄：いまの様子 =====
+const SC = { cv: $('scene'), g: null, px: 3, W: 160, H: 40, cx: 80, head: { x: 0, y: 0 } };
+SC.g = SC.cv.getContext('2d');
+function sceneLayout(){
+  const wrap = $('sceneWrap'), cssW = wrap.clientWidth || 300, dpr = Math.min(3, window.devicePixelRatio || 1);
+  const cssH = Math.max(60, Math.min(104, window.innerHeight * 0.17 - 30));
+  SC.px = Math.max(1, Math.round(cssH * dpr / SC.H));
+  while (SC.px > 1 && SC.px * SC.H / dpr > cssH + 4) SC.px--;
+  SC.W = Math.ceil(cssW * dpr / SC.px); SC.cx = Math.floor(SC.W / 2);
+  SC.cv.width = SC.W * SC.px; SC.cv.height = SC.H * SC.px;
+  SC.cv.style.width = SC.cv.width / dpr + 'px'; SC.cv.style.height = SC.cv.height / dpr + 'px';
+  wrap.style.height = SC.cv.height / dpr + 'px';
+}
+const PAL = { k: '#1f2f46', h: '#4a3426', s: '#f6c9a0', w: '#f4f6f9', r: '#d2412a', b: '#4f8fd6', p: '#3a4a63', m: '#c0614a', c: '#f6a0a0', C: '#ff6b8a', v: '#a08ad0', y: '#ffc93c', o: '#ff8a3c', q: '#ffffff' };
+const HEADS = {
+  normal: ['..hhhhhh..', '.hhhhhhhh.', 'hhhhhhhhhh', 'hhsssssshh', 'hskssssksh', '.scsssscs.', '..ssmmss..', '...ssss...'],
+  happy:  ['..hhhhhh..', '.hhhhhhhh.', 'hhhhhhhhhh', 'hhsssssshh', 'hskssssksh', '.scsssscs.', '..skkkks..', '...ssss...'],
+  tired:  ['..hhhhhh..', '.hhhhhhhh.', 'hhhhhhhhhh', 'hhsssssshh', 'hskksskksh', '.svssssvs.', '..sskkss..', '...ssss...'],
+  panic:  ['..hhhhhh..', '.hhhhhhhh.', 'hhhhhhhhhh', 'hhksssskhh', 'hskssssksh', '.ssssssss.', '..sskkss..', '...skks...'],
+  sleep:  ['..hhhhhh..', '.hhhhhhhh.', 'hhhhhhhhhh', 'hhsssssshh', 'hskksskksh', '.scsssscs.', '...smss...', '...ssss...'],
+};
+const BODY_SIT = ['.wwwrrwww.', 'wwwwrrwwww', 'wwwwrrwwww', 'wwwwrrwwww', 'wwwwrrwwww', 'wwwwrrwwww'];
+const BODY_STAND = ['.wwwrrwww.', 'wwwwrrwwww', 'wwwwrrwwww', 'swwwrrwwws'];
+const LEGS = { stand: ['.pppppppp.', '.ppp..ppp.', '.ppp..ppp.', '.kkk..kkk.'], runA: ['.pppppppp.', 'pp......pp', 'kk......kk'], runB: ['.pppppppp.', '...pppp...', '...pppp...', '...kkkk...'] };
+const OUTFIT = { work: {}, casual: { w: '#4f8fd6', r: '#4f8fd6' } };
+const GLYPH = {
+  '!': ['k', 'k', 'k', '.', 'k'], '?': ['kkk', '..k', '.k.', '...', '.k.'],
+  Z: ['kkkk', '..k.', '.k..', 'kkkk'], heart: ['.C.C.', 'CCCCC', '.CCC.', '..C..'],
+  soul: ['.qqq.', 'qqqqq', 'qkqkq', 'qqqqq', '.qqqq', '...qq'],
+  flameA: ['..y..', '.yoy.', '.ooo.', 'ooroo', '.rrr.'], flameB: ['.y...', '.oy..', '.ooo.', 'orooo', '.rrr.'],
+};
+function R(x, y, w, h, col){ const p = SC.px; SC.g.fillStyle = col; SC.g.fillRect(Math.round(x) * p, Math.round(y) * p, w * p, h * p); }
+function spr(rows, x, y, pal){ for (let j = 0; j < rows.length; j++) for (let i = 0; i < rows[j].length; i++){ const ch = rows[j][i]; if (ch !== '.') R(x + i, y + j, 1, 1, (pal && pal[ch]) || PAL[ch]); } }
+function bubble(x, y, gl){ R(x, y, 9, 8, PAL.k); R(x + 1, y + 1, 7, 6, '#fff'); R(x + 2, y + 8, 2, 1, PAL.k); R(x + 2, y + 9, 1, 1, PAL.k); const g = GLYPH[gl]; spr(g, x + Math.floor((9 - g[0].length) / 2), y + 1); }
+// 人：sit（机やソファのうしろ）・stand・run・cheer
+function chara(x, y, face, outfit, pose, f){
+  const pal = OUTFIT[outfit] || {};
+  SC.head = { x, y };
+  spr(HEADS[face] || HEADS.normal, x, y);
+  if (pose === 'head') return;
+  if (pose === 'sit'){ spr(BODY_SIT, x, y + 8, pal); return; }
+  if (pose === 'cheer'){
+    spr(BODY_SIT.slice(0, 4), x, y + 8, pal);
+    const sh = pal.w || PAL.w, up = f ? 1 : 0;
+    R(x - 1, y + 5 - up, 1, 4 + up, sh); R(x + 10, y + 5 - up, 1, 4 + up, sh); R(x - 1, y + 4 - up, 1, 1, PAL.s); R(x + 10, y + 4 - up, 1, 1, PAL.s);
+  } else spr(BODY_STAND, x, y + 8, pal);
+  spr(pose === 'run' ? (f ? LEGS.runA : LEGS.runB) : LEGS.stand, x, y + 12);
+}
+function sweat(f){ const h = SC.head; R(h.x - 2, h.y + 2 + f, 1, 2, '#8fd3ff'); R(h.x + 11, h.y + 3 - f, 1, 2, '#8fd3ff'); }
+function hearts(now){ const h = SC.head; for (let j = 0; j < 2; j++){ const t = (now / 1100 + j / 2) % 1; spr(GLYPH.heart, h.x + 10 + j * 4, h.y + 2 - Math.round(t * 12)); } }
+function win(x, y, sky){
+  R(x, y, 18, 14, '#fff'); R(x + 1, y + 1, 16, 12, sky === 'night' ? '#1c2a52' : sky === 'dusk' ? '#ffb07a' : '#9fdcff');
+  if (sky === 'night'){ R(x + 12, y + 3, 2, 2, '#fff3b0'); R(x + 4, y + 4, 1, 1, '#fff'); R(x + 6, y + 10, 1, 1, '#fff'); }
+  else if (sky === 'dusk') R(x + 3, y + 9, 4, 3, '#ff6a3c');
+  else { R(x + 3, y + 4, 5, 1, '#fff'); R(x + 4, y + 3, 3, 1, '#fff'); }
+  R(x + 9, y + 1, 1, 12, '#fff'); R(x + 1, y + 7, 16, 1, '#fff');
+}
+function bgOffice(sky){
+  const W = SC.W, cx = SC.cx, night = sky === 'night';
+  R(0, 0, W, 34, night ? '#47506e' : '#dfe5ee'); R(0, 28, W, 6, night ? '#3d4560' : '#cdd4df');
+  R(0, 34, W, 10, night ? '#59637a' : '#9aa6b5'); R(0, 34, W, 1, night ? '#3d4560' : '#7d8899');
+  for (let x = ((cx - 50) % 44 + 44) % 44 - 44; x < W; x += 44) win(x, 5, sky);
+  const kx = cx + 27; R(kx, 4, 7, 7, PAL.k); R(kx + 1, 5, 5, 5, '#fff'); R(kx + 3, 6, 1, 2, PAL.k);
+  if (night) R(kx + 2, 6, 1, 1, PAL.k); else R(kx + 4, 7, 1, 1, PAL.k);
+}
+function bgHome(){
+  const W = SC.W, cx = SC.cx;
+  R(0, 0, W, 34, '#f3e3c3');
+  for (let y = 3; y < 30; y += 6) for (let x = (y / 6 % 2) * 3; x < W; x += 6) R(x, y, 1, 1, '#e6cf9f');
+  R(0, 34, W, 10, '#c79a63'); R(0, 34, W, 1, '#a87a45'); R(0, 39, W, 1, '#b0844f');
+  for (let x = cx % 16; x < W; x += 16) R(x, 35, 1, 4, '#b0844f');
+  const wx = cx - 50; R(wx - 2, 4, 2, 17, '#ff8fb1'); win(wx, 5, 'day'); R(wx + 12, 7, 3, 3, '#ffd84a'); R(wx + 18, 4, 2, 17, '#ff8fb1');
+  R(cx + 40, 28, 6, 6, '#c0614a'); R(cx + 39, 21, 8, 7, '#5fa55a'); R(cx + 41, 19, 4, 2, '#5fa55a');
+}
+function desk(cx){ R(cx - 24, 26, 50, 2, '#b07a4a'); R(cx - 24, 28, 50, 1, '#8a5a32'); R(cx - 22, 29, 46, 9, '#a36b3b'); R(cx + 8, 32, 12, 1, '#8a5a32'); R(cx + 13, 34, 2, 1, '#ffd84a'); }
+function monitor(cx, mode, now){
+  const x = cx + 6, y = 13;
+  R(x, y, 15, 11, PAL.k); R(x + 6, 24, 3, 2, PAL.k); R(x + 4, 25, 7, 1, PAL.k);
+  if (mode === 'err'){ const fl = Math.floor(now / 160) % 2; R(x + 1, y + 1, 13, 9, fl ? '#e2553a' : '#b8321d'); R(x + 7, y + 2, 1, 4, '#fff'); R(x + 7, y + 7, 1, 1, '#fff'); return; }
+  if (mode === 'off'){ R(x + 1, y + 1, 13, 9, '#2a3442'); return; }
+  R(x + 1, y + 1, 13, 9, '#2b6cb0');
+  const sh = Math.floor(now / (mode === 'fast' ? 90 : 220));
+  for (let j = 0; j < 4; j++) R(x + 2, y + 2 + j * 2, 2 + ((j * 5 + sh * 3) % 9), 1, '#bfe6ff');
+}
+function sceneWork(S, f, now){
+  const W = SC.W, cx = SC.cx, ev = S.ev || [], dead = S.kind === 'dead';
+  const tr = ev.includes('tr'), ot = ev.includes('ot'), teiji = ev.includes('teiji'), sashi = ev.includes('sashi'), call = S.kind === 'call';
+  bgOffice(dead || (ot && !tr) ? 'night' : teiji ? 'dusk' : 'day');
+  if (teiji){
+    desk(cx); monitor(cx, 'off', now);
+    const t = Math.min(1, (now - S.t0) / 650), x = cx - 14 + Math.round(t * 46);
+    R(cx + 34, 10, 14, 24, '#8a5a32'); R(cx + 35, 11, 12, 23, t >= 1 ? '#2a1f18' : '#a36b3b'); R(cx + 37, 22, 1, 1, '#ffd84a');
+    R(cx + 36, 6, 9, 3, '#3fbf6a'); R(cx + 37, 7, 7, 1, '#fff');
+    if (t < 1){ chara(x, 18, 'happy', 'work', 'run', Math.floor(now / 90) % 2); R(x + 9, 25, 3, 3, '#8a5a32'); R(x - 5, 23, 3, 1, '#7d8899'); R(x - 7, 27, 4, 1, '#7d8899'); }
+    return;
+  }
+  if (dead){
+    desk(cx); monitor(cx, 'code', now);
+    R(cx - 15, 21, 12, 5, PAL.w); R(cx - 19, 25, 6, 1, PAL.w); R(cx - 6, 25, 6, 1, PAL.w); R(cx - 20, 25, 1, 1, PAL.s); R(cx, 25, 1, 1, PAL.s);
+    R(cx - 14, 19, 10, 6, PAL.h); R(cx - 13, 18, 8, 1, PAL.h);
+    SC.g.fillStyle = 'rgba(12,20,52,.3)'; SC.g.fillRect(0, 0, SC.cv.width, SC.cv.height);
+    const t = (now / 2000) % 1; SC.g.globalAlpha = 1 - t * 0.7;
+    spr(GLYPH.soul, cx - 12 + Math.round(Math.sin(now / 260) * 2), 15 - Math.round(t * 15)); SC.g.globalAlpha = 1;
+    return;
+  }
+  const k = S.k || 0, panic = tr || S.dl;
+  const face = panic ? 'panic' : (ot || call || k >= 6) ? 'tired' : sashi ? 'happy' : 'normal';
+  chara(cx - 14, 12, face, call ? 'casual' : 'work', 'sit', f);
+  desk(cx);
+  if (sashi){ R(cx - 24, 22, 8, 4, '#ff8fb1'); R(cx - 24, 22, 8, 1, '#e86f98'); R(cx - 23, 23, 2, 2, '#8a5a32'); R(cx - 20, 23, 2, 2, '#c0614a'); }
+  else { const pile = S.dl ? 9 : S.busy ? 6 : S.ramp ? 4 : Math.min(3, Math.floor(k / 3)); for (let j = 0; j < pile; j++) R(cx - 23 + (j % 2), 25 - j, 6, 1, j % 2 ? '#fff' : '#dfe5ee'); }
+  R(cx - 16, 26, 13, 1, '#4a5568');
+  const tf = panic ? Math.floor(now / 110) % 2 : f;
+  R(cx - 12, 25 - tf, 2, 1, PAL.s); R(cx - 7, 24 + tf, 2, 1, PAL.s);
+  if (ot && !tr){ SC.g.fillStyle = 'rgba(12,20,52,.25)'; SC.g.fillRect(0, 0, SC.cv.width, SC.cv.height); R(cx + 23, 16, 5, 2, '#ffd84a'); R(cx + 25, 18, 1, 8, PAL.k); }
+  monitor(cx, tr ? 'err' : panic ? 'fast' : 'code', now);
+  if (tr){
+    const fl = Math.floor(now / 160) % 2; R(cx + 12, 11, 3, 2, fl ? '#ff3b2e' : '#b8321d'); if (fl){ R(cx + 10, 11, 1, 1, '#ff3b2e'); R(cx + 16, 11, 1, 1, '#ff3b2e'); }
+    for (let j = 0; j < 3; j++){ const t = (now / 700 + j / 3) % 1; R(cx - 22 + Math.round(t * 14) + j * 3, 22 - Math.round(Math.sin(t * Math.PI) * 14), 3, 2, '#fff'); }
+  }
+  if (S.dl) for (let j = 0; j < 6; j++) spr((f + j) % 2 ? GLYPH.flameA : GLYPH.flameB, cx - 26 + j * 9, 35);
+  if (panic || k >= 6) sweat(f);
+  if (sashi) hearts(now);
+  if (call) bubble(cx - 4, 1 + f, '!');
+}
+function sceneSleep(S, f, now){
+  const cx = SC.cx; bgHome();
+  R(cx - 22, 31, 44, 4, '#fff'); R(cx - 22, 35, 44, 1, '#c7ced8');
+  R(cx - 21, 27, 11, 5, '#fff'); R(cx - 21, 31, 11, 1, '#d9dfe8');
+  chara(cx - 20, 21, 'sleep', 'work', 'head', f);
+  R(cx - 11, 27 - f, 32, 6 + f, '#ff8fb1'); R(cx - 11, 27 - f, 32, 1, '#e86f98');
+  for (let j = 0; j < 4; j++) R(cx - 6 + j * 7, 28 - f, 1, 5 + f, '#ff7aa6');
+  for (let j = 0; j < 3; j++){ const t = (now / 1100 + j / 3) % 1; spr(GLYPH.Z, cx - 12 + Math.round(t * 10), 17 - Math.round(t * 15)); }
+}
+function sceneRelax(S, f, now){
+  const cx = SC.cx; bgHome();
+  R(cx - 40, 13, 20, 14, PAL.k); R(cx - 39, 14, 18, 11, f ? '#7fd4ff' : '#9fe8b0'); R(cx - 33, 17, 4, 5, '#ffd84a'); R(cx - 34, 27, 8, 7, '#8a5a32');
+  chara(cx + 2, 12, 'happy', 'casual', 'sit', f);
+  R(cx - 8, 24, 34, 7, '#e2553a'); R(cx - 8, 24, 34, 1, '#ff7a5a'); R(cx - 11, 26, 4, 9, '#c0412a'); R(cx + 25, 26, 4, 9, '#c0412a'); R(cx - 8, 31, 34, 4, '#ff6a4a');
+  R(cx + 25, 21, 4, 5, '#ffd84a'); R(cx + 25, 21, 4, 1, '#e2553a');
+}
+function sceneOnsen(S, f, now){
+  const W = SC.W, cx = SC.cx;
+  R(0, 0, W, 26, '#8fd0ff');
+  for (let x = 0; x < W; x++){ const h1 = 9 + Math.round(5 * Math.sin((x + 7) / 9) + 3 * Math.sin(x / 4.3)); R(x, 26 - h1, 1, h1, '#8cc48a'); const h2 = 4 + Math.round(3 * Math.sin((x + 30) / 6)); R(x, 26 - h2, 1, h2, '#5f9e5a'); }
+  R(0, 26, W, 18, '#8a8f99');
+  for (let x = -2; x < W; x += 8){ R(x, 26, 7, 4, '#9aa0aa'); R(x + 1, 26, 4, 1, '#b8bec8'); }
+  chara(cx - 5, 21, S.ev.includes('gussuri') ? 'sleep' : 'happy', 'work', 'head', f);
+  R(cx - 4, 19, 8, 3, '#fff'); R(cx - 4, 21, 8, 1, '#e3e8ee'); R(cx - 7, 29, 14, 2, PAL.s);
+  R(0, 31, W, 13, '#7fd4ff');
+  for (let x = (f ? 4 : 0); x < W; x += 9) R(x, 33 + (Math.floor(x / 9) % 2) * 3, 4, 1, '#bfeaff');
+  for (let j = 0; j < 8; j++){ const t = (now / 1600 + j / 8) % 1, x = (j * 37 + 11) % W, y = 31 - Math.round(t * 24);
+    SC.g.globalAlpha = 0.75 * (1 - t); R(x + Math.round(Math.sin(t * 6 + j) * 2), y, 3, 1, '#fff'); R(x + 1, y - 1, 1, 1, '#fff'); SC.g.globalAlpha = 1; }
+}
+function sceneBeach(S, f, now){
+  const W = SC.W, cx = SC.cx;
+  R(0, 0, W, 20, '#8fd0ff'); R(cx + 38, 3, 5, 5, '#ffd84a'); R(cx + 37, 4, 7, 3, '#ffd84a');
+  R(0, 18, W, 10, '#3a9ad9');
+  for (let x = (f ? 3 : 0) - 10; x < W; x += 10) R(x, 20 + (Math.floor(x / 10) & 1) * 3, 5, 1, '#bfeaff');
+  R(0, 27, W, 1, '#fff'); R(0, 28, W, 16, '#f2d79b');
+  for (let x = 3; x < W; x += 11) R(x, 38 + (x % 3), 1, 1, '#d9b977');
+  R(cx + 12, 13, 1, 22, '#fff');
+  for (let j = 0; j < 5; j++){ const hw = 4 + j * 3; for (let i = 0; i < hw * 2; i++) R(cx + 12 - hw + i, 9 + j, 1, 1, Math.floor(i / 3) % 2 ? '#fff' : '#e2553a'); }
+  R(cx - 24, 33, 30, 4, '#4f8fd6'); for (let j = 0; j < 5; j++) R(cx - 21 + j * 6, 33, 2, 4, '#fff');
+  chara(cx - 24, 26, 'happy', 'work', 'head', f);
+  R(cx - 23, 29, 3, 2, PAL.k); R(cx - 18, 29, 3, 2, PAL.k); R(cx - 20, 29, 2, 1, PAL.k);
+  R(cx - 14, 33, 16, 3, PAL.s); R(cx - 9, 33, 5, 3, '#e2553a');
+}
+function scenePlan(f, now){
+  const W = SC.W, cx = SC.cx;
+  R(0, 0, W, 34, '#e9eef4'); R(0, 34, W, 10, '#b9c3cf'); R(0, 34, W, 1, '#9aa6b5');
+  for (let x = ((cx - 50) % 44 + 44) % 44 - 44; x < W; x += 44) if (Math.abs(x + 9 - cx) > 30) win(x, 5, 'day');
+  const x0 = cx - 4, y0 = 11;
+  R(x0 + 3, y0 + 20, 1, 5, PAL.k); R(x0 + 28, y0 + 20, 1, 5, PAL.k);
+  R(x0, y0, 32, 21, PAL.k); R(x0 + 1, y0 + 1, 30, 19, '#fff'); R(x0 + 1, y0 + 1, 30, 3, '#e2553a'); R(x0 + 6, y0 - 1, 1, 3, PAL.k); R(x0 + 25, y0 - 1, 1, 3, PAL.k);
+  for (let i = 0; i < DAYS; i++){
+    const c = G.C[i], col = c.dl ? '#e2553a' : c.off ? '#ffc93c' : c.done ? '#8a96a5' : c.ramp ? '#f2b27c' : c.busy ? '#c4b2ee' : '#c7ced8';
+    R(x0 + 3 + (i % 7) * 4, y0 + 5 + Math.floor(i / 7) * 4, 3, 3, col);
+  }
+  chara(cx - 18, 18, G.trails.length ? 'happy' : 'normal', 'work', 'stand', f);
+  R(cx - 8, 26, 3, 1, PAL.w); R(cx - 5, 26, 1, 1, PAL.s);
+  if (G.sel >= 0){ R(cx - 22, 11 - f, 4, 4, '#ffc93c'); R(cx - 22, 11 - f, 1, 1, '#e9eef4'); R(cx - 19, 11 - f, 1, 1, '#e9eef4'); R(cx - 21, 15 - f, 2, 3, PAL.w); }
+  else bubble(cx - 12, 4 + f, G.trails.length ? '!' : '?');
+}
+function sceneCheer(f, now){
+  const W = SC.W, cx = SC.cx; bgHome();
+  chara(cx - 5, 18, 'happy', 'work', 'cheer', f);
+  const cols = ['#e2553a', '#ffc93c', '#4f8fd6', '#3fbf6a', '#ff8fb1'];
+  for (let j = 0; j < 28; j++) R((j * 53 + 7) % W, Math.floor((now / 14 + j * 29) % 52) - 6, 1, 2, cols[j % 5]);
+}
+function drawScene(){
+  if (!G || !G.scene) return;
+  const S = G.scene, now = performance.now(), f = Math.floor(now / 240) % 2;
+  SC.g.globalAlpha = 1; SC.g.clearRect(0, 0, SC.cv.width, SC.cv.height);
+  if (S.kind === 'plan') scenePlan(f, now);
+  else if (S.kind === 'cheer') sceneCheer(f, now);
+  else if (S.kind === 'off'){
+    (S.k <= 1 ? sceneSleep : S.k === 2 ? sceneRelax : S.k % 2 ? sceneOnsen : sceneBeach)(S, f, now);
+    const h = SC.head;
+    if (S.ev.includes('phone')){ const j = f; R(h.x + 11 + j, h.y + 1, 4, 7, PAL.k); R(h.x + 12 + j, h.y + 2, 2, 4, '#7fd4ff'); R(h.x + 10, h.y + 3 + j, 1, 2, PAL.k); R(h.x + 16, h.y + 3 + j, 1, 2, PAL.k); bubble(h.x + 2, Math.max(0, h.y - 11), '!'); }
+    if (S.ev.includes('gussuri')) for (let j = 0; j < 4; j++) if ((j + f) % 2){ const sx = h.x - 8 + j * 9, sy = h.y - 6 + (j % 2) * 4; R(sx, sy - 1, 1, 3, '#ffd84a'); R(sx - 1, sy, 3, 1, '#ffd84a'); }
+  } else sceneWork(S, f, now);
 }
 
 // ===== 結果 =====
@@ -922,7 +1159,7 @@ function makeResultImage(){
 loadSave();
 let lastStage = '';
 function relayout(){ const st = $('stage'), k = st.clientWidth + 'x' + st.clientHeight; if (k !== lastStage && G && G.C){ lastStage = k; layout(); } }
-window.addEventListener('resize', relayout);
+window.addEventListener('resize', () => { sceneLayout(); relayout(); });
 if (window.ResizeObserver) new ResizeObserver(relayout).observe($('stage'));
 document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.phase === 'run') $('pauseBtn').onclick(); });
 toTitle();
