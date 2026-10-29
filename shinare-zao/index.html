@@ -62,6 +62,16 @@ button{font-family:inherit;cursor:pointer}
 #styles button.on{background:#ffd84a;transform:translateY(-3px);box-shadow:0 3px 0 #13324d}
 #hud.pick #hint{bottom:calc(84px + env(safe-area-inset-bottom))}
 #retBtn{pointer-events:auto;position:absolute;right:max(14px,env(safe-area-inset-right));bottom:calc(92px + env(safe-area-inset-bottom));font-size:14px;font-weight:800;padding:8px 16px;border-radius:999px;border:3px solid #13324d;background:#fff;color:#13324d}
+#guide{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;transition:opacity .25s;opacity:0}
+#guide text{font:800 13px "M PLUS Rounded 1c",sans-serif;fill:#fff;paint-order:stroke;stroke:#13324d;stroke-width:4px;stroke-linejoin:round}
+#demoBtn{pointer-events:auto;position:absolute;right:max(12px,env(safe-area-inset-right));top:calc(max(10px,env(safe-area-inset-top)) + 58px);font:800 14px/1.2 "M PLUS Rounded 1c",sans-serif;padding:8px 13px;border-radius:999px;border:3px solid #13324d;background:#ffd84a;color:#13324d;box-shadow:0 3px 0 #13324d}
+#demoTip{position:absolute;left:50%;top:22%;transform:translateX(-50%);background:rgba(19,50,77,.92);color:#fff;border-radius:14px;padding:8px 16px;font-size:17px;font-weight:800;text-align:center;width:max-content;max-width:min(90vw,460px);line-height:1.5}
+#demoTip small{display:block;font-size:12px;color:#ffd84a}
+#demoTip.go{background:#e2553a}
+#demoHand{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
+#demoHand .ring{position:absolute;left:-22px;top:-22px;width:44px;height:44px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 3px #13324d;transition:transform .1s,background .1s}
+#demoHand.down .ring{background:rgba(255,216,74,.8);transform:scale(.85)}
+#demoHand .fg{position:absolute;left:-17px;top:8px;font-size:42px;line-height:1;filter:drop-shadow(0 2px 0 #13324d)}
 #fade{position:fixed;inset:0;background:#0f2a40;opacity:0;pointer-events:none;transition:opacity .22s;z-index:4}
 #fade.on{opacity:1}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px max(18px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));text-align:center;z-index:5;overflow-y:auto}
@@ -145,6 +155,7 @@ body.funya #rankBtn,body.funya #rRankBtn,body.funya #nameBox,body.funya #rRank,b
 <body>
 <canvas id="c"></canvas>
 <div id="hud" class="hidden">
+  <svg id="guide"></svg>
   <div id="castNo" class="out">1<small>/5投目</small></div>
   <div id="sub" class="out"></div>
   <div id="wind"><span class="ar" id="windAr">↑</span><span id="windTx">無風</span></div>
@@ -161,6 +172,9 @@ body.funya #rankBtn,body.funya #rRankBtn,body.funya #nameBox,body.funya #rRank,b
   <button id="retBtn" class="hidden">回収する</button>
   <div id="styles" class="hidden"></div>
   <div id="hint"></div>
+  <button id="demoBtn" class="hidden">▶ お手本</button>
+  <div id="demoTip" class="hidden"></div>
+  <div id="demoHand" class="hidden"><div class="ring"></div><div class="fg">👆</div></div>
 </div>
 <div id="catch" class="hidden"><div class="card"><div id="cNew">NEW!</div><div id="cName"></div><div id="cSize"></div><div id="cDesc"></div><div id="cTap">タップでつぎへ</div></div></div>
 <div id="fade"></div>
@@ -288,8 +302,8 @@ const CONFIG = {
   V_BREAK: 1.25,          // V字投法：振り始めから竿に重さが乗るので、切れるしなりがこの倍になる（オモリを砂に置けた時だけ）
   PEND_REST: 5,           // 振り子投法の構えの角度（度）
   PEND_W: 3,              // 振り子投法：竿がこの速さ（rad/s）になった時を「振り出し」として、オモリの位置を見る
-  PEND_ANG: 120, PEND_WID: 40,  // 振り子投法：振り出した時のオモリの角度（真下0°・真うしろ90°）がこの近くだといちばん伸びる。ずれの許し
-  PEND_BONUS: 11.5,       // 振り子投法：振り子のいきおい。振り切った時の竿先のはじきに足す（rad/s、うまさ100%の時）
+  PEND_ANG: 110, PEND_WID: 45,  // 振り子投法：振り出した時のオモリの角度（真下0°・真うしろ90°）がこの近くだといちばん伸びる。ずれの許し
+  PEND_BONUS: 11.5,         // 振り子投法：振り子のいきおい。振り切った時の竿先のはじきに足す（rad/s、うまさ100%の時）
   ROT_HOLD: -95,          // 回転投法：回っている間の竿の角度（度）
   ROT_RATIO: 0.5,         // 回転投法：指で描いた円の角度 × これ ＝ 体が回る角度
   ROT_K: 40, ROT_C: 9, ROT_WMAX: 9, // 回転投法：体が指についてくる強さ・ブレーキ・回る速さの上限（rad/s）
@@ -855,7 +869,7 @@ function rodStep(h){
 // 時刻 t（performance.now）まで竿を進める。指の動きの時刻に合わせて呼ぶので、はなした瞬間が正確になる
 function rodAdvance(t){
   const h = 1 / CONFIG.STEP_HZ; let dt = (t - R.simT) / 1000; if (!(dt > 0)) return; if (dt > 0.1){ dt = 0.1; }
-  R.simT = t; let n = Math.ceil(dt / h); const hh = dt / n;
+  R.simT = t; dt *= R.ts || 1; let n = Math.ceil(dt / h); const hh = dt / n;   // R.ts：お手本のスロー
   for (let i = 0; i < n; i++){
     rodStep(hh); sinkerStep(hh);
     if (G.state !== 'swing') continue;
@@ -866,8 +880,8 @@ function rodAdvance(t){
 function fingerTarget(y){ const C = CONFIG; return clamp(R.rest / D2R + C.DRAG_GAIN * (inp.y0 - y) / innerHeight, C.PHI_BACK, C.PHI_STOP + C.PHI_OVER) * D2R; }
 // 振り子投法：振り出した時のオモリの位置で、竿にかかる重さが決まる。うしろの高い所（PEND_ANG）ほどよい。前にあると糸がたるんで弱くなる
 function pendStart(){
-  const C = CONFIG, d = SK.p.clone().sub(SK.tip), ang = Math.atan2(d.z, -d.y) / D2R, taut = clamp(d.length() / SK.drop * 1.2 - 0.2, 0, 1);
-  let q = ang < 0 ? -0.5 * clamp(-ang / 60, 0, 1) : Math.exp(-Math.pow((ang - C.PEND_ANG) / C.PEND_WID, 2)) * taut;
+  const C = CONFIG, ang = Math.atan2(Math.sin(SK.th), Math.cos(SK.th)) / D2R, taut = 1;   // 振り子は糸がいつも張っている
+  let q = ang < 0 ? -0.5 * clamp(-ang / 60, 0, 1) : Math.exp(-Math.pow((ang - C.PEND_ANG) / C.PEND_WID, 2)) * (0.6 + 0.4 * taut);   // 糸がたるんでいると少し弱い
   R.pendQ = q; R.pendA = ang;
   if (q < 0) R.w *= 1 + 0.4 * q;   // 糸がたるんで弱くなる。よい時は、振り切った時のはじきに足す
 }
@@ -896,13 +910,23 @@ function rotFinger(x, y){
   ROT.last = a; ROT.target = clamp(Math.PI - Math.abs(ROT.acc) * CONFIG.ROT_RATIO, -0.6, Math.PI);
 }
 // ぶら下がった仕掛け（見た目だけ）：竿先から DROP の長さの糸でつるした点
-const SK = { p: new THREE.Vector3(), q: new THREE.Vector3(), tip: new THREE.Vector3(), on: true, drop: CONFIG.DROP };
+const SK = { p: new THREE.Vector3(), q: new THREE.Vector3(), tip: new THREE.Vector3(), on: true, drop: CONFIG.DROP, th: 0, thv: 0, pv: null };
+// 振り子投法：糸を張ったままゆれる振り子。th＝真下からの角度（うしろが＋）、竿先が動いた分だけゆさぶられる
+function pendTip(){ const gp = gripPos(R.phi), ps = R.phi + R.b, L = CONFIG.ROD_LEN * (1 - GRIP_S); return toWorld(gp.add(new THREE.Vector3(0, Math.cos(ps) * L, -Math.sin(ps) * L))); }
+function pendStep(h){
+  const tip = pendTip(); if (!SK.pv){ SK.pv = tip.clone(); SK.pvel = new THREE.Vector3(); }
+  const vel = tip.clone().sub(SK.pv).divideScalar(h), acc = vel.clone().sub(SK.pvel).divideScalar(h).clampLength(0, 300); SK.pv.copy(tip); SK.pvel.copy(vel);
+  const L = SK.drop, th = SK.th, ath = -9.8 / L * Math.sin(th) - (acc.y * Math.sin(th) + acc.z * Math.cos(th)) / L - 0.25 * SK.thv;
+  SK.thv += ath * h; SK.th += SK.thv * h;
+  SK.p.set(tip.x, tip.y - L * Math.cos(SK.th), tip.z + L * Math.sin(SK.th)); SK.q.copy(SK.p);
+}
 function sinkerStep(h){
+  if (SK.on && G.style === 'pend'){ pendStep(h); return; }
   if (!SK.on) return; const p = SK.p, v = tmpV.subVectors(p, SK.q).multiplyScalar(0.992); SK.q.copy(p); p.add(v); p.y -= 9.8 * h * h;
   const d = tmpV2.subVectors(p, SK.tip), L = d.length(); if (L > SK.drop) p.copy(SK.tip).addScaledVector(d, SK.drop / L);
   const gh = beachH(-p.z) + 0.04; if (p.y < gh){ p.y = gh; SK.q.y = p.y; SK.q.x = lerp(SK.q.x, p.x, 0.25); SK.q.z = lerp(SK.q.z, p.z, 0.25); }   // 砂の上ではすべりにくい
 }
-function sinkerHang(){ SK.on = true; SK.p.copy(SK.tip).add(new THREE.Vector3(0, -SK.drop, 0)); SK.q.copy(SK.p); }
+function sinkerHang(){ SK.on = true; SK.p.copy(SK.tip).add(new THREE.Vector3(0, -SK.drop, 0)); SK.q.copy(SK.p); SK.th = 0; SK.thv = 0; SK.pv = null; }
 function launchParams(){
   const psi = (R.phi + R.b + R.lam) / D2R, om = R.w + R.bv + R.lv;   // 体のゆれも竿先の動きに入る
   return { psi, om, v0: Math.max(0, om) * CONFIG.V_GAIN, al: CONFIG.A0 - CONFIG.SLOPE * (psi - CONFIG.PSI0), head: R.yaw };   // head＝飛ぶ向き（0＝海の方）
@@ -918,7 +942,7 @@ function snapLine(){
   R.target = (CONFIG.PHI_STOP + 10) * D2R;
   const peak = Math.round(R.Tpeak * 100);
   const res = { d: 0, snap: true, wind: G.wind, peak, v0: L.v0, al: L.al, style: G.style };
-  G.cur = res; G.casts.push(res);
+  G.cur = res; if (!G.demo) G.casts.push(res);   // お手本は5投に数えない
   if (G.style !== 'over'){ showMsg('高切れ！', `${{ v: '砂を引きずる重さに、糸がたえきれなかった', pend: '振り子のいきおいが強すぎた', rot: '回るのが速すぎた' }[G.style]}（負荷 <b>${peak}%</b>）<br>${{ v: 'もっとゆっくり、大きく振ろう', pend: '少し小さくゆらしてから振ろう', rot: '少しゆっくり回ろう' }[G.style]}`, true); G.timer = 2.4; return; }
   showMsg('高切れ！', FUNYA ? `振り出しが急すぎた（負荷 <b>${peak}%</b>）<br>うしろで一瞬ためて、<br>ゆれが落ち着いてから振ろう` : `振り始めが急すぎた（負荷 <b>${peak}%</b>）<br>うしろで一瞬ためて、<br>ゆっくり→だんだん速く`, true);
   G.timer = 2.4;
@@ -927,7 +951,7 @@ function snapLine(){
 // ===== [SEC:FLIGHT] =====
 const FL = { u: 0, y: 0, x: 0, vu: 0, vy: 0, t: 0, ff: 1, trail: [], snap: false, land: null };
 function startFlight(L, auto){
-  G.state = 'flight'; G.flightT = 0; FL.snap = false; FL.ff = 1; FL.land = null;
+  G.state = 'flight'; G.flightT = 0; FL.snap = false; FL.ff = G.demo ? 2.2 : 1; FL.land = null;
   const al = L.al * D2R; SK.on = false;
   FL.u = -SK.p.z; FL.y = SK.p.y; FL.x = FL.xw = SK.p.x; FL.z0 = SK.p.z; FL.s = 0; FL.head = L.head || 0; FL.vu = L.v0 * Math.cos(al); FL.vy = L.v0 * Math.sin(al); FL.t = 0; FL.trail.length = 0;
   FL.L = L; FL.auto = auto; FL.peakT = R.Tpeak;
@@ -973,7 +997,7 @@ function land(){
   G.state = 'landed'; G.timer = 2.3;
   if (water){ sfxSplash(clamp(d / 120, 0.4, 1)); splash(FL.xw, -d, 1); } else sfxThud();
   const res = { d: Math.max(0, Math.round(d * 10) / 10), snap: false, wind: G.wind, peak: Math.round(FL.peakT * 100), v0: L.v0, al: L.al, water, behind: d < 0, style: G.style, head: FL.head, foul: foul && d > 0 };
-  G.cur = res; G.casts.push(res);
+  G.cur = res; if (!G.demo) G.casts.push(res);   // お手本は5投に数えない
   const opt = bestAngle(L.v0, G.wind * Math.cos(FL.head), 4), diff = L.al - opt, kmh = Math.round(L.v0 * 3.6);
   const info = `初速 <b>${kmh}km/h</b>・角度 <b>${Math.round(L.al)}°</b>・負荷 ${res.peak}%` + styleInfo(hd);
   let t1, t2;
@@ -989,8 +1013,8 @@ function land(){
     t2 = info + (Math.abs(diff) > C.PERFECT_DEG ? `<br>この速さ・風なら ${opt}° くらいがいちばん伸びる` : '');
   }
   $('big').innerHTML = fmtM(res.d) + '<small>m</small>'; $('big').classList.remove('pop'); void $('big').offsetWidth; $('big').classList.add('pop');
-  showMsg(t1, t2);
-  if (res.d > G.roundBest){ G.roundBest = res.d; }
+  showMsg(G.demo ? 'お手本：' + t1 : t1, t2);
+  if (!G.demo && res.d > G.roundBest){ G.roundBest = res.d; }
   if (water){ W.mark.visible = true; W.mark.position.set(FL.xw, 0.1, -d); }
   updateSub();
 }
@@ -1113,6 +1137,10 @@ function hideScreens(){ for (const s of ['title', 'howto', 'pause', 'result', 'r
 function nextCast(){
   if (G.castNo >= CONFIG.CASTS){ showResult(); return; }
   G.castNo++; G.feet = 0; G.falling = 0; FI.lean = FI.leanV = 0; const u = rnd() * 2 - 1; G.wind = Math.round(Math.sign(u) * Math.pow(Math.abs(u), 1.25) * CONFIG.WIND_MAX * 10) / 10;
+  resetCast();
+}
+// 構えにもどす（次の投げ・お手本のあと）
+function resetCast(){
   rodReset(); R.simT = performance.now(); M.sinker.visible = true;
   W.mark.visible = false; clearShow(); hideMsg(); hide('big'); hide('fight'); hide('retBtn'); hideLoad();
   G.state = 'ready'; G.cur = null; camMode('ready', true); updateSub(); setWindHud(); applyStyle();
@@ -1127,8 +1155,11 @@ function applyStyle(){
   SK.tip.copy(drawRod(R.phi, R.b)); sinkerHang();
   for (const b of $('styles').children) b.classList.toggle('on', b.dataset.s === G.style);
   showPicker(true); setHint();
+  // その投げ方を初めて選んだ時は、お手本を自動で1回
+  clearTimeout(G.demoT);
+  if (!IS_TEST && !G.demo && !(SV.demoSeen && SV.demoSeen[G.style])) G.demoT = setTimeout(() => { if (G.state === 'ready' && !G.paused && !G.demo && inp.id === null) startDemo(); }, 800);
 }
-function showPicker(on){ $('styles').classList.toggle('hidden', !on); $('hud').classList.toggle('pick', on); }
+function showPicker(on){ $('styles').classList.toggle('hidden', !on); $('hud').classList.toggle('pick', on); $('demoBtn').classList.toggle('hidden', !on || !!G.demo); }
 // 振らずに指をはなした時など：構えにもどる
 function backToReady(){ G.state = 'ready'; R.target = R.rest; R.stopped = false; Object.assign(ROT, { acc: 0, last: null, target: Math.PI, fin: false }); hideLoad(); showPicker(true); setHint(); }
 function buildPicker(){
@@ -1161,8 +1192,8 @@ function updateGame(dt){
   if (G.msgT > 0){ G.msgT -= dt; if (G.msgT <= 0) hideMsg(); }
   if (st === 'ready' || st === 'swing' || st === 'follow'){ /* 竿は rodAdvance で動く */ }
   if (st === 'flight'){ G.flightT += dt; updateFlight(dt); }
-  else if (st === 'landed'){ G.timer -= dt; if (G.timer <= 0){ if (G.cur.water && !G.cur.foul){ fadeCut(() => { hide('big'); hideMsg(); camMode('fish', true); startFishing(); }); G.state = 'cut'; } else { G.state = 'retrieve'; G.timer = 0.8; FI.dist = FI.retrieveFrom = Math.max(0, G.cur.foul ? FL.u : G.cur.d); hide('big'); hideMsg(); } } }
-  else if (st === 'snap'){ G.timer -= dt; updateFlightSnap(dt); if (G.timer <= 0) nextCastCut(); }
+  else if (st === 'landed'){ G.timer -= dt; if (G.timer <= 0){ if (G.demo){ G.state = 'cut'; fadeCut(endDemo); } else if (G.cur.water && !G.cur.foul){ fadeCut(() => { hide('big'); hideMsg(); camMode('fish', true); startFishing(); }); G.state = 'cut'; } else { G.state = 'retrieve'; G.timer = 0.8; FI.dist = FI.retrieveFrom = Math.max(0, G.cur.foul ? FL.u : G.cur.d); hide('big'); hideMsg(); } } }
+  else if (st === 'snap'){ G.timer -= dt; updateFlightSnap(dt); if (G.timer <= 0){ if (G.demo){ G.state = 'cut'; fadeCut(endDemo); } else nextCastCut(); } }
   else if (st === 'wait'){ updateWait(dt); }
   else if (st === 'fight'){ updateFight(dt); }
   else if (st === 'catch'){ G.timer -= dt; }
@@ -1200,7 +1231,8 @@ function updateRig(dt){
   }
   LEAN.a = R.lam * CONFIG.LEAN_LOOK; LEAN.feet = 0; LEAN.drop = 0; LEAN.yaw = R.yaw; if (FUNYA) headWobble(dt, R.lv * CONFIG.LEAN_LOOK);   // 見た目は大きめにゆらす
   const tip = drawRod(phi, b, spin); SK.tip.copy(tip);
-  if (SK.on){ M.sinker.position.copy(SK.p); M.sinker.visible = true; lineCurve(tip, SK.p, 0); }
+  if (SK.on){ if (G.style === 'pend') SK.p.set(tip.x, tip.y - SK.drop * Math.cos(SK.th), tip.z + SK.drop * Math.sin(SK.th));   // 見た目の竿先から、糸の長さぴったりに
+    M.sinker.position.copy(SK.p); M.sinker.visible = true; lineCurve(tip, SK.p, 0); }
   else if (st === 'flight' || st === 'landed' || st === 'snap'){ M.sinker.visible = !FL.snap || FL.y > 0.01; lineCurve(tip, M.sinker.position, FL.snap ? 0.3 : 0.04); }
   else if (st === 'retrieve'){ const hd = G.cur && G.cur.head || 0, end = new THREE.Vector3(FL.x - Math.sin(hd) * FI.dist, Math.max(0, beachH(FI.dist)), -Math.cos(hd) * FI.dist); M.sinker.visible = true; M.sinker.position.copy(end); lineCurve(tip, end, 0.04); if (FI.dist <= 0.5){ sinkerHang(); } }
   M.glow.visible = st === 'flight';
@@ -1219,7 +1251,9 @@ const inp = { id: null, y0: 0, sy: 0, st: 0, mode: matchMedia('(pointer:coarse)'
 // 指の動きの時刻（ブラウザによって基準がちがう時は、今の時刻を使う）
 const evT = e => { const t = e.timeStamp, n = performance.now(); return t > 0 && Math.abs(t - n) < 1000 ? Math.min(t, n) : n; };
 canvas.addEventListener('pointerdown', e => {
-  auInit(); if (G.paused) return; const st = G.state;
+  auInit(); if (G.paused) return;
+  if (G.demo && e.isTrusted){ endDemo(); e.preventDefault(); return; }   // お手本は、さわると止まる
+  const st = G.state;
   if (st === 'title' || st === 'loading') return;
   if (inp.id !== null && st === 'swing') return;   // 振っている間の2本目の指は無視
   inp.id = e.pointerId; try { canvas.setPointerCapture(e.pointerId); } catch (_){}
@@ -1233,7 +1267,7 @@ canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
 });
 canvas.addEventListener('pointermove', e => {
-  if (e.pointerId !== inp.id || G.paused) return;
+  if (e.pointerId !== inp.id || G.paused || G.demo && e.isTrusted) return;
   const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null, list = evs && evs.length ? evs : [e];
   for (const ce of list){
     if (G.state === 'swing'){ rodAdvance(evT(ce)); if (G.state !== 'swing') break; if (G.style === 'rot'){ if (!ROT.fin) rotFinger(ce.clientX, ce.clientY); } else { R.target = fingerTarget(ce.clientY); R.tmin = Math.min(R.tmin, R.target); } }
@@ -1241,7 +1275,7 @@ canvas.addEventListener('pointermove', e => {
   }
 });
 const endPtr = e => {
-  if (e.pointerId !== inp.id) return; inp.id = null;
+  if (e.pointerId !== inp.id || G.demo && e.isTrusted) return; inp.id = null;
   if (G.state === 'swing' && !G.paused){ rodAdvance(evT(e)); if (G.state === 'swing'){ if (G.style === 'rot' && !ROT.fin) backToReady(); else releaseLine(false); } }
   if (G.state === 'flight') FL.ff = 1;
   FI.holding = false;
@@ -1256,16 +1290,115 @@ addEventListener('keyup', e => { if (e.code === 'Space' && G.state === 'fight') 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
 addEventListener('blur', () => pauseGame());
 function pauseGame(){
+  if (G.demo) endDemo();
   if (['title', 'loading', 'result'].includes(G.state) || G.paused) return;
   if (G.state === 'swing') backToReady();
   inp.id = null; FI.holding = false; G.paused = true; show('pause');
 }
 function resumeGame(){ G.paused = false; hide('pause'); R.simT = performance.now(); last = performance.now(); }
+$('demoBtn').onclick = () => { sfxTap(); startDemo(); };
 $('retBtn').onclick = () => { if (G.state === 'wait'){ sfxTap(); endCast('none', '回収', ''); } };
 $('pauseBtn').onclick = () => { sfxTap(); pauseGame(); };
 $('resumeBtn').onclick = () => { sfxTap(); resumeGame(); };
 $('restartBtn').onclick = () => { sfxTap(); G.paused = false; startRound(); };
 $('quitBtn').onclick = () => { sfxTap(); G.paused = false; toTitle(); };
+
+// ===== [SEC:GUIDE] =====
+// なぞる道すじ：構えている間うすく出す。さわると、さわった高さに合わせて動く
+function drawGuide(){
+  const g = $('guide'), st = G.state, on = (st === 'ready' || st === 'swing') && !G.paused;
+  if (!on){ g.style.opacity = 0; return; }
+  const C = CONFIG, W = innerWidth, H = innerHeight, sw = st === 'swing', y0 = sw ? inp.y0 : H * (G.style === 'pend' ? 0.45 : 0.38);
+  g.style.opacity = sw && !G.demo ? 0.5 : 0.95;
+  const key = [G.style, Math.round(y0), W, H].join(','); if (g.dataset.k === key) return; g.dataset.k = key;
+  const rest = R.rest / D2R, x = W * 0.7, tx = x - 30, stop = y0 - (C.PHI_STOP - rest) / C.DRAG_GAIN * H;
+  const back = Math.min(H - 10, y0 + (rest - C.PHI_BACK) / C.DRAG_GAIN * H);
+  const ar = (x1, y1, x2, y2, w, dash) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-width="${w}" stroke-linecap="round" ${dash ? 'stroke-dasharray="2 9"' : ''} marker-end="url(#ah)"/>`;
+  const tt = (x1, y1, t, a = 'end') => `<text x="${x1}" y="${y1}" text-anchor="${a}" dominant-baseline="middle">${t}</text>`;
+  let h = '<defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fff" stroke="#13324d" stroke-width="1"/></marker></defs>';
+  if (G.style === 'rot'){
+    const cx = W / 2, cy = H * 0.55, r = Math.min(W, H) * 0.3;
+    h += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 10" stroke-linecap="round"/>`;
+    h += `<path d="M${cx + r} ${cy} A${r} ${r} 0 0 1 ${cx} ${cy + r}" fill="none" stroke="#fff" stroke-width="5" marker-end="url(#ah)"/><path d="M${cx - r} ${cy} A${r} ${r} 0 0 1 ${cx} ${cy - r}" fill="none" stroke="#fff" stroke-width="5" marker-end="url(#ah)"/>`;
+    h += `<circle cx="${cx + r}" cy="${cy}" r="16" fill="rgba(255,216,74,.45)" stroke="#fff" stroke-width="3"/>` + tt(cx + r - 22, cy - 26, '① ここをさわって') + tt(cx, cy - r - 16, '② 大きく円を描いて体を回す', 'middle') + tt(cx, cy + r + 22, '③ 竿が止まった瞬間にはなす', 'middle');
+  } else if (G.style === 'pend'){
+    const a = H * 0.035;
+    h += `<circle cx="${x}" cy="${y0}" r="16" fill="rgba(255,216,74,.45)" stroke="#fff" stroke-width="3"/>` + tt(tx, y0, '① さわる');
+    h += ar(x + 30, y0, x + 30, y0 + a, 4) + ar(x + 30, y0, x + 30, y0 - a, 4) + tt(tx, y0 + a + 16, '② 小さく上下してゆらす');
+    h += ar(x, y0 - 22, x, stop + 8, 7) + `<text x="${x}" y="${stop - 14}" text-anchor="middle">★</text>` + tt(tx, (y0 + stop) / 2 - 6, '③ オモリがうしろの高い所で上へ') + tt(tx, stop - 14, '④ 竿が止まったらはなす');
+  } else {
+    h += `<circle cx="${x}" cy="${y0}" r="16" fill="rgba(255,216,74,.45)" stroke="#fff" stroke-width="3"/>` + tt(tx, y0, '① さわる');
+    h += ar(x, y0 + 22, x, back - 6, 4, true) + tt(tx, y0 + 0.3 * (back - y0), G.style === 'v' ? '② 下まで引く（オモリを砂へ）' : '② 下へ大きく引く');
+    h += `<line x1="${x - 14}" y1="${back}" x2="${x + 44}" y2="${back}" stroke="#fff" stroke-width="4" stroke-linecap="round"/>` + tt(tx, back - 14, '③ 一瞬ためる');
+    h += ar(x + 30, back - 8, x + 30, stop + 8, 7) + tt(tx, stop + 0.78 * (back - stop), G.style === 'v' ? '④ ゆっくり大きく上へ' : '④ ゆっくり→速く上へ');
+    h += `<text x="${x + 30}" y="${stop - 14}" text-anchor="middle">★</text>` + tt(tx, stop - 14, '⑤ 竿が止まる→はなす');
+  }
+  g.innerHTML = h;
+}
+
+// ===== [SEC:DEMO] =====
+// お手本：指のアイコンが画面をなぞり、その指の動き（本物の指と同じ）で釣り人が投げる。振るところはスロー。5投には数えない
+const DEMO_SLOW = 0.4;   // お手本で振るところの速さ（1＝ふつう）
+const DEMO_TXT = {
+  over: ['① ここをさわる', '② 下へ大きく引く', '③ 一瞬ためる', '④ ゆっくり→だんだん速く上へ', '⑤ 竿が止まった瞬間に、はなす！'],
+  v: ['① ここをさわる', '② 下まで引いて、オモリを砂に置く', '③ 一瞬ためる', '④ ゆっくり大きく上へ', '⑤ 竿が止まった瞬間に、はなす！'],
+  pend: ['① ここをさわる', '② 指を小さく上下して、オモリをゆらす', '③ オモリがうしろの高い所へ来たら…', '④ 今！上へ振る', '⑤ 竿が止まった瞬間に、はなす！'],
+  rot: ['① ここをさわる', '② 大きく円を描いて、体を回す', '③ 海を向くと、竿が振り上がる', '④ 竿が止まった瞬間に、はなす！'],
+};
+function demoTip(i, go){ const D = G.demo; if (!D) return; $('demoTip').innerHTML = `<small>お手本：${STYLES[D.style].nm}（画面をさわると止まる）</small>${DEMO_TXT[D.style][i]}`; $('demoTip').classList.toggle('go', !!go); show('demoTip'); }
+function demoHand(x, y, down){ const h = $('demoHand'); h.style.transform = `translate(${x}px,${y}px)`; h.classList.toggle('down', !!down); show('demoHand'); }
+function demoEv(type, x, y){ canvas.dispatchEvent(new PointerEvent(type, { pointerId: 77, clientX: x, clientY: y, bubbles: true, pointerType: 'touch', isPrimary: true })); demoHand(x, y, type !== 'pointerup'); }
+function startDemo(){
+  if (G.state !== 'ready' || G.demo || G.paused || inp.id !== null) return;
+  clearTimeout(G.demoT);
+  G.demo = { style: G.style, wind: G.wind, ph: 0, ps: performance.now(), alive: true, y: 0, ang: null };
+  SV.demoSeen = SV.demoSeen || {}; SV.demoSeen[G.style] = true; writeSave();
+  G.wind = 0; setWindHud(); showPicker(false); setHint(''); demoLoop();
+}
+function endDemo(){
+  const D = G.demo; if (!D) return; D.alive = false; G.demo = null; R.ts = 1;
+  hide('demoTip'); hide('demoHand'); inp.id = null; G.wind = D.wind; resetCast();
+}
+// 段階（ph）ごとに指を動かす。ps＝その段階を始めた時刻
+function demoLoop(){
+  const D = G.demo; if (!D || !D.alive) return;
+  const now = performance.now(), t = (now - D.ps) / 1000, W = innerWidth, H = innerHeight, st = D.style, x = W * 0.7;
+  const next = ph => { D.ph = ph; D.ps = now; };
+  const sinkerAng = () => Math.atan2(Math.sin(SK.th), Math.cos(SK.th)) / D2R;
+  const release = () => { demoEv('pointerup', D.x, D.y); demoTip(DEMO_TXT[st].length - 1, true); next(90); };
+  if (D.ph >= 90){   // はなしたあと：少しスローで見せて、ふつうの速さへ
+    if (t > 0.5) R.ts = 1;
+    if (t > 0.7) hide('demoHand');
+    if (t > 1.4){ hide('demoTip'); return; }
+  } else if (G.state !== 'swing' && D.ph >= 2 && D.ph < 90){ if (G.state === 'ready'){ endDemo(); return; } }   // やり直しになった時
+  else if (st === 'rot'){
+    const cx = W / 2, cy = H * 0.55, r = Math.min(W, H) * 0.3;
+    if (D.ph === 0){ D.x = cx + r; D.y = cy; demoHand(D.x, D.y, false); demoTip(0); if (t > 1) { demoEv('pointerdown', D.x, D.y); next(2); } }
+    else {
+      const a = 2 * Math.PI * ((now - D.ps) / 1000) / 0.75; if (D.ph === 2){ D.x = cx + r * Math.cos(a); D.y = cy + r * Math.sin(a); demoEv('pointermove', D.x, D.y); demoTip(1); if (ROT.fin){ R.ts = DEMO_SLOW; demoTip(2); next(3); } }
+      else if (D.ph === 3){ if (R.stopped) release(); else if (t > 3) release(); }
+    }
+  } else if (st === 'pend'){
+    const y0 = H * 0.45, amp = H * 0.024;
+    if (D.ph === 0){ D.x = x; D.y = y0; demoHand(x, y0, false); demoTip(0); if (t > 1){ demoEv('pointerdown', x, y0); next(2); } }
+    else if (D.ph === 2 || D.ph === 3){
+      const ka = D.top === undefined ? 1 : D.top < 100 ? 1.5 : D.top > 135 ? 0 : 0.6;   // 前のゆれが低ければ強く、高すぎれば止めてゆらす
+      D.y = y0 + amp * ka * Math.sin(2 * Math.PI * ((now - D.t2) / 1000 || 0) / 2.4); if (!D.t2) D.t2 = now; demoEv('pointermove', x, D.y);
+      const a = sinkerAng(), da = D.ang === null ? 0 : a - D.ang; D.ang = a; const top = D.rise && da < 0; if (top && a > 20) D.top = a; if (da > 0.05) D.rise = true; else if (da < -0.05) D.rise = false;
+      if (D.ph === 2){ demoTip(1); if (t > 2.6) next(3); }
+      // うしろへ振れきった瞬間（高い所）に振る。逃したら次のゆれを待つ
+      else { demoTip(2); if ((top && a > 95 && a < 135) || t > 12){ R.ts = DEMO_SLOW; D.ySw = D.y; D.trig = a; demoTip(3, true); next(4); } }
+    }
+    else if (D.ph === 4){ const u = Math.min(1, t / (0.2 / DEMO_SLOW)); D.y = D.ySw + (y0 - H * 0.16 - D.ySw) * u; demoEv('pointermove', x, D.y); if (R.stopped) release(); else if (t > 2.5) release(); }
+  } else {
+    const y0 = H * 0.38, yb = y0 + H * 0.43, yt = y0 - H * 0.12;
+    if (D.ph === 0){ D.x = x; D.y = y0; demoHand(x, y0, false); demoTip(0); if (t > 1){ demoEv('pointerdown', x, y0); next(2); } }
+    else if (D.ph === 2){ const u = Math.min(1, t / 0.6); D.y = y0 + (yb - y0) * (1 - (1 - u) * (1 - u)); demoEv('pointermove', x, D.y); demoTip(1); if (u >= 1) next(3); }
+    else if (D.ph === 3){ demoTip(2); if (t > 0.5){ R.ts = DEMO_SLOW; next(4); } }
+    else if (D.ph === 4){ const u = Math.min(1, t / (0.4 / DEMO_SLOW)); D.y = yb + (yt - yb) * u * u; demoEv('pointermove', x, D.y); demoTip(3); if (R.stopped && R.stopT >= (FUNYA ? 0.03 : 0)) release(); else if (t > 3) release(); }
+  }
+  setTimeout(demoLoop, 8);
+}
 
 // ===== [SEC:CAMERA] =====
 const CAM = { mode: 'title', pos: new THREE.Vector3(6, 4, 10), look: new THREE.Vector3(0, 2, -20), tp: new THREE.Vector3(), tl: new THREE.Vector3(), k: 4, t: 0 };
@@ -1301,7 +1434,7 @@ addEventListener('resize', resize);
 
 // ===== [SEC:HUD] =====
 function updateHUD(){
-  const st = G.state;
+  const st = G.state; drawGuide();
   if (st === 'swing' || st === 'flight' && G.flightT < 0.6) updateLoadHud();
   if (st === 'fight'){
     $('fRemain').innerHTML = `残り ${Math.max(0, FI.dist).toFixed(0)}<small>m</small>` + (G.feet > 0.5 ? `<br><span style="font-size:.55em;color:#ffb3a8">⚠ 波打ちぎわまで ${Math.max(0, CONFIG.WATER - G.feet).toFixed(1)}m</span>` : '');
@@ -1450,7 +1583,7 @@ async function boot(){
   rodReset(); R.simT = performance.now(); SK.tip.copy(drawRod(R.phi, R.b)); sinkerHang();
   hide('loading'); toTitle(); camMode('title'); CAM.pos.set(9, 3.4, 12); requestAnimationFrame(frame);
   initNet();
-  window.__SZ = { G, R, FL, FI, SV, SK, ROT, CONFIG, FISH, STYLES, CAM, camera, launchParams, bestAngle, startRound, nextCast, pickFish, applyStyle };
+  window.__SZ = { startDemo, endDemo, G, R, FL, FI, SV, SK, ROT, CONFIG, FISH, STYLES, CAM, camera, launchParams, bestAngle, startRound, nextCast, pickFish, applyStyle };
 }
 boot();
 </script>
