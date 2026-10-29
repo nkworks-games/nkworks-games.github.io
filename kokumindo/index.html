@@ -146,6 +146,7 @@ const CONFIG = {
   RANK: { HERO: 90, TOWN: 75, PRACTICE: 50 }, // エンディングの区切り（国民度％がこの数以上）
   JUDGE: { FILL: 0.45, REVEAL: 0.7, COUNT: 1.8, PAUSE: 0.4 }, // 判定演出の長さ（秒）
   ADVICE: { SIZE: 0.08, POS: 0.035, SHAPE: 0.9 }, // アドバイスを出す目安（大きさのズレ割合・位置のズレ・丸さ）
+  RED_FLAG: 0.5,      // 旗の白い所（丸の外）がこの割合より多く赤いと「赤い旗」とみなして国民度0%
   END_SEC: [0, 9.5, 9.5, 10.5, 24], // エンディングの長さ（秒）END1〜4（END4は3D版）
   END4_2D_SEC: 13.5,  // 3Dが使えない時の2D版END4の長さ
   E3D: { // 3D版END4（ON:false で常に2D版）
@@ -339,7 +340,7 @@ function scoreShape(pts) { // 描いた赤と本物の丸の重なり率（重�
   const x = scoreCv.getContext('2d', { willReadFrequently: true });
   x.clearRect(0, 0, W, H); shapePath(x, pts, H, 0, 0); x.fillStyle = '#000'; x.fill(); // 線の真ん中をふちとして、内側だけを数える
   const d = x.getImageData(0, 0, W, H).data, r = CONFIG.FLAG.CIRCLE_D / 2, r2 = r * r;
-  let inter = 0, uni = 0, area = 0, sx = 0, sy = 0;
+  let inter = 0, uni = 0, area = 0, sx = 0, sy = 0, white = 0, redOut = 0;
   for (let j = 0; j < H; j++) {
     const v = (j + 0.5) / H;
     for (let i = 0; i < W; i++) {
@@ -347,9 +348,11 @@ function scoreShape(pts) { // 描いた赤と本物の丸の重なり率（重�
       if (U) { area++; sx += u; sy += v; }
       if (U && T) inter++;
       if (U || T) uni++;
+      if (!T) { white++; if (U) redOut++; }
     }
   }
-  const res = { pct: uni ? inter / uni * 100 : 0, area, mx: 0.75, my: 0.5, rr: 0, round: 0 };
+  const redFlag = redOut > white * CONFIG.RED_FLAG; // 旗がほぼ真っ赤なら日の丸ではない
+  const res = { pct: uni && !redFlag ? inter / uni * 100 : 0, area, mx: 0.75, my: 0.5, rr: 0, round: 0, redFlag };
   if (!area) return res;
   res.mx = sx / area; res.my = sy / area; res.rr = Math.sqrt(area / Math.PI) / H;
   let i2 = 0, u2 = 0; const q2 = res.rr * res.rr; // 同じ面積のきれいな円とくらべて「丸さ」を出す
@@ -373,6 +376,7 @@ function makeFlagImg(pts, h = 240) {
 function advice(s) {
   const A = CONFIG.ADVICE, r0 = CONFIG.FLAG.CIRCLE_D / 2, out = [];
   if (!s.area) return ['旗の上に描こう'];
+  if (s.redFlag) return ['赤い旗になっている'];
   const z = s.rr / r0 - 1;
   if (z > A.SIZE) out.push('大きすぎ'); else if (z < -A.SIZE) out.push('小さすぎ');
   const dx = s.mx - 0.75, dy = s.my - 0.5, dir = (dx > A.POS ? '右' : dx < -A.POS ? '左' : '') + (dy < -A.POS ? '上' : dy > A.POS ? '下' : '');
@@ -915,7 +919,7 @@ function end4(c, t, E) {
   else e4City(c, t, t - 10.2, E);
   dip(c, t, 3.2); dip(c, t, 7.4); dip(c, t, 10.2, '0,0,0');
 }
-const END4_CAPS = p => [[0.2, 2.0, `国民度 ${p}%…！？`], [2.0, 3.15, 'その時、家が——'], [3.4, 5.2, '家が 急に 開いた！'], [5.2, 7.35, '大勢の人が あなたを囲んで 拍手している'], [7.6, 10.15, 'ニュースにもなった'], [10.4, Infinity, '街の電光掲示板も あなたで いっぱい']];
+const END4_CAPS = p => [[0.2, 2.0, `国民度 ${p}%…！？`], [7.6, 10.15, 'ニュースにもなった'], [10.4, Infinity, '街の電光掲示板も あなたで いっぱい']];
 const END4_SFX = [[0.1, () => tone(440, 0.7, { to: 880, vol: 0.08 })], [1.6, () => SFX.rumble(1.6)], [3.2, () => SFX.bang()], [3.35, () => SFX.fanfare()], [3.5, () => { SFX.clap(3.8, 40); SFX.cheer(3.8); }], [7.4, () => SFX.news()], [10.2, () => SFX.fanfare()], [10.3, () => SFX.clap(3, 26)], [11.9, () => SFX.sting(4)]];
 
 const ENDINGS = [null,
@@ -929,7 +933,7 @@ const ENDINGS = [null,
 // 一番いいエンディング（END4）の3D版。three.js は END4 になりそうな時だけ読み込む。使えない時は2D版を流す
 const E3 = { loading: null, ready: false, failed: false };
 let T3 = null; // three.js とシーン一式
-const E4_3D_CAPS = p => [[0.2, 2.1, `国民度 ${p}%…！？`], [2.1, 2.95, 'その時、家が——'], [3.3, 4.9, '家が 急に 開いた！'], [4.9, 6.7, '大勢の人が あなたを囲んで 拍手している'], [6.9, 8.7, 'くす玉まで 用意されていた'], [8.9, 12.3, 'わっしょい！ わっしょい！'], [12.5, 15.0, '金の銅像まで 建った'], [15.2, 17.4, '見わたす限り 人、人、人'], [17.6, 19.2, 'うわさは あっという間に 広がり…'], [19.4, 21.3, 'ニュースにもなった'], [21.4, Infinity, '街の電光掲示板も あなたで いっぱい']];
+const E4_3D_CAPS = p => [[0.2, 2.1, `国民度 ${p}%…！？`], [17.6, 19.2, 'うわさは あっという間に 広がり…'], [19.4, 21.3, 'ニュースにもなった'], [21.4, Infinity, '街の電光掲示板も あなたで いっぱい']];
 const E4_3D_SFX = [[0.1, () => tone(440, 0.7, { to: 880, vol: 0.08 })], [1.9, () => SFX.rumble(1.15)], [3.0, () => SFX.bang()], [3.1, () => SFX.fanfare()], [3.25, () => { SFX.clap(5.6, 40); SFX.cheer(5.6); }], [5.6, () => tone(900, 0.9, { to: 450, type: 'sine', vol: 0.05 })],
   [7.2, () => { SFX.pon(); SFX.sparkle(); SFX.clap(2.2, 30); }], [8.95, () => SFX.taiko()], [10.05, () => SFX.taiko()], [11.15, () => SFX.taiko()], [12.4, () => SFX.rumble(1.8)], [14.1, () => SFX.gong()], [14.2, () => SFX.fanfare()], [14.3, () => SFX.clap(3, 36)], [15.2, () => SFX.cheer(2.2)],
   [17.4, () => SFX.whoosh()], [19.4, () => SFX.news()], [21.0, () => SFX.fanfare()], [21.2, () => SFX.clap(3.3, 26)], [21.4, () => SFX.boom()], [22.2, () => SFX.boom()], [22.4, () => SFX.sting(4)], [23.1, () => SFX.boom()]];
@@ -1489,7 +1493,7 @@ function updateJudge(dt) {
   G.jt += dt; const J = CONFIG.JUDGE, r = G.res, c0 = J.FILL + J.REVEAL, c1 = c0 + J.COUNT;
   if (!G.drum && G.jt >= c0) { G.drum = true; SFX.drum(J.COUNT); }
   if (G.jt >= c0 && !G.counted) $('jNum').textContent = Math.floor(r.pct * easeOut(seg(G.jt, c0, c1)));
-  if (!G.counted && G.jt >= c1) { G.counted = true; $('jNum').textContent = r.pct; $('jVerdict').textContent = ENDS[r.n].verdict; r.n >= 3 ? SFX.good() : r.n === 2 ? SFX.mid() : SFX.bad(); }
+  if (!G.counted && G.jt >= c1) { G.counted = true; $('jNum').textContent = r.pct; $('jVerdict').textContent = r.s.redFlag ? 'それは日の丸じゃない…' : ENDS[r.n].verdict; r.n >= 3 ? SFX.good() : r.n === 2 ? SFX.mid() : SFX.bad(); }
   if (!G.btn && G.jt >= c1 + J.PAUSE) { G.btn = true; show('toEndBtn'); }
 }
 function playEnding(n, pts, pct, from) {
