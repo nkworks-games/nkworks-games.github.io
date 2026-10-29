@@ -47,6 +47,7 @@ def parse_args():
     ap.add_argument('--threads', type=int, default=0)
     ap.add_argument('--border', default='', help='画面の一部だけ描く。左,下,右,上（0〜1）')
     ap.add_argument('--gpu', action='store_true', help='GPU で描く（Mac は Metal、ほかは OptiX・CUDA・HIP の順に探す）')
+    ap.add_argument('--dry', action='store_true', help='組み立てだけして描かない（家や木の数の確認用）')
     return ap.parse_args(argv)
 
 
@@ -582,7 +583,7 @@ class Terrain:
         th = np.arctan2(dy, dx)
         R = np.vectorize(self.coast_radius)(th)
         # 島の中心の近くでは角度ごとの差を消す（中心から入り江へ向かう不自然な溝を作らない）
-        w = smoothstep(60, 220, r)
+        w = smoothstep(60, 160, r)
         R = R * w + 345.0 * (1 - w)
         flat_x, flat_y = X.ravel(), Y.ravel()
         n_low = np.array([self._n(a, b, 1 / 160, 3) for a, b in zip(flat_x, flat_y)]).reshape(X.shape)
@@ -599,19 +600,17 @@ class Terrain:
         fb = np.clip(F / np.maximum(Wb, 1.0), 0, 1)
         beach = 2.2 * fb ** 1.5
         g = np.maximum(F - Wb, 0)
-        hill_h = 92 * (0.72 + 0.28 * n_low)
+        hill_h = 72 * (0.72 + 0.28 * n_low)
         ridge = np.array([noise.ridged_multi_fractal(Vector((a / 95, b / 95, 2.0 + self.seed)), 1.0, 2.0, 4, 1.0, 2.0)
                           for a, b in zip(flat_x, flat_y)]).reshape(X.shape)
         hill = (hill_h * (1 - np.exp(-g / 120)) + 7 * n_mid * (1 - np.exp(-g / 50)) + 1.2 * n_hi * (1 - np.exp(-g / 20))
                 + 5 * np.clip(ridge - 0.8, -0.8, 0.9) * smoothstep(20, 120, g))
+        # 浜の後ろに低くなだらかな平地の帯を作る（海岸から 15〜170m で山の高さへ移る）
+        hill = hill * (0.15 + 0.85 * smoothstep(15, 170, g))
         # 岬は崖っぽく
         cliff = headmask * 9 * (1 - np.exp(-np.maximum(F, 0) / 6))
         hl = beach + hill + cliff
-        # 集落の段丘：なだらかにならす
-        vx, vy = self.VILLAGE
-        vm = np.exp(-((X - vx) ** 2 + (Y - vy) ** 2) / (2 * 52 ** 2))
-        vm = vm * smoothstep(Wb * 0.8, Wb + 10, F)
-        hl = hl * (1 - 0.88 * vm) + (4.6 + 1.2 * n_mid) * 0.88 * vm + 0.0
+        # 陸地の高さを少しぼかして、鋭い谷の角を丸める（海岸の近くはそのまま）
         k = np.array([1, 4, 6, 4, 1], float)
         k /= k.sum()
         hs = hl.copy()
@@ -620,6 +619,16 @@ class Terrain:
             hs = np.apply_along_axis(lambda v: np.convolve(np.pad(v, 2, mode='edge'), k, 'valid'), 0, hs)
         blend = smoothstep(25, 60, F)
         hl = hl * (1 - blend) + hs * blend
+        # 崩れ落ち（熱侵食）：36°より急な所から、土を少しずつ低い側へ移す。不自然な壁を残さない
+        hl = self._settle(hl, F > 12, 36.0, 80)
+        # 集落の段丘：ぼかした後に、なだらかにならす（先にならすと、ぼかしで斜面に戻ってしまう）
+        vx, vy = self.VILLAGE
+        # 浜に沿って東西に長い、なだらかな段丘（海沿いに家が並ぶ集落）
+        # 平地の帯があるので、ならすのは家の並ぶ所だけ・弱めに（強くすると奥に段差ができる）
+        vm = np.exp(-(((X - vx) / 1.7) ** 2 + ((Y - vy) / 0.45) ** 2) / (2 * 52 ** 2))
+        vm = vm * smoothstep(Wb * 0.8, Wb + 10, F)
+        terrace = 4.6 + 1.2 * n_mid + 0.05 * np.clip(Y - vy, 0, None)
+        hl = hl * (1 - 0.6 * vm) + terrace * 0.6 * vm
         H[land] = hl[land]
         # 海底：浅瀬の棚から、沖へ深くなる
         d = np.maximum(-F, 0)
@@ -634,6 +643,25 @@ class Terrain:
         self.Wb = Wb
         self.village_mask = vm
         return H, F
+
+    def _settle(self, h, movable, angle, iters):
+        """急すぎる斜面を、土を低い側へ移して angle 度まで落ち着かせる（全体の土の量は変えない）"""
+        h = h.copy()
+        talus = math.tan(math.radians(angle)) * self.STEP
+        mv = movable.astype(float)
+        for _ in range(iters):
+            for axis, step in ((0, 1), (0, -1), (1, 1), (1, -1)):
+                nb = np.roll(h, step, axis)
+                d = h - nb
+                move = np.where(d > talus, (d - talus) * 0.2, 0.0) * mv * np.roll(mv, step, axis)
+                # 端は回り込ませない
+                if axis == 0:
+                    move[0 if step > 0 else -1, :] = 0
+                else:
+                    move[:, 0 if step > 0 else -1] = 0
+                h -= move
+                h += np.roll(move, -step, axis)
+        return h
 
     def height_at(self, x, y):
         fx = (x - self.X0) / self.STEP
@@ -1183,13 +1211,13 @@ def build(args):
     tries = 0
     while len(huts) < n_huts and tries < 6000:
         tries += 1
-        rad = 18 + 62 * math.sqrt(rng.random())
+        rad = 14 + 66 * math.sqrt(rng.random())
         a = rng.uniform(0, 2 * math.pi)
-        x, y = vx + math.cos(a) * rad * 1.15, vy + math.sin(a) * rad * 0.8
+        x, y = vx + math.cos(a) * rad * 1.8, vy + math.sin(a) * rad * 0.7
         f = ter.field_at(x, y)
-        if f < 26 or ter.slope_at(x, y, 3) > 11:
+        if f < 26 or ter.slope_at(x, y, 3) > 13:
             continue
-        if any((x - hx) ** 2 + (y - hy) ** 2 < 10.5 ** 2 for hx, hy, *_ in huts):
+        if any((x - hx) ** 2 + (y - hy) ** 2 < 9.5 ** 2 for hx, hy, *_ in huts):
             continue
         face = math.atan2(-(y - 40), -(x - 5)) + math.pi / 2 + rng.uniform(-.35, .35)
         huts.append((x, y, face))
@@ -1228,7 +1256,8 @@ def build(args):
             if patch < -0.5:
                 continue
             dv = math.hypot((x - vx) / 1.15, (y - vy) / 0.8)
-            if dv < 70 and rng.random() < 0.93:
+            near = min(((x - hx) ** 2 + (y - hy) ** 2 for hx, hy, _ in huts), default=1e9)
+            if near < 8 ** 2 or (near < 16 ** 2 and rng.random() < 0.6):
                 continue
             access = dv + 0.8 * h + 25 * noise.noise(Vector((x / 40, y / 40, 1.0)))
             cand.append((x, y, h, access))
@@ -1266,6 +1295,8 @@ def build(args):
     stumps = [(x, y, h, 0, rng.uniform(0.7, 1.3), rng.uniform(0, 6.3)) for x, y, h, _ in cut if rng.random() < 0.35]
     scatter('切り株', stump_coll, stumps)
     print('木 %d 本・切り株 %d・家 %d 軒  %.1fs' % (len(trees), len(stumps), len(huts), time.time() - t0))
+    if len(huts) < n_huts:
+        print('注意：段丘に収まらず、家は %d 軒のうち %d 軒だけ置いた' % (n_huts, len(huts)))
 
     # 低木：林のふち、集落のまわり、浜の上
     shrub_coll = hidden_collection('低木の型')
@@ -1467,6 +1498,8 @@ def build(args):
     print('組み立て完了 %.1fs（%s）' % (time.time() - t0, st['label']))
     if args.blend:
         bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(args.blend))
+    if args.dry:
+        return
     t1 = time.time()
     if args.anim:
         sc.render.filepath = os.path.abspath(args.out)
