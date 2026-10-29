@@ -146,13 +146,15 @@ const CONFIG = {
   RANK: { HERO: 90, TOWN: 75, PRACTICE: 50 }, // エンディングの区切り（国民度％がこの数以上）
   JUDGE: { FILL: 0.45, REVEAL: 0.7, COUNT: 1.8, PAUSE: 0.4 }, // 判定演出の長さ（秒）
   ADVICE: { SIZE: 0.08, POS: 0.035, SHAPE: 0.9 }, // アドバイスを出す目安（大きさのズレ割合・位置のズレ・丸さ）
-  END_SEC: [0, 9.5, 9.5, 10.5, 18], // エンディングの長さ（秒）END1〜4（END4は3D版）
+  END_SEC: [0, 9.5, 9.5, 10.5, 24], // エンディングの長さ（秒）END1〜4（END4は3D版）
   END4_2D_SEC: 13.5,  // 3Dが使えない時の2D版END4の長さ
   E3D: { // 3D版END4（ON:false で常に2D版）
-    ON: true, DPR: 1.5, SHADOW: 2048, TIMEOUT: 12, THUMB_T: 7.6, // 画質の上限・影の細かさ・読み込みを待つ秒数・図鑑の絵の時刻
+    ON: true, DPR: 1.5, SHADOW: 2048, TIMEOUT: 12, THUMB_T: 11.7, // 画質の上限・影の細かさ・読み込みを待つ秒数・図鑑の絵の時刻
     RINGS: [[4.6, 16], [5.8, 20], [7.1, 26], [8.5, 30], [10, 36]], // 群衆の輪（あなたからの距離m・人数）
     GAP: [-0.45, 1.0], // 群衆を置かない向き（カメラが通る前側、ラジアン）
     CITY_Z: -122, // 大きな画面のあるビルの正面の位置（家からの奥行きm）
+    TOSS_T: [9.0, 10.1, 11.2], TOSS_H: [2.2, 3.2, 4.4], // 胴上げで投げ上げる時刻（秒）と高さ（m）
+    FAR: 5000, // 地平線まで並ぶ人の数
   },
   END_CARD: 1.6,      // 最後の何秒前に「END」表示を出すか
   STAGE: { W: 360, H: 640 }, // エンディングの絵の基準サイズ
@@ -275,6 +277,9 @@ const SFX = {
     [523, 659, 784].forEach(f => tone(f, 1.3, { at: 1.24, vol: 0.05 }));
   },
   fanfareS() { [[659, 0], [784, 0.14], [1047, 0.28]].forEach(([f, at]) => tone(f, 0.5, { at, type: 'square', vol: 0.04 })); tone(1047, 0.9, { at: 0.42, vol: 0.07 }); },
+  pon() { tone(1200, 0.14, { to: 480, type: 'sine', vol: 0.14 }); noise(0.18, { f: 2500, vol: 0.08 }); },
+  taiko() { tone(95, 0.55, { to: 55, type: 'sine', vol: 0.4 }); noise(0.12, { ft: 'lowpass', f: 300, vol: 0.25 }); SFX.cheer(0.9); },
+  gong() { tone(110, 2.6, { type: 'sine', vol: 0.25 }); tone(221, 2.0, { vol: 0.08 }); tone(331, 1.6, { vol: 0.05 }); },
   whoosh() { noise(1.6, { f: 300, fTo: 2000, q: 0.6, vol: 0.12, atk: 0.6, rel: 0.8 }); },
   boom() { noise(0.9, { ft: 'lowpass', f: 700, fTo: 60, vol: 0.3 }); for (let i = 0; i < 8; i++) noise(0.04, { at: 0.35 + Math.random() * 0.6, ft: 'highpass', f: 3000, vol: 0.05 }); },
   news() { [[880, 0], [1175, 0.12], [1568, 0.24]].forEach(([f, at]) => tone(f, 0.3, { at, type: 'square', vol: 0.045 })); tone(1568, 0.8, { at: 0.42, vol: 0.07 }); },
@@ -924,15 +929,17 @@ const ENDINGS = [null,
 // 一番いいエンディング（END4）の3D版。three.js は END4 になりそうな時だけ読み込む。使えない時は2D版を流す
 const E3 = { loading: null, ready: false, failed: false };
 let T3 = null; // three.js とシーン一式
-const E4_3D_CAPS = p => [[0.2, 2.1, `国民度 ${p}%…！？`], [2.1, 2.95, 'その時、家が——'], [3.3, 5.3, '家が 急に 開いた！'], [5.3, 9.3, '大勢の人が あなたを囲んで 拍手している'], [9.6, 11.6, 'うわさは あっという間に 広がり…'], [11.8, 14.3, 'ニュースにもなった'], [14.6, Infinity, '街の電光掲示板も あなたで いっぱい']];
-const E4_3D_SFX = [[0.1, () => tone(440, 0.7, { to: 880, vol: 0.08 })], [1.9, () => SFX.rumble(1.15)], [3.0, () => SFX.bang()], [3.1, () => SFX.fanfare()], [3.25, () => { SFX.clap(6.2, 40); SFX.cheer(6.2); }], [9.5, () => SFX.whoosh()], [11.8, () => SFX.news()], [14.5, () => SFX.fanfare()], [14.7, () => SFX.clap(3.3, 26)], [14.9, () => SFX.boom()], [15.7, () => SFX.boom()], [16.4, () => SFX.sting(4)], [16.6, () => SFX.boom()]];
+const E4_3D_CAPS = p => [[0.2, 2.1, `国民度 ${p}%…！？`], [2.1, 2.95, 'その時、家が——'], [3.3, 4.9, '家が 急に 開いた！'], [4.9, 6.7, '大勢の人が あなたを囲んで 拍手している'], [6.9, 8.7, 'くす玉まで 用意されていた'], [8.9, 12.3, 'わっしょい！ わっしょい！'], [12.5, 15.0, '金の銅像まで 建った'], [15.2, 17.4, '見わたす限り 人、人、人'], [17.6, 19.2, 'うわさは あっという間に 広がり…'], [19.4, 21.3, 'ニュースにもなった'], [21.4, Infinity, '街の電光掲示板も あなたで いっぱい']];
+const E4_3D_SFX = [[0.1, () => tone(440, 0.7, { to: 880, vol: 0.08 })], [1.9, () => SFX.rumble(1.15)], [3.0, () => SFX.bang()], [3.1, () => SFX.fanfare()], [3.25, () => { SFX.clap(5.6, 40); SFX.cheer(5.6); }], [5.6, () => tone(900, 0.9, { to: 450, type: 'sine', vol: 0.05 })],
+  [7.2, () => { SFX.pon(); SFX.sparkle(); SFX.clap(2.2, 30); }], [8.95, () => SFX.taiko()], [10.05, () => SFX.taiko()], [11.15, () => SFX.taiko()], [12.4, () => SFX.rumble(1.8)], [14.1, () => SFX.gong()], [14.2, () => SFX.fanfare()], [14.3, () => SFX.clap(3, 36)], [15.2, () => SFX.cheer(2.2)],
+  [17.4, () => SFX.whoosh()], [19.4, () => SFX.news()], [21.0, () => SFX.fanfare()], [21.2, () => SFX.clap(3.3, 26)], [21.4, () => SFX.boom()], [22.2, () => SFX.boom()], [22.4, () => SFX.sting(4)], [23.1, () => SFX.boom()]];
 const E4_3D = { caps: E4_3D_CAPS, sfx: E4_3D_SFX, dur: CONFIG.END_SEC[4] };
 function load3D() {
   if (E3.loading) return E3.loading;
   if (!CONFIG.E3D.ON || new URLSearchParams(location.search).has('2d')) { E3.failed = true; return (E3.loading = Promise.resolve(false)); }
   const A = 'three/addons/postprocessing/';
-  E3.loading = Promise.all([import('three'), import(A + 'EffectComposer.js'), import(A + 'RenderPass.js'), import(A + 'UnrealBloomPass.js'), import(A + 'OutputPass.js')])
-    .then(([THREE, a, b, c, d]) => { build3D(THREE, a.EffectComposer, b.RenderPass, c.UnrealBloomPass, d.OutputPass); E3.ready = true; if (G.state === 'zukan') drawZk4(); return true; })
+  E3.loading = Promise.all([import('three'), import(A + 'EffectComposer.js'), import(A + 'RenderPass.js'), import(A + 'UnrealBloomPass.js'), import(A + 'OutputPass.js'), import('three/addons/environments/RoomEnvironment.js')])
+    .then(([THREE, a, b, c, d, e]) => { build3D(THREE, a.EffectComposer, b.RenderPass, c.UnrealBloomPass, d.OutputPass, e.RoomEnvironment); E3.ready = true; if (G.state === 'zukan') drawZk4(); return true; })
     .catch(e => { console.warn('3D版が使えないので2D版にします', e); E3.failed = true; return false; });
   return E3.loading;
 }
@@ -953,20 +960,22 @@ function drawNews3D(x, t, E) { // ビルの大きな画面に流すニュース�
   x.save(); x.beginPath(); x.rect(0, 308, 640, 52); x.clip();
   marquee(x, `国民度${E.pct}％を記録　専門家「教科書のような丸」　近所の人「前から丸い人だと思っていた」　町内会長「町内の誇りです」　`, 0, 308, 640, 52, t, 150, '#fff'); x.restore();
 }
-function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass) {
+function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass, RoomEnvironment) {
   const C3 = CONFIG.E3D, R = rng(2026);
   const renderer = new THREE.WebGLRenderer({ canvas: $('c3'), antialias: false, powerPreference: 'high-performance' });
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1400);
   scene.fog = new THREE.Fog('#e8d6b8', 80, 420);
-  const S = { THREE, renderer, scene, camera, upd: [], screens: [], facades: [], waves: [], size: '', frame: 0, E: null, cp: new THREE.Vector3(), cl: new THREE.Vector3() };
+  const S = { THREE, renderer, scene, camera, upd: [], screens: [], facades: [], waves: [], prepFns: [], size: '', frame: 0, E: null, cp: new THREE.Vector3(), cl: new THREE.Vector3() };
   const V = (x, y, z) => new THREE.Vector3(x, y, z), col = c => new THREE.Color(c);
   const std = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.85 }, o));
   const mkcv = (w, h, fn) => { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; if (fn) fn(cv.getContext('2d'), w, h); return cv; };
   const ctex = (cv, rep) => { const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); } return t; };
   const mesh = (g, m, x, y, z, o = {}) => { const k = new THREE.Mesh(g, m); k.position.set(x, y, z); k.castShadow = !!o.cast; k.receiveShadow = o.recv !== false; (o.to || scene).add(k); return k; };
   const boxG = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+  const envTex = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture; // 金ぴかに映りこむ景色
+  const goldM = std('#f2c14e', { metalness: 1, roughness: 0.26, envMap: envTex, envMapIntensity: 1.1 });
   const waveMat = (map, w, amp) => { // ゆれる旗（頂点を波打たせる）
     const m = new THREE.MeshStandardMaterial({ map, side: THREE.DoubleSide, roughness: 0.75 });
     m.userData.u = { uTime: { value: 0 }, uW: { value: w }, uA: { value: amp } };
@@ -1078,7 +1087,7 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
   const skinM = std(SKINS[0], { roughness: 0.6 }), darkM = std('#161616', { roughness: 0.35 });
 
   // ---- あなた ----
-  const me = new THREE.Group(); me.position.set(0, FL, 0.6); scene.add(me);
+  const me = new THREE.Group(); me.position.set(0, FL, 0.6); me.rotation.order = 'YXZ'; scene.add(me);
   const part = (g, m, x, y, z, p = me) => mesh(g, m, x, y, z, { cast: true, to: p, recv: false });
   const shirtM = std(YOU, { roughness: 0.8 }), pantsM = std('#3b4660');
   part(gTorso, shirtM, 0, 0, 0); part(gHead, skinM, 0, 0, 0); part(gHair, std('#262626', { roughness: 0.5 }), 0, 0, 0);
@@ -1097,10 +1106,15 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
   const hv = V(0, 0, 0);
   S.upd.push(t => {
     const k = easeOut(seg(t, 3.05, 3.5));
-    armQ(armR.quaternion, -0.15, lerp(1.25, 2.55, k) + (t > 3.5 ? 0.05 * Math.sin(t * 3) : 0));
-    armQ(armL.quaternion, lerp(0, -0.25, k), lerp(-0.12, -(2.45 + 0.28 * Math.sin(t * 7)), k));
+    const lie = easeIO(seg(t, 8.75, 9.0)) * (1 - easeIO(seg(t, 12.15, 12.45))); // 胴上げ（あお向けで投げ上げられる）
+    armQ(armR.quaternion, -0.15, lerp(lerp(1.25, 2.55, k) + (t > 3.5 ? 0.05 * Math.sin(t * 3) : 0), 1.7, lie)); // 胴上げ中は大の字
+    armQ(armL.quaternion, lerp(0, -0.25, k), lerp(lerp(-0.12, -(2.45 + 0.28 * Math.sin(t * 7)), k), -1.7, lie));
     hv.set(0, -0.6, 0).applyQuaternion(armR.quaternion).add(armR.position); pole.position.copy(hv);
-    me.position.y = FL + (t > 3.4 ? 0.1 * Math.abs(Math.sin((t - 3.4) * 6.5)) : 0);
+    let toss = 0, wob = 0;
+    C3.TOSS_T.forEach((s0, i) => { const u = t - s0; if (u > 0 && u < 1) { toss = 4 * C3.TOSS_H[i] * u * (1 - u); wob = Math.sin(u * Math.PI) * (i % 2 ? 0.35 : -0.35); } });
+    const ps = 2.3 * lie; // あお向けの体をカメラに対して横向きにする
+    me.position.set(0.85 * Math.sin(ps) * lie, FL + (t > 3.4 && lie === 0 ? 0.1 * Math.abs(Math.sin((t - 3.4) * 6.5)) : 0) + lie * 2.05 + toss, 0.6 + 0.85 * Math.cos(ps) * lie);
+    me.rotation.set(-Math.PI / 2 * lie, ps, wob); pole.visible = lie < 0.05;
     smile.visible = t > 3.05; oh.visible = !smile.visible;
   });
 
@@ -1116,6 +1130,8 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
       people.push({ x, z, y: onWall(x, z) ? WT : 0, yaw: Math.atan2(-x, 0.6 - z), s: 0.93 + R() * 0.14, shirt: SHIRTS[Math.floor(R() * SHIRTS.length)], pants: PANTS[Math.floor(R() * PANTS.length)], hair: HAIRS[Math.floor(R() * HAIRS.length)], skin: SKINS[Math.floor(R() * SKINS.length)], mode: m < 0.2 ? 'flag' : m < 0.45 ? 'up' : 'clap', ph: R() * TAU, sp: 13 + R() * 5 });
     }
   });
+  for (let i = 0; i < 10; i++) people.push({ a: 1.35 + i / 9 * 3.6, lift: true, x: 0, z: 0, y: FL, yaw: 0, s: 0.95 + R() * 0.08, shirt: SHIRTS[Math.floor(R() * SHIRTS.length)], pants: PANTS[Math.floor(R() * PANTS.length)], hair: HAIRS[Math.floor(R() * HAIRS.length)], skin: SKINS[Math.floor(R() * SKINS.length)], mode: 'clap', ph: R() * TAU, sp: 13 + R() * 5 }); // 胴上げする人（はじめはあなたのそばで拍手）
+  const tossBob = t => C3.TOSS_T.reduce((b, s0) => b + 0.15 * Math.max(0, 1 - Math.abs(t - s0) / 0.2) - 0.1 * Math.max(0, 1 - Math.abs(t - s0 - 1) / 0.2), 0);
   S.people = people;
   const N = people.length, NF = people.filter(p => p.mode === 'flag').length;
   const im = (g, m, n, cast) => { const o = new THREE.InstancedMesh(g, m, n); o.castShadow = cast; o.receiveShadow = false; o.frustumCulled = false; o.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(o); return o; };
@@ -1136,6 +1152,11 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
       if (p.mode === 'clap') { const c = 0.5 + 0.5 * Math.sin(ph); pr = pl = -1.25; tr = -(0.27 + 0.13 * c); tl = -tr; }
       else if (p.mode === 'up') { pr = pl = -0.25; tr = 2.6 + 0.18 * Math.sin(ph * 0.5); tl = -(2.6 + 0.18 * Math.sin(ph * 0.5 + 1)); bob = 0.09 * Math.abs(Math.sin(ph * 0.3)); }
       else { pr = -0.3; tr = 2.45 + 0.1 * Math.sin(ph * 0.3); pl = -0.9; tl = -(0.5 + 0.3 * (0.5 + 0.5 * Math.sin(ph * 0.5))); }
+      if (p.lift) { // 胴上げ：あなたの下に集まって両手を上げる
+        const k = seg(t, 8.0, 8.8) * (1 - seg(t, 12.3, 12.9)), r = lerp(3.2, 0.7, k);
+        p.x = Math.sin(p.a) * r; p.z = 0.6 + Math.cos(p.a) * r; p.yaw = Math.atan2(-p.x, 0.6 - p.z);
+        if (k > 0.3) { pr = pl = -0.15; tr = 2.85; tl = -2.85; bob = tossBob(t); }
+      }
       qb.setFromAxisAngle(AY, p.yaw); vv.set(p.x, p.y + bob, p.z); sc.setScalar(p.s); Bm.compose(vv, qb, sc);
       iTorso.setMatrixAt(i, Bm); iHead.setMatrixAt(i, Bm); iHair.setMatrixAt(i, Bm);
       for (let k = 0; k < 2; k++) {
@@ -1155,7 +1176,7 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
   const CC = [RED, '#ffd23f', '#3fa7ff', '#3fbf6a', '#ff7ab6', '#ffffff'], eul = new THREE.Euler();
   for (let i = 0; i < NC; i++) { const a = R() * TAU, r = Math.sqrt(R()) * 12; cd.push({ x: Math.sin(a) * r, z: Math.cos(a) * r, y0: 2.5 + R() * 13, sp: 0.8 + R() * 0.9, ph: R() * TAU, rs: 2 + R() * 4 }); conf.setColorAt(i, col(CC[i % CC.length])); }
   S.upd.push(t => {
-    conf.visible = t > 3.0 && t < 12; if (!conf.visible) return;
+    conf.visible = t > 3.0 && t < 17; if (!conf.visible) return;
     const u = t - 3.0;
     cd.forEach((d, i) => {
       const ul = Math.min(u, (d.y0 - 0.02) / d.sp), landed = ul < u;
@@ -1178,10 +1199,91 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
   const flashes = [];
   for (let i = 0; i < 6; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, transparent: true })); s.material.color.setScalar(2.5); scene.add(s); flashes.push(s); }
   S.upd.push(t => flashes.forEach((s, i) => {
-    const u = t * 2.3 + i * 0.41, ph = u % 1; s.visible = t > 3.3 && t < 10.5 && ph < 0.12; if (!s.visible) return;
+    const u = t * 2.3 + i * 0.41, ph = u % 1; s.visible = t > 3.3 && t < 15 && ph < 0.12; if (!s.visible) return;
     const p = people[(Math.floor(u) * 7 + i * 13) % N], k = 1 - ph / 0.12;
     s.position.set(p.x, p.y + 1.8 * p.s, p.z); s.scale.setScalar(1.6 * k + 0.2); s.material.opacity = k;
   }));
+
+  // ---- くす玉（割れて垂れ幕が下りる） ----
+  const KR = 1.4, KY = 12, kus = new THREE.Group(); scene.add(kus);
+  const kusIn = std('#c8102e', { side: THREE.BackSide, roughness: 0.7 });
+  const halves = [1, -1].map(sd => {
+    const piv = new THREE.Group(); piv.position.y = KR; kus.add(piv);
+    const g = new THREE.SphereGeometry(KR, 24, 16, sd > 0 ? 0 : Math.PI, Math.PI); g.rotateY(Math.PI / 2); g.translate(0, -KR, 0);
+    mesh(g, goldM, 0, 0, 0, { cast: true, to: piv, recv: false }); mesh(g, kusIn, 0, 0, 0, { to: piv, recv: false });
+    return { piv, sd };
+  });
+  mesh(new THREE.CylinderGeometry(0.02, 0.02, 40, 6), std('#d8c8a0'), 0, KR + 20, 0, { to: kus, recv: false });
+  const banCv = [mkcv(128, 800), mkcv(128, 800)], banTex = banCv.map(c => ctex(c)), banG = new THREE.PlaneGeometry(0.85, 5.0); banG.translate(0, -2.5, 0);
+  const bans = banTex.map((tx, i) => mesh(banG, std('#ffffff', { map: tx, side: THREE.DoubleSide, roughness: 0.9 }), i ? -0.48 : 0.48, 0.5, 0, { cast: true, to: kus, recv: false }));
+  S.prepFns.push(E => banCv.forEach((cv, i) => {
+    const x = cv.getContext('2d'), txt = i ? `国民度${kanji(E.pct)}％` : '祝国民的英雄誕生', fs = Math.min(84, 720 / (txt.length * 1.08));
+    x.fillStyle = '#fffdf6'; x.fillRect(0, 0, 128, 800); x.fillStyle = RED; x.fillRect(0, 0, 10, 800); x.fillRect(118, 0, 10, 800);
+    vtext(x, txt, 64, 40, fs, 1.08, INK, MINCHO); banTex[i].needsUpdate = true;
+  }));
+  const NB = 260, burst = im(conf.geometry, conf.material, NB, false), bd = [];
+  for (let i = 0; i < NB; i++) { const u = R() * 2 - 1, a = R() * TAU, r = Math.sqrt(1 - u * u), spd = 2 + R() * 4; bd.push({ vx: Math.cos(a) * r * spd, vy: Math.abs(u) * spd * 0.6 + 1, vz: Math.sin(a) * r * spd, fall: 0.7 + R() * 0.6, ph: R() * TAU, rs: 3 + R() * 4 }); burst.setColorAt(i, col(CC[i % CC.length])); }
+  S.upd.push(t => {
+    kus.visible = t > 5.5 && t < 13.4;
+    if (kus.visible) {
+      const d = easeOut(seg(t, 5.6, 6.6)), up = easeIn(seg(t, 12.2, 13.3)); // 下りてきて、胴上げのあとは上へ片づく
+      kus.position.set(0, lerp(32, KY, d) + up * 24, 0.6); kus.rotation.z = Math.sin(t * 2.2) * 0.05 * (1 - seg(t, 6.6, 9));
+      const op = seg(t, 7.2, 7.65), a = 2.35 * easeOut(op) + (op >= 1 ? 0.06 * Math.sin((t - 7.65) * 9) * Math.exp(-(t - 7.65) * 3) : 0);
+      halves.forEach(h => { h.piv.rotation.z = h.sd * a; });
+      const u = easeOut(seg(t, 7.3, 8.1)); bans.forEach(b => { b.scale.y = Math.max(0.001, u); b.visible = u > 0; });
+    }
+    const u = t - 7.2; burst.visible = u > 0 && t < 17; if (!burst.visible) return;
+    const e = (1 - Math.exp(-3 * u)) / 3;
+    bd.forEach((d, i) => { const y = KY + d.vy * e - d.fall * u, ul = y <= 0.02; vv.set(d.vx * e + Math.sin(u * 2 + d.ph) * 0.3, ul ? 0.02 : y, 0.6 + d.vz * e); qb.setFromEuler(ul ? eul.set(-Math.PI / 2, 0, d.ph) : eul.set(u * d.rs + d.ph, u * d.rs * 0.7, d.ph)); Mm.compose(vv, qb, one); burst.setMatrixAt(i, Mm); });
+    burst.instanceMatrix.needsUpdate = true;
+  });
+
+  // ---- 金の銅像（家のうしろの地面からせり上がる） ----
+  const statue = new THREE.Group(); statue.position.set(0, -20, -12); scene.add(statue);
+  mesh(boxG(5, 3.2, 5), std('#8d8882', { roughness: 0.55 }), 0, 1.6, 0, { cast: true, to: statue });
+  mesh(boxG(5.6, 0.4, 5.6), std('#77726c', { roughness: 0.6 }), 0, 0.2, 0, { cast: true, to: statue });
+  const plCv = mkcv(512, 160), plTex = ctex(plCv);
+  mesh(new THREE.PlaneGeometry(3.4, 1.06), std('#ffffff', { map: plTex, metalness: 0.5, roughness: 0.35 }), 0, 1.75, 2.51, { to: statue });
+  S.prepFns.push(E => { const x = plCv.getContext('2d'); x.fillStyle = '#b8902e'; x.fillRect(0, 0, 512, 160); x.strokeStyle = '#6b4f12'; x.lineWidth = 8; x.strokeRect(8, 8, 496, 144); x.fillStyle = '#3a2a08'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = `700 54px ${MINCHO}`; x.fillText('国民的英雄之像', 256, 62); x.font = `700 32px ${MINCHO}`; x.fillText(`国民度 ${E.pct}％`, 256, 118); plTex.needsUpdate = true; });
+  const fig = new THREE.Group(); fig.position.y = 3.2; fig.scale.setScalar(6); statue.add(fig);
+  const gp = (g, x, y, z, p = fig, m = goldM) => mesh(g, m, x, y, z, { cast: true, to: p, recv: false });
+  gp(gTorso, 0, 0, 0); gp(gHead, 0, 0, 0); gp(gHair, 0, 0, 0); gp(gLeg, -0.09, 0, 0); gp(gLeg, 0.09, 0, 0);
+  const sArmR = new THREE.Group(), sArmL = new THREE.Group(); sArmR.position.set(0.235, 1.4, 0); sArmL.position.set(-0.235, 1.4, 0); fig.add(sArmR, sArmL);
+  [sArmR, sArmL].forEach(a => { gp(gArm, 0, 0, 0, a); gp(gHand, 0, -0.6, 0, a); });
+  armQ(sArmR.quaternion, -0.15, 2.55); armQ(sArmL.quaternion, -0.25, -2.6);
+  const sPole = new THREE.Group(); fig.add(sPole); sPole.position.set(0, -0.6, 0).applyQuaternion(sArmR.quaternion).add(sArmR.position);
+  gp(new THREE.CylinderGeometry(0.018, 0.018, 1.9, 8), 0, 0.45, 0, sPole); gp(new THREE.SphereGeometry(0.04, 10, 8), 0, 1.42, 0, sPole);
+  const goldFlag = goldM.clone(); goldFlag.side = THREE.DoubleSide;
+  const sfG = new THREE.PlaneGeometry(1.2, 0.8); sfG.translate(0.6, 0, 0); gp(sfG, 0.02, 0.98, 0, sPole, goldFlag);
+  const disc = gp(new THREE.CylinderGeometry(0.24, 0.24, 0.03, 32), 0.62, 0.98, 0, sPole, std(RED, { metalness: 0.3, roughness: 0.35 })); disc.rotation.x = Math.PI / 2; // 旗の日の丸（浮き彫り）
+  const NSD = 70, sdPos = new Float32Array(NSD * 3), sdd = [];
+  for (let i = 0; i < NSD; i++) { const a = R() * TAU; sdd.push({ a, r: 2.8 + R() * 1.5, v: 1.5 + R() * 2.5, vy: 0.5 + R() * 1.5 }); }
+  const sdG = new THREE.BufferGeometry(); sdG.setAttribute('position', new THREE.BufferAttribute(sdPos, 3));
+  const sdM = new THREE.PointsMaterial({ map: glowTex, color: '#cdbfa6', size: 2.2, transparent: true, depthWrite: false, opacity: 0 });
+  const sDust = new THREE.Points(sdG, sdM); sDust.frustumCulled = false; scene.add(sDust);
+  S.upd.push(t => {
+    statue.visible = t > 12.3; const k = easeOut(seg(t, 12.4, 14.1));
+    statue.position.set(t < 14.1 ? 0.06 * Math.sin(t * 60) : 0, -19 * (1 - k), -12);
+    const u = t - 12.4; sDust.visible = u > 0 && u < 3.2; if (!sDust.visible) return;
+    const e = 1 - Math.exp(-1.5 * u);
+    sdd.forEach((d, i) => { const r = d.r + d.v * e; sdPos[i * 3] = Math.sin(d.a) * r; sdPos[i * 3 + 1] = 0.3 + d.vy * e; sdPos[i * 3 + 2] = -12 + Math.cos(d.a) * r; });
+    sdG.attributes.position.needsUpdate = true; sdM.opacity = 0.45 * (1 - u / 3.2);
+  });
+
+  // ---- 地平線まで続く人（遠くの人はかんたんな形でまとめて描く） ----
+  const bobMat = c => { const m = std(c, { roughness: 0.8 }); m.userData.u = { uTime: { value: 0 } }; m.onBeforeCompile = sh => { Object.assign(sh.uniforms, m.userData.u); sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n#ifdef USE_INSTANCING\ntransformed.y += abs(sin(uTime * 7.0 + instanceMatrix[3].x * 0.9 + instanceMatrix[3].z * 1.7)) * 0.25;\n#endif'); }; S.waves.push(m); return m; };
+  const fBody = new THREE.CapsuleGeometry(0.2, 0.75, 3, 6); fBody.translate(0, 0.6, 0);
+  const fHead = new THREE.SphereGeometry(0.14, 8, 6); fHead.translate(0, 1.32, 0);
+  const FH = [[-15, 0.5], [15, 0.5], [-15, -13], [15, -13], [-21, 22], [-7, 22], [7, 22], [21, 22]], fp = [];
+  for (let n = 0; fp.length < C3.FAR && n < C3.FAR * 4; n++) {
+    let a = R() * TAU; const r = 11.2 + Math.pow(R(), 1.3) * 300, x = Math.sin(a) * r, z = 0.6 + Math.cos(a) * r; if (a > Math.PI) a -= TAU;
+    if (z < C3.CITY_Z + 16 || (r < 32 && a > C3.GAP[0] - 0.15 && a < C3.GAP[1] + 0.15)) continue; // 街の中と、カメラが通る前側はあける
+    if (FH.some(([hx, hz]) => Math.abs(x - hx) < 5 && Math.abs(z - hz) < 4.2) || (Math.abs(x) < 4.5 && Math.abs(z + 12) < 4.5)) continue;
+    fp.push([x, z]);
+  }
+  const iFB = im(fBody, bobMat('#ffffff'), fp.length, false), iFH = im(fHead, bobMat('#ffffff'), fp.length, false);
+  fp.forEach(([x, z], i) => { qb.setFromAxisAngle(AY, Math.atan2(-x, 0.6 - z)); vv.set(x, 0, z); sc.setScalar(0.9 + R() * 0.2); Bm.compose(vv, qb, sc); iFB.setMatrixAt(i, Bm); iFH.setMatrixAt(i, Bm); iFB.setColorAt(i, col(SHIRTS[Math.floor(R() * SHIRTS.length)])); iFH.setColorAt(i, col(SKINS[Math.floor(R() * SKINS.length)])); });
+  S.upd.push(t => { iFB.visible = iFH.visible = t >= 3.0; });
 
   // ---- まわりの家・木・電柱 ----
   const nhouse = (x, z, ry, w, d, h, wc, rc) => {
@@ -1191,10 +1293,10 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
     for (const wx of [-w / 4, w / 4]) mesh(boxG(1.2, 1.0, 0.05), glassDark, wx, h * 0.62, d / 2 + 0.02, { to: g });
     mesh(boxG(0.9, 1.9, 0.05), std('#6e4a30'), 0, 0.95, d / 2 + 0.02, { to: g });
   };
-  [[-15, 0.5, 0, 7.5, 6, 3.3, '#e9dcc0', '#4a3f3a'], [15, 0.5, 0, 7.5, 6, 5.6, '#d8d2c4', '#3c4860'], [-15, -13, 0, 7, 6, 5.6, '#cfd8dc', '#5a4636'], [0, -15, 0, 7.5, 6, 3.3, '#efe6d6', '#2f3a4f'], [15, -13, 0, 7, 6, 3.3, '#e3c9a8', '#4a3f3a'],
+  [[-15, 0.5, 0, 7.5, 6, 3.3, '#e9dcc0', '#4a3f3a'], [15, 0.5, 0, 7.5, 6, 5.6, '#d8d2c4', '#3c4860'], [-15, -13, 0, 7, 6, 5.6, '#cfd8dc', '#5a4636'], [15, -13, 0, 7, 6, 3.3, '#e3c9a8', '#4a3f3a'],
     [-21, 22, Math.PI, 7, 6, 5.6, '#e9dcc0', '#3c4860'], [-7, 22, Math.PI, 7, 6, 3.3, '#d8d2c4', '#5a4636'], [7, 22, Math.PI, 7, 6, 5.6, '#cfd8dc', '#4a3f3a'], [21, 22, Math.PI, 7, 6, 3.3, '#efe6d6', '#2f3a4f']].forEach(a => nhouse(...a));
   const leafM = std('#4f8f45', { roughness: 0.9, flatShading: true }), barkM = std('#6b4a32');
-  [[-9.5, 6.5], [9.5, 7], [-21, -4], [22, -6], [-11, 18.5], [12, 18.5], [-6.5, -11.5], [7, -11.8]].forEach(([x, z]) => {
+  [[-9.5, 6.5], [9.5, 7], [-21, -4], [22, -6], [-11, 18.5], [12, 18.5], [-8.5, -13], [9, -13.5]].forEach(([x, z]) => {
     mesh(new THREE.CylinderGeometry(0.13, 0.17, 2.2, 8), barkM, x, 1.1, z, { cast: true });
     mesh(new THREE.IcosahedronGeometry(1.35, 1), leafM, x, 2.9, z, { cast: true }); mesh(new THREE.IcosahedronGeometry(0.95, 1), leafM, x + 0.5, 3.7, z - 0.2, { cast: true });
   });
@@ -1240,19 +1342,19 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
   };
   const face = bg => (x, w, h, t) => faceShot(x, 0, 0, w, h, bg, t);
   const flagD = (x, w, h) => flagFill(x, w, h, S.E.img);
-  scrn(18, 10.125, 640, 360, 0, 25, CZ + 0.25, 10.9, (x, w, h, t) => drawNews3D(x, t, S.E), 1);
-  scrn(8, 5, 256, 160, -18, 15, CZ + 0.25, 14.5, face('#ffd23f'), 2);
-  scrn(8, 5, 256, 160, 18, 16, CZ + 0.25, 14.7, (x, w, h, t) => (Math.floor(t / 0.9) % 2 ? faceShot(x, 0, 0, w, h, '#ff7ab6', t) : flagD(x, w, h)), 2);
-  scrn(2.6, 8, 96, 296, -10.2, 33, CZ + 0.25, 14.9, x => { x.fillStyle = '#0a0a12'; x.fillRect(0, 0, 96, 296); x.save(); x.shadowColor = '#ff5fa2'; x.shadowBlur = 14; vtext(x, 'あなた', 48, 30, 72, 1.1, '#ff8cc0', FONT); x.restore(); }, 0);
-  scrn(5.2, 3.25, 256, 160, 8.8, 35, CZ + 0.25, 15.1, face('#7fd3ff'), 2);
-  scrn(7, 3.5, 256, 128, 0, 39, CZ + 0.25, 15.3, x => { x.fillStyle = '#0a0a12'; x.fillRect(0, 0, 256, 128); x.fillStyle = '#ffb347'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = `800 26px ${FONT}`; x.fillText('国民度', 128, 30); x.font = `800 64px ${FONT}`; x.fillText(`${S.E.pct}%`, 128, 86); }, 0);
-  const marq = scrn(22, 1.6, 1024, 96, 0, 18, CZ + 0.25, 14.6, x => { const txt = `祝　国民度${S.E.pct}％　あなたは国民的英雄です　★　`; x.fillStyle = '#0a0a12'; x.fillRect(0, 0, 1024, 96); x.font = `800 64px ${FONT}`; const fs = 64 * 1024 / x.measureText(txt).width; x.font = `800 ${fs}px ${FONT}`; x.fillStyle = '#ffb347'; x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillText(txt, 0, 50); }, 0);
+  scrn(18, 10.125, 640, 360, 0, 25, CZ + 0.25, 17.6, (x, w, h, t) => drawNews3D(x, t, S.E), 1);
+  scrn(8, 5, 256, 160, -18, 15, CZ + 0.25, 21.0, face('#ffd23f'), 2);
+  scrn(8, 5, 256, 160, 18, 16, CZ + 0.25, 21.2, (x, w, h, t) => (Math.floor(t / 0.9) % 2 ? faceShot(x, 0, 0, w, h, '#ff7ab6', t) : flagD(x, w, h)), 2);
+  scrn(2.6, 8, 96, 296, -10.2, 33, CZ + 0.25, 21.4, x => { x.fillStyle = '#0a0a12'; x.fillRect(0, 0, 96, 296); x.save(); x.shadowColor = '#ff5fa2'; x.shadowBlur = 14; vtext(x, 'あなた', 48, 30, 72, 1.1, '#ff8cc0', FONT); x.restore(); }, 0);
+  scrn(5.2, 3.25, 256, 160, 8.8, 35, CZ + 0.25, 21.6, face('#7fd3ff'), 2);
+  scrn(7, 3.5, 256, 128, 0, 39, CZ + 0.25, 21.8, x => { x.fillStyle = '#0a0a12'; x.fillRect(0, 0, 256, 128); x.fillStyle = '#ffb347'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = `800 26px ${FONT}`; x.fillText('国民度', 128, 30); x.font = `800 64px ${FONT}`; x.fillText(`${S.E.pct}%`, 128, 86); }, 0);
+  const marq = scrn(22, 1.6, 1024, 96, 0, 18, CZ + 0.25, 21.1, x => { const txt = `祝　国民度${S.E.pct}％　あなたは国民的英雄です　★　`; x.fillStyle = '#0a0a12'; x.fillRect(0, 0, 1024, 96); x.font = `800 64px ${FONT}`; const fs = 64 * 1024 / x.measureText(txt).width; x.font = `800 ${fs}px ${FONT}`; x.fillStyle = '#ffb347'; x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillText(txt, 0, 50); }, 0);
   marq.tex.wrapS = THREE.RepeatWrapping; marq.tex.repeat.x = (22 / 1.6) * 96 / 1024;
-  scrn(9, 5.6, 256, 160, -18, 30, CZ - 2, 15.5, face('#9be37a'), 2);
-  scrn(9, 5.6, 256, 160, 18, 32, CZ - 2, 15.7, flagD, 0);
+  scrn(9, 5.6, 256, 160, -18, 30, CZ - 2, 22.0, face('#9be37a'), 2);
+  scrn(9, 5.6, 256, 160, 18, 32, CZ - 2, 22.2, flagD, 0);
   [[-18, 26], [18, 28]].forEach(([x, y]) => [-3, 3].forEach(dx => mesh(boxG(0.3, 1.4, 0.3), roofM, x + dx, y + 0.6, CZ - 2)));
-  scrn(8, 5, 256, 160, -32, 20, CZ + 10.25, 15.9, flagD, 0);
-  scrn(8, 5, 256, 160, 32, 22, CZ + 10.25, 16.1, face('#ffb347'), 2);
+  scrn(8, 5, 256, 160, -32, 20, CZ + 10.25, 22.4, flagD, 0);
+  scrn(8, 5, 256, 160, 32, 22, CZ + 10.25, 22.6, face('#ffb347'), 2);
   S.upd.push(t => {
     S.frame++;
     const bright = 1.0 + 0.25 * tod.k2;
@@ -1278,7 +1380,7 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
       fragmentShader: 'uniform float op; varying float vH; varying vec3 vN; varying vec3 vV; void main(){ float e = pow(abs(dot(normalize(vN), normalize(vV))), 2.0); float a = op * pow(1.0 - clamp(vH, 0.0, 1.0), 1.6) * e; gl_FragColor = vec4(vec3(1.0, 0.95, 0.82) * a, a); }' });
     return mesh(beamG, m, x, 0, CZ - 26, { recv: false });
   });
-  const fws = [[14.9, -24, 64, -63, '#ff5a5a'], [15.7, 22, 68, -68, '#ffd23f'], [16.6, 0, 72, -78, '#7fd3ff']].map(([t0, x, y, dz, c]) => { const z = CZ + dz;
+  const fws = [[21.4, -24, 64, -63, '#ff5a5a'], [22.2, 22, 68, -68, '#ffd23f'], [23.1, 0, 72, -78, '#7fd3ff']].map(([t0, x, y, dz, c]) => { const z = CZ + dz;
     const n = 160, dir = []; for (let i = 0; i < n; i++) { const u = R() * 2 - 1, a = R() * TAU, r = Math.sqrt(1 - u * u); dir.push(Math.cos(a) * r, u, Math.sin(a) * r); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
     const p = new THREE.Points(g, new THREE.PointsMaterial({ color: col(c).multiplyScalar(3), size: 1.6, map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false }));
@@ -1296,7 +1398,7 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
 
   // ---- 時間（昼→夕方→夜）と旗のゆれ ----
   S.upd.push(t => {
-    tod.k1 = seg(t, 8.8, 11.6); tod.k2 = seg(t, 11.6, 14.2);
+    tod.k1 = seg(t, 15.6, 18.4); tod.k2 = seg(t, 18.4, 21.0);
     mixC(skyU.top.value, k => k.top); mixC(skyU.bot.value, k => k.bot); mixC(skyU.glow.value, k => k.glow); mixC(scene.fog.color, k => k.fog);
     sun.intensity = mixN(k => k.sun); hemi.intensity = mixN(k => k.hemi); starM.opacity = tod.k2;
     const win = mixN(k => k.win); S.facades.forEach(m => { m.emissiveIntensity = win; });
@@ -1315,10 +1417,13 @@ function build3D(THREE, EffectComposer, RenderPass, UnrealBloomPass, OutputPass)
 function setCamKeys(hf) { // カメラの通り道（画面の横の広さに合わせて、ビルの画面との距離を決める）
   const S = T3, THREE = S.THREE, tn = Math.tan(hf / 2), dN = Math.max(21, 10.2 / tn), dF = Math.max(46, 18 / tn), zs = CONFIG.E3D.CITY_Z;
   const K = [
-    [0.0, 0, 1.55, 17, 0, 1.75, 0.6], [2.9, 0, 1.75, 12.8, 0, 1.7, 0.6], [3.6, 0.6, 2.5, 12, 0, 1.4, 0.6],
-    [5.2, 6.0, 2.8, 7.8, 0, 1.5, 0.6], [6.8, 1.5, 2.05, 3.7, 0, 1.95, 0.6], [8.4, -5.5, 5.2, 5.8, 0, 1.2, 0.6],
-    [9.8, -1.5, 15, 7, 0, 0, -1.5], [11.3, 0, 26, -20, 0, 22, zs - 8], [12.9, 0, 25.2, zs + dN + 4, 0, 25, zs],
-    [14.4, 0, 25.2, zs + dN, 0, 25, zs], [16.4, 0, 31, zs + dF * 0.85, 0, 29, zs - 2], [18, 0, 33, zs + dF, 0, 30.5, zs - 2], [21, 0, 34.5, zs + dF + 5, 0, 31, zs - 2],
+    [0.0, 0, 1.55, 17, 0, 1.75, 0.6], [2.9, 0, 1.75, 12.8, 0, 1.7, 0.6], [3.6, 0.6, 2.5, 12, 0, 1.4, 0.6], [5.0, 6.0, 2.8, 7.8, 0, 1.5, 0.6], [6.2, 1.5, 2.05, 3.7, 0, 2.2, 0.6], // 家が開いて囲まれる
+    [7.4, 2.4, 1.6, 4.4, 0, 10.5, 0.6], [8.6, 4.2, 2.6, 6.4, 0, 5.5, 0.6], // くす玉
+    [10.0, 3.9, 6.0, 5.2, 0, 4.0, 0.6], [11.6, 3.2, 6.6, 6.0, 0, 5.2, 0.6], // 胴上げ（上から見下ろす）
+    [12.8, 0.8, 2.6, 10.5, 0, 6, -8], [14.4, 0, 4.5, 14.5, 0, 9.5, -10], // 金の銅像
+    [16.4, -4, 42, -50, 0, 6, 40], // 地平線まで人（街とは反対側を見る）
+    [18.0, 0, 42, -18, 0, 24, zs - 8], [19.4, 0, 25.2, zs + dN + 4, 0, 25, zs], [20.8, 0, 25.2, zs + dN, 0, 25, zs], // 街へ飛んでニュース
+    [22.6, 0, 31, zs + dF * 0.85, 0, 29, zs - 2], [24, 0, 33, zs + dF, 0, 30.5, zs - 2], [27, 0, 34.5, zs + dF + 5, 0, 31, zs - 2], // 電光掲示板
   ];
   S.camT = K.map(k => k[0]);
   S.camP = new THREE.CatmullRomCurve3(K.map(k => new THREE.Vector3(k[1], k[2], k[3])), false, 'centripetal');
@@ -1329,7 +1434,7 @@ function camAt(t) {
   while (i < n - 2 && t >= K[i + 1]) i++;
   const u = clamp((i + clamp((t - K[i]) / (K[i + 1] - K[i]), 0, 1)) / (n - 1), 0, 1);
   S.camP.getPoint(u, S.cp); S.camL.getPoint(u, S.cl);
-  const sh = (t > 1.9 && t < 3 ? 0.035 * seg(t, 1.9, 3) : 0) + (t >= 3 && t < 3.8 ? 0.16 * (1 - seg(t, 3, 3.8)) ** 2 : 0); // 家がゆれる・倒れる時の手ぶれ
+  const sh = (t > 1.9 && t < 3 ? 0.035 * seg(t, 1.9, 3) : 0) + (t >= 3 && t < 3.8 ? 0.16 * (1 - seg(t, 3, 3.8)) ** 2 : 0) + (t > 12.4 && t < 14.1 ? 0.05 : 0); // 家がゆれる・倒れる時の手ぶれ
   S.cp.x += Math.sin(t * 53) * sh; S.cp.y += Math.sin(t * 67 + 1) * sh;
   S.camera.position.copy(S.cp); S.camera.lookAt(S.cl); S.skyMesh.position.copy(S.cp);
 }
@@ -1343,6 +1448,7 @@ function resize3D(w = VW, h = VH, pr = Math.min(DPR, CONFIG.E3D.DPR)) {
 function prep3D(E) { // 描いた旗と国民度を3Dに入れる
   const S = T3; S.E = E; S.flagTex.image = E.img; S.flagTex.needsUpdate = true;
   S.screens.forEach(o => { o.drawn = false; o.mode = ''; });
+  S.prepFns.forEach(f => f(E));
 }
 function render3D(t) { T3.upd.forEach(f => f(t)); camAt(t); T3.composer.render(); }
 function start3D() {
@@ -1395,7 +1501,7 @@ function playEnding(n, pts, pct, from) {
   load3D().then(ok => { if (G.state !== 'ending' || !G.wait3d) return; G.wait3d = false; show('skipBtn'); if (ok) start3D(); });
 }
 function updateEnding(dt) {
-  G.et += dt; const list = curEnd().sfx;
+  if (!G.hold) G.et += dt; const list = curEnd().sfx;
   while (G.sfxI < list.length && list[G.sfxI][0] <= G.et) { list[G.sfxI][1](); G.sfxI++; }
   if (G.et >= curEnd().dur) hide('skipBtn');
 }
@@ -1539,7 +1645,7 @@ function drawLoading(c, t) {
 }
 
 // ===== [SEC:TEST] =====
-// 確認用：?end=1〜4 でそのエンディングから（&t=秒 で途中から）
+// 確認用：?end=1〜4 でそのエンディングから（&t=秒 で途中から、&hold でその場面で止める）
 function testShape(n) {
   const [cx, cy, r, w] = [null, [0.45, 0.3, 0.16, 0.1], [0.82, 0.55, 0.38, 0.05], [0.76, 0.52, 0.33, 0.03], [0.75, 0.5, 0.3, 0.01]][n], pts = [];
   for (let i = 0; i <= 60; i++) { const a = i / 60 * TAU, rr = r * (1 + w * Math.sin(a * 3)); pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]); }
@@ -1549,6 +1655,7 @@ function runTest(q) {
   const n = clamp(Math.round(+q.get('end')) || 4, 1, 4), pts = testShape(n), s = scoreShape(pts), pct = Math.floor(s.pct);
   G.pts = pts; G.res = { s, pct, n, newBest: false, newEnd: false };
   playEnding(n, pts, pct, 'result');
+  G.hold = q.has('hold');
   if (q.has('t')) { G.et = +q.get('t') || 0; const L = curEnd().sfx; while (G.sfxI < L.length && L[G.sfxI][0] <= G.et) G.sfxI++; }
 }
 
