@@ -694,13 +694,41 @@ var HeikouModel = (function () {
     return { trials: digests.length, series: series, milestones: milestones };
   }
 
+  // Blender用 JSON：島ごと・年ごとの値を、景色を組み立てやすい形にまとめる（スタジオと _dev/export-blender.js で共通）
+  function blenderExport(runs, worlds, options) {
+    var o = normalizeOptions(options);
+    return {
+      app: 'heikou-chikyu-studio', version: VERSION, created: new Date().toISOString(),
+      options: o, map: { width: 300, height: 280, unit: '模式図上の仮想km' },
+      islands: ISLANDS.map(function (d) { return { id: d.id, name: d.name, x: d.x, y: d.y, food: d.food, wood: d.wood, ore: d.ore, shallow: d.shallow, exposed: d.exposed, water: d.water }; }),
+      planets: runs.map(function (run, i) {
+        var w = worlds[i];
+        return {
+          id: w.id, name: w.name, tidal_crop: w.tidal_crop, special_material: w.special_material, params: clone(w.params),
+          notes: run.notes.filter(function (n) { return n.type !== 'build'; }),
+          years: run.records.map(function (r) {
+            var isl = {};
+            r.islands.forEach(function (s) {
+              isl[s.id] = {
+                population: s.population, coverage: s.coverage,
+                ships: { wood: s.fleet.filter(function (f) { return f.type === 'wood'; }).length, shell: s.fleet.filter(function (f) { return f.type === 'shell'; }).length },
+                stock: s.stock, deposits: s.deposits, index: s.ecology_index
+              };
+            });
+            return { year: r.year, coverage: r.coverage, storm: r.storm, techs: r.techs, transfers: r.transfers.map(function (t) { return { source: t.source, target: t.target, resource: t.resource, amount: t.amount }; }), islands: isl };
+          })
+        };
+      })
+    };
+  }
+
   return {
     VERSION: VERSION, ECO: ECO, POOLS: POOLS, POOL_NAMES: POOL_NAMES, POLICIES: POLICIES, ISLANDS: ISLANDS,
     WORLDS: WORLDS, WOOD_SHIP: WOOD_SHIP, BIO_DEFAULT: BIO_DEFAULT, MAT_DEFAULT: MAT_DEFAULT,
     DEMOGRAPHY: DEMOGRAPHY, TECHS: TECHS, DEFAULT_OPTIONS: DEFAULT_OPTIONS, SERIES_KEYS: SERIES_KEYS,
     uniform: uniform, sha256Hex: sha256Hex, clone: clone, normalizeOptions: normalizeOptions,
     capsFor: capsFor, ecosystemYear: ecosystemYear, initialEcosystem: initialEcosystem, worldParams: worldParams,
-    simulate: simulate, simulateAll: simulateAll, digest: digest, aggregate: aggregate, dist: dist
+    simulate: simulate, simulateAll: simulateAll, digest: digest, aggregate: aggregate, dist: dist, blenderExport: blenderExport
   };
 })();
 if (typeof module !== 'undefined') module.exports = HeikouModel;

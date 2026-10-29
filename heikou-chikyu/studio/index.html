@@ -1254,29 +1254,7 @@ legend{font-weight:600;font-size:.88rem;padding:0 4px;display:flex;align-items:c
     status('計算データを書き出しました（records は v0.2 の simulation-data.json と同じ形）。');
   }
   function exportBlender() {
-    var out = {
-      app: 'heikou-chikyu-studio', version: M.VERSION, created: new Date().toISOString(),
-      options: M.clone(state.options), map: { width: 300, height: 280, unit: '模式図上の仮想km' },
-      islands: M.ISLANDS.map(function (d) { return { id: d.id, name: d.name, x: d.x, y: d.y, food: d.food, wood: d.wood, ore: d.ore, shallow: d.shallow, exposed: d.exposed, water: d.water }; }),
-      planets: state.runs.map(function (run, i) {
-        var w = state.worlds[i];
-        return {
-          id: w.id, name: w.name, tidal_crop: w.tidal_crop, special_material: w.special_material, params: M.clone(w.params),
-          notes: run.notes.filter(function (n) { return n.type !== 'build'; }),
-          years: run.records.map(function (r) {
-            var isl = {};
-            r.islands.forEach(function (s) {
-              isl[s.id] = {
-                population: s.population, coverage: s.coverage,
-                ships: { wood: s.fleet.filter(function (f) { return f.type === 'wood'; }).length, shell: s.fleet.filter(function (f) { return f.type === 'shell'; }).length },
-                stock: s.stock, deposits: s.deposits, index: s.ecology_index
-              };
-            });
-            return { year: r.year, coverage: r.coverage, storm: r.storm, techs: r.techs, transfers: r.transfers.map(function (t) { return { source: t.source, target: t.target, resource: t.resource, amount: t.amount }; }), islands: isl };
-          })
-        };
-      })
-    };
+    var out = M.blenderExport(state.runs, state.worlds, state.options);
     download('heikou-blender-' + stamp() + '.json', JSON.stringify(out), 'application/json');
     status('Blender用 JSON を書き出しました（3つの星・' + (state.options.years + 1) + '年分）。');
   }
