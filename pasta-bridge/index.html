@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>パスタブリッジ</title>
+<meta name="description" content="パスタで橋をかけて、おもちゃの車をわたらせるゲーム。使ったパスタが少ないほど高評価。折れたら車ごと鍋でゆでられる。全8ステージ。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<meta name="theme-color" content="#f5eee0">
+<meta property="og:type" content="website">
+<meta property="og:title" content="パスタブリッジ">
+<meta property="og:description" content="パスタ何本で、わたれる？ 折れたら鍋でゆでられる。">
+<meta property="og:url" content="https://nkworks-games.com/pasta-bridge/">
+<meta property="og:image" content="https://nkworks-games.com/pasta-bridge/card.png">
+<link rel="canonical" href="https://nkworks-games.com/pasta-bridge/">
+<meta name="twitter:card" content="summary_large_image">
+<script>(function(){if(/(^|\.)nkworks-games\.com$/.test(location.hostname)){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350';document.head.appendChild(s);}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#f5eee0;font-family:"M PLUS Rounded 1c",system-ui,sans-serif;color:#3a2a1e;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer;color:#3a2a1e}
+.big{display:block;margin:0 auto;min-width:220px;padding:13px 28px;border:3px solid #3a2a1e;border-radius:999px;background:#d9412b;color:#fff;font-size:20px;font-weight:800;box-shadow:0 4px 0 #3a2a1e}
+.big:active,.go:active{transform:translateY(3px);box-shadow:0 1px 0 #3a2a1e}
+.sml{padding:9px 15px;border:3px solid #3a2a1e;border-radius:999px;background:#fff;font-size:15px;font-weight:800;box-shadow:0 3px 0 #3a2a1e;white-space:nowrap}
+.sml:active{transform:translateY(2px);box-shadow:0 1px 0 #3a2a1e}
+.sml:disabled{opacity:.4}
+.go{padding:9px 20px;border:3px solid #3a2a1e;border-radius:999px;background:#d9412b;color:#fff;font-size:17px;font-weight:800;box-shadow:0 3px 0 #3a2a1e;white-space:nowrap}
+.link{display:inline-block;margin-top:14px;background:none;border:none;color:#3a2a1e;font-size:14px;font-weight:800;text-decoration:underline}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.scr{position:fixed;inset:0;z-index:4;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.ico{width:44px;height:44px;flex:none;position:relative;border-radius:50%;border:3px solid #3a2a1e;background:#fff;font-size:20px;font-weight:800;line-height:1}
+.ico.off::after{content:"";position:absolute;left:8px;right:8px;top:50%;height:3px;background:#d9412b;transform:rotate(-40deg)}
+#title{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:max(5vh,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom))}
+.kick{font-size:clamp(16px,4.6vw,22px);font-weight:800;color:#d9412b;letter-spacing:.1em}
+#title h1{margin:4px 0 14px;font-size:clamp(44px,13vw,72px);font-weight:800;line-height:1.1;text-shadow:0 3px 0 #fff,3px 0 0 #fff,-3px 0 0 #fff,0 -3px 0 #fff}
+.lead{max-width:340px;margin:0 auto 22px;padding:12px 14px;border-radius:14px;background:rgba(255,250,240,.92);border:2px solid #3a2a1e;font-size:15px;font-weight:500;line-height:1.7}
+.lead b{color:#d9412b}
+#select{padding:max(16px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));background:rgba(245,238,224,.88);text-align:center}
+#select h2{margin-top:8px;font-size:24px;font-weight:800}
+#selStars{margin-top:2px;font-size:15px;font-weight:800;color:#b07a10}
+#stList{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:760px;margin:14px auto 0}
+@media (min-width:700px){#stList{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stg{width:100%;height:100%;padding:10px 8px;border:3px solid #3a2a1e;border-radius:16px;background:#fffaf0;box-shadow:0 3px 0 #3a2a1e;text-align:center}
+.stg:active{transform:translateY(2px);box-shadow:0 1px 0 #3a2a1e}
+.stg .no{display:block;font-size:13px;font-weight:800;color:#d9412b}
+.stg .nm{display:block;margin-top:2px;font-size:16px;font-weight:800;line-height:1.3}
+.stg .cr{display:block;margin-top:3px;font-size:12px;font-weight:500;opacity:.75}
+.stg .rec{display:block;margin-top:6px;font-size:14px;font-weight:800}
+.stg .st{color:#e3a21a;letter-spacing:.05em}
+.stg.lock{background:#e6dfd2;opacity:.6;cursor:default}
+#rotTip{margin-top:14px;font-size:13px;font-weight:500;opacity:.75}
+#top{position:fixed;z-index:3;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 8px max(10px,env(safe-area-inset-left));pointer-events:none}
+#top>*{pointer-events:auto}
+#stInfo{flex:1;min-width:0;line-height:1.25}
+#stName{display:block;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#stGoal{display:block;font-size:12px;font-weight:800;color:#8a6a2c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cnt{flex:none;padding:4px 14px;border:3px solid #3a2a1e;border-radius:999px;background:#fff7dd;font-size:15px;font-weight:800}
+#cntN{font-size:24px;color:#d9412b}
+#hint{position:fixed;z-index:3;left:50%;transform:translateX(-50%);top:calc(max(8px,env(safe-area-inset-top)) + 58px);max-width:calc(100% - 24px);padding:6px 14px;border-radius:999px;background:rgba(58,42,30,.82);color:#fff;font-size:14px;font-weight:800;text-align:center;pointer-events:none;transition:opacity .3s}
+#bottom{position:fixed;z-index:3;left:0;right:0;bottom:0;display:flex;justify-content:center;align-items:center;gap:8px;padding:8px 10px max(12px,env(safe-area-inset-bottom))}
+#result{position:fixed;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(58,42,30,.35);overflow-y:auto}
+.card{width:100%;max-width:380px;margin:auto;padding:20px 16px;border:3px solid #3a2a1e;border-radius:20px;background:#fffaf0;box-shadow:0 6px 0 #3a2a1e;text-align:center}
+#rHead{font-size:28px;font-weight:800}
+#rHead.ng{color:#2f6f9a}
+#rBig{margin-top:2px;font-size:22px;font-weight:800}
+#rBig b{font-size:56px;color:#d9412b}
+#rStars{font-size:34px;letter-spacing:.08em;color:#e3a21a;line-height:1.2}
+#rStars i{font-style:normal;color:#d8cdb8}
+#rSub{margin-top:8px;font-size:15px;font-weight:500;line-height:1.6}
+#rSub b{color:#d9412b}
+.adwrap{margin:18px auto 0;min-height:50px;width:320px;max-width:100%;display:flex;justify-content:center}
+.adwrap ins{display:inline-block;width:320px;height:50px}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="title" class="scr">
+  <p class="kick">何本で、わたれる？</p>
+  <h1>パスタブリッジ</h1>
+  <p class="lead">パスタで橋をかけて、車をわたらせよう。<br><b>使った本数が少ないほどえらい。</b><br>折れたら、車ごと鍋でゆでられます。</p>
+  <button class="big" id="startBtn">はじめる</button>
+  <a data-google-vignette="false" class="link" id="moreLink" href="/games/">ほかのゲーム ›</a>
+</div>
+
+<div id="select" class="scr hidden">
+  <h2>ステージをえらぶ</h2>
+  <p id="selStars"></p>
+  <ul id="stList"></ul>
+  <p id="rotTip" class="hidden">スマホは横向きにすると、大きく見えます</p>
+  <button class="link" id="selBack">‹ タイトルへ</button>
+</div>
+
+<div id="hud" class="hidden">
+  <div id="top">
+    <button class="ico" id="backBtn" aria-label="ステージ選択へ">←</button>
+    <div id="stInfo"><b id="stName"></b><span id="stGoal"></span></div>
+    <div id="cnt"><b id="cntN">0</b> 本</div>
+    <button class="ico" id="muteBtn" aria-label="音のオン・オフ">♪</button>
+  </div>
+  <div id="hint"></div>
+  <div id="bottom">
+    <button class="sml" id="undoBtn">↶ もどす</button>
+    <button class="sml" id="clearBtn">全部けす</button>
+    <button class="go" id="testBtn">わたらせる ▶</button>
+    <button class="sml hidden" id="stopBtn">■ とめる</button>
+  </div>
+</div>
+
+<div id="result" class="hidden">
+  <div class="card">
+    <p id="rHead"></p>
+    <p id="rBig"></p>
+    <p id="rStars"></p>
+    <p id="rSub"></p>
+    <div class="row" id="rRow1"></div>
+    <div class="row" id="rRow2"></div>
+    <div class="adwrap" id="ad1"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ===== [SEC:CONFIG] =====
+const CONFIG = {
+  PASTA_LEN: 160,       // パスタ1本の長さ（ゲーム内の長さの単位）
+  MIN_LEN: 20,          // これより短くは置けない
+  MAX_BUNDLE: 4,        // 同じ場所に束ねられる最大本数
+  MAX_PASTA: 40,        // 1ステージで置ける最大本数
+  ROAD_DEG: 30,         // この傾きまでのパスタが「道」になる（度）
+  SNAP_PX: 22,          // 点に吸いつく距離（画面のpx）
+  TAP_PX: 14,           // パスタをタップで消せる距離（画面のpx）
+  GRAVITY: 900,         // 重力
+  SUBSTEPS: 24,         // 1コマあたりの物理計算の回数（多いほど正確）
+  DAMP: 1.2,            // 揺れのおさまりやすさ
+  PASTA_MASS: 0.5,      // パスタ1本の重さ
+  COMPLIANCE: 3e-7,     // パスタの伸びやすさ（小さいほどかたい）
+  TENSION: 8000,        // 1本が耐えられる引っぱる力
+  BUCKLE_K: 1.85e8,      // 押す力への強さ（この値÷長さ²。長いほど弱い）
+  CRUSH: 12000,         // 短いパスタでも、押す力はここまで
+  BEND: 140000,         // 車輪が乗った時に耐えられる曲げの強さ
+  FILTER: 0.01,         // 力のならし方（小さいほど一瞬の衝撃では折れにくい）
+  TRACTION: 1600,       // タイヤのグリップ（加速の上限）
+  START_X: -110,        // 車のスタート位置（後輪のx）
+  GOAL_X: 50,           // 後輪が向こう岸にこれだけ入ったらゴール
+  STALL_SEC: 4,         // この秒数進めなかったら立ち往生
+  MAX_SEC: 30,          // テストの最大秒数
+  WATER_Y: 250,         // 鍋の水面の高さ（下が＋）
+  GOAL_SEC: 1.0,        // ゴールしてから結果が出るまで（秒）
+  SINK_SEC: 1.6,        // 鍋に落ちてから結果が出るまで（秒）
+  STUCK_SEC: 0.5,       // 立ち往生から結果が出るまで（秒）
+  CARS: {
+    mini:  { name: 'ミニカー',   mass: 4,  r: 11, base: 46, speed: 110, body: '#e8483b' },
+    truck: { name: 'トラック',   mass: 8,  r: 13, base: 58, speed: 100, body: '#2f7fd1' },
+    dump:  { name: 'ダンプカー', mass: 10, r: 15, base: 66, speed: 90,  body: '#f0a01e' },
+  },
+  // gap:谷の幅 rightY:向こう岸の高さ（上が−） left/right:岸のピンの深さ pillars:途中の足場 stars:[★3の本数, ★2の本数]
+  STAGES: [
+    { name: 'はじめの一本', gap: 130, left: [0, 70], right: [0, 70], car: 'mini', stars: [1, 2], note: 'ピンから引っぱって、パスタを置こう' },
+    { name: 'ちょっと遠い', gap: 240, left: [0, 70, 140], right: [0, 70, 140], car: 'mini', stars: [3, 4], note: '継ぎ目はたわむ。三角形にすると強い' },
+    { name: 'もっと遠い', gap: 380, left: [0, 70, 140], right: [0, 70, 140], car: 'mini', stars: [5, 7], note: '長いパスタは、押されると折れやすい' },
+    { name: '向こう岸が高い', gap: 300, rightY: -80, left: [0, 70, 140], right: [0, 80, 160], car: 'mini', stars: [3, 5], note: '道になるのは30°までのゆるい坂だけ' },
+    { name: 'トラックが来た', gap: 300, left: [0, 70, 140], right: [0, 70, 140], car: 'truck', stars: [5, 7], note: '同じ所にもう1本引くと、束になって強くなる' },
+    { name: 'ペッパーミル', gap: 560, left: [0, 80], right: [0, 80], pillars: [{ x: 280, w: 44, top: 40 }], car: 'mini', stars: [6, 8], note: 'ペッパーミルの上にもピンがある' },
+    { name: '下にピンがない', gap: 420, left: [0], right: [0], car: 'truck', stars: [9, 12], note: '下から支えられないなら…' },
+    { name: 'ダンプの大鍋', gap: 520, left: [0, 70, 140], right: [0, 70, 140], car: 'dump', stars: [12, 15], note: 'いちばん重い車。束ねて強く' },
+  ],
+  VOL: 0.7,             // 全体の音量
+  SAVE_KEY: 'pasta-bridge.v1',
+  URL: 'https://nkworks-games.com/pasta-bridge/',
+};
+
+// ===== [SEC:UTIL] =====
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const dist = (ax, ay, bx, by) => Math.hypot(bx - ax, by - ay);
+const INK = '#3a2a1e';
+function isRoad(ax, ay, bx, by) { return Math.atan2(Math.abs(by - ay), Math.abs(bx - ax)) * 180 / Math.PI <= CONFIG.ROAD_DEG + 0.01; }
+function segT(px, py, ax, ay, bx, by) { const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1; return clamp(((px - ax) * dx + (py - ay) * dy) / l2, 0, 1); }
+function mix(c1, c2, t) {
+  const a = parseInt(c1.slice(1), 16), b = parseInt(c2.slice(1), 16);
+  return `rgb(${Math.round(lerp(a >> 16, b >> 16, t))},${Math.round(lerp(a >> 8 & 255, b >> 8 & 255, t))},${Math.round(lerp(a & 255, b & 255, t))})`;
+}
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+// ===== [SEC:SAVE] =====
+const SV = { best: {}, stars: {}, designs: {}, mute: false };
+function loadSave() { try { Object.assign(SV, JSON.parse(localStorage.getItem(CONFIG.SAVE_KEY) || '{}')); } catch (e) {} }
+function writeSave() { try { localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify(SV)); } catch (e) {} }
+function unlocked(i) { return i === 0 || SV.best[i - 1] != null; }
+function starsFor(i, c) { const s = CONFIG.STAGES[i].stars; return c <= s[0] ? 3 : c <= s[1] ? 2 : 1; }
+
+// ===== [SEC:AUDIO] =====
+let AC = null, MG = null, NOISE = null;
+function audioInit() {
+  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+  try { AC = new (window.AudioContext || window.webkitAudioContext)(); MG = AC.createGain(); MG.gain.value = SV.mute ? 0 : CONFIG.VOL; MG.connect(AC.destination); } catch (e) { AC = null; }
+}
+function tone(f, dur, type, vol, slide, delay) {
+  if (!AC || SV.mute) return;
+  const t = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(20, f * slide), t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(MG); o.start(t); o.stop(t + dur + 0.02);
+}
+function noise(dur, vol, freq, q, type, delay) {
+  if (!AC || SV.mute) return;
+  if (!NOISE) { NOISE = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const t = AC.currentTime + (delay || 0), s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = NOISE; f.type = type; f.frequency.value = freq; f.Q.value = q;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(MG); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02);
+}
+const SFX = {
+  place() { tone(760, 0.07, 'triangle', 0.25, 0.6); noise(0.03, 0.2, 3000, 2, 'bandpass'); },
+  bundle() { tone(560, 0.08, 'triangle', 0.25, 0.7); tone(840, 0.08, 'triangle', 0.2, 0.7, 0.05); },
+  remove() { tone(320, 0.08, 'triangle', 0.22, 0.6); },
+  bad() { tone(170, 0.12, 'square', 0.1); },
+  snap() { noise(0.09, 0.6, 2600, 0.8, 'highpass'); tone(1700, 0.05, 'square', 0.14, 0.4); },
+  splash() { noise(0.7, 0.55, 900, 0.7, 'lowpass'); noise(0.35, 0.3, 2200, 1, 'bandpass', 0.08); },
+  win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.28, 'triangle', 0.25, 1, i * 0.1)); },
+  go() { tone(392, 0.09, 'square', 0.1); tone(523, 0.14, 'square', 0.1, 1, 0.09); },
+};
+
+// ===== [SEC:STAGE] =====
+let ST = null; // いま遊んでいるステージの地形
+function makeStage(i) {
+  const d = CONFIG.STAGES[i], G = d.gap, RY = d.rightY || 0;
+  const solids = [{ x0: -1e4, x1: 0, y0: 0, y1: 1e4 }, { x0: G, x1: 1e4, y0: RY, y1: 1e4 }];
+  const anchors = [];
+  d.left.forEach(y => anchors.push({ x: 0, y }));
+  d.right.forEach(y => anchors.push({ x: G, y: RY + y }));
+  (d.pillars || []).forEach(p => { solids.push({ x0: p.x - p.w / 2, x1: p.x + p.w / 2, y0: p.top, y1: 1e4, mill: true }); anchors.push({ x: p.x, y: p.top }); });
+  const pot = { x0: -1e4, x1: 1e4, y0: CONFIG.WATER_Y + 140, y1: 1e4 }; // 鍋の底（車が沈みきらないように）
+  const view = { x0: -130, x1: G + 130, y0: Math.min(0, RY) - 190, y1: CONFIG.WATER_Y + 40 };
+  return { i, d, G, RY, solids, pot, anchors, view, car: Object.assign({ kind: d.car }, CONFIG.CARS[d.car]) };
+}
+function insideSolid(x, y) { return ST.solids.some(s => x > s.x0 + 0.5 && x < s.x1 - 0.5 && y > s.y0 + 0.5 && y < s.y1 - 0.5); }
+
+// ===== [SEC:DESIGN] =====
+// D.nodes：先頭はステージのピン（fix）、後ろが継ぎ目。D.mem：パスタ {a,b,n}（nは束の本数）
+let D = null, hist = [];
+function newDesign() { return { nodes: ST.anchors.map(a => ({ x: a.x, y: a.y, fix: true })), mem: [] }; }
+function pastaCount(d) { return (d || D).mem.reduce((s, m) => s + m.n, 0); }
+function packD(d) { const k = ST.anchors.length; return { k, nodes: d.nodes.slice(k).map(n => [Math.round(n.x * 10) / 10, Math.round(n.y * 10) / 10]), mem: d.mem.map(m => [m.a, m.b, m.n]) }; }
+function unpackD(p) {
+  const d = newDesign();
+  if (!p || p.k !== ST.anchors.length) return d;
+  p.nodes.forEach(([x, y]) => d.nodes.push({ x, y, fix: false }));
+  for (const [a, b, n] of p.mem) { if (a >= d.nodes.length || b >= d.nodes.length) return newDesign(); d.mem.push({ a, b, n }); }
+  return d;
+}
+function saveDesign() { SV.designs[CUR] = packD(D); writeSave(); }
+function pushHist() { hist.push(JSON.stringify(D)); if (hist.length > 100) hist.shift(); }
+function findMem(a, b) { return D.mem.find(m => (m.a === a && m.b === b) || (m.a === b && m.b === a)); }
+function nearNode(x, y, r) { let bi = -1, bd = r; D.nodes.forEach((n, i) => { const d = dist(n.x, n.y, x, y); if (d < bd) { bd = d; bi = i; } }); return bi; }
+function nearMem(x, y, r) {
+  let bi = -1, bd = r;
+  D.mem.forEach((m, i) => { const a = D.nodes[m.a], b = D.nodes[m.b], t = segT(x, y, a.x, a.y, b.x, b.y), d = dist(x, y, lerp(a.x, b.x, t), lerp(a.y, b.y, t)); if (d < bd) { bd = d; bi = i; } });
+  return bi;
+}
+// 引っぱっている途中のパスタが置けるか調べる
+function plan(ai, wx, wy) {
+  const a = D.nodes[ai], L = CONFIG.PASTA_LEN, r = CONFIG.SNAP_PX / VIEW.sc;
+  let bi = -1, bd = r;
+  D.nodes.forEach((n, i) => { if (i === ai) return; const d = dist(n.x, n.y, wx, wy); if (d < bd && dist(a.x, a.y, n.x, n.y) <= L + 0.5) { bd = d; bi = i; } });
+  let ex = wx, ey = wy;
+  if (bi >= 0) { ex = D.nodes[bi].x; ey = D.nodes[bi].y; }
+  else { const l = dist(a.x, a.y, wx, wy); if (l > L) { ex = a.x + (wx - a.x) / l * L; ey = a.y + (wy - a.y) / l * L; } }
+  const len = dist(a.x, a.y, ex, ey);
+  let why = '';
+  if (len < CONFIG.MIN_LEN) why = 'short';
+  else if (bi < 0 && insideSolid(ex, ey)) why = 'solid';
+  else if (bi < 0 && ey > CONFIG.WATER_Y - 8) why = 'water';
+  else if (bi >= 0 && a.fix && D.nodes[bi].fix && a.x === D.nodes[bi].x) why = 'same';
+  else if (bi >= 0 && (findMem(ai, bi) || { n: 0 }).n >= CONFIG.MAX_BUNDLE) why = 'bundle';
+  else if (pastaCount() >= CONFIG.MAX_PASTA) why = 'max';
+  return { ai, bi, ex, ey, len, ok: !why, why, road: isRoad(a.x, a.y, ex, ey) };
+}
+function addPasta(p) {
+  pushHist();
+  let bi = p.bi;
+  if (bi < 0) { D.nodes.push({ x: p.ex, y: p.ey, fix: false }); bi = D.nodes.length - 1; }
+  const m = findMem(p.ai, bi);
+  if (m) { m.n++; SFX.bundle(); } else { D.mem.push({ a: p.ai, b: bi, n: 1 }); SFX.place(); }
+  saveDesign(); updHud();
+  if (CUR === 0 && pastaCount() === 1) showHint('同じ所にもう1本引くと「束」に。タップで1本へる', 4);
+}
+function removePasta(mi) {
+  pushHist();
+  const m = D.mem[mi]; m.n--;
+  if (m.n <= 0) { D.mem.splice(mi, 1); prune(); }
+  SFX.remove(); saveDesign(); updHud();
+}
+function prune() { // どのパスタにもつながっていない継ぎ目を消す
+  const used = new Set(), map = [], nodes = [];
+  D.mem.forEach(m => { used.add(m.a); used.add(m.b); });
+  D.nodes.forEach((n, i) => { if (n.fix || used.has(i)) { map[i] = nodes.length; nodes.push(n); } });
+  D.mem.forEach(m => { m.a = map[m.a]; m.b = map[m.b]; });
+  D.nodes = nodes;
+}
+function undo() { if (!hist.length) return; D = JSON.parse(hist.pop()); SFX.remove(); saveDesign(); updHud(); }
+function clearAll() { if (!D.mem.length) return; pushHist(); D = newDesign(); SFX.remove(); saveDesign(); updHud(); }
+
+// ===== [SEC:PHYS] =====
+let SIM = null;
+function buildSim(d) {
+  const P = d.nodes.map(n => ({ x: n.x, y: n.y, px: n.x, py: n.y, vx: 0, vy: 0, m: 0, w: 0, fix: n.fix }));
+  const M = d.mem.map(m => {
+    const a = P[m.a], b = P[m.b], len = dist(a.x, a.y, b.x, b.y);
+    return { a: m.a, b: m.b, n: m.n, len, road: isRoad(a.x, a.y, b.x, b.y), T: 0, traw: 0, B: 0, braw: 0, ratio: 0, peak: 0, dead: false,
+      tl: CONFIG.TENSION * m.n, cl: Math.min(CONFIG.CRUSH, CONFIG.BUCKLE_K / (len * len)) * m.n, bl: CONFIG.BEND * m.n };
+  });
+  M.forEach(m => { const mm = CONFIG.PASTA_MASS * m.n * m.len / CONFIG.PASTA_LEN / 2; P[m.a].m += mm; P[m.b].m += mm; });
+  P.forEach(p => { p.w = p.fix ? 0 : 1 / Math.max(p.m, 0.05); });
+  const c = ST.car, wheel = x => ({ x, y: -c.r, px: x, py: -c.r, vx: 0, vy: 0, w: 2 / c.mass, r: c.r, cn: null, cpen: 0 });
+  return { P, M, W: [wheel(CONFIG.START_X), wheel(CONFIG.START_X + c.base)], car: c, t: 0, spin: 0, maxX: CONFIG.START_X + c.base, stall: 0,
+    result: '', endT: 0, done: false, debris: [], broken: 0 };
+}
+function integrate(p, h, g) {
+  if (p.w === 0) return;
+  const wet = p.y > CONFIG.WATER_Y, damp = Math.max(0, 1 - (wet ? 40 : CONFIG.DAMP) * h);
+  p.vy += g * (wet ? 0.35 : 1) * h; p.vx *= damp; p.vy *= damp;
+  p.px = p.x; p.py = p.y; p.x += p.vx * h; p.y += p.vy * h;
+}
+function pushOutPoint(p, s) {
+  if (!(p.x > s.x0 && p.x < s.x1 && p.y > s.y0 && p.y < s.y1)) return;
+  const dl = p.x - s.x0, dr = s.x1 - p.x, dt = p.y - s.y0, mn = Math.min(dl, dr, dt);
+  if (mn === dt) p.y = s.y0; else if (mn === dl) p.x = s.x0; else p.x = s.x1;
+}
+function wheelBox(wh, s) {
+  const cx = clamp(wh.x, s.x0, s.x1), cy = clamp(wh.y, s.y0, s.y1), ex = wh.x - cx, ey = wh.y - cy, d = Math.hypot(ex, ey);
+  let nx, ny, pen;
+  if (d > 1e-6) { if (d >= wh.r) return; nx = ex / d; ny = ey / d; pen = wh.r - d; }
+  else {
+    const dl = wh.x - s.x0, dr = s.x1 - wh.x, dt = wh.y - s.y0, mn = Math.min(dl, dr, dt);
+    if (mn === dt) { nx = 0; ny = -1; pen = dt + wh.r; } else if (mn === dl) { nx = -1; ny = 0; pen = dl + wh.r; } else { nx = 1; ny = 0; pen = dr + wh.r; }
+  }
+  wh.x += nx * pen; wh.y += ny * pen;
+  if (!wh.cn || pen > wh.cpen) { wh.cn = { nx, ny, a: null, b: null, t: 0 }; wh.cpen = pen; }
+}
+// 車輪と「道」のパスタのぶつかり。押した力でパスタの曲げも計算する
+function wheelMem(wh, m, P, h2) {
+  const a = P[m.a], b = P[m.b], dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy;
+  if (l2 < 1) return;
+  const t = clamp(((wh.x - a.x) * dx + (wh.y - a.y) * dy) / l2, 0, 1), qx = a.x + dx * t, qy = a.y + dy * t;
+  const ex = wh.x - qx, ey = wh.y - qy, d = Math.hypot(ex, ey);
+  if (d >= wh.r) return;
+  const l = Math.sqrt(l2); let ux = dy / l, uy = -dx / l; if (uy > 0) { ux = -ux; uy = -uy; }
+  const side = (wh.x - a.x) * ux + (wh.y - a.y) * uy;
+  if (side < -wh.r * 0.25) return; // 下からはすり抜ける
+  let nx, ny, pen;
+  if (side < 0 || d < 1e-6) { nx = ux; ny = uy; pen = wh.r - side; }
+  else { nx = ex / d; ny = ey / d; pen = wh.r - d; }
+  const wa = a.w * (1 - t), wb = b.w * t, ws = wh.w + wa * (1 - t) + wb * t, dl = pen / ws;
+  wh.x += nx * dl * wh.w; wh.y += ny * dl * wh.w;
+  a.x -= nx * dl * wa; a.y -= ny * dl * wa;
+  b.x -= nx * dl * wb; b.y -= ny * dl * wb;
+  m.braw += dl / h2 * Math.abs(nx * ux + ny * uy) * t * (1 - t) * l;
+  if (!wh.cn || pen > wh.cpen) { wh.cn = { nx, ny, a, b, t }; wh.cpen = pen; }
+}
+function substep(S, h) {
+  const g = CONFIG.GRAVITY, h2 = h * h, P = S.P, M = S.M, W = S.W;
+  for (const p of P) integrate(p, h, g);
+  for (const p of W) integrate(p, h, g);
+  // パスタ（長さを保つ）
+  for (const m of M) {
+    if (m.dead) continue;
+    const a = P[m.a], b = P[m.b], ws = a.w + b.w; m.traw = 0;
+    if (ws === 0) continue;
+    const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy);
+    if (l < 1e-6) continue;
+    const nx = dx / l, ny = dy / l, dl = -(l - m.len) / (ws + CONFIG.COMPLIANCE / m.n / h2);
+    a.x -= nx * dl * a.w; a.y -= ny * dl * a.w; b.x += nx * dl * b.w; b.y += ny * dl * b.w;
+    m.traw = -dl / h2;
+  }
+  // 車の前後輪の間隔
+  { const a = W[0], b = W[1], dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1, k = (l - S.car.base) / l / 2; a.x += dx * k; a.y += dy * k; b.x -= dx * k; b.y -= dy * k; }
+  // 車輪のぶつかり
+  for (const wh of W) {
+    wh.cn = null; wh.cpen = 0;
+    for (const m of M) if (m.road && !m.dead) wheelMem(wh, m, P, h2);
+    for (const s of ST.solids) wheelBox(wh, s);
+    wheelBox(wh, ST.pot);
+  }
+  for (const p of P) if (p.w > 0) { for (const s of ST.solids) pushOutPoint(p, s); pushOutPoint(p, ST.pot); }
+  // 速度を更新
+  for (const p of P) if (p.w > 0) { p.vx = (p.x - p.px) / h; p.vy = (p.y - p.py) / h; }
+  for (const p of W) { p.vx = (p.x - p.px) / h; p.vy = (p.y - p.py) / h; }
+  // タイヤのグリップで前へ進む
+  if (S.result !== 'water') for (const wh of W) {
+    const c = wh.cn; if (!c) continue;
+    let tx = -c.ny, ty = c.nx; if (tx < 0) { tx = -tx; ty = -ty; }
+    const svx = c.a ? c.a.vx * (1 - c.t) + c.b.vx * c.t : 0, svy = c.a ? c.a.vy * (1 - c.t) + c.b.vy * c.t : 0;
+    const vt = (wh.vx - svx) * tx + (wh.vy - svy) * ty, dv = clamp((S.result === 'goal' ? S.car.speed * 0.6 : S.car.speed) - vt, -CONFIG.TRACTION * h, CONFIG.TRACTION * h);
+    wh.vx += tx * dv; wh.vy += ty * dv;
+  }
+  // 力をならして、限界を超えたら折る
+  const k = CONFIG.FILTER;
+  for (const m of M) {
+    if (m.dead) continue;
+    m.T += (m.traw - m.T) * k; m.B += (m.braw - m.B) * k; m.braw = 0;
+    m.ratio = Math.max(m.T > 0 ? m.T / m.tl : -m.T / m.cl, m.B / m.bl);
+    if (m.ratio > m.peak) m.peak = m.ratio;
+    if (m.ratio > 1) breakMem(S, m);
+  }
+}
+function breakMem(S, m) {
+  m.dead = true; S.broken++;
+  const a = S.P[m.a], b = S.P[m.b], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, ang = Math.atan2(b.y - a.y, b.x - a.x), half = m.len / 2;
+  for (const s of [-1, 1]) S.debris.push({ x: lerp(mx, s < 0 ? a.x : b.x, 0.5), y: lerp(my, s < 0 ? a.y : b.y, 0.5), ang, len: half, n: m.n, vx: s * 30 + (Math.random() - 0.5) * 40, vy: -60 - Math.random() * 60, va: s * (2 + Math.random() * 3) });
+  if (!S.quiet) { SFX.snap(); SHAKE = 7; for (let i = 0; i < 6; i++) FX.push({ k: 'crumb', x: mx, y: my, vx: (Math.random() - 0.5) * 160, vy: -Math.random() * 160, life: 0.6, max: 0.6 }); }
+}
+function stepSim(S, dt) {
+  const h = dt / CONFIG.SUBSTEPS;
+  for (let i = 0; i < CONFIG.SUBSTEPS; i++) substep(S, h);
+  S.t += dt;
+  const [R, F] = S.W;
+  S.spin += (R.vx * dt) / R.r;
+  for (const d of S.debris) {
+    if (d.y > CONFIG.WATER_Y) { d.vx *= 0.9; d.vy *= 0.9; d.va *= 0.9; d.vy += (CONFIG.WATER_Y + 4 - d.y) * 2; }
+    else d.vy += CONFIG.GRAVITY * dt;
+    d.x += d.vx * dt; d.y += d.vy * dt; d.ang += d.va * dt;
+  }
+  if (S.result) {
+    S.endT += dt;
+    if (S.endT > (S.result === 'goal' ? CONFIG.GOAL_SEC : S.result === 'water' ? CONFIG.SINK_SEC : CONFIG.STUCK_SEC)) S.done = true;
+    return;
+  }
+  if (R.y > CONFIG.WATER_Y || F.y > CONFIG.WATER_Y) {
+    S.result = 'water';
+    if (!S.quiet) { SFX.splash(); const x = (R.x + F.x) / 2; for (let i = 0; i < 26; i++) FX.push({ k: 'drop', x: x + (Math.random() - 0.5) * 50, y: CONFIG.WATER_Y, vx: (Math.random() - 0.5) * 260, vy: -150 - Math.random() * 260, life: 0.9, max: 0.9 }); }
+  } else if (R.x > ST.G + CONFIG.GOAL_X && R.y < ST.RY) {
+    S.result = 'goal';
+    if (!S.quiet) { SFX.win(); for (let i = 0; i < 40; i++) FX.push({ k: 'conf', x: ST.G / 2 + (Math.random() - 0.5) * ST.G, y: ST.view.y0, vx: (Math.random() - 0.5) * 80, vy: 40 + Math.random() * 120, a: Math.random() * 6, life: 2.2, max: 2.2, c: ['#d9412b', '#f1c95b', '#4c9a54', '#2f7fd1'][i % 4] }); }
+  } else {
+    if (F.x > S.maxX + 2) { S.maxX = F.x; S.stall = 0; } else S.stall += dt;
+    if (S.stall > CONFIG.STALL_SEC || S.t > CONFIG.MAX_SEC) S.result = 'stuck';
+  }
+}
+
+// ===== [SEC:DRAW] =====
+const cv = $('c'), ctx = cv.getContext('2d');
+const VIEW = { sc: 1, ox: 0, oy: 0 };
+let SW = 0, SH = 0, DPR = 1, SHAKE = 0, TIME = 0;
+const FX = [];
+function resize() { DPR = Math.min(2, window.devicePixelRatio || 1); SW = innerWidth; SH = innerHeight; cv.width = Math.round(SW * DPR); cv.height = Math.round(SH * DPR); if (ST) fitView(); }
+function fitView() {
+  const hud = mode === 'build' || mode === 'run' || mode === 'result', ttl = mode === 'title';
+  const v = ttl ? Object.assign({}, ST.view, { y0: -70 }) : ST.view;
+  const top = hud ? 92 : ttl ? $('moreLink').getBoundingClientRect().bottom + 8 : 16, bot = hud ? 70 : 16;
+  const aw = SW - 16, ah = Math.max(100, SH - top - bot), vw = v.x1 - v.x0, vh = v.y1 - v.y0, sc = Math.min(aw / vw, ah / vh);
+  VIEW.sc = sc; VIEW.ox = (SW - vw * sc) / 2 - v.x0 * sc; VIEW.oy = top + (ah - vh * sc) / 2 - v.y0 * sc;
+}
+function draw() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = '#f5eee0'; ctx.fillRect(0, 0, SW, SH);
+  if (!ST) return;
+  const sc = VIEW.sc, px = 1 / sc, shx = SHAKE ? (Math.random() - 0.5) * SHAKE : 0, shy = SHAKE ? (Math.random() - 0.5) * SHAKE : 0;
+  ctx.setTransform(DPR * sc, 0, 0, DPR * sc, DPR * (VIEW.ox + shx), DPR * (VIEW.oy + shy));
+  const x0 = -VIEW.ox / sc - 20, x1 = (SW - VIEW.ox) / sc + 20, y0 = -VIEW.oy / sc - 20, y1 = (SH - VIEW.oy) / sc + 20;
+  drawWall(x0, x1, y0, y1, px);
+  drawPot(x1, y1, px);
+  drawMills(px);
+  drawBoards(x0, x1, y1, px);
+  const run = !!SIM, P = run ? SIM.P : D.nodes, M = run ? SIM.M : D.mem;
+  drawMembers(P, M, run, px);
+  drawNodes(P, M, run, px);
+  if (run) { drawDebris(px); const [R, F] = SIM.W; drawCar(R.x, R.y, F.x, F.y, SIM.spin, px); }
+  else drawCar(CONFIG.START_X, -ST.car.r, CONFIG.START_X + ST.car.base, -ST.car.r, 0, px);
+  drawWaterFront(px);
+  drawFx(px);
+  if (drag && drag.p) drawPreview(px);
+}
+function drawWall(x0, x1, y0, y1, px) {
+  const T = 48;
+  ctx.fillStyle = '#f7f1e4'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  ctx.strokeStyle = '#e8dcc6'; ctx.lineWidth = 2 * px; ctx.beginPath();
+  for (let y = Math.floor(y0 / T) * T; y < y1; y += T) { ctx.moveTo(x0, y); ctx.lineTo(x1, y); }
+  for (let x = Math.floor(x0 / T) * T; x < x1; x += T) { ctx.moveTo(x, y0); ctx.lineTo(x, y1); }
+  ctx.stroke();
+}
+function drawPot(x1, y1, px) {
+  const G = ST.G, WY = CONFIG.WATER_Y, top = WY - 34, bot = WY + 150;
+  // コンロ
+  ctx.fillStyle = '#f1e8d8'; ctx.fillRect(-20, bot, G + 40, y1 - bot);
+  ctx.fillStyle = '#4b4541'; ctx.fillRect(-20, bot, G + 40, 26);
+  for (let i = 0; i < 7; i++) { const x = G * (i + 0.5) / 7, fl = 8 + Math.sin(TIME * 13 + i * 2) * 3; ctx.fillStyle = '#5aa0ff'; ctx.beginPath(); ctx.ellipse(x, bot + 2, 7, fl, 0, 0, Math.PI * 2); ctx.fill(); }
+  // 鍋
+  const g = ctx.createLinearGradient(0, top, 0, bot); g.addColorStop(0, '#c9ced3'); g.addColorStop(1, '#8f979e');
+  ctx.fillStyle = g; ctx.fillRect(-40, top, G + 80, bot - top);
+  ctx.fillStyle = '#e8f0ec'; ctx.fillRect(-40, top - 8, G + 80, 10);
+  ctx.strokeStyle = INK; ctx.lineWidth = 3 * px; ctx.strokeRect(-40, top - 8, G + 80, bot - top + 8);
+  // お湯
+  ctx.fillStyle = '#d6e9e4'; ctx.fillRect(-40, WY, G + 80, bot - WY);
+  ctx.strokeStyle = '#9cc5bc'; ctx.lineWidth = 3 * px; ctx.beginPath();
+  for (let x = -40; x <= G + 40; x += 10) { const y = WY + Math.sin(x * 0.08 + TIME * 4) * 2; x === -40 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+  ctx.stroke();
+}
+function drawWaterFront(px) {
+  const WY = CONFIG.WATER_Y;
+  ctx.fillStyle = 'rgba(190,222,214,.55)'; ctx.fillRect(0, WY + 3, ST.G, 147);
+  for (let i = 0; i < 9; i++) { // 沸騰のあわ
+    const ph = (TIME * 0.9 + i * 0.37) % 1, x = ((i * 97) % 100) / 100 * ST.G;
+    ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - ph)})`; ctx.lineWidth = 2 * px; ctx.beginPath(); ctx.arc(x, WY - 2 - ph * 4, 3 + ph * 4, Math.PI, 0); ctx.stroke();
+  }
+}
+function drawMills(px) {
+  for (const s of ST.solids) {
+    if (!s.mill) continue;
+    const w = s.x1 - s.x0, bot = CONFIG.WATER_Y + 150;
+    ctx.fillStyle = '#9b5f32'; rr(s.x0, s.y0 + 14, w, bot - s.y0 - 14, 8); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 3 * px; ctx.stroke();
+    ctx.fillStyle = '#b5774a'; rr(s.x0 - 4, s.y0, w + 8, 18, 9); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(58,42,30,.35)'; ctx.lineWidth = 2 * px; ctx.beginPath();
+    for (let y = s.y0 + 40; y < CONFIG.WATER_Y; y += 26) { ctx.moveTo(s.x0 + 6, y); ctx.lineTo(s.x1 - 6, y); }
+    ctx.stroke();
+  }
+}
+function drawBoard(xa, xb, top, y1, px, side) {
+  const w = xb - xa;
+  ctx.fillStyle = '#fbf6ec'; ctx.fillRect(xa, top + 30, w, y1 - top);
+  ctx.fillStyle = '#d4cfc6'; ctx.fillRect(xa, top + 14, w, 16);
+  ctx.fillStyle = '#e2b07a'; ctx.fillRect(xa, top, w, 14);
+  ctx.fillStyle = '#efc796'; ctx.fillRect(xa, top, w, 4);
+  ctx.strokeStyle = INK; ctx.lineWidth = 3 * px;
+  const e = side < 0 ? xb : xa;
+  ctx.beginPath(); ctx.moveTo(xa, top); ctx.lineTo(xb, top); ctx.moveTo(e, top); ctx.lineTo(e, y1); ctx.stroke();
+  ctx.lineWidth = 2 * px; ctx.beginPath(); ctx.moveTo(xa, top + 14); ctx.lineTo(xb, top + 14); ctx.moveTo(xa, top + 30); ctx.lineTo(xb, top + 30); ctx.stroke();
+  // 戸棚の扉
+  const dx = side < 0 ? xb - 150 : xa + 14;
+  ctx.strokeStyle = 'rgba(58,42,30,.4)'; ctx.strokeRect(dx, top + 48, 136, 240);
+  ctx.fillStyle = 'rgba(58,42,30,.5)'; ctx.beginPath(); ctx.arc(side < 0 ? dx + 120 : dx + 16, top + 150, 5, 0, Math.PI * 2); ctx.fill();
+}
+function drawBoards(x0, x1, y1, px) { drawBoard(Math.min(x0, -300), 0, 0, y1, px, -1); drawBoard(ST.G, Math.max(x1, ST.G + 300), ST.RY, y1, px, 1); }
+function strand(ax, ay, bx, by, sag) {
+  ctx.beginPath(); ctx.moveTo(ax, ay);
+  if (sag) { const l = Math.hypot(bx - ax, by - ay) || 1; let nx = -(by - ay) / l, ny = (bx - ax) / l; if (ny < 0) { nx = -nx; ny = -ny; } ctx.quadraticCurveTo((ax + bx) / 2 + nx * sag * 2, (ay + by) / 2 + ny * sag * 2, bx, by); }
+  else ctx.lineTo(bx, by);
+  ctx.stroke();
+}
+function drawMembers(P, M, run, px) {
+  ctx.lineCap = 'round';
+  for (const m of M) { // 道の下にうすい影
+    if (m.dead) continue;
+    const a = P[m.a], b = P[m.b];
+    if (!(run ? m.road : isRoad(a.x, a.y, b.x, b.y))) continue;
+    ctx.strokeStyle = 'rgba(58,42,30,.13)'; ctx.lineWidth = 14 * px; strand(a.x, a.y + 3 * px, b.x, b.y + 3 * px, 0);
+  }
+  for (const m of M) {
+    if (m.dead) continue;
+    const a = P[m.a], b = P[m.b], road = run ? m.road : isRoad(a.x, a.y, b.x, b.y);
+    let col = road ? '#e39b2d' : '#f8dd92';
+    if (run && m.ratio > 0.4) col = mix(col, '#e2302a', clamp((m.ratio - 0.4) / 0.5, 0, 1));
+    const l = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / l, ny = (b.x - a.x) / l, sag = run ? clamp(m.B / m.bl, 0, 1) * 5 : 0;
+    for (const pass of [0, 1]) {
+      ctx.strokeStyle = pass ? col : '#8a5a17'; ctx.lineWidth = (pass ? 3.6 : 6) * px;
+      for (let k = 0; k < m.n; k++) { const o = (k - (m.n - 1) / 2) * 3.4 * px; strand(a.x + nx * o, a.y + ny * o, b.x + nx * o, b.y + ny * o, sag); }
+    }
+  }
+}
+function drawNodes(P, M, run, px) {
+  const live = new Set(); M.forEach(m => { if (!m.dead) { live.add(m.a); live.add(m.b); } });
+  P.forEach((n, i) => {
+    if (n.fix) {
+      const hot = drag && drag.ai === i;
+      ctx.fillStyle = hot ? '#ffd34d' : '#d5dbe0'; ctx.strokeStyle = INK; ctx.lineWidth = 2 * px;
+      ctx.beginPath(); ctx.arc(n.x, n.y, 7 * px, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(n.x - 2 * px, n.y - 2 * px, 2 * px, 0, Math.PI * 2); ctx.fill();
+    } else if (live.has(i)) {
+      ctx.fillStyle = drag && drag.ai === i ? '#ffd34d' : '#fff3d6'; ctx.strokeStyle = INK; ctx.lineWidth = 2 * px;
+      ctx.beginPath(); ctx.arc(n.x, n.y, 4.5 * px, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+  });
+}
+function drawDebris(px) {
+  ctx.lineCap = 'round';
+  for (const d of SIM.debris) {
+    const c = Math.cos(d.ang) * d.len / 2, s = Math.sin(d.ang) * d.len / 2;
+    ctx.strokeStyle = '#8a5a17'; ctx.lineWidth = (6 + (d.n - 1) * 3) * px; strand(d.x - c, d.y - s, d.x + c, d.y + s, 0);
+    ctx.strokeStyle = '#f2cf72'; ctx.lineWidth = (3.6 + (d.n - 1) * 3) * px; strand(d.x - c, d.y - s, d.x + c, d.y + s, 0);
+  }
+}
+function drawCar(rx, ry, fx, fy, spin, px) {
+  const c = ST.car, b = c.base, r = c.r;
+  ctx.save(); ctx.translate(rx, ry); ctx.rotate(Math.atan2(fy - ry, fx - rx));
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.5 * px; ctx.lineJoin = 'round';
+  const win = '#bfe3f2';
+  if (c.kind === 'mini') {
+    ctx.fillStyle = c.body; ctx.beginPath(); ctx.moveTo(b * 0.12, -r * 1.7); ctx.quadraticCurveTo(b * 0.2, -r * 3.1, b * 0.5, -r * 3.1); ctx.quadraticCurveTo(b * 0.85, -r * 3.1, b * 0.92, -r * 1.7); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = win; ctx.beginPath(); ctx.moveTo(b * 0.52, -r * 1.85); ctx.lineTo(b * 0.52, -r * 2.85); ctx.quadraticCurveTo(b * 0.78, -r * 2.85, b * 0.84, -r * 1.85); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = c.body; rr(-r * 1.2, -r * 1.9, b + r * 2.4, r * 1.35, r * 0.6); ctx.fill(); ctx.stroke();
+  } else if (c.kind === 'truck') {
+    ctx.fillStyle = '#fff'; rr(-r * 1.1, -r * 3.6, b * 0.62 + r * 1.1, r * 2.7, 3 * px); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = c.body; ctx.fillRect(-r * 1.1, -r * 2.2, b * 0.62 + r * 1.1, r * 0.5); ctx.strokeRect(-r * 1.1, -r * 2.2, b * 0.62 + r * 1.1, r * 0.5);
+    ctx.fillStyle = c.body; rr(b * 0.64, -r * 3.0, b * 0.36 + r * 1.2, r * 2.1, r * 0.5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = win; rr(b * 0.8, -r * 2.75, b * 0.2 + r * 0.7, r * 0.8, r * 0.25); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#555'; ctx.fillRect(-r * 1.1, -r * 0.95, b + r * 2.2, r * 0.4);
+  } else {
+    ctx.fillStyle = '#d97f16'; ctx.beginPath(); ctx.moveTo(-r * 1.3, -r * 3.6); ctx.lineTo(b * 0.62, -r * 3.6); ctx.lineTo(b * 0.58, -r * 1.0); ctx.lineTo(-r * 0.6, -r * 1.0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#8b6b4a'; ctx.beginPath(); ctx.moveTo(-r * 1.1, -r * 3.6); ctx.quadraticCurveTo(b * 0.25, -r * 4.6, b * 0.6, -r * 3.6); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = c.body; rr(b * 0.66, -r * 2.9, b * 0.34 + r * 1.2, r * 2.0, r * 0.5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = win; rr(b * 0.8, -r * 2.65, b * 0.2 + r * 0.7, r * 0.75, r * 0.25); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#555'; ctx.fillRect(-r * 1.0, -r * 1.0, b + r * 2.1, r * 0.4);
+  }
+  for (const x of [0, b]) {
+    ctx.fillStyle = '#2b2622'; ctx.beginPath(); ctx.arc(x, 0, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d9d9d9'; ctx.beginPath(); ctx.arc(x, 0, r * 0.45, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#2b2622'; ctx.lineWidth = 2 * px; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + Math.cos(spin) * r * 0.45, Math.sin(spin) * r * 0.45); ctx.stroke(); ctx.strokeStyle = INK; ctx.lineWidth = 2.5 * px;
+  }
+  ctx.restore();
+}
+function drawPreview(px) {
+  const p = drag.p, a = D.nodes[drag.ai];
+  ctx.setLineDash([6 * px, 6 * px]); ctx.strokeStyle = 'rgba(58,42,30,.28)'; ctx.lineWidth = 2 * px;
+  ctx.beginPath(); ctx.arc(a.x, a.y, CONFIG.PASTA_LEN, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = p.ok ? '#8a5a17' : 'rgba(200,40,30,.6)'; ctx.lineWidth = 6 * px; strand(a.x, a.y, p.ex, p.ey, 0);
+  ctx.strokeStyle = p.ok ? (p.road ? '#e39b2d' : '#f8dd92') : 'rgba(255,170,160,.8)'; ctx.lineWidth = 3.6 * px; strand(a.x, a.y, p.ex, p.ey, 0);
+  ctx.fillStyle = p.ok ? '#ffd34d' : '#e2302a'; ctx.strokeStyle = INK; ctx.lineWidth = 2 * px;
+  ctx.beginPath(); ctx.arc(p.ex, p.ey, 6 * px, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+}
+function updFx(dt) {
+  SHAKE = Math.max(0, SHAKE - dt * 30);
+  if (ST && Math.random() < dt * 5) FX.push({ k: 'steam', x: Math.random() * ST.G, y: CONFIG.WATER_Y - 10, vx: (Math.random() - 0.5) * 10, vy: -25 - Math.random() * 20, life: 3, max: 3, r: 10 + Math.random() * 10 });
+  for (let i = FX.length - 1; i >= 0; i--) {
+    const f = FX[i]; f.life -= dt;
+    if (f.life <= 0) { FX.splice(i, 1); continue; }
+    if (f.k !== 'steam' && f.k !== 'conf') f.vy += CONFIG.GRAVITY * dt;
+    if (f.k === 'conf') { f.a += dt * 6; f.vx = Math.sin(f.a) * 60; }
+    f.x += f.vx * dt; f.y += f.vy * dt;
+  }
+}
+function drawFx(px) {
+  for (const f of FX) {
+    const t = f.life / f.max;
+    if (f.k === 'steam') { ctx.fillStyle = `rgba(255,255,255,${0.35 * Math.sin(t * Math.PI)})`; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (2 - t), 0, Math.PI * 2); ctx.fill(); }
+    else if (f.k === 'drop') { ctx.fillStyle = `rgba(150,200,220,${t})`; ctx.beginPath(); ctx.arc(f.x, f.y, 4 * px + 2, 0, Math.PI * 2); ctx.fill(); }
+    else if (f.k === 'crumb') { ctx.fillStyle = '#f2cf72'; ctx.fillRect(f.x - 2, f.y - 2, 4, 4); }
+    else if (f.k === 'conf') { ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.a); ctx.fillStyle = f.c; ctx.fillRect(-5, -3, 10, 6); ctx.restore(); }
+  }
+}
+
+// ===== [SEC:INPUT] =====
+let drag = null, tap = null;
+function toWorld(e) { return { x: (e.clientX - VIEW.ox) / VIEW.sc, y: (e.clientY - VIEW.oy) / VIEW.sc }; }
+cv.addEventListener('pointerdown', e => {
+  audioInit();
+  if (mode !== 'build' || drag) return;
+  try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+  const w = toWorld(e), ni = nearNode(w.x, w.y, CONFIG.SNAP_PX / VIEW.sc);
+  if (ni >= 0) drag = { id: e.pointerId, ai: ni, sx: e.clientX, sy: e.clientY, moved: false, p: null };
+  else tap = { id: e.pointerId, mi: nearMem(w.x, w.y, CONFIG.TAP_PX / VIEW.sc), sx: e.clientX, sy: e.clientY };
+});
+cv.addEventListener('pointermove', e => {
+  if (drag && e.pointerId === drag.id) {
+    if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) drag.moved = true;
+    if (drag.moved) { const w = toWorld(e); drag.p = plan(drag.ai, w.x, w.y); }
+  } else if (tap && e.pointerId === tap.id && Math.hypot(e.clientX - tap.sx, e.clientY - tap.sy) > 10) tap.moved = true;
+});
+function pointerEnd(e) {
+  if (drag && e.pointerId === drag.id) {
+    const p = drag.p, moved = drag.moved; drag = null;
+    if (!moved && e.type === 'pointerup') { // 継ぎ目の近くでも、パスタのまん中をタップしたら1本へらす
+      const w = toWorld(e), mi = nearMem(w.x, w.y, CONFIG.TAP_PX / VIEW.sc), r = 8 / VIEW.sc;
+      if (mi >= 0) { const m = D.mem[mi], a = D.nodes[m.a], b = D.nodes[m.b]; if (dist(a.x, a.y, w.x, w.y) > r && dist(b.x, b.y, w.x, w.y) > r) removePasta(mi); }
+    }
+    if (p && p.ok) { hideHint(); addPasta(p); }
+    else if (p) { SFX.bad(); showHint({ short: 'もっと長く引っぱろう', solid: 'まな板の中には置けません', water: '鍋の中には置けません', same: '同じ岸のピンどうしはつなげません', bundle: `束ねられるのは${CONFIG.MAX_BUNDLE}本までです`, max: `置けるのは${CONFIG.MAX_PASTA}本までです` }[p.why]); }
+  } else if (tap && e.pointerId === tap.id) {
+    if (tap.moved) showHint('ピン（丸い点）から引っぱろう');
+    else if (tap.mi >= 0 && e.type === 'pointerup') removePasta(tap.mi);
+    tap = null;
+  }
+}
+cv.addEventListener('pointerup', pointerEnd);
+cv.addEventListener('pointercancel', pointerEnd);
+cv.addEventListener('contextmenu', e => e.preventDefault());
+
+// ===== [SEC:UI] =====
+let mode = 'title', CUR = 0, hintTimer = 0;
+function show(id, on) { $(id).classList.toggle('hidden', !on); }
+function showHint(t, sec) { const h = $('hint'); h.textContent = t; h.style.opacity = 1; show('hint', true); clearTimeout(hintTimer); if (sec !== 0) hintTimer = setTimeout(hideHint, (sec || 2.6) * 1000); }
+function hideHint() { $('hint').style.opacity = 0; }
+function muteLabel() { $('muteBtn').classList.toggle('off', SV.mute); }
+function updHud() {
+  const st = CONFIG.STAGES[CUR], best = SV.best[CUR];
+  $('stName').textContent = `${CUR + 1}. ${st.name}`;
+  $('stGoal').textContent = `★3：${st.stars[0]}本以下　ベスト：${best != null ? best + '本' : 'まだ'}`;
+  $('cntN').textContent = pastaCount();
+  const run = mode !== 'build';
+  show('undoBtn', !run); show('clearBtn', !run); show('testBtn', !run); show('stopBtn', mode === 'run');
+  $('undoBtn').disabled = !hist.length; $('clearBtn').disabled = !D.mem.length;
+}
+function goTitle() {
+  mode = 'title'; SIM = null; ST = makeStage(1); D = unpackD(DEMO);
+  show('title', true); show('select', false); show('hud', false); show('result', false);
+  fitView();
+}
+function goSelect() {
+  mode = 'select'; SIM = null;
+  show('title', false); show('select', true); show('hud', false); show('result', false);
+  const ul = $('stList'); ul.innerHTML = '';
+  let total = 0;
+  CONFIG.STAGES.forEach((st, i) => {
+    const li = document.createElement('li'), b = document.createElement('button'), open = unlocked(i), best = SV.best[i], s = SV.stars[i] || 0;
+    total += s;
+    b.className = 'stg' + (open ? '' : ' lock');
+    b.innerHTML = `<span class="no">STAGE ${i + 1}</span><span class="nm">${open ? st.name : '？？？'}</span><span class="cr">${open ? CONFIG.CARS[st.car].name : ''}</span>` +
+      `<span class="rec">${!open ? '🔒' : best != null ? `${best}本 <span class="st">${'★'.repeat(s)}${'☆'.repeat(3 - s)}</span>` : 'まだ'}</span>`;
+    if (open) b.onclick = () => { audioInit(); startStage(i); };
+    li.appendChild(b); ul.appendChild(li);
+  });
+  $('selStars').textContent = `★ ${total} / ${CONFIG.STAGES.length * 3}`;
+  show('rotTip', SH > SW && SW < 600);
+}
+function startStage(i) {
+  CUR = i; ST = makeStage(i); D = unpackD(SV.designs[i]); hist = []; SIM = null; drag = null; tap = null; mode = 'build';
+  show('title', false); show('select', false); show('result', false); show('hud', true);
+  fitView(); updHud();
+  const st = CONFIG.STAGES[i];
+  showHint(st.note || '濃い色のパスタが、車の走れる道', 4.5);
+}
+function test() {
+  if (!D.mem.length) { SFX.bad(); showHint('まずパスタを置こう'); return; }
+  drag = null; SIM = buildSim(D); mode = 'run'; acc = 0; updHud(); SFX.go();
+  showHint('赤くなったパスタは、折れそう', 2.5);
+}
+function stopTest() { SIM = null; mode = 'build'; updHud(); hideHint(); }
+function onSimEnd() {
+  mode = 'result'; updHud(); hideHint();
+  const ok = SIM.result === 'goal', c = pastaCount(), st = CONFIG.STAGES[CUR], prev = SV.best[CUR];
+  const row1 = $('rRow1'), row2 = $('rRow2'); row1.innerHTML = ''; row2.innerHTML = '';
+  const btn = (row, cls, txt, fn) => { const b = document.createElement('button'); b.className = cls; b.textContent = txt; b.onclick = fn; row.appendChild(b); };
+  $('rHead').className = ok ? '' : 'ng';
+  if (ok) {
+    const s = starsFor(CUR, c), isBest = prev == null || c < prev;
+    if (isBest) SV.best[CUR] = c;
+    SV.stars[CUR] = Math.max(SV.stars[CUR] || 0, s); writeSave(); updHud();
+    $('rHead').textContent = 'わたれた！';
+    $('rBig').innerHTML = `パスタ <b>${c}</b> 本`;
+    $('rStars').innerHTML = '★'.repeat(s) + `<i>${'★'.repeat(3 - s)}</i>`;
+    $('rSub').innerHTML = (isBest && prev != null ? `<b>自己ベスト更新！</b>（前は${prev}本）<br>` : `ベスト：${SV.best[CUR]}本<br>`) +
+      (s < 3 ? `★3は<b>${st.stars[0]}本以下</b>。まだ減らせる？` : 'パスタの使い方の達人です。');
+    btn(row1, 'sml', 'もっと減らす', backToBuild);
+    if (CUR + 1 < CONFIG.STAGES.length) btn(row1, 'go', 'つぎへ ›', () => startStage(CUR + 1));
+    btn(row2, 'sml', 'Xでシェア', () => share(c, s));
+  } else {
+    const wet = SIM.result === 'water';
+    $('rHead').textContent = wet ? 'ゆでられた…' : '立ち往生…';
+    $('rBig').textContent = ''; $('rStars').textContent = '';
+    $('rSub').innerHTML = wet ? (SIM.broken ? `パスタが${SIM.broken}か所折れて、鍋にドボン。<br>車はアルデンテにゆで上がりました。` : '道がとぎれていました。<br>車は濃い色のパスタの上だけを走れます。')
+      : '坂が急すぎるか、道がとぎれているかも。<br>道になるのは30°までの坂だけ。';
+    btn(row1, 'go', 'なおす', backToBuild);
+  }
+  btn(row2, 'sml', 'ステージ選択', goSelect);
+  show('result', true); $('result').scrollTop = 0;
+  ads('ad1');
+}
+function backToBuild() { show('result', false); stopTest(); }
+function share(c, s) {
+  const st = CONFIG.STAGES[CUR];
+  const txt = `パスタブリッジ ステージ${CUR + 1}「${st.name}」を、パスタ${c}本でわたった！ ${'★'.repeat(s)}${'☆'.repeat(3 - s)}\n#パスタブリッジ`;
+  open('https://x.com/intent/post?text=' + encodeURIComponent(txt) + '&url=' + encodeURIComponent(CONFIG.URL), '_blank', 'noopener');
+}
+function ads(id) { const z = $(id); if (!z || z.firstChild || !/(^|\.)nkworks-games\.com$/.test(location.hostname)) return; z.innerHTML = '<ins class="adsbygoogle" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>'; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} }
+$('startBtn').onclick = () => { audioInit(); goSelect(); };
+$('selBack').onclick = goTitle;
+$('backBtn').onclick = () => { stopTest(); goSelect(); };
+$('undoBtn').onclick = undo;
+$('clearBtn').onclick = clearAll;
+$('testBtn').onclick = () => { audioInit(); test(); };
+$('stopBtn').onclick = stopTest;
+$('muteBtn').onclick = () => { SV.mute = !SV.mute; writeSave(); muteLabel(); audioInit(); if (MG) MG.gain.value = SV.mute ? 0 : CONFIG.VOL; };
+
+// ===== [SEC:LOOP] =====
+let last = 0, acc = 0;
+function frame(ts) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (ts - last) / 1000 || 0); last = ts; TIME += dt;
+  if (mode === 'title') { // タイトルの飾り：車がくり返しわたる
+    if (!SIM || SIM.done) { SIM = buildSim(D); SIM.quiet = true; }
+    stepSim(SIM, Math.min(dt, 1 / 30));
+  } else if (mode === 'run' && SIM) {
+    acc += dt;
+    while (acc >= 1 / 60 && !SIM.done) { stepSim(SIM, 1 / 60); acc -= 1 / 60; }
+    if (SIM.done) onSimEnd();
+  }
+  updFx(dt); draw();
+}
+
+// ===== [SEC:TEST] =====
+// 開発用：window.__PB.sim(ステージ番号, {nodes:[[x,y],...], mem:[[a,b,n],...]}) で画面なしに走らせる（a,bはピンが先の通し番号）
+const DEMO = { k: 6, nodes: [[120, 0]], mem: [[0, 6, 1], [6, 3, 1], [1, 6, 1]] }; // タイトル画面の飾りの橋（ステージ2）
+window.__PB = {
+  sim(i, p) {
+    const keep = { ST, D, CUR }; CUR = i; ST = makeStage(i); D = unpackD(Object.assign({ k: ST.anchors.length }, p));
+    const S = buildSim(D); S.quiet = true;
+    while (!S.result) stepSim(S, 1 / 60);
+    const out = { result: S.result, t: +S.t.toFixed(2), count: pastaCount(D), broken: S.broken, peak: S.M.map(m => +m.peak.toFixed(2)) };
+    ST = keep.ST; D = keep.D; CUR = keep.CUR;
+    return out;
+  },
+};
+
+// ===== [SEC:BOOT] =====
+loadSave(); muteLabel();
+if (document.fonts) document.fonts.ready.then(() => { if (ST) fitView(); });
+addEventListener('resize', resize);
+resize(); goTitle();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
