@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>トラブルは、起きる前に見せることにした - N.K. Works 開発日記</title>
+<meta name="description" content="『休ませてください』は、休みを動かして連休を作り、激務の毎日を何日もちこたえるかを競うゲーム。運まかせだったトラブルを、⚠の「気配」と「疲れるとミスが増える」しくみで起きる前に見えるものにして、うまい人とそうでない人の差を広げた話。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/blog/yasumasete-kehai/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:title" content="トラブルは、起きる前に見せることにした - N.K. Works 開発日記">
+<meta property="og:description" content="『休ませてください』は、休みを動かして連休を作り、激務の毎日を何日もちこたえるかを競うゲーム。運まかせだったトラブルを、⚠の「気配」と「疲れるとミスが増える」しくみで起きる前に見えるものにして、うまい人とそうでない人の差を広げた話。">
+<meta property="og:url" content="https://nkworks-games.com/blog/yasumasete-kehai/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/assets/site.css">
+<script>
+(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous'; s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();
+</script>
+</head>
+<body>
+
+<header class="site-h"><div class="wrap">
+<a data-google-vignette="false" class="logo" href="/">N.K. Works</a>
+<nav class="nav"><a data-google-vignette="false" href="/games/">ゲーム</a><a data-google-vignette="false" href="/blog/" aria-current="page">開発日記</a><a data-google-vignette="false" href="/about.html">運営者情報</a></nav>
+</div></header>
+
+<main><div class="wrap"><article class="post">
+<p class="crumb"><a data-google-vignette="false" href="/">トップ</a> › <a data-google-vignette="false" href="/blog/">開発日記</a></p>
+<h1>トラブルは、起きる前に見せることにした</h1><p class="post-meta">2026年10月29日 ・ N.K. Works</p>
+<p>『休ませてください』は、28日のうち8日ある休みを動かして連休を作り、激務の毎日を何日もちこたえられるかを競うゲームです。はじめの企画は「休みの総数は増やさずに、動かすだけで連休を作る」というパズルでした。そこに体力と、残業・トラブル・休日の呼び出しを入れて、「何日もつか」を競う形にしました。</p>
+<h2>連休は長いほど効く。でも反動がある</h2>
+<p>出勤すると体力が減り、6連勤から先は1日ごとに大きく減るようにしました。休むと回復し、連休は2日目・3日目…と回復が大きくなります。こうすると、連休を作りたくなります。でも、休みの数は8日のままなので、どこかに連休を作ると、別の所が長い連勤になります。</p>
+<p>数字を決める時は、遊び方ごとに自動で何百回も遊ばせて、何日もつかを数えました。休みを1つも動かさないと約60日、よく考えて動かすと約90日。休みを全部1つの大連休にまとめると、ほかの所が20日近い連勤になって、1か月目の20日ごろに力つきます。「ほしい連休を作った喜び」と「別の所に出る反動」が、そのまま勝ち負けになるようにしています。</p>
+<h2>見ているだけの時間が長かった</h2>
+<p>最初の形では、月のはじめに休みを動かしたら、あとは1日ずつ進むのを見ているだけでした。自動で遊ばせて比べても、何もしない時とよく考えた時の差は1.5倍ほど。遊んでみても、うまさが効いている感じがしませんでした。</p>
+<p>そこで、選ぶ場面を2つ足しました。1つは<b>作戦カード</b>です。月のはじめに3枚から1枚えらび、「定時で帰る」「根回し」「電源オフ」「いい枕」「有給休暇」を、好きな日に置いて使います。もう1つは、トラブルや休日の呼び出しが来た時の<b>2択</b>です。トラブルは「いま直す」か「あとまわし」、呼び出しは「出勤して代休をもらう」か「電話に出ない」かを選びます。これで差は1.7倍ほどになりました。</p>
+<h2>「運が悪かった」で終わってしまう</h2>
+<p>それでも、トラブルが残りました。トラブルは毎日こっそりサイコロを振って、出た目でいきなり起きていました。起きてから直し方を選べても、起きる前に打てる手がありません。負けた時に「運が悪かった」としか思えないのです。</p>
+<p>同じ運でも、起きる前に見えていれば、どう備えるかを考えられます。そこで、トラブルを「起きる前に見える運」に変えることにしました。</p>
+<h2>⚠の気配と、疲れ</h2>
+<p>1か月に3〜5日、トラブルの起きやすい日があり、カレンダーに<b>⚠</b>が出ます。月のはじめに半分ほどが見えていて、残りは4日前に見えます。途中で⚠が出た時に交換やカードが残っていれば、「作戦タイム」で備えるか、そのまま進むかを選べます。⚠の日には根回しを置く、休みを動かして休みの日にする、その日までに体力を残しておく。今までの道具が、そのまま備えになります。</p>
+<p>もう1つ、<b>疲れるとミスが増える</b>ようにしました。5連勤目から1日ごとに、体力が少ない時にも、トラブルが起きやすくなります。こまめに休むことが、そのままトラブル予防になります。出勤の日をタップすると、その日のトラブルの起きやすさも見えるようにしました。</p>
+<p>そのかわり、予告なしに起きるトラブルは減らしました。トラブルの多くが「見えている⚠」と「疲れ」から来るようになり、何もしない時は約55日、よく考えると約107日。差は約2倍に広がりました。よく考える人の日数はほとんど変わらず、⚠を放っておいたり、長く働きつづけたりすると、早く力つきるようになっています。</p>
+<h2>上のドット絵で、何が起きたかを見せる</h2>
+<p>1日ずつ進む間、カレンダーの数字だけでは、何が起きているのかがわかりにくいものでした。そこで画面の上に、その日の様子をドット絵で出す欄を作りました。会社でカタカタ、残業は夜の会社、トラブルは真っ赤な画面と警告灯。休みは、連休が長くなるほど、寝る・家でのんびり・温泉・海と遠くへ出かけます。できごとはこの欄で見せることにして、1日の進みも0.5秒から0.3秒に速くしました。</p>
+<h2>名前は『休ませてください』に</h2>
+<p>最初の名前は『連休をください』でした。遊んでいるうちに、連休をねだるというより、とにかく「休ませて」とお願いしながら働くゲームになっていたので、『休ませてください』に変えました。このゲームの「出勤」「休み」は架空のコマで、実際の会社や休みの制度とは関係ありません。</p>
+<h2>この記事のゲーム</h2><ul class="grid"><li><a data-google-vignette="false" class="card" href="/games/yasumasete-kudasai/"><div class="th"><img src="/games/yasumasete-kudasai/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>休ませてください</b><span>休みを動かして、激務を何日もちこたえる？</span><em>2026年10月29日 公開</em></div></a></li></ul>
+<h2>ほかの日記</h2><ul class="list"><li><a data-google-vignette="false" href="/blog/koro-rias-egg/"><em>2026年10月28日</em><b>たまごは、縦に転がすと遊べなかった</b><span>『コロリアス』は、三陸のリアス海岸を回して、割れやすいたまごを宮古まで転がすゲーム。縦にパタパタ転がる形では跳ねて海に落ちてしまうのを、横に寝かせた転がり方に変え、409kmのコースが本当に通れるかを確かめた話。</span></a></li><li><a data-google-vignette="false" href="/blog/shusshin-kimete/"><em>2026年10月27日</em><b>2択10問では、半分しか当たらなかった</b><span>『出身地、当てます』は、2択の質問で出身地を当てるゲーム。はじめは半分しか当たらなかったのを、県ごとの「決め手の質問」と延長戦で、8割5分ほどまで上げた話。</span></a></li><li><a data-google-vignette="false" href="/blog/cap-drop-ball/"><em>2026年10月26日</em><b>落ちる球だけ投げていれば、だれにも打たれなかった</b><span>『キャップ野球』は、ペットボトルのキャップで遊ぶ体育館の野球。落ちる球だけで打たれなかったCPUの打者に、同じ球を見るほど慣れていくしくみを入れ、打つ側には「ちぢむ円」の目安を足した話。</span></a></li></ul>
+<div class="ad-box"><p class="lbl">広告</p>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</article></div></main>
+<footer class="site-f"><div class="wrap">
+<p><a data-google-vignette="false" href="/">トップ</a> ・ <a data-google-vignette="false" href="/games/">ゲーム一覧</a> ・ <a data-google-vignette="false" href="/blog/">開発日記</a> ・ <a data-google-vignette="false" href="/about.html">運営者情報・お問い合わせ</a> ・ <a data-google-vignette="false" href="/privacy-policy.html">プライバシーポリシー</a></p>
+<p>&copy; 2026 N.K. Works</p>
+</div></footer>
+</body>
+</html>
