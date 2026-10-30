@@ -153,6 +153,7 @@ const CONFIG = {
   JUDGE: { FILL: 0.45, REVEAL: 0.7, COUNT: 1.8, AUTO: 1.8 }, // 判定演出の長さ（秒）。AUTO：国民度が出てから自動でエンディングへ進むまで
   ADVICE: { SIZE: 0.08, POS: 0.035, SHAPE: 0.9 }, // アドバイスを出す目安（大きさのズレ割合・位置のズレ・丸さ）
   RED_FLAG: 0.5,      // 旗の白い所（丸の外）がこの割合より多く赤いと「赤い旗」とみなして国民度0%
+  GAG: { SUN_PEAKS: 5, SUN_AMP: 0.3, HEART_DENT: 0.12, HEART_TIP: 120 }, // 隠しネタの判定（トゲの数・トゲの深さ／ハートの上のくぼみの深さ・下の先のとがり角度）
   END_SEC: [0, 9.5, 9.5, 10.5, 24], // エンディングの長さ（秒）END1〜4（END4は3D版）
   END4_2D_SEC: 13.5,  // 3Dが使えない時の2D版END4の長さ
   E3D: { // 3D版END4（ON:false で常に2D版）
@@ -174,6 +175,10 @@ const CONFIG = {
 // ===== [SEC:DATA] =====
 const RED = '#bc002d', INK = '#1d2a3a', PAPER = '#f4efe3', YOU = '#f2b632';
 const FONT = '"M PLUS Rounded 1c", sans-serif', MINCHO = '"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif';
+const GAGS = { // 形で反応する隠しネタ（点数はそのまま、判定の一言とアドバイスだけ変わる）
+  sun: { verdict: '☀ それは太陽です。日の丸はシンプルに', tag: 'トゲトゲしている' },
+  heart: { verdict: '♥ 愛国心だけは伝わった', tag: 'ハートになっている' },
+};
 const ENDS = [null,
   { name: 'さらば、ニッポン', verdict: 'ほとんど一致しなかった…', com: '飛行機で日本を出ていきました。日の丸を練習して、また帰ってきてください。' },
   { name: '修行の日々', verdict: 'あまり一致しなかった', com: '家で国旗を描く練習の毎日がはじまりました。完璧な丸まで、あと少し。' },
@@ -379,6 +384,40 @@ function makeFlagImg(pts, h = 240) {
   const x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, h);
   paintShape(x, pts, h, 0, 0, 1);
   return cv;
+}
+function shapeGag(pts) { // 描いた線の形から隠しネタを探す
+  const C = CONFIG.GAG, P = [...pts, pts[0]], seg = [0];
+  for (let i = 1; i < P.length; i++) seg.push(seg[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+  const L = seg[seg.length - 1], N = 128, Q = []; if (L <= 0) return null;
+  for (let k = 0, j = 1; k < N; k++) { const t = k / N * L; while (seg[j] < t) j++; const f = (t - seg[j - 1]) / (seg[j] - seg[j - 1] || 1); Q.push([P[j - 1][0] + (P[j][0] - P[j - 1][0]) * f, P[j - 1][1] + (P[j][1] - P[j - 1][1]) * f]); }
+  const cx = Q.reduce((a, q) => a + q[0], 0) / N, cy = Q.reduce((a, q) => a + q[1], 0) / N;
+  const d0 = Q.map(q => Math.hypot(q[0] - cx, q[1] - cy)), d = d0.map((_, i) => (d0[(i + N - 1) % N] + d0[i] + d0[(i + 1) % N]) / 3), mean = d.reduce((a, v) => a + v, 0) / N;
+  // トゲトゲ：中心からの距離が大きく上下する山を数える
+  const thr = C.SUN_AMP * mean; let s0 = 0; d.forEach((v, i) => { if (v < d[s0]) s0 = i; });
+  let lo = d[s0], hi = d[s0], up = true, peaks = 0;
+  for (let k = 1; k <= N; k++) {
+    const v = d[(s0 + k) % N];
+    if (up) { hi = Math.max(hi, v); if (hi - lo >= thr && hi - v >= thr) { peaks++; up = false; lo = v; } else if (v < lo) { lo = hi = v; } }
+    else { lo = Math.min(lo, v); if (v - lo >= thr) { up = true; hi = v; } }
+  }
+  let wind = 0; for (let i = 0; i < N; i++) { const p = Q[i], q = Q[(i + 1) % N]; let da = Math.atan2(q[1] - cy, q[0] - cx) - Math.atan2(p[1] - cy, p[0] - cx); if (da > Math.PI) da -= TAU; if (da < -Math.PI) da += TAU; wind += da; }
+  const turns = Math.abs(wind) / TAU; // ぐちゃぐちゃな線は中心のまわりを1周しないので除く
+  if (peaks >= C.SUN_PEAKS && turns > 0.75 && turns < 1.5 && Math.min(...d) > 0.2 * mean) return 'sun';
+  // ハート：上のまん中に深いくぼみ、下のまん中がとがっている
+  const xs = Q.map(q => q[0]), ys = Q.map(q => q[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = x1 - x0, h = y1 - y0, mx = (x0 + x1) / 2;
+  if (w < 0.08 || h < 0.08 || w / h > 1.8 || h / w > 1.8) return null;
+  const S = [...Q].sort((a, b) => a[0] - b[0] || a[1] - b[1]), cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lw = [], hu = [];
+  for (const q of S) { while (lw.length > 1 && cr(lw[lw.length - 2], lw[lw.length - 1], q) <= 0) lw.pop(); lw.push(q); }
+  for (const q of [...S].reverse()) { while (hu.length > 1 && cr(hu[hu.length - 2], hu[hu.length - 1], q) <= 0) hu.pop(); hu.push(q); }
+  const hull = lw.slice(0, -1).concat(hu.slice(0, -1));
+  const toHull = q => Math.min(...hull.map((a, i) => { const b = hull[(i + 1) % hull.length], vx = b[0] - a[0], vy = b[1] - a[1], t = clamp(((q[0] - a[0]) * vx + (q[1] - a[1]) * vy) / (vx * vx + vy * vy || 1), 0, 1); return Math.hypot(q[0] - a[0] - vx * t, q[1] - a[1] - vy * t); }));
+  let dent = 0, di = 0; Q.forEach((q, i) => { const v = toHull(q); if (v > dent) { dent = v; di = i; } });
+  const D = Q[di], size = Math.max(w, h);
+  if (dent < C.HEART_DENT * size || D[1] - y0 > 0.45 * h || Math.abs(D[0] - mx) > 0.22 * w) return null;
+  let bi = 0; Q.forEach((q, i) => { if (q[1] > Q[bi][1]) bi = i; });
+  const B = Q[bi], a = Q[(bi + N - 8) % N], b = Q[(bi + 8) % N];
+  const ang = Math.acos(clamp(((a[0] - B[0]) * (b[0] - B[0]) + (a[1] - B[1]) * (b[1] - B[1])) / (Math.hypot(a[0] - B[0], a[1] - B[1]) * Math.hypot(b[0] - B[0], b[1] - B[1]) || 1), -1, 1)) * 180 / Math.PI;
+  return Math.abs(B[0] - mx) < 0.25 * w && ang < C.HEART_TIP ? 'heart' : null;
 }
 function advice(s) {
   const A = CONFIG.ADVICE, r0 = CONFIG.FLAG.CIRCLE_D / 2, out = [];
@@ -1487,7 +1526,7 @@ function startDraw() {
 }
 function submit() {
   const s = scoreShape(G.pts), pct = Math.floor(s.pct), n = rankOf(pct);
-  G.res = { s, pct, n, newBest: pct > SV.best, newEnd: !SV.ends[n] };
+  G.res = { s, pct, n, newBest: pct > SV.best, newEnd: !SV.ends[n], gag: s.redFlag ? null : shapeGag(G.pts) };
   SV.plays++; if (pct > SV.best) SV.best = pct;
   if (!SV.ends[n] || pct >= SV.ends[n].pct) SV.ends[n] = { pct, pts: packPts(G.pts) };
   writeSave();
@@ -1500,7 +1539,7 @@ function updateJudge(dt) {
   G.jt += dt; const J = CONFIG.JUDGE, r = G.res, c0 = J.FILL + J.REVEAL, c1 = c0 + J.COUNT;
   if (!G.drum && G.jt >= c0) { G.drum = true; SFX.drum(J.COUNT); }
   if (G.jt >= c0 && !G.counted) $('jNum').textContent = Math.floor(r.pct * easeOut(seg(G.jt, c0, c1)));
-  if (!G.counted && G.jt >= c1) { G.counted = true; $('jNum').textContent = r.pct; $('jVerdict').textContent = r.s.redFlag ? 'それは日の丸じゃない…' : ENDS[r.n].verdict; r.n >= 3 ? SFX.good() : r.n === 2 ? SFX.mid() : SFX.bad(); }
+  if (!G.counted && G.jt >= c1) { G.counted = true; $('jNum').textContent = r.pct; $('jVerdict').textContent = r.s.redFlag ? 'それは日の丸じゃない…' : r.gag ? GAGS[r.gag].verdict : ENDS[r.n].verdict; r.n >= 3 ? SFX.good() : r.n === 2 ? SFX.mid() : SFX.bad(); }
   if (G.jt >= c1 + J.AUTO) toEnding(); // 少し見せてから自動でエンディングへ
 }
 function toEnding() {
@@ -1535,7 +1574,7 @@ function showResult() {
   const r = G.res, e = ENDS[r.n];
   $('rNum').textContent = r.pct; $('rEnd').textContent = `END ${r.n}「${e.name}」`; $('rCom').textContent = e.com;
   $('rNew').classList.toggle('hidden', !r.newEnd);
-  $('rTags').innerHTML = advice(r.s).map(s => `<span>${s}</span>`).join('');
+  $('rTags').innerHTML = (r.gag ? [GAGS[r.gag].tag, ...advice(r.s).filter(t => !/ばっちり/.test(t))].slice(0, 2) : advice(r.s)).map(s => `<span>${s}</span>`).join('');
   $('rBest').textContent = SV.best < 0 ? '' : r.newBest && SV.plays > 1 ? `ベスト更新！ 最高 ${SV.best}%` : `これまでの最高 ${SV.best}%`; // ?end= で見た時はまだ記録がない
   $('rZukanBtn').textContent = `図鑑 ${Object.keys(SV.ends).length}/4`;
   const cv = $('rFlag'), w = cv.clientWidth || 300, h = w / 1.5, d = Math.min(2, window.devicePixelRatio || 1);
