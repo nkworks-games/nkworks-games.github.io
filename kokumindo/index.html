@@ -53,23 +53,29 @@ button{font-family:inherit;cursor:pointer;color:#1d2a3a}
 @keyframes pop{0%{opacity:0;scale:.6}70%{opacity:1;scale:1.08}100%{scale:1}}
 .panel{max-width:440px;margin:0 auto;padding:max(62px,calc(env(safe-area-inset-top) + 56px)) 16px max(28px,env(safe-area-inset-bottom));text-align:center}
 .card{background:rgba(255,255,255,.92);border:3px solid #1d2a3a;border-radius:20px;padding:16px 14px}
-.rl{font-size:15px;font-weight:800}
-.rn{font-size:clamp(68px,21vw,100px);font-weight:800;line-height:1;color:#bc002d;font-variant-numeric:tabular-nums}
+.rpanel{padding-top:max(12px,calc(env(safe-area-inset-top) + 8px));padding-bottom:max(16px,env(safe-area-inset-bottom))} /* 結果画面はスクロールなしで1画面に収める */
+.rpanel .card{padding:10px 12px}
+.rl{font-size:13px;font-weight:800}
+.rn{font-size:clamp(52px,15vw,72px);font-weight:800;line-height:1;color:#bc002d;font-variant-numeric:tabular-nums}
 .rn small{font-size:.4em}
-.chip{display:inline-block;margin-top:6px;padding:6px 16px;border-radius:999px;background:#1d2a3a;color:#fff;font-size:16px;font-weight:800}
-.new{margin-top:6px;font-size:14px;font-weight:800;color:#bc002d}
-#rFlag{display:block;margin:14px auto 4px;width:min(300px,80vw);aspect-ratio:3/2;box-shadow:0 3px 12px rgba(0,0,0,.18)}
-.cap{font-size:12px;font-weight:500;opacity:.75}
-.adv{margin-top:10px;font-size:13px;font-weight:800}
-#rTags span{display:inline-block;margin:3px;padding:3px 11px;border-radius:999px;border:2px solid #1d2a3a;font-size:13px;font-weight:800;background:#fff7e0}
-#rCom{margin-top:10px;font-size:15px;line-height:1.7;font-weight:500}
-#rBest{margin-top:6px;font-size:14px;font-weight:800}
-.follow{margin:18px auto 0;max-width:340px;background:#fff;border:3px solid #1d2a3a;border-radius:16px;padding:10px 12px 12px}
-.follow .fl{font-size:15px;font-weight:800}
-.follow .fs{font-size:12px;font-weight:500;opacity:.75;margin-top:2px}
-.fbtn{display:inline-block;margin-top:8px;padding:8px 16px;border-radius:999px;background:#000;color:#fff;font-size:14px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #555}
+.chip{display:inline-block;margin-top:2px;padding:4px 14px;border-radius:999px;background:#1d2a3a;color:#fff;font-size:14px;font-weight:800}
+.new{display:inline-block;margin-left:6px;font-size:13px;font-weight:800;color:#bc002d}
+#rFlag{display:block;margin:8px auto 2px;width:min(240px,64vw);width:clamp(120px,min(64vw,calc((100dvh - 486px) * 1.5)),240px);aspect-ratio:3/2;box-shadow:0 3px 12px rgba(0,0,0,.18)} /* 低い画面では旗を小さく */
+.cap{font-size:11px;font-weight:500;opacity:.75}
+.adv{margin-top:6px;font-size:12px;font-weight:800}
+#rTags span{display:inline-block;margin:2px;padding:2px 9px;border-radius:999px;border:2px solid #1d2a3a;font-size:12px;font-weight:800;background:#fff7e0}
+#rCom{margin-top:4px;font-size:13px;line-height:1.55;font-weight:500}
+#rBest{margin-top:3px;font-size:12px;font-weight:800}
+.r1{margin-top:12px}
+.r1 .big{padding:10px 28px;font-size:18px}
+.r2{margin-top:10px;gap:8px}
+.r2 .sml{padding:7px 12px;font-size:14px}
+.follow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px auto 0;max-width:360px;background:#fff;border:3px solid #1d2a3a;border-radius:14px;padding:6px 8px 6px 12px;text-align:left}
+.follow .fl{font-size:14px;font-weight:800;line-height:1.3}
+.follow .fs{font-size:10px;font-weight:500;opacity:.75;line-height:1.3}
+.fbtn{flex-shrink:0;display:inline-block;padding:8px 12px;border-radius:999px;background:#000;color:#fff;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #555;white-space:nowrap}
 .fbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #555}
-.adwrap{margin:24px auto 0;min-height:50px;width:320px;max-width:100%;display:flex;justify-content:center}
+.adwrap{margin:16px auto 0;min-height:50px;width:320px;max-width:100%;display:flex;justify-content:center}
 .adwrap ins{display:inline-block;width:320px;height:50px}
 .zh{font-size:26px;font-weight:800}
 #zkSub{font-size:14px;font-weight:800;margin-top:2px}
@@ -110,23 +116,20 @@ button{font-family:inherit;cursor:pointer;color:#1d2a3a}
   <p id="drawWarn"></p>
 </div>
 
-<div id="result" class="scr hidden"><div class="panel">
+<div id="result" class="scr hidden"><div class="panel rpanel">
   <div class="card">
     <p class="rl">あなたの国民度</p>
     <p class="rn"><span id="rNum">0</span><small>%</small></p>
-    <p><span class="chip" id="rEnd"></span></p>
-    <p id="rNew" class="new hidden">NEW！ 新しいエンディングを見ました</p>
+    <p><span class="chip" id="rEnd"></span><span id="rNew" class="new hidden">NEW!</span></p>
     <canvas id="rFlag"></canvas>
     <p class="cap">点線が本物の日の丸（直径は旗の縦の3/5・ど真ん中）</p>
-    <p class="adv">ひとことアドバイス</p>
-    <p id="rTags"></p>
+    <p class="adv">アドバイス <span id="rTags"></span></p>
     <p id="rCom"></p>
     <p id="rBest"></p>
   </div>
-  <div class="row" style="margin-top:16px"><button class="big" id="againBtn">もう一度描く</button></div>
-  <div class="row"><button class="sml" id="shareBtn">Xでシェア</button><button class="sml" id="rZukanBtn">エンディング図鑑</button></div>
-  <div class="follow"><p class="fl">作者をフォロー</p><p class="fs">新しいゲームのお知らせをしています</p><a class="fbtn" id="followBtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
-  <button class="link" id="rTitleBtn">タイトルへ</button>
+  <div class="row r1"><button class="big" id="againBtn">もう一度描く</button></div>
+  <div class="row r2"><button class="sml" id="shareBtn">Xでシェア</button><button class="sml" id="rZukanBtn">図鑑</button><button class="sml" id="rTitleBtn">タイトルへ</button></div>
+  <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" id="followBtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
   <div class="adwrap" id="ad2"></div>
 </div></div>
 
@@ -1534,7 +1537,7 @@ function showResult() {
   $('rNew').classList.toggle('hidden', !r.newEnd);
   $('rTags').innerHTML = advice(r.s).map(s => `<span>${s}</span>`).join('');
   $('rBest').textContent = SV.best < 0 ? '' : r.newBest && SV.plays > 1 ? `ベスト更新！ 最高 ${SV.best}%` : `これまでの最高 ${SV.best}%`; // ?end= で見た時はまだ記録がない
-  $('rZukanBtn').textContent = `エンディング図鑑 ${Object.keys(SV.ends).length}/4`;
+  $('rZukanBtn').textContent = `図鑑 ${Object.keys(SV.ends).length}/4`;
   const cv = $('rFlag'), w = cv.clientWidth || 300, h = w / 1.5, d = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.round(w * d); cv.height = Math.round(h * d);
   const x = cv.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h);
@@ -1564,7 +1567,7 @@ function share() {
   open('https://x.com/intent/post?text=' + encodeURIComponent(txt) + '&url=' + encodeURIComponent(CONFIG.URL), '_blank', 'noopener');
 }
 function ads(id) { const z = $(id); if (!z || z.firstChild || !/(^|\.)nkworks-games\.com$/.test(location.hostname)) return; z.innerHTML = '<ins class="adsbygoogle" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>'; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} }
-$('followBtn').href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; $('followBtn').textContent = `𝕏 @${CONFIG.FOLLOW_X} をフォロー`;
+$('followBtn').href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; $('followBtn').textContent = `𝕏 @${CONFIG.FOLLOW_X}`;
 function muteLabel() { $('muteBtn').classList.toggle('off', SV.mute); }
 $('startBtn').onclick = () => { ac(); startDraw(); };
 $('zukanBtn').onclick = () => openZukan('title');
