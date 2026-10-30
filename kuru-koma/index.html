@@ -69,7 +69,12 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
 #vTop{position:absolute;left:0;right:0;top:0;padding:max(14px,env(safe-area-inset-top)) 16px 0;text-align:center}
 #vLabel{font-size:15px;font-weight:800}
 #vBtns{position:absolute;left:0;right:0;bottom:0;padding:0 16px max(16px,env(safe-area-inset-bottom));text-align:center;pointer-events:auto}
-#vTap{font-size:12px;font-weight:800;opacity:.6;margin-bottom:10px}
+#vSpTxt{font-size:13px;font-weight:800;margin-bottom:4px;font-variant-numeric:tabular-nums}
+.vsp{display:flex;align-items:center;gap:10px;max-width:380px;margin:0 auto 14px;font-size:13px;font-weight:800}
+.vsp input{flex:1;min-width:0;height:16px;-webkit-appearance:none;appearance:none;border:3px solid #2b2118;border-radius:99px;background:linear-gradient(90deg,#fff,#ffd5c4 40%,#e0533a)}
+.vsp input::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;border-radius:50%;border:3px solid #2b2118;background:#fff;box-shadow:0 2px 0 #2b2118}
+.vsp input::-moz-range-thumb{width:26px;height:26px;border-radius:50%;border:3px solid #2b2118;background:#fff}
+.vsp input:focus-visible{outline:3px solid #e0533a;outline-offset:3px}
 </style>
 </head>
 <body>
@@ -102,7 +107,8 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
 <div id="view" class="hidden">
   <div id="vTop"><div id="vLabel">あなたのコマ</div></div>
   <div id="vBtns">
-    <div id="vTap">タップでもう一回まわす</div>
+    <div id="vSpTxt"></div>
+    <div class="vsp"><span>止める</span><input type="range" id="vSpeed" min="0" max="100" aria-label="回る速さ"><span>もーう</span></div>
     <div id="vFree"><button class="big" id="vSave">画像を保存</button><div class="row"><button class="sml" id="vBack">← 描きにもどる</button></div></div>
   </div>
 </div>
@@ -120,7 +126,7 @@ const CONFIG = {
   PEN_DEF_W: 1,                 // 最初の太さ
   STEP_ANG: 0.03,               // 線を刻む角度（ラジアン）。小さいほど輪がなめらか
   DISK: { MAXR: 210, SIDE: 14, RIM: 0.065 }, // 描く画面のコマの最大半径(px)・左右の余白(px)・ふちの太さ（半径比）
-  V3: { W0: 70, WMIN: 2.6, DECAY: 1.3, EXPO: 0.07, TILT: [0.03, 0.15], PREC: 2.4, WANDER: 0.1, FOV: 34, ELEV: 0.98, FIT: 1.3, DPR: 2, SHADOW: 1024 }, // 3D：最初の回転(rad/秒)・最後の回転・減速の時間・ブレの強さ・傾き(速い時/遅い時)・首振り・ふらつき・画角・見下ろす角度・写す大きさ・画質・影
+  V3: { VMAX: 70, V_DEF: 30, ACC: 3, BLUR0: 2.6, EXPO: 0.07, TILT: [0.03, 0.15], TILT_W: 30, PREC: 2.4, WANDER: 0.1, FOV: 34, ELEV: 0.98, FIT: 1.3, DPR: 2, SHADOW: 1024 }, // 3D：いちばん速い回転(rad/秒)・最初のスライダー位置(0〜100)・速さの追いつきやすさ・ブレ始める速さ・ブレの強さ・傾き(速い時/遅い時)・傾きが最小になる速さ・首振り・ふらつき・画角・見下ろす角度・写す大きさ・画質・影
   VOL: 0.7,                     // 全体の音量
   SAVE_KEY: 'kurukoma.v1',
   FOLLOW_X: 'vyaPudzd1E54661',  // タイトル画面の「作者をフォロー」のXアカウント
@@ -299,18 +305,18 @@ function fit3D() {
   cam.setViewOffset(w, h, 0, (bot - top) / 2, w, h); cam.updateProjectionMatrix();
 }
 function step3D() {
-  const V3 = CONFIG.V3, k = clamp((V.w - V3.WMIN) / (V3.W0 - V3.WMIN), 0, 1);
+  const V3 = CONFIG.V3, s = clamp(V.w / 2, 0, 1), k = clamp(V.w / V3.TILT_W, 0, 1); // s：止まりかけは首ふり・ふらつきも止める
   E3.spin.rotation.y = -V.ang;
-  E3.tilt.quaternion.setFromAxisAngle(E3.axis.set(Math.cos(V.psi), 0, Math.sin(V.psi)), lerp(V3.TILT[1], V3.TILT[0], Math.sqrt(k)));
-  E3.root.position.set(Math.cos(V.psi * 0.31) * V3.WANDER, 0, Math.sin(V.psi * 0.23) * V3.WANDER * 0.7);
-  E3.blur.value = Math.min(TAU, Math.max(0, V.w - V3.WMIN) * V3.EXPO);
+  E3.tilt.quaternion.setFromAxisAngle(E3.axis.set(Math.cos(V.psi), 0, Math.sin(V.psi)), lerp(V3.TILT[1], V3.TILT[0], Math.sqrt(k)) * s);
+  E3.root.position.set(Math.cos(V.psi * 0.31) * V3.WANDER * s, 0, Math.sin(V.psi * 0.23) * V3.WANDER * 0.7 * s);
+  E3.blur.value = Math.min(TAU, Math.max(0, V.w - V3.BLUR0) * V3.EXPO);
   E3.R.render(E3.S, E3.cam);
 }
 
 // ===== [SEC:STATE] =====
 const cv = $('c'), ctx = cv.getContext('2d');
 const L = { W: 0, H: 0, dpr: 1, cx: 0, cy: 0, R: 100 };
-const G = { scene: 'title', color: 0, width: CONFIG.PEN_DEF_W, speed: CONFIG.SPEED_DEF };
+const G = { scene: 'title', color: 0, width: CONFIG.PEN_DEF_W, speed: CONFIG.SPEED_DEF, v3: CONFIG.V3.V_DEF }; // v3：3Dの速さのスライダー(0〜100)
 const SP = { th: 0, w: 0 };                 // 描く画面のコマの角度・回転の速さ(rad/秒)
 const P = { down: false, id: -1, x: 0, y: 0, px: 0, py: 0, hx: 0, hy: 0, hover: false, mouse: false, touch: false, lx: 0, ly: 0 };
 const V = { w: 0, ang: 0, psi: 0 }; // 3Dで回す画面
@@ -357,12 +363,13 @@ function enterDraw() { hideAll(); show('drawUI', true); G.scene = 'draw'; layout
 function showView() {
   if (P.down) return;
   hideAll(); G.scene = 'view'; show('view', true);
-  Object.assign(V, { w: CONFIG.V3.W0, ang: SP.th, psi: 0 });
+  Object.assign(V, { w: SP.w, ang: SP.th, psi: 0 });
   if (E3.ok) enter3D();
   sfx('spin');
 }
 function viewStep(dt) {
-  const V3 = CONFIG.V3; V.w = V3.WMIN + (V.w - V3.WMIN) * Math.exp(-dt / V3.DECAY); V.ang += V.w * dt; V.psi += dt * V3.PREC;
+  const V3 = CONFIG.V3, tw = v3w(); V.w += (tw - V.w) * Math.min(1, dt * V3.ACC); if (Math.abs(V.w - tw) < 0.01) V.w = tw; // 選んだ速さで回りつづける
+  V.ang += V.w * dt; V.psi += dt * V3.PREC * clamp(V.w / 2, 0, 1);
   if (E3.ok) step3D();
   else { // 3Dが使えない時：真上から回す
     const g = ctx, top = $('vTop').getBoundingClientRect().bottom, bot = $('vBtns').getBoundingClientRect().top;
@@ -370,7 +377,8 @@ function viewStep(dt) {
     drawTop2D(g, L.W / 2, (top + bot) / 2, Math.max(40, Math.min(L.W * 0.4, (bot - top) / 2 * 0.85)), V.ang, D.cv);
   }
 }
-function respin() { if (G.scene !== 'view') return; ac(); V.w = CONFIG.V3.W0; sfx('spin'); }
+const v3w = () => CONFIG.V3.VMAX * (G.v3 / 100) ** 2; // スライダー → 回る速さ(rad/秒)。遅い側を細かく選べるように2乗
+function v3Label() { const r = v3w() / TAU; $('vSpTxt').textContent = r < 0.005 ? '止まっています' : `1秒に ${r < 1 ? r.toFixed(2) : r.toFixed(1)} 回転`; }
 function saveImage() {
   const S = 1080, c = mkCv(S, S), g = c.getContext('2d');
   g.fillStyle = BG; g.fillRect(0, 0, S, S); drawTop2D(g, S / 2, S / 2 - 30, S * 0.39, 0, D.cv);
@@ -404,11 +412,13 @@ $('clearBtn').onclick = () => { if (P.down || !D.strokes.length) return; D.clear
 $('doneBtn').onclick = () => { sfx('tap'); showView(); };
 $('vSave').onclick = () => { sfx('tap'); saveImage(); };
 $('vBack').onclick = () => { sfx('tap'); enterDraw(); };
+$('vSpeed').oninput = () => { G.v3 = +$('vSpeed').value; v3Label(); };
+$('vSpeed').onchange = () => sfx('pick');
+$('vSpeed').value = G.v3; v3Label();
 $('muteBtn').onclick = () => { SV.mute = !SV.mute; writeSave(); ac(); if (master) master.gain.value = SV.mute ? 0 : CONFIG.VOL; $('muteBtn').classList.toggle('off', SV.mute); };
 
 // ===== [SEC:INPUT] =====
 cv.addEventListener('pointerdown', e => {
-  if (G.scene === 'view') { respin(); return; }
   if (!canDraw() || P.down) return;
   ac(); e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (er) {}
   startPen(e.clientX, e.clientY, e.pointerId);
@@ -420,7 +430,6 @@ cv.addEventListener('pointermove', e => {
 const penUp = e => { if (P.down && e.pointerId === P.id) { P.x = e.clientX; P.y = e.clientY; endPen(); } };
 cv.addEventListener('pointerup', penUp); cv.addEventListener('pointercancel', penUp);
 cv.addEventListener('pointerleave', () => { P.hover = false; });
-$('c3').addEventListener('pointerdown', respin);
 addEventListener('keydown', e => { if (G.scene === 'draw' && (e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); $('undoBtn').click(); } });
 
 // ===== [SEC:LOOP] =====
