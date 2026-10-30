@@ -50,8 +50,6 @@ button{font-family:inherit;cursor:pointer;color:#1d2a3a}
 #judge .jn small{font-size:.42em}
 #jVerdict{font-size:18px;font-weight:800;min-height:1.4em}
 #drawWarn{position:absolute;left:0;right:0;text-align:center;font-size:16px;font-weight:800;color:#bc002d}
-#toEndBtn{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;pointer-events:auto;animation:pop .35s ease-out}
-#toEndBtn:active{transform:translateX(-50%) translateY(3px)}
 @keyframes pop{0%{opacity:0;scale:.6}70%{opacity:1;scale:1.08}100%{scale:1}}
 .panel{max-width:440px;margin:0 auto;padding:max(62px,calc(env(safe-area-inset-top) + 56px)) 16px max(28px,env(safe-area-inset-bottom));text-align:center}
 .card{background:rgba(255,255,255,.92);border:3px solid #1d2a3a;border-radius:20px;padding:16px 14px}
@@ -110,7 +108,6 @@ button{font-family:inherit;cursor:pointer;color:#1d2a3a}
   <p id="drawSub">指（マウス）をはなすと提出。描き直しはできません</p>
   <div id="judge" class="hidden"><p class="jl">あなたの国民度は…</p><p class="jn"><span id="jNum">0</span><small>%</small></p><p id="jVerdict"></p></div>
   <p id="drawWarn"></p>
-  <button class="big hidden" id="toEndBtn">▶ エンディングへ</button>
 </div>
 
 <div id="result" class="scr hidden"><div class="panel">
@@ -150,7 +147,7 @@ const CONFIG = {
   MIN_LEN: 0.3,       // これより短い線は描きミスとして無視（旗の縦に対する割合）
   SCORE_H: 300,       // 採点の細かさ（旗の縦を何ピクセルで数えるか）
   RANK: { HERO: 90, TOWN: 75, PRACTICE: 50 }, // エンディングの区切り（国民度％がこの数以上）
-  JUDGE: { FILL: 0.45, REVEAL: 0.7, COUNT: 1.8, PAUSE: 0.4 }, // 判定演出の長さ（秒）
+  JUDGE: { FILL: 0.45, REVEAL: 0.7, COUNT: 1.8, AUTO: 1.8 }, // 判定演出の長さ（秒）。AUTO：国民度が出てから自動でエンディングへ進むまで
   ADVICE: { SIZE: 0.08, POS: 0.035, SHAPE: 0.9 }, // アドバイスを出す目安（大きさのズレ割合・位置のズレ・丸さ）
   RED_FLAG: 0.5,      // 旗の白い所（丸の外）がこの割合より多く赤いと「赤い旗」とみなして国民度0%
   END_SEC: [0, 9.5, 9.5, 10.5, 24], // エンディングの長さ（秒）END1〜4（END4は3D版）
@@ -319,7 +316,7 @@ function layoutFlag() {
   F.x = (VW - F.w) / 2; F.y = Math.max(C.TOP_MIN, (VH - F.h) / 2 - 10);
   $('drawHead').style.top = (F.y - 88) + 'px'; $('drawSub').style.top = (F.y - 42) + 'px';
   $('judge').style.top = (F.y - 126) + 'px';
-  $('drawWarn').style.top = (F.y + F.h + 18) + 'px'; $('toEndBtn').style.top = (F.y + F.h + 22) + 'px';
+  $('drawWarn').style.top = (F.y + F.h + 18) + 'px';
 }
 // 点は「旗の縦＝1」の座標 [u, v]（旗は横1.5×縦1、本物の丸は中心(0.75,0.5)・半径0.3）
 function shapePath(x, pts, s, ox, oy, close = true) {
@@ -1476,14 +1473,14 @@ function drawZk4() { // 図鑑のEND4の絵（3Dが使える時は3Dで）
 
 
 // ===== [SEC:GAME] =====
-const G = { state: 'title', pts: [], len: 0, down: false, pid: null, jt: 0, res: null, endN: 1, et: 0, sfxI: 0, E: null, endFrom: 'result', zkFrom: 'title', drum: false, counted: false, btn: false, use3d: false, wait3d: false, waitT: 0, zk4: null };
+const G = { state: 'title', pts: [], len: 0, down: false, pid: null, jt: 0, res: null, endN: 1, et: 0, sfxI: 0, E: null, endFrom: 'result', zkFrom: 'title', drum: false, counted: false, use3d: false, wait3d: false, waitT: 0, zk4: null };
 const curEnd = () => (G.endN === 4 && G.use3d ? E4_3D : ENDINGS[G.endN]);
 const WHITE = makeFlagImg([], 120);
 function hideAll() { ['title', 'drawUI', 'result', 'zukan', 'skipBtn', 'c3'].forEach(hide); }
 function goTitle() { G.state = 'title'; cutSfx(); hideAll(); show('title'); refreshTitle(); }
 function startDraw() {
   G.state = 'draw'; G.pts = []; G.len = 0; G.down = false; cutSfx(); hideAll();
-  show('drawUI'); show('drawHead'); show('drawSub'); hide('judge'); hide('toEndBtn'); $('drawWarn').textContent = '';
+  show('drawUI'); show('drawHead'); show('drawSub'); hide('judge'); $('drawWarn').textContent = '';
 }
 function submit() {
   const s = scoreShape(G.pts), pct = Math.floor(s.pct), n = rankOf(pct);
@@ -1492,7 +1489,7 @@ function submit() {
   if (!SV.ends[n] || pct >= SV.ends[n].pct) SV.ends[n] = { pct, pts: packPts(G.pts) };
   writeSave();
   if (n === 4) load3D(); // 判定の演出中に3Dを読み込んでおく
-  G.state = 'judge'; G.jt = 0; G.drum = G.counted = G.btn = false;
+  G.state = 'judge'; G.jt = 0; G.drum = G.counted = false;
   hide('drawHead'); hide('drawSub'); show('judge'); $('jNum').textContent = '0'; $('jVerdict').textContent = '';
   SFX.pop();
 }
@@ -1501,7 +1498,10 @@ function updateJudge(dt) {
   if (!G.drum && G.jt >= c0) { G.drum = true; SFX.drum(J.COUNT); }
   if (G.jt >= c0 && !G.counted) $('jNum').textContent = Math.floor(r.pct * easeOut(seg(G.jt, c0, c1)));
   if (!G.counted && G.jt >= c1) { G.counted = true; $('jNum').textContent = r.pct; $('jVerdict').textContent = r.s.redFlag ? 'それは日の丸じゃない…' : ENDS[r.n].verdict; r.n >= 3 ? SFX.good() : r.n === 2 ? SFX.mid() : SFX.bad(); }
-  if (!G.btn && G.jt >= c1 + J.PAUSE) { G.btn = true; show('toEndBtn'); }
+  if (G.jt >= c1 + J.AUTO) toEnding(); // 少し見せてから自動でエンディングへ
+}
+function toEnding() {
+  if (G.state === 'judge' && G.counted) playEnding(G.res.n, G.pts, G.res.pct, 'result');
 }
 function playEnding(n, pts, pct, from) {
   G.state = 'ending'; G.endN = n; G.et = 0; G.sfxI = 0; G.endFrom = from; G.E = { pct, img: makeFlagImg(pts) };
@@ -1568,7 +1568,6 @@ $('followBtn').href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW
 function muteLabel() { $('muteBtn').classList.toggle('off', SV.mute); }
 $('startBtn').onclick = () => { ac(); startDraw(); };
 $('zukanBtn').onclick = () => openZukan('title');
-$('toEndBtn').onclick = () => playEnding(G.res.n, G.pts, G.res.pct, 'result');
 $('againBtn').onclick = startDraw;
 $('shareBtn').onclick = share;
 $('rZukanBtn').onclick = () => openZukan('result');
@@ -1586,6 +1585,7 @@ CV.addEventListener('pointerdown', e => {
     e.preventDefault(); G.down = true; G.pid = e.pointerId; try { CV.setPointerCapture(e.pointerId); } catch (er) {}
     G.pts = [toFlag(e)]; G.len = 0; $('drawWarn').textContent = ''; penStart(); return;
   }
+  if (G.state === 'judge') toEnding(); // 国民度が出たあとはタップで早送り
   if (G.state === 'ending' && !G.wait3d && G.et >= curEnd().dur) finishEnding();
 });
 CV.addEventListener('pointermove', e => {
