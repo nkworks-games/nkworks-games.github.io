@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>くるくるコマ描き</title>
-<meta name="description" content="くるくる回るコマにペンを当てて、輪やうずまきの模様を描くゲーム。自由に描いて3Dで回せる「じゆう」と、見本そっくりに描く5問の「おだい」がある。">
+<meta name="description" content="くるくる回るコマにペンを当てて、輪やうずまきの模様を描くゲーム。描いたコマは3Dで回して眺められる。">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
 <meta name="theme-color" content="#f6eddc">
 <meta property="og:type" content="website">
@@ -26,40 +26,27 @@ html,body{height:100%;overflow:hidden;background:#f6eddc;font-family:"M PLUS Rou
 .hidden{display:none!important}
 button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulation}
 .big{display:block;margin:0 auto;min-width:230px;padding:13px 28px;border:3px solid #2b2118;border-radius:999px;background:#e0533a;color:#fff;font-size:20px;font-weight:800;box-shadow:0 4px 0 #2b2118}
-.big.sub{background:#fff;color:#2b2118}
 .sml{padding:8px 16px;border:3px solid #2b2118;border-radius:999px;background:#fff;font-size:15px;font-weight:800;box-shadow:0 3px 0 #2b2118}
 .big:active,.sml:active,.tb:active,.done:active,.hb:active{transform:translateY(3px);box-shadow:0 1px 0 #2b2118}
-.link{display:inline-block;margin-top:16px;color:#2b2118;font-size:14px;font-weight:800}
 .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
 .scr{position:fixed;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .ico{position:fixed;z-index:5;left:max(10px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:3px solid #2b2118;background:#fff;font-size:20px;font-weight:800;line-height:1}
 .ico.off::after{content:"";position:absolute;left:8px;right:8px;top:50%;height:3px;background:#e0533a;transform:rotate(-40deg)}
-.card{background:rgba(255,255,255,.95);border:3px solid #2b2118;border-radius:20px;padding:16px 14px;text-align:center}
-.chip{display:inline-block;padding:5px 14px;border-radius:999px;background:#2b2118;color:#fff;font-size:14px;font-weight:800}
-.rn{font-size:clamp(60px,18vw,88px);font-weight:800;line-height:1;color:#e0533a;font-variant-numeric:tabular-nums;text-shadow:0 3px 0 #fff,3px 0 0 #fff,-3px 0 0 #fff,0 -3px 0 #fff}
-.rn small{font-size:.4em}
-@keyframes pop{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
 /* タイトル */
 #title{display:flex;flex-direction:column;align-items:center;text-align:center;padding:max(58px,calc(env(safe-area-inset-top) + 50px)) 16px max(18px,env(safe-area-inset-bottom));overflow:hidden}
 .kick{font-size:clamp(15px,4.4vw,20px);font-weight:800;color:#e0533a;letter-spacing:.08em}
 #title h1{font-size:clamp(40px,12vw,64px);font-weight:800;line-height:1.08;margin-top:4px;text-shadow:0 3px 0 #fff,3px 0 0 #fff,-3px 0 0 #fff,0 -3px 0 #fff}
 #tDisk{flex:1;width:100%;min-height:140px}
 .tdesc{max-width:400px;margin:0 auto 14px;font-size:14px;font-weight:800;line-height:1.7;background:rgba(255,255,255,.85);border-radius:14px;padding:8px 14px}
-#title .big+.big{margin-top:12px}
-#bestTxt{margin-top:10px;font-size:14px;font-weight:800;min-height:1.2em}
 /* 描く画面 */
 #drawUI{position:fixed;inset:0;pointer-events:none}
 #drawUI>*{pointer-events:auto}
 #head{position:absolute;left:0;right:0;top:0;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 4px max(12px,env(safe-area-inset-left))}
 .hb{flex:none;width:44px;height:44px;border-radius:50%;border:3px solid #2b2118;background:#fff;font-size:20px;font-weight:800;box-shadow:0 3px 0 #2b2118}
 #hMid{flex:1;min-width:0;text-align:center}
+.hsp{flex:none;width:44px}
 #hNo{font-size:12px;font-weight:800;opacity:.7}
 #hName{font-size:clamp(18px,5.4vw,24px);font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#timer{position:relative;height:18px;margin-top:5px;border:2px solid #2b2118;border-radius:99px;background:#fff;overflow:hidden}
-#timerBar{position:absolute;left:0;top:0;bottom:0;width:100%;background:#4caf50}
-#timerNum{position:absolute;inset:0;font-size:11px;line-height:14px;font-weight:800;text-align:center}
-.smp{flex:none;width:76px;text-align:center;font-size:11px;font-weight:800}
-.smp canvas{display:block;width:72px;height:72px;margin:0 auto}
 #tools{position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:9px;padding:6px max(12px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
 #colors{display:flex;justify-content:space-between;gap:4px}
 .cb{flex:1;max-width:42px;aspect-ratio:1;border-radius:50%;border:3px solid #2b2118;box-shadow:0 2px 0 #2b2118;font-size:10px;font-weight:800;color:#999}
@@ -74,37 +61,12 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
 .tb small{font-size:10px}
 .tb:disabled{opacity:.35}
 .done{flex:none;min-width:112px;padding:0 10px;border:3px solid #2b2118;border-radius:14px;background:#e0533a;color:#fff;font-size:17px;font-weight:800;box-shadow:0 3px 0 #2b2118}
-#intro,#quit{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(246,237,220,.84)}
-#intro .card,#quit .card{width:100%;max-width:360px;animation:pop .3s ease-out}
-.qname{font-size:clamp(26px,8vw,34px);font-weight:800;margin-top:6px}
-#introCv{display:block;width:200px;height:200px;margin:6px auto}
-.hint{font-size:14px;font-weight:800;line-height:1.6;margin-bottom:14px;text-wrap:balance}
-.hint::before{content:"ヒント　";color:#e0533a}
-#flash{position:fixed;left:0;right:0;top:40%;text-align:center;font-size:clamp(40px,12vw,60px);font-weight:800;color:#e0533a;text-shadow:0 3px 0 #fff,3px 0 0 #fff,-3px 0 0 #fff,0 -3px 0 #fff;pointer-events:none;animation:pop .35s ease-out}
 /* 3Dで回す画面 */
 #view{position:fixed;inset:0;pointer-events:none}
-#vTop{position:absolute;left:0;right:0;top:0;padding:max(14px,env(safe-area-inset-top)) 92px 0;text-align:center}
+#vTop{position:absolute;left:0;right:0;top:0;padding:max(14px,env(safe-area-inset-top)) 16px 0;text-align:center}
 #vLabel{font-size:15px;font-weight:800}
-#vMsg{font-size:20px;font-weight:800;min-height:1.4em}
-#vSample{position:absolute;right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top))}
 #vBtns{position:absolute;left:0;right:0;bottom:0;padding:0 16px max(16px,env(safe-area-inset-bottom));text-align:center;pointer-events:auto}
 #vTap{font-size:12px;font-weight:800;opacity:.6;margin-bottom:10px}
-/* 最終結果 */
-#final{background:#f6eddc}
-.panel{max-width:440px;margin:0 auto;padding:max(62px,calc(env(safe-area-inset-top) + 56px)) 16px max(28px,env(safe-area-inset-bottom));text-align:center}
-.rl{font-size:15px;font-weight:800}
-#fRank{margin-top:8px;font-size:18px}
-#fMsg{font-size:18px;font-weight:800;margin-top:6px}
-#fNew{margin-top:4px;font-size:14px;font-weight:800;color:#e0533a;min-height:1.2em}
-#fList{list-style:none;margin-top:12px;text-align:left}
-#fList li{display:flex;align-items:center;gap:6px;padding:6px 2px;border-top:2px dashed rgba(43,33,24,.2);font-weight:800}
-#fList canvas{width:44px;height:44px;flex:none}
-#fList .no{width:1.4em;text-align:center;font-size:13px;opacity:.6}
-#fList .nm{flex:1;min-width:0;font-size:14px}
-#fList b{font-size:20px;color:#e0533a;font-variant-numeric:tabular-nums}
-#fList b small{font-size:.6em}
-.adwrap{margin:24px auto 0;min-height:50px;width:320px;max-width:100%;display:flex;justify-content:center}
-.adwrap ins{display:inline-block;width:320px;height:50px}
 </style>
 </head>
 <body>
@@ -116,65 +78,29 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
   <h1>くるくる<br>コマ描き</h1>
   <div id="tDisk"></div>
   <p class="tdesc">コマはずっと回っています。指でおさえると、回ったぶんだけ線がつきます。じっとおさえれば輪、ずらせばうずまき。</p>
-  <button class="big" id="odaiBtn">おだい（5問）</button>
-  <button class="big sub" id="freeBtn">じゆうに描く</button>
-  <div id="bestTxt"></div>
+  <button class="big" id="playBtn">描きはじめる</button>
 </div>
 
 <div id="drawUI" class="hidden">
   <div id="head">
     <button class="hb" id="backBtn" aria-label="もどる">←</button>
-    <div id="hMid"><div id="hNo"></div><div id="hName"></div><div id="timer"><i id="timerBar"></i><b id="timerNum"></b></div></div>
-    <div class="smp" id="hSample"><canvas id="sampleCv"></canvas>見本</div>
+    <div id="hMid"><div id="hNo">おさえると、回ったぶんだけ線がつく</div><div id="hName">じゆうに描こう</div></div>
+    <i class="hsp"></i>
   </div>
   <div id="tools">
     <div id="colors"></div>
     <div class="trow"><div class="seg" id="widths"></div><button class="tb" id="undoBtn">↶<small>戻す</small></button><button class="tb" id="clearBtn">✕<small>全部消す</small></button></div>
-    <div class="trow"><div class="seg" id="speeds"></div><button class="done" id="doneBtn"></button></div>
+    <div class="trow"><div class="seg" id="speeds"></div><button class="done" id="doneBtn">3Dで回す</button></div>
   </div>
 </div>
 
-<div id="intro" class="hidden"><div class="card">
-  <div class="chip" id="iNo"></div>
-  <div class="qname" id="iName"></div>
-  <canvas id="introCv"></canvas>
-  <p class="hint" id="iHint"></p>
-  <button class="big" id="goBtn">はじめる！</button>
-</div></div>
-
-<div id="quit" class="hidden"><div class="card">
-  <div class="qname">おだいをやめますか？</div>
-  <p class="rl">ここまでの点数は消えます</p>
-  <div class="row"><button class="sml" id="quitNo">つづける</button><button class="sml" id="quitYes">やめる</button></div>
-</div></div>
-
-<div id="flash" class="hidden"></div>
-
 <div id="view" class="hidden">
-  <div id="vTop"><div id="vLabel"></div><div class="rn" id="vPct"><span id="vPctN">0</span><small>%</small></div><div id="vMsg"></div></div>
-  <div class="smp" id="vSample"><canvas id="vSampleCv"></canvas>見本</div>
+  <div id="vTop"><div id="vLabel">あなたのコマ</div></div>
   <div id="vBtns">
     <div id="vTap">タップでもう一回まわす</div>
-    <button class="big" id="vNext"></button>
     <div id="vFree"><button class="big" id="vSave">画像を保存</button><div class="row"><button class="sml" id="vBack">← 描きにもどる</button></div></div>
   </div>
 </div>
-
-<div id="final" class="scr hidden"><div class="panel">
-  <div class="card">
-    <div class="rl">おだい5問の合計</div>
-    <div class="rn"><span id="fTotal">0</span><small>点</small></div>
-    <div class="rl">/ 500点</div>
-    <div class="chip" id="fRank"></div>
-    <div id="fMsg"></div>
-    <div id="fNew"></div>
-    <ul id="fList"></ul>
-  </div>
-  <div class="row"><button class="big" id="againBtn">もう一度あそぶ</button></div>
-  <div class="row"><button class="sml" id="shareBtn">𝕏 でシェア</button><button class="sml" id="fTitleBtn">タイトルへ</button></div>
-  <a id="followBtn" class="link" target="_blank" rel="noopener"></a>
-  <div class="adwrap" id="adF"></div>
-</div></div>
 
 <button class="ico" id="muteBtn" aria-label="音">♪</button>
 
@@ -189,16 +115,9 @@ const CONFIG = {
   PEN_DEF_W: 1,                 // 最初の太さ
   STEP_ANG: 0.03,               // 線を刻む角度（ラジアン）。小さいほど輪がなめらか
   DISK: { MAXR: 210, SIDE: 14, RIM: 0.065 }, // 描く画面のコマの最大半径(px)・左右の余白(px)・ふちの太さ（半径比）
-  Q_COUNT: 5,                   // おだいの問題数
-  Q_SEC: 30,                    // 1問の制限時間（秒）
-  COUNT_BEEP: 5,                // 残りこの秒数からピッと鳴る
-  SCORE: { N: 128, DMAX: 5, STEPS: 72, COLOR_W: 0.7, INK: 0.3, HOLE: 0.09, F0: 0.2, F1: 0.97 }, // 採点：細かさ・この距離(px)離れると0点・向きを試す数・色の重み・インクとみなす濃さ・軸で隠れる中心・0点/100点になる一致度
-  RANK: [[430, 'S', 'コマ描き名人！'], [350, 'A', 'じょうず！'], [250, 'B', 'なかなか！'], [0, 'C', 'もう一回まわそう']], // 合計点がこの数以上
   V3: { W0: 70, WMIN: 2.6, DECAY: 1.3, EXPO: 0.07, TILT: [0.03, 0.15], PREC: 2.4, WANDER: 0.1, FOV: 34, ELEV: 0.98, FIT: 1.3, DPR: 2, SHADOW: 1024 }, // 3D：最初の回転(rad/秒)・最後の回転・減速の時間・ブレの強さ・傾き(速い時/遅い時)・首振り・ふらつき・画角・見下ろす角度・写す大きさ・画質・影
   VOL: 0.7,                     // 全体の音量
   SAVE_KEY: 'kurukoma.v1',
-  URL: 'https://nkworks-games.com/kuru-koma/',
-  FOLLOW_X: 'vyaPudzd1E54661',  // 結果画面の「作者をフォロー」のXアカウント
 };
 
 // ===== [SEC:UTIL] =====
@@ -214,35 +133,9 @@ const show = (id, on) => $(id).classList.toggle('hidden', !on);
 const COLORS = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#262626', '#ffffff'];
 const CNAME = ['あか', 'オレンジ', 'きいろ', 'みどり', 'あお', 'むらさき', 'くろ', 'しろ（けす）'];
 const SPEED_NAME = ['止める', 'ゆっくり', 'ふつう', 'はやい'];
-// 形はコマの半径を1とした座標で書く。w：ペンの太さ番号、c：色番号
-const ring = (r, w, c) => ({ t: 'ring', r, w, c });
-const disc = (r, c) => ({ t: 'disc', r, c });
-const band = (r0, r1, c) => ({ t: 'band', r0, r1, c });
-const line = (p, w, c, closed) => ({ t: 'line', p, w, c, closed });
-const spiral = (r0, r1, turns) => { const n = Math.ceil(turns * 140), p = []; for (let i = 0; i <= n; i++) { const t = i / n, r = lerp(r0, r1, t), a = t * turns * TAU; p.push([Math.cos(a) * r, Math.sin(a) * r]); } return p; };
-const polar = f => { const p = []; for (let i = 0; i < 360; i++) { const a = i / 360 * TAU, r = f(a); p.push([Math.cos(a) * r, Math.sin(a) * r]); } return p; };
-const star = (n, ro, ri) => { const p = []; for (let i = 0; i < n * 2; i++) { const a = -Math.PI / 2 + i / (n * 2) * TAU, r = i % 2 ? ri : ro; p.push([Math.cos(a) * r, Math.sin(a) * r]); } return p; };
-const heart = s => { const p = []; for (let i = 0; i < 200; i++) { const t = i / 200 * TAU; p.push([16 * Math.sin(t) ** 3 * s, -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t) + 2.6) * s]); } return p; };
-// おだい：tier 1〜5 から1問ずつ出る（数字が大きいほど難しい）
-const ODAI = [
-  { tier: 1, name: 'あかい輪', hint: 'ペンを動かさずに、1周するまでおさえよう', s: [ring(0.55, 1, 0)] },
-  { tier: 1, name: 'あおい太い輪', hint: '太いペンにして、1周おさえよう', s: [ring(0.4, 2, 4)] },
-  { tier: 1, name: 'みどりのふち', hint: 'コマのふちの近くで1周', s: [ring(0.82, 1, 3)] },
-  { tier: 2, name: '二重の輪', hint: '内と外、2か所で1周ずつ', s: [ring(0.35, 1, 4), ring(0.7, 1, 0)] },
-  { tier: 2, name: 'ドーナツ', hint: 'おさえたまま、ゆっくり外へずらそう', s: [band(0.35, 0.7, 3)] },
-  { tier: 2, name: 'むらさきとオレンジ', hint: '色をかえて、太い輪を2本', s: [ring(0.3, 2, 5), ring(0.65, 2, 1)] },
-  { tier: 3, name: '三色の輪', hint: '太いペンで3本。色もあわせよう', s: [ring(0.3, 2, 0), ring(0.55, 2, 2), ring(0.8, 2, 4)] },
-  { tier: 3, name: 'まと', hint: 'まん中は、ぐるぐる塗りつぶそう', s: [disc(0.2, 0), ring(0.5, 2, 0), ring(0.8, 2, 0)] },
-  { tier: 3, name: 'めだま', hint: 'まん中を黒く塗って、まわりを青く', s: [disc(0.25, 6), band(0.25, 0.55, 4)] },
-  { tier: 4, name: 'うずまき', hint: 'おさえたまま、ゆっくり外へ動かそう', s: [line(spiral(0.08, 0.85, 3), 1, 6, false)] },
-  { tier: 4, name: 'にじ', hint: '太いペンで6色。外から あか・オレンジ・きいろ・みどり・あお・むらさき', s: [band(0.2, 0.32, 5), band(0.32, 0.44, 4), band(0.44, 0.56, 3), band(0.56, 0.68, 2), band(0.68, 0.8, 1), band(0.8, 0.92, 0)] },
-  { tier: 5, name: 'お花', hint: '回しながら内・外にゆらそう。止めて描いてもOK', s: [line(polar(a => 0.55 + 0.2 * Math.cos(5 * a)), 1, 5, true)] },
-  { tier: 5, name: 'ほし', hint: 'コマを止めて描こう', s: [line(star(5, 0.78, 0.33), 1, 1, true)] },
-  { tier: 5, name: 'ハート', hint: 'コマを止めて描こう', s: [line(heart(0.045), 1, 0, true)] },
-];
 
 // ===== [SEC:SAVE] =====
-const SV = { mute: false, best: 0 };
+const SV = { mute: false };
 function loadSave() { try { Object.assign(SV, JSON.parse(localStorage.getItem(CONFIG.SAVE_KEY) || '{}')); } catch (e) {} }
 function writeSave() { try { localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify(SV)); } catch (e) {} }
 
@@ -275,14 +168,7 @@ function whoosh(dur, f0, f1, vol) {
 const SFX = {
   tap: () => tone(760, 0.07, 'triangle', 0.12),
   pick: () => tone(1040, 0.06, 'sine', 0.1),
-  beep: () => tone(1320, 0.09, 'square', 0.05),
-  tick: () => tone(1700, 0.025, 'square', 0.03),
-  stop: () => { tone(880, 0.12, 'triangle', 0.14); tone(587, 0.3, 'triangle', 0.14, 0.12); },
   spin: () => whoosh(1.1, 3600, 500, 0.25),
-  good: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i === 3 ? 0.45 : 0.2, 'triangle', 0.13, i * 0.09)),
-  ok: () => [523, 659, 784].forEach((f, i) => tone(f, 0.22, 'triangle', 0.12, i * 0.1)),
-  bad: () => { tone(392, 0.22, 'triangle', 0.12); tone(311, 0.4, 'triangle', 0.12, 0.2); },
-  fan: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, i === 5 ? 0.7 : 0.18, 'triangle', 0.14, i * 0.12)),
 };
 const sfx = n => { if (AC && !SV.mute) SFX[n](); };
 function penSound(v) { if (penG) penG.gain.setTargetAtTime(v, AC.currentTime, 0.03); }
@@ -297,16 +183,6 @@ function paintStrokes(g, strokes) {
       g.beginPath(); g.arc(s[0], s[1], W / 2, 0, TAU); g.fill();
       if (s.length > 2) { g.beginPath(); g.moveTo(s[0], s[1]); for (let i = 2; i < s.length; i += 2) g.lineTo(s[i], s[i + 1]); g.stroke(); }
     }
-  }
-}
-function paintShapes(g, shapes) {
-  g.lineCap = g.lineJoin = 'round';
-  for (const s of shapes) {
-    g.strokeStyle = g.fillStyle = COLORS[s.c]; g.beginPath();
-    if (s.t === 'ring') { g.lineWidth = CONFIG.PEN_W[s.w]; g.arc(0, 0, s.r, 0, TAU); g.stroke(); }
-    else if (s.t === 'disc') { g.arc(0, 0, s.r, 0, TAU); g.fill(); }
-    else if (s.t === 'band') { g.lineWidth = s.r1 - s.r0; g.arc(0, 0, (s.r0 + s.r1) / 2, 0, TAU); g.stroke(); }
-    else { g.lineWidth = CONFIG.PEN_W[s.w]; g.moveTo(s.p[0][0], s.p[0][1]); for (const q of s.p) g.lineTo(q[0], q[1]); if (s.closed) g.closePath(); g.stroke(); }
   }
 }
 class Disk {
@@ -329,19 +205,13 @@ class Disk {
   clearAll() { if (this.strokes.length) this.cleared = this.strokes; this.strokes = []; this.redraw(); }
   redraw() { this.wipe(); paintStrokes(this.g, this.strokes); }
 }
-function sampleTex(q) {
-  if (!q.tex) { const n = 512, h = n / 2; q.tex = mkCv(n, n); const g = q.tex.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, n, n); g.setTransform(h, 0, 0, h, h, h); paintShapes(g, q.s); }
-  return q.tex;
-}
 
 // ===== [SEC:DRAW2D] =====
-// 真上から見たコマ（影・木のふち・回る面・軸）
-function drawTop2D(g, cx, cy, R, th, src, noShadow) {
+// 真上から見たコマ（影・木のふち・回る面）
+function drawTop2D(g, cx, cy, R, th, src) {
   const rim = R * (1 + CONFIG.DISK.RIM);
-  if (!noShadow) {
-    const sx = cx + R * 0.05, sy = cy + R * 0.1, sg = g.createRadialGradient(sx, sy, R * 0.8, sx, sy, R * 1.25);
-    sg.addColorStop(0, 'rgba(80,50,20,.28)'); sg.addColorStop(1, 'rgba(80,50,20,0)'); g.fillStyle = sg; g.beginPath(); g.arc(sx, sy, R * 1.25, 0, TAU); g.fill();
-  }
+  const sx = cx + R * 0.05, sy = cy + R * 0.1, sg = g.createRadialGradient(sx, sy, R * 0.8, sx, sy, R * 1.25);
+  sg.addColorStop(0, 'rgba(80,50,20,.28)'); sg.addColorStop(1, 'rgba(80,50,20,0)'); g.fillStyle = sg; g.beginPath(); g.arc(sx, sy, R * 1.25, 0, TAU); g.fill();
   const rg = g.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.2, cx, cy, rim);
   rg.addColorStop(0, '#f0c28c'); rg.addColorStop(1, '#b8763f'); g.fillStyle = rg; g.beginPath(); g.arc(cx, cy, rim, 0, TAU); g.fill();
   g.save(); g.translate(cx, cy); g.rotate(th);
@@ -353,11 +223,7 @@ function drawTop2D(g, cx, cy, R, th, src, noShadow) {
   fg.addColorStop(0, 'rgba(90,60,30,0)'); fg.addColorStop(1, 'rgba(90,60,30,.16)'); g.fillStyle = fg; g.beginPath(); g.arc(cx, cy, R, 0, TAU); g.fill();
   g.strokeStyle = 'rgba(60,35,15,.55)'; g.lineWidth = Math.max(1, R * 0.008);
   g.beginPath(); g.arc(cx, cy, R, 0, TAU); g.stroke(); g.beginPath(); g.arc(cx, cy, rim, 0, TAU); g.stroke();
-  const sr = R * 0.075;
-  g.fillStyle = 'rgba(40,20,10,.25)'; g.beginPath(); g.arc(cx + sr * 0.35, cy + sr * 0.45, sr, 0, TAU); g.fill();
-  const stg = g.createRadialGradient(cx - sr * 0.35, cy - sr * 0.4, sr * 0.1, cx, cy, sr);
-  stg.addColorStop(0, '#d0644a'); stg.addColorStop(1, '#5e1d10'); g.fillStyle = stg; g.beginPath(); g.arc(cx, cy, sr, 0, TAU); g.fill();
-  g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.arc(cx + Math.cos(th) * sr * 0.5, cy + Math.sin(th) * sr * 0.5, sr * 0.18, 0, TAU); g.fill();
+
 }
 // ペン（先が x,y。右下に向かって持ち手）
 function drawPen(g, x, y, ci, wpx, down) {
@@ -370,78 +236,6 @@ function drawPen(g, x, y, ci, wpx, down) {
   g.fillStyle = ci === 7 ? '#e8e8e8' : col; g.beginPath(); g.rect(tipL, -bw / 2, bodyL, bw); g.fill(); g.stroke();
   g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(tipL + 2, -bw / 2 + 2, bodyL - 4, 3);
   g.restore();
-}
-function drawThumb(cv, src, css) {
-  const d = Math.min(devicePixelRatio || 1, 2.5); cv.width = cv.height = Math.round(css * d);
-  const g = cv.getContext('2d'); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, css, css);
-  drawTop2D(g, css / 2, css / 2, css / 2 / (1 + CONFIG.DISK.RIM) * 0.96, 0, src, true);
-}
-
-// ===== [SEC:SCORE] =====
-// 見本と描いた絵を小さく描いて、色ごとに「一番近い同じ色までの距離」で近さを測る。コマの向きは一番合う角度で比べる
-const SC = (() => { const N = CONFIG.SCORE.N, c = mkCv(N, N); return { N, g: c.getContext('2d', { willReadFrequently: true }) }; })();
-const PAL = COLORS.slice(0, 7).map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) - 255));
-function distMap(mask, N) { // インクの点からの距離(px)の地図
-  const d = new Float32Array(N * N), a = 1, b = Math.SQRT2;
-  for (let i = 0; i < d.length; i++) d[i] = mask[i] ? 0 : 1e9;
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const i = y * N + x; let v = d[i];
-    if (x > 0) v = Math.min(v, d[i - 1] + a);
-    if (y > 0) { v = Math.min(v, d[i - N] + a); if (x > 0) v = Math.min(v, d[i - N - 1] + b); if (x < N - 1) v = Math.min(v, d[i - N + 1] + b); }
-    d[i] = v;
-  }
-  for (let y = N - 1; y >= 0; y--) for (let x = N - 1; x >= 0; x--) {
-    const i = y * N + x; let v = d[i];
-    if (x < N - 1) v = Math.min(v, d[i + 1] + a);
-    if (y < N - 1) { v = Math.min(v, d[i + N] + a); if (x < N - 1) v = Math.min(v, d[i + N + 1] + b); if (x > 0) v = Math.min(v, d[i + N - 1] + b); }
-    d[i] = v;
-  }
-  return d;
-}
-function rasterize(paint) {
-  const { N, g } = SC, h = N / 2, S = CONFIG.SCORE;
-  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#fff'; g.fillRect(0, 0, N, N); g.setTransform(h, 0, 0, h, h, h); paint(g);
-  const d = g.getImageData(0, 0, N, N).data, pts = [], masks = Array.from({ length: 8 }, () => null);
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const nx = (x + 0.5 - h) / h, ny = (y + 0.5 - h) / h, rr = nx * nx + ny * ny;
-    if (rr > 1 || rr < S.HOLE * S.HOLE) continue;
-    const i = (y * N + x) * 4, qr = d[i] - 255, qg = d[i + 1] - 255, qb = d[i + 2] - 255;
-    let best = 0, bres = 1e9, ba = 0;
-    for (let c = 0; c < 7; c++) {
-      const p = PAL[c], a = clamp((qr * p[0] + qg * p[1] + qb * p[2]) / (p[0] * p[0] + p[1] * p[1] + p[2] * p[2]), 0, 1);
-      const er = (qr - a * p[0]) ** 2 + (qg - a * p[1]) ** 2 + (qb - a * p[2]) ** 2;
-      if (er < bres) { bres = er; best = c; ba = a; }
-    }
-    if (ba < S.INK) continue;
-    pts.push(x, y, best);
-    const j = y * N + x; (masks[best] ||= new Uint8Array(N * N))[j] = 1; (masks[7] ||= new Uint8Array(N * N))[j] = 1;
-  }
-  return { pts, n: pts.length / 3, dist: masks.map(m => m && distMap(m, N)) };
-}
-function overlap(A, B, c, s) { // Aの点を回してBに重ねた時の近さの平均（色あり・形だけ）
-  const N = SC.N, h = (N - 1) / 2, p = A.pts, D = CONFIG.SCORE.DMAX, ds = B.dist[7]; let hc = 0, hs = 0;
-  for (let i = 0; i < p.length; i += 3) {
-    const dx = p[i] - h, dy = p[i + 1] - h, x = Math.round(h + c * dx - s * dy), y = Math.round(h + s * dx + c * dy);
-    if (x < 0 || y < 0 || x >= N || y >= N) continue;
-    const j = y * N + x, dc = B.dist[p[i + 2]];
-    if (dc) hc += Math.max(0, 1 - dc[j] / D);
-    hs += Math.max(0, 1 - ds[j] / D);
-  }
-  return [hc / A.n, hs / A.n];
-}
-function matchRate(A, B) {
-  if (!A.n || !B.n) return 0;
-  const S = CONFIG.SCORE, f1 = (p, r) => (p + r > 0 ? 2 * p * r / (p + r) : 0);
-  const at = a => { const c = Math.cos(a), s = Math.sin(a), [pc, ps] = overlap(A, B, c, s), [rc, rs] = overlap(B, A, c, -s); return S.COLOR_W * f1(pc, rc) + (1 - S.COLOR_W) * f1(ps, rs); };
-  let best = 0, ba = 0, st = TAU / S.STEPS;
-  for (let k = 0; k < S.STEPS; k++) { const f = at(k * st); if (f > best) { best = f; ba = k * st; } }
-  for (let k = -4; k <= 4; k++) best = Math.max(best, at(ba + k * st / 8)); // いちばん合った角度のまわりを細かく
-  return best;
-}
-function scoreDisk(disk, q) {
-  const S = CONFIG.SCORE, A = rasterize(g => paintStrokes(g, disk.strokes));
-  if (!q.ras) q.ras = rasterize(g => paintShapes(g, q.s));
-  return Math.round(100 * clamp((matchRate(A, q.ras) - S.F0) / (S.F1 - S.F0), 0, 1));
 }
 
 // ===== [SEC:3D] =====
@@ -474,8 +268,6 @@ function build3D(T) {
   add(new T.ConeGeometry(0.06, 0.16, 24), new T.MeshStandardMaterial({ color: '#6b6b6b', metalness: 0.8, roughness: 0.35 }), 0.08, Math.PI);
   add(new T.CylinderGeometry(1.04, 1.04, 0.15, 96, 1, true), new T.MeshStandardMaterial({ map: stripe, roughness: 0.45 }), 0.875);
   add(new T.RingGeometry(1, 1.04, 96), new T.MeshStandardMaterial({ color: '#d79a5e', roughness: 0.55 }), 0.95, -Math.PI / 2);
-  const lacq = new T.MeshStandardMaterial({ color: '#8e2f1c', roughness: 0.35 });
-  add(new T.CylinderGeometry(0.075, 0.085, 0.42, 32), lacq, 1.16); add(new T.SphereGeometry(0.075, 24, 12), lacq, 1.37);
   const tex = new T.CanvasTexture(D.cv); tex.colorSpace = T.SRGBColorSpace; tex.anisotropy = R.capabilities.getMaxAnisotropy();
   const face = new T.MeshStandardMaterial({ map: tex, roughness: 0.7 });
   face.onBeforeCompile = sh => { // 回転のブレ：面の中心のまわりに少しずつ回して重ねる
@@ -512,16 +304,15 @@ function step3D() {
 // ===== [SEC:STATE] =====
 const cv = $('c'), ctx = cv.getContext('2d');
 const L = { W: 0, H: 0, dpr: 1, cx: 0, cy: 0, R: 100 };
-const G = { scene: 'title', mode: 'free', view: 'free', color: 0, width: CONFIG.PEN_DEF_W, speed: CONFIG.SPEED_DEF, qs: [], q: 0, res: [], timeLeft: 0, timing: false, lastSec: 0, token: 0 };
+const G = { scene: 'title', color: 0, width: CONFIG.PEN_DEF_W, speed: CONFIG.SPEED_DEF };
 const SP = { th: 0, w: 0 };                 // 描く画面のコマの角度・回転の速さ(rad/秒)
 const P = { down: false, id: -1, x: 0, y: 0, px: 0, py: 0, hx: 0, hy: 0, hover: false, mouse: false, touch: false, lx: 0, ly: 0 };
-const V = { w: 0, ang: 0, psi: 0, t: 0, pct: 0, shown: -1, done: true, tick: 0 }; // 3Dで回す画面
-const DF = new Disk(CONFIG.TEX), DQ = new Disk(CONFIG.TEX); // じゆう用・おだい用
-let D = DF;
+const V = { w: 0, ang: 0, psi: 0 }; // 3Dで回す画面
+const D = new Disk(CONFIG.TEX); // コマの面の絵
 const TD = { disk: new Disk(512), th: 0, t: 0, k: -1, r: 0, on: false }; // タイトルのお手本
 
 // ===== [SEC:PEN] =====
-const canDraw = () => G.scene === 'draw' && (G.mode === 'free' || G.timing);
+const canDraw = () => G.scene === 'draw';
 function penAt(sx, sy, th) { // 画面の点 → 回っている面の上の点
   const dx = (sx - L.cx) / L.R, dy = (sy - L.cy) / L.R;
   if (dx * dx + dy * dy > 1) { D.brk(); P.touch = false; return 0; }
@@ -554,67 +345,18 @@ function demoStep(dt) { // タイトル：にじの輪を1本ずつ描いて、�
 }
 
 // ===== [SEC:GAME] =====
-function hideAll() { ['title', 'drawUI', 'intro', 'quit', 'view', 'final', 'flash', 'muteBtn'].forEach(id => show(id, false)); $('c3').classList.add('hidden'); }
-function goTitle() { endPen(); G.token++; hideAll(); show('title', true); show('muteBtn', true); G.scene = 'title'; $('bestTxt').textContent = SV.best ? `おだいのベスト ${SV.best}点` : ''; }
-function enterDraw() { show('drawUI', true); setHead(); G.scene = 'draw'; layout(); updateUndo(); }
-function startFree() { G.mode = 'free'; D = DF; hideAll(); enterDraw(); }
-function startOdai() {
-  G.mode = 'odai'; D = DQ; G.q = 0; G.res = [];
-  G.qs = [1, 2, 3, 4, 5].map(t => { const c = ODAI.filter(o => o.tier === t); return c[Math.random() * c.length | 0]; });
-  openQ();
-}
-function openQ() {
-  G.token++; hideAll(); DQ.clear();
-  const q = G.qs[G.q]; setColor(q.s[0].c); setWidth(q.s[0].w ?? 2);
-  G.timeLeft = CONFIG.Q_SEC; G.timing = false; enterDraw(); G.scene = 'intro';
-  $('iNo').textContent = `第${G.q + 1}問 / ${CONFIG.Q_COUNT}`; $('iName').textContent = q.name; $('iHint').textContent = q.hint;
-  drawThumb($('introCv'), sampleTex(q), 200); show('intro', true);
-}
-function beginQ() { show('intro', false); G.scene = 'draw'; G.timing = true; G.lastSec = CONFIG.Q_SEC; }
-function timerStep(dt) {
-  if (G.mode !== 'odai' || !G.timing || G.paused) return;
-  G.timeLeft = Math.max(0, G.timeLeft - dt);
-  const s = Math.ceil(G.timeLeft); if (s < G.lastSec) { G.lastSec = s; if (s > 0 && s <= CONFIG.COUNT_BEEP) sfx('beep'); }
-  updateTimer();
-  if (G.timeLeft <= 0) { G.timing = false; endPen(); sfx('stop'); flash('そこまで！'); const tk = ++G.token; setTimeout(() => { if (tk === G.token) finishQ(); }, 900); }
-}
-function updateTimer() {
-  const b = $('timerBar'), low = G.timeLeft <= CONFIG.COUNT_BEEP;
-  b.style.width = clamp(G.timeLeft / CONFIG.Q_SEC, 0, 1) * 100 + '%'; b.style.background = low ? '#e0533a' : '#4caf50';
-  $('timerNum').textContent = `のこり ${Math.ceil(G.timeLeft)}秒`;
-}
-function flash(t) { const f = $('flash'); f.textContent = t; f.classList.add('hidden'); void f.offsetWidth; f.classList.remove('hidden'); }
-function done() {
+function hideAll() { ['title', 'drawUI', 'view', 'muteBtn'].forEach(id => show(id, false)); $('c3').classList.add('hidden'); }
+function goTitle() { endPen(); hideAll(); show('title', true); show('muteBtn', true); G.scene = 'title'; }
+function enterDraw() { hideAll(); show('drawUI', true); G.scene = 'draw'; layout(); updateUndo(); }
+function showView() {
   if (P.down) return;
-  if (G.mode === 'free') { sfx('tap'); showView('free'); return; }
-  if (!G.timing) return;
-  G.timing = false; sfx('stop'); finishQ();
-}
-function finishQ() {
-  const q = G.qs[G.q], img = mkCv(256, 256); img.getContext('2d').drawImage(D.cv, 0, 0, 256, 256);
-  G.res.push({ q, pct: scoreDisk(D, q), img });
-  showView('odai');
-}
-const msgFor = p => (p >= 90 ? 'そっくり！' : p >= 75 ? 'じょうず！' : p >= 55 ? 'おしい！' : p >= 30 ? 'もうすこし' : 'ざんねん…');
-function showView(kind) {
-  G.token++; hideAll(); G.view = kind; G.scene = 'view'; show('view', true);
-  const od = kind === 'odai'; show('vPct', od); show('vMsg', od); show('vSample', od); show('vNext', od); show('vFree', !od);
-  if (od) {
-    const r = G.res[G.res.length - 1]; $('vLabel').textContent = `第${G.q + 1}問　${r.q.name}`; $('vPctN').textContent = '0'; $('vMsg').textContent = '';
-    drawThumb($('vSampleCv'), sampleTex(r.q), 72); $('vNext').textContent = G.q + 1 >= CONFIG.Q_COUNT ? '結果を見る' : 'つぎの問題へ';
-    Object.assign(V, { pct: r.pct, shown: 0, done: false });
-  } else { $('vLabel').textContent = 'あなたのコマ'; V.done = true; }
-  Object.assign(V, { w: CONFIG.V3.W0, ang: SP.th, psi: 0, t: 0, tick: 0 });
+  hideAll(); G.scene = 'view'; show('view', true);
+  Object.assign(V, { w: CONFIG.V3.W0, ang: SP.th, psi: 0 });
   if (E3.ok) enter3D();
   sfx('spin');
 }
 function viewStep(dt) {
-  const V3 = CONFIG.V3; V.w = V3.WMIN + (V.w - V3.WMIN) * Math.exp(-dt / V3.DECAY); V.ang += V.w * dt; V.psi += dt * V3.PREC; V.t += dt;
-  if (!V.done) {
-    const k = clamp((V.t - 0.4) / 1.4, 0, 1), n = Math.round(V.pct * (1 - (1 - k) ** 3));
-    if (n !== V.shown) { V.shown = n; $('vPctN').textContent = n; if (V.t - V.tick > 0.05) { V.tick = V.t; sfx('tick'); } }
-    if (k >= 1) { V.done = true; $('vMsg').textContent = msgFor(V.pct); sfx(V.pct >= 75 ? 'good' : V.pct >= 45 ? 'ok' : 'bad'); }
-  }
+  const V3 = CONFIG.V3; V.w = V3.WMIN + (V.w - V3.WMIN) * Math.exp(-dt / V3.DECAY); V.ang += V.w * dt; V.psi += dt * V3.PREC;
   if (E3.ok) step3D();
   else { // 3Dが使えない時：真上から回す
     const g = ctx, top = $('vTop').getBoundingClientRect().bottom, bot = $('vBtns').getBoundingClientRect().top;
@@ -623,22 +365,6 @@ function viewStep(dt) {
   }
 }
 function respin() { if (G.scene !== 'view') return; ac(); V.w = CONFIG.V3.W0; sfx('spin'); }
-function nextQ() { sfx('tap'); G.q++; if (G.q >= CONFIG.Q_COUNT) showFinal(); else openQ(); }
-function showFinal() {
-  hideAll(); G.scene = 'final'; show('final', true); show('muteBtn', true); $('final').scrollTop = 0;
-  const tot = G.res.reduce((a, r) => a + r.pct, 0), rank = CONFIG.RANK.find(r => tot >= r[0]), nb = tot > SV.best;
-  if (nb) { SV.best = tot; writeSave(); }
-  G.total = tot; G.rank = rank[1];
-  $('fTotal').textContent = tot; $('fRank').textContent = `ランク ${rank[1]}`; $('fMsg').textContent = rank[2];
-  $('fNew').textContent = nb ? 'ベスト記録！' : `ベスト ${SV.best}点`;
-  const ul = $('fList'); ul.innerHTML = '';
-  G.res.forEach((r, i) => {
-    const li = document.createElement('li'), a = document.createElement('canvas'), b = document.createElement('canvas');
-    li.innerHTML = `<span class="no">${i + 1}</span>`; drawThumb(a, sampleTex(r.q), 44); drawThumb(b, r.img, 44);
-    li.append(a, b); li.insertAdjacentHTML('beforeend', `<span class="nm">${r.q.name}</span><b>${r.pct}<small>%</small></b>`); ul.appendChild(li);
-  });
-  sfx('fan'); ads('adF');
-}
 function saveImage() {
   const S = 1080, c = mkCv(S, S), g = c.getContext('2d');
   g.fillStyle = BG; g.fillRect(0, 0, S, S); drawTop2D(g, S / 2, S / 2 - 30, S * 0.39, 0, D.cv);
@@ -663,33 +389,13 @@ function setColor(i) { G.color = i; mark('colors', i); $('widths').querySelector
 function setWidth(i) { G.width = i; mark('widths', i); }
 function setSpeed(i) { G.speed = i; mark('speeds', i); }
 function updateUndo() { $('undoBtn').disabled = !D.canUndo(); }
-function setHead() {
-  const od = G.mode === 'odai'; show('timer', od); show('hSample', od);
-  if (od) { const q = G.qs[G.q]; $('hNo').textContent = `第${G.q + 1}問 / ${CONFIG.Q_COUNT}`; $('hName').textContent = q.name; drawThumb($('sampleCv'), sampleTex(q), 72); updateTimer(); }
-  else { $('hNo').textContent = 'おさえると、回ったぶんだけ線がつく'; $('hName').textContent = 'じゆうに描こう'; }
-  $('doneBtn').textContent = od ? 'できた！' : '3Dで回す';
-}
-function share() {
-  const txt = `くるくるコマ描きの「おだい」5問で ${G.total}点（ランク${G.rank}）でした！\n#くるくるコマ描き`;
-  open('https://x.com/intent/post?text=' + encodeURIComponent(txt) + '&url=' + encodeURIComponent(CONFIG.URL), '_blank', 'noopener');
-}
-function ads(id) { const z = $(id); if (!z || z.firstChild || !/(^|\.)nkworks-games\.com$/.test(location.hostname)) return; z.innerHTML = '<ins class="adsbygoogle" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>'; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} }
-$('followBtn').href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; $('followBtn').textContent = `𝕏 @${CONFIG.FOLLOW_X} をフォロー`;
-$('odaiBtn').onclick = () => { ac(); sfx('tap'); startOdai(); };
-$('freeBtn').onclick = () => { ac(); sfx('tap'); startFree(); };
-$('backBtn').onclick = () => { sfx('tap'); if (G.mode === 'free') goTitle(); else { endPen(); G.paused = true; show('quit', true); } }; // おだい中は確認してから
-$('quitNo').onclick = () => { sfx('tap'); G.paused = false; show('quit', false); };
-$('quitYes').onclick = () => { sfx('tap'); G.paused = false; goTitle(); };
+$('playBtn').onclick = () => { ac(); sfx('tap'); enterDraw(); };
+$('backBtn').onclick = () => { sfx('tap'); goTitle(); };
 $('undoBtn').onclick = () => { if (P.down) return; D.undo(); updateUndo(); sfx('tap'); };
 $('clearBtn').onclick = () => { if (P.down || !D.strokes.length) return; D.clearAll(); updateUndo(); sfx('tap'); };
-$('doneBtn').onclick = done;
-$('goBtn').onclick = () => { ac(); sfx('tap'); beginQ(); };
-$('vNext').onclick = nextQ;
+$('doneBtn').onclick = () => { sfx('tap'); showView(); };
 $('vSave').onclick = () => { sfx('tap'); saveImage(); };
-$('vBack').onclick = () => { sfx('tap'); hideAll(); enterDraw(); };
-$('againBtn').onclick = () => { sfx('tap'); startOdai(); };
-$('fTitleBtn').onclick = () => { sfx('tap'); goTitle(); };
-$('shareBtn').onclick = share;
+$('vBack').onclick = () => { sfx('tap'); enterDraw(); };
 $('muteBtn').onclick = () => { SV.mute = !SV.mute; writeSave(); ac(); if (master) master.gain.value = SV.mute ? 0 : CONFIG.VOL; $('muteBtn').classList.toggle('off', SV.mute); };
 
 // ===== [SEC:INPUT] =====
@@ -716,7 +422,7 @@ function resize() {
   layout(); if (E3.ok && G.scene === 'view') fit3D();
 }
 function layout() {
-  if (G.scene !== 'draw' && G.scene !== 'intro') return;
+  if (G.scene !== 'draw') return;
   const hb = $('head').getBoundingClientRect().bottom, tt = $('tools').getBoundingClientRect().top, k = 1 + CONFIG.DISK.RIM, avail = tt - hb;
   L.R = Math.max(60, Math.min(CONFIG.DISK.MAXR, (L.W - CONFIG.DISK.SIDE * 2) / 2 / k, (avail - 12) / 2 / k));
   L.cx = L.W / 2; L.cy = hb + avail / 2;
@@ -740,7 +446,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
   if (G.scene === 'title') { demoStep(dt); renderTitle(); }
-  else if (G.scene === 'draw' || G.scene === 'intro') { spinStep(dt); timerStep(dt); render2D(); }
+  else if (G.scene === 'draw') { spinStep(dt); render2D(); }
   else if (G.scene === 'view') viewStep(dt);
   requestAnimationFrame(frame);
 }
@@ -748,7 +454,7 @@ function frame(now) {
 // ===== [SEC:TEST] =====
 // 確認用：?test で window.KK から中の値や関数をさわれる
 const Q = new URLSearchParams(location.search);
-if (Q.has('test')) window.KK = { G, SP, P, L, V, E3, ODAI, DF, DQ, get D() { return D; }, Disk, paintShapes, scoreDisk, sampleTex, startOdai, startFree, finishQ, showView, setSpeed, setColor, setWidth, CONFIG };
+if (Q.has('test')) window.KK = { G, SP, P, L, V, E3, D, Disk, enterDraw, showView, setSpeed, setColor, setWidth, CONFIG };
 
 // ===== [SEC:BOOT] =====
 loadSave(); buildTools(); setColor(0); setWidth(CONFIG.PEN_DEF_W); setSpeed(CONFIG.SPEED_DEF); SP.w = CONFIG.SPEEDS[G.speed] * TAU;
