@@ -74,8 +74,8 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
 .tb small{font-size:10px}
 .tb:disabled{opacity:.35}
 .done{flex:none;min-width:112px;padding:0 10px;border:3px solid #2b2118;border-radius:14px;background:#e0533a;color:#fff;font-size:17px;font-weight:800;box-shadow:0 3px 0 #2b2118}
-#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(246,237,220,.84)}
-#intro .card{width:100%;max-width:360px;animation:pop .3s ease-out}
+#intro,#quit{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(246,237,220,.84)}
+#intro .card,#quit .card{width:100%;max-width:360px;animation:pop .3s ease-out}
 .qname{font-size:clamp(26px,8vw,34px);font-weight:800;margin-top:6px}
 #introCv{display:block;width:200px;height:200px;margin:6px auto}
 .hint{font-size:14px;font-weight:800;line-height:1.6;margin-bottom:14px;text-wrap:balance}
@@ -140,6 +140,12 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
   <canvas id="introCv"></canvas>
   <p class="hint" id="iHint"></p>
   <button class="big" id="goBtn">はじめる！</button>
+</div></div>
+
+<div id="quit" class="hidden"><div class="card">
+  <div class="qname">おだいをやめますか？</div>
+  <p class="rl">ここまでの点数は消えます</p>
+  <div class="row"><button class="sml" id="quitNo">つづける</button><button class="sml" id="quitYes">やめる</button></div>
 </div></div>
 
 <div id="flash" class="hidden"></div>
@@ -548,7 +554,7 @@ function demoStep(dt) { // タイトル：にじの輪を1本ずつ描いて、�
 }
 
 // ===== [SEC:GAME] =====
-function hideAll() { ['title', 'drawUI', 'intro', 'view', 'final', 'flash', 'muteBtn'].forEach(id => show(id, false)); $('c3').classList.add('hidden'); }
+function hideAll() { ['title', 'drawUI', 'intro', 'quit', 'view', 'final', 'flash', 'muteBtn'].forEach(id => show(id, false)); $('c3').classList.add('hidden'); }
 function goTitle() { endPen(); G.token++; hideAll(); show('title', true); show('muteBtn', true); G.scene = 'title'; $('bestTxt').textContent = SV.best ? `おだいのベスト ${SV.best}点` : ''; }
 function enterDraw() { show('drawUI', true); setHead(); G.scene = 'draw'; layout(); updateUndo(); }
 function startFree() { G.mode = 'free'; D = DF; hideAll(); enterDraw(); }
@@ -566,7 +572,7 @@ function openQ() {
 }
 function beginQ() { show('intro', false); G.scene = 'draw'; G.timing = true; G.lastSec = CONFIG.Q_SEC; }
 function timerStep(dt) {
-  if (G.mode !== 'odai' || !G.timing) return;
+  if (G.mode !== 'odai' || !G.timing || G.paused) return;
   G.timeLeft = Math.max(0, G.timeLeft - dt);
   const s = Math.ceil(G.timeLeft); if (s < G.lastSec) { G.lastSec = s; if (s > 0 && s <= CONFIG.COUNT_BEEP) sfx('beep'); }
   updateTimer();
@@ -671,7 +677,9 @@ function ads(id) { const z = $(id); if (!z || z.firstChild || !/(^|\.)nkworks-ga
 $('followBtn').href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; $('followBtn').textContent = `𝕏 @${CONFIG.FOLLOW_X} をフォロー`;
 $('odaiBtn').onclick = () => { ac(); sfx('tap'); startOdai(); };
 $('freeBtn').onclick = () => { ac(); sfx('tap'); startFree(); };
-$('backBtn').onclick = () => { sfx('tap'); if (G.mode === 'free' || confirm('おだいをやめて、タイトルにもどりますか？')) goTitle(); };
+$('backBtn').onclick = () => { sfx('tap'); if (G.mode === 'free') goTitle(); else { endPen(); G.paused = true; show('quit', true); } }; // おだい中は確認してから
+$('quitNo').onclick = () => { sfx('tap'); G.paused = false; show('quit', false); };
+$('quitYes').onclick = () => { sfx('tap'); G.paused = false; goTitle(); };
 $('undoBtn').onclick = () => { if (P.down) return; D.undo(); updateUndo(); sfx('tap'); };
 $('clearBtn').onclick = () => { if (P.down || !D.strokes.length) return; D.clearAll(); updateUndo(); sfx('tap'); };
 $('doneBtn').onclick = done;
