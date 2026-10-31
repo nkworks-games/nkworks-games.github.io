@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>くるくるコマ描き</title>
+<title>スピンアート</title>
 <meta name="description" content="くるくる回るコマにペンを当てて、輪やうずまきの模様を描くゲーム。描いたコマは3Dで回して眺められる。">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
 <meta name="theme-color" content="#f6eddc">
 <meta property="og:type" content="website">
-<meta property="og:title" content="くるくるコマ描き">
+<meta property="og:title" content="スピンアート">
 <meta property="og:description" content="回るコマにペンを当てて、もようを描こう。">
 <meta property="og:url" content="https://nkworks-games.com/kuru-koma/">
 <meta property="og:image" content="https://nkworks-games.com/kuru-koma/card.png">
@@ -86,7 +86,7 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
 
 <div id="title" class="scr">
   <div class="kick">回るコマに、もようを描こう</div>
-  <h1>くるくる<br>コマ描き</h1>
+  <h1>スピンアート</h1>
   <div id="tDisk"></div>
   <p class="tdesc">コマはずっと回っています。指でおさえると、回ったぶんだけ線がつきます。じっとおさえれば輪、ずらせばうずまき。</p>
   <button class="big" id="playBtn">描きはじめる</button>
@@ -392,12 +392,12 @@ function v3Label() { const r = v3w() / TAU; $('vSpTxt').textContent = r < 0.005 
 function saveImage() {
   const S = 1080, c = mkCv(S, S), g = c.getContext('2d');
   g.fillStyle = BG; g.fillRect(0, 0, S, S); drawTop2D(g, S / 2, S / 2 - 30, S * 0.39, 0, D.cv);
-  g.fillStyle = '#2b2118'; g.font = '800 42px "M PLUS Rounded 1c", sans-serif'; g.textAlign = 'center'; g.fillText('くるくるコマ描き', S / 2, S - 44);
+  g.fillStyle = '#2b2118'; g.font = '800 42px "M PLUS Rounded 1c", sans-serif'; g.textAlign = 'center'; g.fillText('スピンアート', S / 2, S - 44);
   c.toBlob(async b => {
     if (!b) return;
-    const f = new File([b], 'kurukoma.png', { type: 'image/png' });
+    const f = new File([b], 'spinart.png', { type: 'image/png' });
     if (matchMedia('(pointer:coarse)').matches && navigator.canShare && navigator.canShare({ files: [f] })) { try { await navigator.share({ files: [f] }); return; } catch (e) { if (e.name === 'AbortError') return; } }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'kurukoma.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'spinart.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   }, 'image/png');
 }
 
