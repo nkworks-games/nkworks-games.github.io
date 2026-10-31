@@ -47,7 +47,10 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
 #head{position:absolute;left:0;right:0;top:0;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 4px max(12px,env(safe-area-inset-left))}
 .hb{flex:none;width:44px;height:44px;border-radius:50%;border:3px solid #2b2118;background:#fff;font-size:20px;font-weight:800;box-shadow:0 3px 0 #2b2118}
 #hMid{flex:1;min-width:0;text-align:center}
-.hsp{flex:none;width:44px}
+.hb.zb{font-size:12px;padding:0}
+.zb.off{visibility:hidden}
+#vZoom{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));pointer-events:auto}
+#vHint{font-size:12px;font-weight:800;opacity:.6}
 #hNo{font-size:12px;font-weight:800;opacity:.7}
 #hName{font-size:clamp(18px,5.4vw,24px);font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #tools{position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:9px;padding:6px max(12px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
@@ -94,8 +97,8 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
 <div id="drawUI" class="hidden">
   <div id="head">
     <button class="hb" id="backBtn" aria-label="もどる">←</button>
-    <div id="hMid"><div id="hNo">おさえると、回ったぶんだけ線がつく</div><div id="hName">じゆうに描こう</div></div>
-    <i class="hsp"></i>
+    <div id="hMid"><div id="hNo">おさえると線がつく・2本指でズーム</div><div id="hName">じゆうに描こう</div></div>
+    <button class="hb zb off" id="zoomBtn" aria-label="ズームをもとにもどす">全体</button>
   </div>
   <div id="tools">
     <div id="colors"></div>
@@ -105,7 +108,8 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
 </div>
 
 <div id="view" class="hidden">
-  <div id="vTop"><div id="vLabel">あなたのコマ</div></div>
+  <div id="vTop"><div id="vLabel">あなたのコマ</div><div id="vHint">2本指でズーム</div></div>
+  <button class="hb zb off" id="vZoom" aria-label="ズームをもとにもどす">全体</button>
   <div id="vBtns">
     <div id="vSpTxt"></div>
     <div class="vsp"><span>止める</span><input type="range" id="vSpeed" min="0" max="100" aria-label="回る速さ"><span>もーう</span></div>
@@ -118,7 +122,8 @@ button{font-family:inherit;cursor:pointer;color:#2b2118;touch-action:manipulatio
 <script type="module">
 // ===== [SEC:CONFIG] =====
 const CONFIG = {
-  TEX: 1024,                    // コマの絵の細かさ（ピクセル）
+  TEX: 2048,                    // コマの絵の細かさ（ピクセル）。ズームしてもにじまないように大きめ
+  ZOOM: { MAX: 4, CANCEL_MS: 250, MIN3: 0.7, MAX3: 3, WHEEL: 0.0015 }, // ズーム：描く画面の最大倍率・2本目の指がこの時間(ミリ秒)内に来たら1本目の線を取り消す・3Dの最小/最大倍率・マウスホイールの効き
   SPEEDS: [0, 0.3, 0.7, 1.3],   // 回転の速さ（1秒に何回転）止める・ゆっくり・ふつう・はやい
   SPEED_DEF: 2,                 // 最初の速さ（SPEEDSの番号）
   SPIN_ACC: 3.5,                // 速さを変えた時の追いつきやすさ（大きいほどすぐ変わる）
@@ -201,6 +206,7 @@ class Disk {
   constructor(n) { this.n = n; this.cv = mkCv(n, n); this.g = this.cv.getContext('2d'); this.clear(); }
   wipe() { const g = this.g, h = this.n / 2; g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#fff'; g.fillRect(0, 0, this.n, this.n); g.setTransform(h, 0, 0, h, h, h); g.lineCap = g.lineJoin = 'round'; }
   clear() { this.strokes = []; this.cleared = null; this.cur = null; this.seg = null; this.wipe(); }
+  cancel() { if (!this.cur) return; this.cur = null; this.seg = null; this.redraw(); } // 描きかけの線をなかったことに
   begin(c, w) { this.cur = { c, w, segs: [] }; this.seg = null; }
   add(x, y) {
     const st = this.cur; if (!st) return;
@@ -300,10 +306,10 @@ function fit3D() {
   const { R, cam } = E3, V3 = CONFIG.V3, w = innerWidth, h = innerHeight;
   R.setSize(w, h, false); cam.aspect = w / h;
   const top = $('vTop').getBoundingClientRect().bottom, bot = h - $('vBtns').getBoundingClientRect().top, avail = Math.max(h * 0.35, h - top - bot);
-  const tv = Math.tan(V3.FOV * Math.PI / 360), dist = V3.FIT / Math.min(tv * avail / h, tv * cam.aspect);
-  cam.position.set(0, 0.7 + dist * Math.sin(V3.ELEV), dist * Math.cos(V3.ELEV)); cam.lookAt(0, 0.7, 0);
-  cam.setViewOffset(w, h, 0, (bot - top) / 2, w, h); cam.updateProjectionMatrix();
+  const tv = Math.tan(V3.FOV * Math.PI / 360); E3.dist0 = V3.FIT / Math.min(tv * avail / h, tv * cam.aspect);
+  cam.setViewOffset(w, h, 0, (bot - top) / 2, w, h); cam.updateProjectionMatrix(); aim3D();
 }
+function aim3D() { const V3 = CONFIG.V3, d = E3.dist0 / Z3.s; E3.cam.position.set(0, 0.7 + d * Math.sin(V3.ELEV), d * Math.cos(V3.ELEV)); E3.cam.lookAt(0, 0.7, 0); }
 function step3D() {
   const V3 = CONFIG.V3, s = clamp(V.w / 2, 0, 1), k = clamp(V.w / V3.TILT_W, 0, 1); // s：止まりかけは首ふり・ふらつきも止める
   E3.spin.rotation.y = -V.ang;
@@ -318,7 +324,11 @@ const cv = $('c'), ctx = cv.getContext('2d');
 const L = { W: 0, H: 0, dpr: 1, cx: 0, cy: 0, R: 100 };
 const G = { scene: 'title', color: 0, width: CONFIG.PEN_DEF_W, speed: CONFIG.SPEED_DEF, v3: CONFIG.V3.V_DEF }; // v3：3Dの速さのスライダー(0〜100)
 const SP = { th: 0, w: 0 };                 // 描く画面のコマの角度・回転の速さ(rad/秒)
-const P = { down: false, id: -1, x: 0, y: 0, px: 0, py: 0, hx: 0, hy: 0, hover: false, mouse: false, touch: false, lx: 0, ly: 0 };
+const P = { down: false, id: -1, x: 0, y: 0, px: 0, py: 0, hx: 0, hy: 0, hover: false, mouse: false, touch: false, lx: 0, ly: 0, t0: 0 };
+const Z = { s: 1, ox: 0, oy: 0 };          // 描く画面のズーム（倍率・コマの中心のずらし px）
+const Z3 = { s: 1 };                      // 3D画面のズーム倍率
+const TP = new Map(), T3 = new Map();     // 画面にふれている指（描く画面・3D画面）
+const PZ = { on: false, wait: false, d0: 1, s0: 1, mx: 0, my: 0, cx0: 0, cy0: 0 }; // 2本指ズーム中。wait：指が全部はなれるまで描かない
 const V = { w: 0, ang: 0, psi: 0 }; // 3Dで回す画面
 const D = new Disk(CONFIG.TEX); // コマの面の絵
 const TD = { disk: new Disk(512), th: 0, t: 0, k: -1, r: 0, on: false }; // タイトルのお手本
@@ -326,7 +336,7 @@ const TD = { disk: new Disk(512), th: 0, t: 0, k: -1, r: 0, on: false }; // タ�
 // ===== [SEC:PEN] =====
 const canDraw = () => G.scene === 'draw';
 function penAt(sx, sy, th) { // 画面の点 → 回っている面の上の点
-  const dx = (sx - L.cx) / L.R, dy = (sy - L.cy) / L.R;
+  const dx = (sx - L.cx - Z.ox) / (L.R * Z.s), dy = (sy - L.cy - Z.oy) / (L.R * Z.s);
   if (dx * dx + dy * dy > 1) { D.brk(); P.touch = false; return 0; }
   const c = Math.cos(th), s = Math.sin(th), x = dx * c + dy * s, y = -dx * s + dy * c, m = P.touch ? Math.hypot(x - P.lx, y - P.ly) : 0;
   D.add(x, y); P.lx = x; P.ly = y; P.touch = true; return m;
@@ -336,7 +346,7 @@ function penLine(th0, th1) { // 前の位置から今の位置まで、角度も
   let m = 0; for (let i = 1; i <= n; i++) { const t = i / n; m += penAt(lerp(P.px, P.x, t), lerp(P.py, P.y, t), lerp(th0, th1, t)); }
   P.px = P.x; P.py = P.y; return m;
 }
-function startPen(x, y, id) { P.down = true; P.id = id; P.x = P.px = x; P.y = P.py = y; P.touch = false; D.begin(G.color, G.width); penAt(x, y, SP.th); }
+function startPen(x, y, id) { P.down = true; P.id = id; P.t0 = performance.now(); P.x = P.px = x; P.y = P.py = y; P.touch = false; D.begin(G.color, G.width); penAt(x, y, SP.th); }
 function endPen() { if (!P.down) return; penLine(SP.th, SP.th); D.end(); P.down = false; P.touch = false; penSound(0); updateUndo(); }
 function spinStep(dt) {
   const tw = CONFIG.SPEEDS[G.speed] * TAU; SP.w += (tw - SP.w) * Math.min(1, dt * CONFIG.SPIN_ACC); if (Math.abs(SP.w - tw) < 0.002) SP.w = tw;
@@ -359,10 +369,10 @@ function demoStep(dt) { // タイトル：にじの輪を1本ずつ描いて、�
 // ===== [SEC:GAME] =====
 function hideAll() { ['title', 'drawUI', 'view', 'muteBtn'].forEach(id => show(id, false)); $('c3').classList.add('hidden'); }
 function goTitle() { endPen(); hideAll(); show('title', true); show('muteBtn', true); G.scene = 'title'; ads('adT'); }
-function enterDraw() { hideAll(); show('drawUI', true); G.scene = 'draw'; layout(); updateUndo(); }
+function enterDraw() { hideAll(); show('drawUI', true); G.scene = 'draw'; TP.clear(); T3.clear(); Object.assign(PZ, { on: false, wait: false }); layout(); updateUndo(); }
 function showView() {
   if (P.down) return;
-  hideAll(); G.scene = 'view'; show('view', true);
+  hideAll(); G.scene = 'view'; show('view', true); T3.clear(); setZoom3(Z3.s);
   Object.assign(V, { w: SP.w, ang: SP.th, psi: 0 });
   if (E3.ok) enter3D();
   sfx('spin');
@@ -374,7 +384,7 @@ function viewStep(dt) {
   else { // 3Dが使えない時：真上から回す
     const g = ctx, top = $('vTop').getBoundingClientRect().bottom, bot = $('vBtns').getBoundingClientRect().top;
     g.setTransform(L.dpr, 0, 0, L.dpr, 0, 0); g.fillStyle = BG; g.fillRect(0, 0, L.W, L.H);
-    drawTop2D(g, L.W / 2, (top + bot) / 2, Math.max(40, Math.min(L.W * 0.4, (bot - top) / 2 * 0.85)), V.ang, D.cv);
+    drawTop2D(g, L.W / 2, (top + bot) / 2, Math.max(40, Math.min(L.W * 0.4, (bot - top) / 2 * 0.85)) * Z3.s, V.ang, D.cv);
   }
 }
 const v3w = () => CONFIG.V3.VMAX * (G.v3 / 100) ** 2; // スライダー → 回る速さ(rad/秒)。遅い側を細かく選べるように2乗
@@ -418,18 +428,57 @@ $('vSpeed').value = G.v3; v3Label();
 $('muteBtn').onclick = () => { SV.mute = !SV.mute; writeSave(); ac(); if (master) master.gain.value = SV.mute ? 0 : CONFIG.VOL; $('muteBtn').classList.toggle('off', SV.mute); };
 
 // ===== [SEC:INPUT] =====
+function setZoom(s, ox, oy) { // 倍率とずらしを決める（コマが画面のまん中から外れすぎないように）
+  const m = L.R * (s - 1); Z.s = s; Z.ox = clamp(ox, -m, m); Z.oy = clamp(oy, -m, m);
+  $('zoomBtn').classList.toggle('off', s < 1.01);
+}
+function zoomAt(x, y, s) { // 点 x,y の下のところを動かさずに倍率を変える
+  s = clamp(s, 1, CONFIG.ZOOM.MAX); const k = s / Z.s, cx = L.cx + Z.ox, cy = L.cy + Z.oy;
+  setZoom(s, x - (x - cx) * k - L.cx, y - (y - cy) * k - L.cy);
+}
+function startPinch() {
+  if (P.down) { // 2本目の指がすぐ来たら、1本目で描きはじめた線は取り消す
+    if (performance.now() - P.t0 < CONFIG.ZOOM.CANCEL_MS) { D.cancel(); P.down = false; P.touch = false; penSound(0); updateUndo(); } else endPen();
+  }
+  const [a, b] = [...TP.values()];
+  Object.assign(PZ, { on: true, wait: true, d0: Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)), s0: Z.s, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, cx0: L.cx + Z.ox, cy0: L.cy + Z.oy });
+}
+function movePinch() {
+  const [a, b] = [...TP.values()], s = clamp(PZ.s0 * Math.hypot(a.x - b.x, a.y - b.y) / PZ.d0, 1, CONFIG.ZOOM.MAX), k = s / PZ.s0;
+  setZoom(s, (a.x + b.x) / 2 - (PZ.mx - PZ.cx0) * k - L.cx, (a.y + b.y) / 2 - (PZ.my - PZ.cy0) * k - L.cy);
+}
 cv.addEventListener('pointerdown', e => {
-  if (!canDraw() || P.down) return;
-  ac(); e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (er) {}
-  startPen(e.clientX, e.clientY, e.pointerId);
+  if (!canDraw()) return;
+  e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+  TP.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (TP.size === 2) { startPinch(); return; }
+  if (TP.size > 2 || PZ.wait || P.down) return;
+  ac(); startPen(e.clientX, e.clientY, e.pointerId);
 });
 cv.addEventListener('pointermove', e => {
   P.mouse = e.pointerType === 'mouse'; P.hover = true; P.hx = e.clientX; P.hy = e.clientY;
-  if (P.down && e.pointerId === P.id) { P.x = e.clientX; P.y = e.clientY; }
+  if (TP.has(e.pointerId)) TP.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (PZ.on && TP.size >= 2) movePinch();
+  else if (P.down && e.pointerId === P.id) { P.x = e.clientX; P.y = e.clientY; }
 });
-const penUp = e => { if (P.down && e.pointerId === P.id) { P.x = e.clientX; P.y = e.clientY; endPen(); } };
+const penUp = e => {
+  TP.delete(e.pointerId); if (TP.size < 2) PZ.on = false; if (!TP.size) PZ.wait = false;
+  if (P.down && e.pointerId === P.id) { P.x = e.clientX; P.y = e.clientY; endPen(); }
+};
 cv.addEventListener('pointerup', penUp); cv.addEventListener('pointercancel', penUp);
 cv.addEventListener('pointerleave', () => { P.hover = false; });
+cv.addEventListener('wheel', e => { if (G.scene !== 'draw') return; e.preventDefault(); zoomAt(e.clientX, e.clientY, Z.s * Math.exp(-e.deltaY * CONFIG.ZOOM.WHEEL)); }, { passive: false });
+$('zoomBtn').onclick = () => { sfx('tap'); setZoom(1, 0, 0); };
+// 3D画面：2本指（PCはホイール）でカメラを近づける・はなす
+function setZoom3(s) { Z3.s = clamp(s, CONFIG.ZOOM.MIN3, CONFIG.ZOOM.MAX3); $('vZoom').classList.toggle('off', Math.abs(Z3.s - 1) < 0.01); if (E3.ok && E3.dist0) aim3D(); }
+const c3 = $('c3'), pinch3 = () => { const [a, b] = [...T3.values()]; return Math.max(10, Math.hypot(a.x - b.x, a.y - b.y)); };
+for (const el of [c3, cv]) { // 3Dが使えない時は2Dの画面でズームする
+  el.addEventListener('pointerdown', e => { if (G.scene !== 'view') return; try { el.setPointerCapture(e.pointerId); } catch (er) {} T3.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (T3.size === 2) Object.assign(Z3, { d0: pinch3(), s0: Z3.s }); });
+  el.addEventListener('pointermove', e => { if (G.scene !== 'view' || !T3.has(e.pointerId)) return; T3.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (T3.size === 2) setZoom3(Z3.s0 * pinch3() / Z3.d0); });
+  const up = e => T3.delete(e.pointerId); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  el.addEventListener('wheel', e => { if (G.scene !== 'view') return; e.preventDefault(); setZoom3(Z3.s * Math.exp(-e.deltaY * CONFIG.ZOOM.WHEEL)); }, { passive: false });
+}
+$('vZoom').onclick = () => { sfx('tap'); setZoom3(1); };
 addEventListener('keydown', e => { if (G.scene === 'draw' && (e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); $('undoBtn').click(); } });
 
 // ===== [SEC:LOOP] =====
@@ -442,13 +491,13 @@ function layout() {
   if (G.scene !== 'draw') return;
   const hb = $('head').getBoundingClientRect().bottom, tt = $('tools').getBoundingClientRect().top, k = 1 + CONFIG.DISK.RIM, avail = tt - hb;
   L.R = Math.max(60, Math.min(CONFIG.DISK.MAXR, (L.W - CONFIG.DISK.SIDE * 2) / 2 / k, (avail - 12) / 2 / k));
-  L.cx = L.W / 2; L.cy = hb + avail / 2;
+  L.cx = L.W / 2; L.cy = hb + avail / 2; setZoom(Z.s, Z.ox, Z.oy);
 }
 function render2D() {
   const g = ctx; g.setTransform(L.dpr, 0, 0, L.dpr, 0, 0); g.fillStyle = BG; g.fillRect(0, 0, L.W, L.H);
-  drawTop2D(g, L.cx, L.cy, L.R, SP.th, D.cv);
+  drawTop2D(g, L.cx + Z.ox, L.cy + Z.oy, L.R * Z.s, SP.th, D.cv);
   if (G.scene !== 'draw') return;
-  const wpx = CONFIG.PEN_W[G.width] * L.R;
+  const wpx = CONFIG.PEN_W[G.width] * L.R * Z.s;
   if (P.down) drawPen(g, P.x, P.y, G.color, wpx, true); else if (P.mouse && P.hover && canDraw()) drawPen(g, P.hx, P.hy, G.color, wpx, false);
 }
 function renderTitle() {
@@ -471,7 +520,7 @@ function frame(now) {
 // ===== [SEC:TEST] =====
 // 確認用：?test で window.KK から中の値や関数をさわれる
 const Q = new URLSearchParams(location.search);
-if (Q.has('test')) window.KK = { G, SP, P, L, V, E3, D, Disk, drawTop2D, drawPen, COLORS, enterDraw, showView, setSpeed, setColor, setWidth, CONFIG };
+if (Q.has('test')) window.KK = { G, SP, P, L, V, Z, Z3, E3, D, Disk, drawTop2D, drawPen, COLORS, enterDraw, showView, setSpeed, setColor, setWidth, CONFIG };
 
 // ===== [SEC:BOOT] =====
 loadSave(); buildTools(); setColor(0); setWidth(CONFIG.PEN_DEF_W); setSpeed(CONFIG.SPEED_DEF); SP.w = CONFIG.SPEEDS[G.speed] * TAU;
