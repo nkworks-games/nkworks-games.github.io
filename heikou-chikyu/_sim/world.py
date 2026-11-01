@@ -444,7 +444,15 @@ def island_props(tid, lay):
         root_crop=(T > 18) & (P > 1000) & (((kind != 'coral') & (area > 150) & (r3[:, 3] < 0.7)) | ((kind == 'coral') & (r3[:, 3] < 0.35))),
         grain=(T > 8) & (T < 25) & (P > 400) & (P < 1800) & (area > 20e3) & (r3[:, 4] < 0.6),
     )
-    return dict(kind=kind, hmax=hmax, T=T, P=P, coast_km=coast, shelf_w=shelf_w, res=res)
+    # 追加検証で使う架空の資源（ふだんの計算では使わない）。元の地形を変えないよう、別の乱数で決める
+    rx = rng_for(tid, 'extras').uniform(0, 1, (n, 2))
+    extras = dict(
+        # 潮麦：暖かい海（年平均14℃以上）の浅瀬に育つ。種が海を漂うので、多くの島にある
+        tidewheat=(T >= 14) & (rx[:, 0] < np.where(kind == 'continental', 0.5, 0.75)),
+        # 軽殻石：火山のそばの浜にたまる、軽くて水に浮く石。サンゴ島にも流れ着く
+        lightstone=rx[:, 1] < np.select([kind == 'volcanic_high', kind == 'volcanic_old', kind == 'coral'], [0.7, 0.5, 0.5], 0.15),
+    )
+    return dict(kind=kind, hmax=hmax, T=T, P=P, coast_km=coast, shelf_w=shelf_w, res=res, extras=extras)
 
 
 # ---------------------------------------------------------------- 地域に分ける
@@ -574,6 +582,10 @@ def build_world(tid):
     # 銅の鉱石は、大きな島の一部の地域にだけ
     rr = rng.uniform(0, 1, R)
     reg['res_copper'] = reg['res_copper'] & (rr < 0.08)
+    for k, v in props['extras'].items():
+        reg['x_' + k] = v[isl].copy()
+    reg['x_tidewheat'] &= reg['shelf_km2'] > 1
+    reg['stone_deposit'] = np.where(reg['x_lightstone'], reg['coast_km'] * 3.0, 0.0)   # 軽殻石の量（舟の数）
     # 地域どうしのつながり（同じ島の隣どうし）
     adj = [[] for _ in range(R)]
     for i, ids in enumerate(island_regions):
@@ -680,5 +692,6 @@ def summary(world):
         '畑にできる土地km2': float(reg['arable_km2'].sum()),
         '森km2': float(reg['forest_km2'].sum()),
         '資源のある島の数': {k: int(v.sum()) for k, v in props['res'].items()},
+        '架空の資源のある島の数（追加検証用）': {k: int(v.sum()) for k, v in props['extras'].items()},
         '採集と漁で暮らせる人数の目安（地域の合計）': float(hab.sum()),
     }

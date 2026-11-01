@@ -18,7 +18,8 @@ import numpy as np
 
 import world as W
 
-VERSION = 'heikou-sim-1.1'
+VERSION = 'heikou-sim-1.2'
+SEED_TAG = 'heikou-sim-1.1'   # 乱数の種の名前。1.1 の結果を再現できるよう固定する
 MAXAGE = 90
 
 # ---------------------------------------------------------------- 人口（年齢別の死亡と出生）
@@ -88,7 +89,11 @@ TECHS = [
     ('storehouse', '高床の倉', ('adze',), 'bigtree', 4000, 1.8),
     ('copper', '銅の精錬', ('pottery',), 'copper', 20000, 6.0),
     ('tally', '数の記録', (), None, 3000, 4.0),
+    # ここから下は追加検証用（架空の資源があるときだけ使える）
+    ('tidefarm', '潮麦の栽培', (), 'tidewheat', 5000, 2.0),
+    ('lightboat', '軽殻石の浮き舟', (), 'lightstone', 4000, 2.0),
 ]
+NT0 = 18   # ふだんの技術の数（乱数の並びを 1.1 と同じに保つため、追加分は別の乱数で扱う）
 TK = [t[0] for t in TECHS]
 TI = {k: i for i, k in enumerate(TK)}
 NT = len(TECHS)
@@ -101,42 +106,58 @@ COST = np.array([t[4] for t in TECHS], float)
 DIFF = np.array([t[5] for t in TECHS], float)
 
 # 資源：存在する → 見つける → 性質を理解する →（技術で）加工できる → 使う
-RES = ['fiber', 'clay', 'adze_stone', 'bigtree', 'crop', 'grain', 'copper']
+RES = ['fiber', 'clay', 'adze_stone', 'bigtree', 'crop', 'grain', 'copper', 'tidewheat', 'lightstone']
 RES_JA = {'fiber': '繊維になる植物', 'clay': '粘土', 'adze_stone': '斧に向く硬い石（サンゴ島では大きな貝）', 'bigtree': '舟を作れる大木',
-          'crop': '育てられる芋や果樹', 'grain': '育てられる穀物', 'copper': '銅の鉱石'}
+          'crop': '育てられる芋や果樹', 'grain': '育てられる穀物', 'copper': '銅の鉱石',
+          'tidewheat': '潮麦（浅瀬に育つ穀物）', 'lightstone': '軽殻石（水に浮く軽い石）'}
+NR0 = 7
 RI = {k: i for i, k in enumerate(RES)}
 NR = len(RES)
-P_FIND = np.array([0.6, 0.15, 0.15, 0.8, 0.08, 0.06, 0.004])   # その地域にあれば、1年に見つける確率（余暇で増える）
-P_UNDERSTAND = np.array([0.3, 0.05, 0.05, 0.3, 0.02, 0.015, 0.003])
+P_FIND = np.array([0.6, 0.15, 0.15, 0.8, 0.08, 0.06, 0.004, 0.3, 0.3])   # その地域にあれば、1年に見つける確率（余暇で増える）
+P_UNDERSTAND = np.array([0.3, 0.05, 0.05, 0.3, 0.02, 0.015, 0.003, 0.04, 0.05])
 TECH_RES = np.array([RI[t[3]] if t[3] in RI else -1 for t in TECHS])
 
 # 舟が届く距離（km）。技術の上達で 6〜10割
-RANGE = {'raft': 30.0, 'dugout': 40.0, 'outrigger': 160.0, 'sail': 500.0, 'wayfinding': 1500.0}
+RANGE = {'raft': 30.0, 'dugout': 40.0, 'lightboat': 100.0, 'outrigger': 160.0, 'sail': 500.0, 'wayfinding': 1500.0}
+BOAT_TIERS = ['dugout', 'lightboat', 'outrigger', 'sail', 'wayfinding']
 
 # ---------------------------------------------------------------- 食べ物の取り方
 
-ACTS = ['plant', 'game', 'shell', 'fish', 'offshore', 'garden', 'field', 'pond']
+ACTS = ['plant', 'game', 'shell', 'fish', 'offshore', 'garden', 'field', 'pond', 'tide', 'tidewild']
 ACT_JA = {'plant': '採集', 'game': '狩り', 'shell': '貝とり', 'fish': '岸の漁', 'offshore': '沖の漁',
-          'garden': '芋や果樹の畑', 'field': '穀物の畑', 'pond': '養魚池'}
-STOCKS = ['plant', 'game', 'shell', 'fish', 'offshore']
-GROW = {'plant': 0.8, 'game': 0.25, 'shell': 0.35, 'fish': 0.45, 'offshore': 0.45}   # 自然に増える速さ（年）
-HARV = {'plant': 0.35, 'game': 0.25, 'shell': 0.30, 'fish': 0.30, 'offshore': 0.25}  # 1年にとれる上限（量に対して）
+          'garden': '芋や果樹の畑', 'field': '穀物の畑', 'pond': '養魚池', 'tide': '潮麦の浅瀬（栽培）', 'tidewild': '野生の潮麦'}
+AI = {a: i for i, a in enumerate(ACTS)}
+STOCKS = ['plant', 'game', 'shell', 'fish', 'offshore', 'tidewild']
+GROW = {'plant': 0.8, 'game': 0.25, 'shell': 0.35, 'fish': 0.45, 'offshore': 0.45, 'tidewild': 0.6}   # 自然に増える速さ（年）
+HARV = {'plant': 0.35, 'game': 0.25, 'shell': 0.30, 'fish': 0.30, 'offshore': 0.25, 'tidewild': 0.35}  # 1年にとれる上限
 E1 = {'plant': 0.010, 'game': 0.014, 'shell': 0.011, 'fish': 0.009, 'offshore': 0.012,
-      'garden': 0.008, 'field': 0.009, 'pond': 0.010}                                  # 1人日でとれる量（とり始め）
+      'garden': 0.008, 'field': 0.009, 'pond': 0.010, 'tide': 0.012, 'tidewild': 0.011}  # 1人日でとれる量（とり始め）
 GARDEN_YIELD = 30.0   # 芋や果樹の畑 1km² で、1年に何人分
 FIELD_YIELD = 75.0    # 穀物の畑
 CLEAR_DAYS = 3000.0   # 森を 1km² 切り開く人日（石の斧なし）
 INSIGHT = 0.0006      # 余暇1万人日あたり、難しさ1の技術を思いつく確率（1年）
+# 追加検証の架空の資源
+TIDE_YIELD = 40.0         # 潮麦の浅瀬 1km² で、1年に何人分（潮が引いたときに刈る）
+TIDE_PLANT_DAYS = 500.0   # 潮麦の浅瀬を 1km² 広げる人日（森を切り開くより軽い）
+TIDE_MAX_SHARE = 0.5      # 浅い海のうち、潮麦にできる割合
+TIDE_WILD_SHARE = 0.3     # そのうち、野生の潮麦がもともと生えている割合（栽培を知らなくても、食べられると分かれば採れる）
+TIDE_FISH_COST = 0.6      # 潮麦で浅瀬を埋めた割合 × この値だけ、岸の魚の量（稚魚の育つ場所）が減る
+STONE_DECAY = 0.22        # 軽殻石の舟は割れやすい（木の舟は年12％、軽殻石は年22％傷む）
+STONE_REGEN = 0.02        # 軽殻石は浜に少しずつ流れ着く（最初の量の年2％）
 
 
 def seed_for(*parts):
-    key = ':'.join(str(p) for p in (VERSION,) + parts)
+    key = ':'.join(str(p) for p in (SEED_TAG,) + parts)
     return int(hashlib.sha256(key.encode()).hexdigest()[:16], 16)
 
 
 class Sim:
-    def __init__(self, world, trial, start_pop=1000, n_groups=5, years=3000, snapshot_every=10):
+    def __init__(self, world, trial, start_pop=1000, n_groups=5, years=3000, snapshot_every=10,
+                 extras=(), extras_year=0):
+        """extras：追加検証で加える架空の資源（'tidewheat' 潮麦、'lightstone' 軽殻石）。extras_year 年から現れる"""
         self.w = world
+        self.extras = set(extras)
+        self.extras_year = extras_year
         self.tid = world['tid']
         self.trial = trial
         self.years = years
@@ -144,6 +165,7 @@ class Sim:
         self.snap_every = snapshot_every
         ss = np.random.SeedSequence(seed_for(self.tid, trial))
         self.r_demo, self.r_event, self.r_know, self.r_move = [np.random.default_rng(s) for s in ss.spawn(4)]
+        self.r_x = np.random.default_rng(seed_for(self.tid, trial, 'extras'))
         reg = world['reg']
         self.reg = reg
         self.NRg = len(reg['area'])
@@ -153,7 +175,7 @@ class Sim:
         self.isl_kind = world['props']['kind']
         self.isl_hmax = world['props']['hmax']
         # 地域の自然の量（最初は手つかず）
-        self.K = {s: 4 * reg['msy_' + s] / GROW[s] for s in STOCKS}
+        self.K = {s: 4 * reg['msy_' + s] / GROW[s] if 'msy_' + s in reg else np.zeros(len(reg['area'])) for s in STOCKS}
         self.S = {s: self.K[s].copy() for s in STOCKS}
         self.forest0 = reg['forest_km2'].copy()
         self.forest = reg['forest_km2'].copy()
@@ -164,7 +186,13 @@ class Sim:
         self.region_res = np.stack([
             (reg['P'] > 500) & (reg['T'] > 5),
             reg['res_clay'], reg['res_adze_stone'], reg['bigtree'] >= 1,
-            reg['res_root_crop'], reg['res_grain'], reg['res_copper']], axis=1)
+            reg['res_root_crop'], reg['res_grain'], reg['res_copper'],
+            np.zeros(len(reg['area']), bool), np.zeros(len(reg['area']), bool)], axis=1)
+        self.tidefarm = np.zeros(self.NRg)
+        self.stone0 = np.zeros(self.NRg)
+        self.stone = np.zeros(self.NRg)
+        if self.extras_year == 0:
+            self._enable_extras()
         self.anom = np.zeros(self.n_isl)            # 雨の多さのずれ（島ごと）
         self.rainf = np.ones(self.n_isl)
         # 島のつながり（海の幅）
@@ -185,7 +213,7 @@ class Sim:
         self.events = []
         self.series = {k: [] for k in ('pop', 'groups', 'islands', 'food', 'water', 'shelter', 'poor', 'leisure', 'store',
                                        'techs', 'forest', 'bigtree', 'fish', 'shell', 'contacts', 'voyages', 'lost_voyages',
-                                       'births', 'deaths', 'range_km', 'farmed_km2', 'max_tech')}
+                                       'births', 'deaths', 'range_km', 'farmed_km2', 'max_tech', 'tide_km2', 'stone_boats')}
         self.deaths_age = []
         self.pop_age = []
         self.snaps = []
@@ -212,7 +240,8 @@ class Sim:
         self.immune = z(cap)
         self.fruitless = z(cap)
         self.range_seen = z(cap)
-        self.crops = z(cap, 2, dt=bool)        # 持ち運んでいる作物（芋や果樹・穀物）
+        self.crops = z(cap, 3, dt=bool)        # 持ち運んでいる作物（芋や果樹・穀物・潮麦）
+        self.bstone = z(cap)                   # 舟のうち軽殻石の舟の割合
         self.parent = np.full(cap, -1)
         self.born = z(cap, dt=int)
         self.known = [set() for _ in range(cap)]
@@ -224,7 +253,7 @@ class Sim:
         self.cap *= 2
         keep = {k: getattr(self, k) for k in ('ages', 'alive', 'region', 'skill', 'dev', 'res', 'store', 'houses', 'boats',
                                                'years_here', 'stress', 'voyages', 'immune', 'fruitless', 'range_seen',
-                                               'crops', 'parent', 'born')}
+                                               'crops', 'bstone', 'parent', 'born')}
         known = self.known
         self._alloc(self.cap)
         for k, v in keep.items():
@@ -300,6 +329,18 @@ class Sim:
         self._event('start', -1, '開始：%d人（%d集団）。最初の島は%s（%s km²）' % (
             n, k, W.KIND_JA[self.isl_kind[isl0]], format(round(self.w['lay']['area'][isl0]), ',')), island=int(isl0))
 
+    def _enable_extras(self):
+        reg = self.reg
+        if 'tidewheat' in self.extras:
+            self.region_res[:, RI['tidewheat']] = reg['x_tidewheat']
+            msy = reg['shelf_km2'] * TIDE_MAX_SHARE * TIDE_WILD_SHARE * TIDE_YIELD * reg['x_tidewheat']
+            self.K['tidewild'] = 4 * msy / GROW['tidewild']
+            self.S['tidewild'] = self.K['tidewild'].copy()
+        if 'lightstone' in self.extras:
+            self.region_res[:, RI['lightstone']] = reg['x_lightstone']
+            self.stone0 = reg['stone_deposit'].copy()
+            self.stone = reg['stone_deposit'].copy()
+
     def _event(self, kind, g, text, **kw):
         e = dict(year=self.year, kind=kind, group=int(g), text=text)
         if g >= 0:
@@ -310,6 +351,9 @@ class Sim:
 
     # ------------------------------------------------------------ 1年
     def step(self):
+        if self.extras and self.extras_year > 0 and self.year == self.extras_year:
+            self._enable_extras()
+            self._event('extras', -1, '架空の資源が現れる：%s' % '・'.join(RES_JA[x] for x in sorted(self.extras)))
         G = self.G
         al = self.alive[:G]
         idx = np.nonzero(al)[0]
@@ -345,7 +389,7 @@ class Sim:
         self.boats[idx] *= 1 - 0.6 * sev
         self.store[idx] *= 1 - 0.3 * sev
         reg_sev = np.minimum(storm_sev[reg['island']], 1.0)
-        for s in ('plant', 'shell'):
+        for s in ('plant', 'shell', 'tidewild'):
             self.S[s] *= 1 - 0.2 * reg_sev
         # ---- 水
         coral = self.isl_kind[isl] == 'coral'
@@ -373,14 +417,17 @@ class Sim:
         e1 = np.zeros((n, A))
         C = np.zeros((n, A))
         mult_fish = (1 + 0.5 * sk[:, TI['nets']]) * (1 + 0.3 * sk[:, TI['hooks']])
-        for a, s in enumerate(STOCKS):
-            dens = self.S[s][rg] / np.maximum(self.K[s][rg], 1e-9)
+        Keff = self._k_eff()
+        for s in STOCKS:
+            a = AI[s]
+            dens = self.S[s][rg] / np.maximum(Keff[s][rg], 1e-9)
             e1[:, a] = E1[s] * (0.3 + 0.7 * dens)
             C[:, a] = self.S[s][rg] * HARV[s] * share
+        C[:, AI['tidewild']] *= self.res[idx, RI['tidewheat']] >= 2     # 食べられると分かってから
         e1[:, 1] *= 1 + 0.2 * sk[:, TI['nets']]
         e1[:, 3] *= mult_fish
         e1[:, 4] *= mult_fish
-        boat_ok = (self.boats[idx] >= 1) & has('dugout')
+        boat_ok = (self.boats[idx] >= 1) & (has('dugout') | has('lightboat'))
         C[:, 4] *= boat_ok * (1 + 0.5 * sk[:, TI['outrigger']])
         crop_here = self.region_res[rg, RI['crop']] | self.crops[idx, 0]
         grain_here = self.region_res[rg, RI['grain']] | self.crops[idx, 1]
@@ -394,6 +441,11 @@ class Sim:
         e1[:, 6] = E1['field'] * soil
         C[:, 7] = np.where(has('fishpond'), reg['shelf_km2'][rg] * 2.0 * sk[:, TI['fishpond']] * share, 0)
         e1[:, 7] = E1['pond']
+        tide_here = self.region_res[rg, RI['tidewheat']] | self.crops[idx, 2]
+        tide_ok = has('tidefarm') & tide_here
+        tide_share = self.tidefarm[rg] * share
+        C[:, 8] = np.where(tide_ok, tide_share * TIDE_YIELD * (1 - 0.8 * sev), 0)   # 嵐の高潮に弱い
+        e1[:, 8] = E1['tide']
         keep = np.minimum(0.8, 0.15 + 0.2 * sk[:, TI['drying']] + 0.15 * sk[:, TI['salt']] + 0.15 * sk[:, TI['pottery']]
                           + 0.15 * sk[:, TI['storehouse']])
         store_prev = self.store[idx]
@@ -414,8 +466,8 @@ class Sim:
         if np.any(lab_used_food > L_food * (1 + 1e-6) + 1e-6):
             self.checks['labor_over'] += 1
         # 自然の量を減らす（同じ地域の集団の分を合計）
-        for a, s in enumerate(STOCKS):
-            take = np.bincount(rg, weights=H[:, a], minlength=self.NRg)
+        for s in STOCKS:
+            take = np.bincount(rg, weights=H[:, AI[s]], minlength=self.NRg)
             self.S[s] = np.maximum(0.0, self.S[s] - take)
         # ---- 住まい・舟・道具。残りが余暇
         rest = np.maximum(0, labor - base_lab - lab_used_food)
@@ -428,20 +480,30 @@ class Sim:
         rest -= build_h * 30 + self.houses[idx] * 3
         rest = np.maximum(rest, 0)
         shelter = np.minimum(1.0, self.houses[idx] / np.maximum(house_need, 1e-9))
-        # 舟：いちばん進んだ舟の技術で、大人8人に1艘を目安に作る
-        boat_tier = np.where(has('dugout'), 1, 0)
-        self.boats[idx] *= 0.88
+        # 舟：いちばん進んだ舟の技術で、大人8人に1艘を目安に作る。
+        # 木の舟は大木から、軽殻石の浮き舟は軽殻石から。どちらもなければ、いかだ
+        wood_tier = has('dugout')
+        boat_tier = wood_tier | has('lightboat')
+        self.boats[idx] *= 1 - (0.12 + (STONE_DECAY - 0.12) * self.bstone[idx])
         want = np.maximum(1, adults / 8) * (adults > 3)
+        more = np.maximum(0, want - self.boats[idx])
         # 丸木舟は火でくりぬけば石の斧なしでも作れるが、斧があれば半分の手間
-        days_per = np.where(boat_tier > 0, (90 + 40 * has('outrigger') + 30 * has('sail')) * (1 - 0.5 * has('adze')), 12)
+        days_w = (90 + 40 * has('outrigger') + 30 * has('sail')) * (1 - 0.5 * has('adze'))
+        days_s = 70 + 40 * has('outrigger') + 30 * has('sail')
         trees = self.bigtree[rg] * share
-        can = np.where(boat_tier > 0, np.minimum(trees, np.maximum(0, want - self.boats[idx])), np.maximum(0, want - self.boats[idx]))
-        can = np.where((boat_tier == 0) & (self.forest[rg] * share < 0.5), 0, can)
-        build_b = np.minimum(can, rest * 0.5 / days_per)
-        self.boats[idx] += build_b
-        rest -= build_b * days_per
-        tree_use = build_b * (boat_tier > 0) + build_h * 0.02 * has('storehouse')
+        stones = self.stone[rg] * share * (has('lightboat') & self.region_res[rg, RI['lightstone']])
+        budget = rest * 0.5
+        b_raft = np.where(~boat_tier & (self.forest[rg] * share >= 0.5), np.minimum(more, budget / 12), 0)
+        b_wood = np.where(wood_tier, np.minimum(np.minimum(trees, more), budget / days_w), 0)
+        b_stone = np.minimum(np.minimum(stones, more - b_wood), np.maximum(0, budget - b_wood * days_w) / days_s)
+        b_stone = np.maximum(b_stone, 0)
+        old = self.boats[idx]
+        self.bstone[idx] = np.where(old + b_wood + b_stone > 0, (self.bstone[idx] * old + b_stone) / np.maximum(old + b_wood + b_stone, 1e-9), self.bstone[idx])
+        self.boats[idx] += b_raft + b_wood + b_stone
+        rest -= b_raft * 12 + b_wood * days_w + b_stone * days_s
+        tree_use = b_wood + build_h * 0.02 * has('storehouse')
         self.bigtree -= np.minimum(self.bigtree, np.bincount(rg, weights=tree_use, minlength=self.NRg))
+        self.stone -= np.minimum(self.stone, np.bincount(rg, weights=b_stone, minlength=self.NRg))
         # 畑を広げる（栽培を知っていて、作物がある所。食べ物が足りないほど急ぐ）
         farming = gard | field
         farm_need = np.where(field, need / (FIELD_YIELD * np.maximum(soil, 0.1) * 0.8),
@@ -454,12 +516,19 @@ class Sim:
         add_reg = np.bincount(rg, weights=add_km2, minlength=self.NRg)
         self.farmed += add_reg
         self.forest = np.maximum(0, self.forest - add_reg)
+        # 潮麦の浅瀬を広げる（森を切らずにすむが、浅瀬の魚の育つ場所が減る）
+        tide_need = need / (TIDE_YIELD * 0.8) * 1.2
+        tide_left = np.maximum(0, reg['shelf_km2'][rg] * TIDE_MAX_SHARE * share - tide_share)
+        add_t = np.where(tide_ok, np.minimum(np.minimum(tide_left, np.maximum(0, tide_need - tide_share)), rest * 0.25 / TIDE_PLANT_DAYS), 0)
+        rest -= add_t * TIDE_PLANT_DAYS
+        self.tidefarm += np.bincount(rg, weights=add_t, minlength=self.NRg)
         leisure = np.maximum(0, rest)
         # ---- 自然の回復（雨の多さで変わる）
         rf_reg = self.rainf[reg['island']]
+        Keff = self._k_eff()
         for s in STOCKS:
             r_ = GROW[s] * (rf_reg if s in ('plant', 'game') else 1.0)
-            S, K = self.S[s], self.K[s]
+            S, K = self.S[s], Keff[s]
             self.S[s] = np.minimum(K, S + r_ * S * (1 - S / np.maximum(K, 1e-9)) + 1e-4 * K)
         regrow_f = 0.02 * self.forest * (1 - self.forest / np.maximum(self.forest0, 1e-9))
         self.forest = np.minimum(self.forest0 - self.farmed * 0.999, self.forest + regrow_f + 0.001 * np.maximum(0, self.forest0 - self.farmed - self.forest))
@@ -469,6 +538,8 @@ class Sim:
         f_field = np.clip(intense / np.maximum(self.farmed, 1e-9), 0, 1)
         self.soil = np.clip(self.soil - 0.004 * f_field * self.soil + 0.01 * (reg['soil'] - self.soil), 0.2, reg['soil'])
         self.region_res[:, RI['bigtree']] = self.bigtree >= 1
+        if 'lightstone' in self.extras:
+            self.stone = np.minimum(self.stone0, self.stone + STONE_REGEN * self.stone0)
         if any(np.any(self.S[s] < 0) for s in STOCKS) or np.any(self.forest < 0):
             self.checks['negative_stock'] += 1
         # ---- 生死
@@ -538,6 +609,17 @@ class Sim:
         self._record(idx, ctx)
         self.year += 1
 
+    def _k_eff(self):
+        """潮麦で浅瀬を使った分だけ、岸の魚の上限が下がる"""
+        if not self.tidefarm.any():
+            return self.K
+        K = dict(self.K)
+        frac = np.clip(self.tidefarm / np.maximum(self.reg['shelf_km2'], 1e-9), 0, 1)
+        K['fish'] = self.K['fish'] * (1 - TIDE_FISH_COST * frac)
+        # 栽培した浅瀬の分だけ、野生の潮麦は減る
+        K['tidewild'] = self.K['tidewild'] * np.clip(1 - frac / TIDE_MAX_SHARE, 0, 1)
+        return K
+
     def _shares(self, rg, pop):
         tot = np.bincount(rg, weights=pop, minlength=self.NRg)
         return np.where(tot[rg] > 0, pop / np.maximum(tot[rg], 1e-9), 1.0)
@@ -549,20 +631,21 @@ class Sim:
         rg = self.region[idx]
         lpa = leisure / np.maximum(adults, 1)
         curious = np.clip(leisure / 20000, 0, 2)
-        here = self.region_res[rg] | np.concatenate([np.zeros((n, 4), bool), self.crops[idx], np.zeros((n, 1), bool)], axis=1)
-        here[:, RI['crop']] = self.region_res[rg, RI['crop']] | self.crops[idx, 0]
-        here[:, RI['grain']] = self.region_res[rg, RI['grain']] | self.crops[idx, 1]
+        here = self.region_res[rg].copy()
+        here[:, RI['crop']] |= self.crops[idx, 0]
+        here[:, RI['grain']] |= self.crops[idx, 1]
+        here[:, RI['tidewheat']] |= self.crops[idx, 2]
         st = self.res[idx]
-        u = rk.uniform(0, 1, (n, NR))
+        u = self._u(rk, n, NR0, NR)
         pf = 1 - (1 - P_FIND[None, :]) ** (1 + curious[:, None])
         found = here & (st == 0) & (u < pf)
-        u2 = rk.uniform(0, 1, (n, NR))
+        u2 = self._u(rk, n, NR0, NR)
         und = (st == 1) & here & (u2 < P_UNDERSTAND[None, :] * (0.5 + curious[:, None]))
         st = st + found + und
         self.res[idx] = st
         for k, r in zip(*np.nonzero(found | und)):
             stage = '見つけた' if st[k, r] == 1 else '性質を理解した'
-            if r in (RI['copper'], RI['grain'], RI['crop'], RI['clay']):
+            if r in (RI['copper'], RI['grain'], RI['crop'], RI['clay'], RI['tidewheat'], RI['lightstone']):
                 self._event('resource', int(idx[k]), '%sを%s' % (RES_JA[RES[r]], stage), res=RES[r], stage=int(st[k, r]))
         sk = self.skill[idx]
         dev = self.dev[idx]
@@ -574,21 +657,26 @@ class Sim:
             if r >= 0:
                 res_ok[:, t] = (st[:, r] >= 2) & here[:, r]
         res_ok[:, TI['horticulture']] = ((st[:, RI['crop']] >= 2) & here[:, RI['crop']]) | ((st[:, RI['grain']] >= 2) & here[:, RI['grain']])
+        # 浮き木つきの舟は、丸木舟か軽殻石の浮き舟のどちらかがあればよい
+        prereq_ok[:, TI['outrigger']] = (sk[:, TI['nets']] > 0.3) & ((sk[:, TI['dugout']] > 0.3) | (sk[:, TI['lightboat']] > 0.3))
+        res_ok[:, TI['outrigger']] = (((st[:, RI['bigtree']] >= 2) & here[:, RI['bigtree']])
+                                      | ((st[:, RI['lightstone']] >= 2) & here[:, RI['lightstone']]))
         extra = np.ones((n, NT), bool)
         extra[:, TI['wayfinding']] = self.voyages[idx] >= 15
         extra[:, TI['horticulture']] &= self.years_here[idx] >= 15
         extra[:, TI['agriculture']] &= self.years_here[idx] >= 20
         extra[:, TI['fishpond']] = self.reg['shelf_km2'][rg] > 5
         extra[:, TI['tally']] = pop > 150
+        extra[:, TI['tidefarm']] = self.years_here[idx] >= 5
         # 必要に迫られると思いつきやすい
         needf = np.ones((n, NT))
         needf[:, TI['wells']] += 3 * (1 - ws)
         needf[:, TI['containers']] += 3 * (1 - ws)
-        needf[:, [TI['horticulture'], TI['agriculture'], TI['fishpond']]] += 2 * np.clip(self.stress[idx], 0, 1)[:, None]
+        needf[:, [TI['horticulture'], TI['agriculture'], TI['fishpond'], TI['tidefarm']]] += 2 * np.clip(self.stress[idx], 0, 1)[:, None]
         needf[:, [TI['drying'], TI['salt'], TI['storehouse']]] += 1.0 * (1 - fs)[:, None]
         cand = ~known & (dev == 0) & prereq_ok & res_ok & extra
         p_ins = 1 - np.exp(-(leisure[:, None] / 10000.0) * INSIGHT * needf / DIFF[None, :])
-        ins = cand & (rk.uniform(0, 1, (n, NT)) < p_ins)
+        ins = cand & (self._u(rk, n, NT0, NT) < p_ins)
         dev[ins] = 1e-6
         # 開発：余暇の15％を、取りかかっている開発に分ける
         active = (dev > 0) & ~known
@@ -621,15 +709,23 @@ class Sim:
         # 作物を持ち運べるようになる
         self.crops[idx, 0] |= (sk2[:, TI['horticulture']] > 0.3) & self.region_res[rg, RI['crop']]
         self.crops[idx, 1] |= (sk2[:, TI['agriculture']] > 0.3) & self.region_res[rg, RI['grain']]
+        self.crops[idx, 2] |= (sk2[:, TI['tidefarm']] > 0.3) & self.region_res[rg, RI['tidewheat']]
         # 伝わる：付き合いのある集団どうし
         self._contacts(idx)
+
+    def _u(self, rk, n, n0, n1):
+        """一様乱数の表。ふだんの列（n0 まで）は rk から、追加検証の列は別の乱数から（1.1 と同じ乱数の並びを保つ）"""
+        a = rk.uniform(0, 1, (n, n0))
+        if n1 == n0:
+            return a
+        return np.concatenate([a, self.r_x.uniform(0, 1, (n, n1 - n0))], axis=1)
 
     def _range(self, g):
         s = self.skill[g]
         r = RANGE['raft']
-        for t in ('dugout', 'outrigger', 'sail', 'wayfinding'):
+        for t in BOAT_TIERS:
             if s[TI[t]] > 0.25:
-                r = RANGE[t] * (0.6 + 0.4 * s[TI[t]])
+                r = max(r, RANGE[t] * (0.6 + 0.4 * s[TI[t]]))
         if self.boats[g] < 1 and r > RANGE['raft']:
             r = RANGE['raft']
         return r
@@ -701,9 +797,12 @@ class Sim:
         avail[:, TI['horticulture']] = (self.region_res[self.region[:self.cap], RI['crop']] | self.crops[:, 0]
                                         | self.region_res[self.region[:self.cap], RI['grain']] | self.crops[:, 1])
         avail[:, TI['agriculture']] = self.region_res[self.region[:self.cap], RI['grain']] | self.crops[:, 1]
+        avail[:, TI['tidefarm']] = self.region_res[self.region[:self.cap], RI['tidewheat']] | self.crops[:, 2]
+        avail[:, TI['outrigger']] = (self.region_res[self.region[:self.cap], RI['bigtree']]
+                                     | self.region_res[self.region[:self.cap], RI['lightstone']])
         for src, dst in ((A, B), (B, A)):
             ss, sd = self.skill[src], self.skill[dst]
-            m = (ss > 0.4) & (sd == 0) & avail[dst] & (rk.uniform(0, 1, ss.shape) < 0.15)
+            m = (ss > 0.4) & (sd == 0) & avail[dst] & (self._u(rk, ss.shape[0], NT0, NT) < 0.15)
             for k, t in zip(*np.nonzero(m)):
                 d = int(dst[k])
                 if self.skill[d, t] == 0:
@@ -711,7 +810,7 @@ class Sim:
                     self._event('tech_spread', d, '%sが伝わった' % TECH_JA[TK[t]], tech=TK[t], source=int(src[k]))
             und = np.where(self.res[src] >= 2, 2, 0).astype(np.int8)
             np.maximum.at(self.res, dst, und)
-            carry = self.crops[src] & (self.skill[dst][:, [TI['horticulture'], TI['agriculture']]] > 0.25)
+            carry = self.crops[src] & (self.skill[dst][:, [TI['horticulture'], TI['agriculture'], TI['tidefarm']]] > 0.25)
             np.logical_or.at(self.crops, dst, carry)
 
     # ------------------------------------------------------------ 探索・分かれる・移る（決めた規則と確率）
@@ -719,7 +818,7 @@ class Sim:
         s = self.skill[g]
         if s[TI['agriculture']] > 0.3:
             return 3000
-        if s[TI['horticulture']] > 0.3 or s[TI['fishpond']] > 0.3:
+        if s[TI['horticulture']] > 0.3 or s[TI['fishpond']] > 0.3 or s[TI['tidefarm']] > 0.3:
             return 1000
         return 400
 
@@ -730,9 +829,14 @@ class Sim:
         c = np.zeros(len(rs))
         for s_ in ('plant', 'game', 'shell', 'fish'):
             c += reg['msy_' + s_][rs] * (self.S[s_][rs] / np.maximum(self.K[s_][rs], 1e-9))
+        if self.res[g, RI['tidewheat']] >= 2:
+            c += self.S['tidewild'][rs] * GROW['tidewild'] / 4
         s = self.skill[g]
-        if s[TI['dugout']] > 0.3:
+        if s[TI['dugout']] > 0.3 or s[TI['lightboat']] > 0.3:
             c += reg['msy_offshore'][rs] * 0.5
+        if s[TI['tidefarm']] > 0.3:
+            tide = self.region_res[rs, RI['tidewheat']] | self.crops[g, 2]
+            c += np.where(tide, reg['shelf_km2'][rs] * TIDE_MAX_SHARE * TIDE_YIELD * 0.6, 0)
         crop = self.region_res[rs, RI['crop']] | self.crops[g, 0]
         grain = self.region_res[rs, RI['grain']] | self.crops[g, 1]
         if s[TI['agriculture']] > 0.3:
@@ -861,6 +965,7 @@ class Sim:
         self.skill[h] = self.skill[g] * 0.9
         self.res[h] = self.res[g]
         self.crops[h] = self.crops[g]
+        self.bstone[h] = self.bstone[g]
         self.known[h] = set(self.known[g])
         self.voyages[h] = self.voyages[g]
         self.known[h].add(dst_isl)
@@ -971,6 +1076,8 @@ class Sim:
         s['deaths'].append(float(c['deaths'].sum()))
         s['range_km'].append(float(max(self._range(int(g)) for g in idx)))
         s['farmed_km2'].append(float(self.farmed.sum()))
+        s['tide_km2'].append(float(self.tidefarm.sum()))
+        s['stone_boats'].append(float(np.sum(self.boats[idx] * self.bstone[idx])))
         self.deaths_age.append(c['deaths'].sum(axis=0))
         self.pop_age.append(c['ages_before'].sum(axis=0))
         if self.year % self.snap_every == 0:
@@ -983,6 +1090,7 @@ class Sim:
                 regions={int(r): dict(forest=round(float(self.forest[r] / max(self.forest0[r], 1e-9)), 3),
                                       bigtree=round(float(self.bigtree[r] / max(self.bigtree0[r], 1e-9)), 3),
                                       farmed_km2=round(float(self.farmed[r]), 2),
+                                      tide_km2=round(float(self.tidefarm[r]), 2),
                                       fish=round(float(self.S['fish'][r] / max(self.K['fish'][r], 1e-9)), 3))
                          for r in np.unique(self.region[live])}))
 
