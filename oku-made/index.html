@@ -51,6 +51,10 @@ canvas#view{position:fixed;inset:0;display:block;touch-action:none}
 .nkw-info{color:inherit;text-decoration:underline;text-underline-offset:2px;padding:6px 2px;margin-left:.4em}
 .btn{pointer-events:auto;font:inherit;font-size:20px;font-weight:900;padding:14px 38px;border-radius:32px;border:3px solid #223;background:#ffd54a;color:#223;cursor:pointer}
 .btn.sub{background:#fff;font-size:16px;padding:10px 24px}
+.btn.hard{background:#e5482c;color:#fff;padding:14px 26px}
+.screen p.hardNote{font-size:12px;opacity:.7;margin-top:-6px}
+#modeTag{position:fixed;left:84px;top:52px;font-size:12px;font-weight:900;color:#fff;background:#e5482c;border-radius:10px;padding:1px 10px;display:none;pointer-events:none;z-index:3}
+body.hard #modeTag{display:block}
 #rank{font-size:clamp(60px,16vw,110px);font-weight:900;line-height:1}
 #score{font-size:clamp(28px,6vw,44px);font-weight:900}
 #detail{font-size:clamp(14px,2.6vw,18px);font-weight:700;line-height:1.8}
@@ -100,10 +104,12 @@ canvas#view{position:fixed;inset:0;display:block;touch-action:none}
  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  IN THE SOFTWARE.
 -->
+<div id="modeTag">ハード</div>
 <div class="screen" id="title">
   <h1>奥まで<br>いきます</h1>
   <p>患者の鼻の奥の「菌」を、綿棒でこすって取ろう。<br>綿棒は<b>鼻の床にそって、上に向けずにまっすぐ</b>奥へ。<br>画面を<b>長押し</b>で進み、<b>ドラッグ</b>で角度を決めます。<br>天井や横の壁にふれると痛がります。痛がらせすぎると…患者に仕返しされます！<br>奥でこすったら「戻す」でゆっくり抜いて、<b>綿棒を回収したら</b>検査おわり。</p>
-  <button class="btn" id="startBtn">はじめる</button>
+  <div><button class="btn" id="startBtn">はじめる</button> <button class="btn hard" id="hardBtn">ハード</button></div>
+  <p class="hardNote">ハード：道がとても細く、患者がよく動きます</p>
   <p id="bestLine"></p>
   <p class="credit">人物：Microsoft Rocketbox Avatar Library（MIT License, © 2020 Microsoft）</p>
   <p class="credit">N.K. Works <a data-google-vignette="false" class="nkw-info" href="/games/oku-made/">遊び方・ほかのゲーム ›</a></p>
@@ -141,7 +147,8 @@ const CONFIG = {
   sneezeLook: 2.2,          // くしゃみの見た目の大きさ(倍)
   sneezeWind: 0.75,         // 「ふぁ…」の長さ(秒)。この間の頭の動きを見て、反対へドラッグで角度を直す
   sneezeAt: [[0.72, 0.9, 1], [0.32, 0.55, 0.6]],   // 抜く途中のどこでくしゃみが来るか [u下限, u上限, 起きる確率]
-  idleDeg: 1.8,             // 待っている間のゆっくりした頭のゆれ(度・見た目だけ)
+  idleDeg: 1.8,
+  hard: { passageScale: 0.6, twitchEvery: [2, 4], twitchDeg: 3.5, sneezeDeg: 9, sneezeAt: [[0.72, 0.9, 1], [0.32, 0.55, 1]], swayBase: 0.7 },   // ハードモードで上書きする値             // 待っている間のゆっくりした頭のゆれ(度・見た目だけ)
   blinkEvery: [2.5, 5],     // まばたきの間隔(秒)       // 菌までの道の太さ（1=元の太さ。小さいほど細い）
   germCount: 26,            // 菌の数
   patchRadius: 0.0055,      // 菌が広がる範囲の半径(m)
@@ -288,7 +295,13 @@ if (CONFIG.debug) { pivotDbg = new THREE.Mesh(new THREE.SphereGeometry(0.002), n
 // 綿棒の基準の線(角度0)は「鼻の床にそってまっすぐ奥へ」。上に向けると天井(鼻甲介)にぶつかる。途中でいちばん狭くなる
 const PROFILE0 = [[0, .0095, .0120, .0120], [.12, .0068, .0085, .0100], [.28, .0038, .0050, .0075], [.42, .0035, .0045, .0070], [.58, .0048, .0060, .0085], [.78, .0072, .0095, .0110], [1, .0092, .0125, .0125]];
 // 入り口(u=0)と菌のいる奥(u=1)はそのまま、途中の道だけ CONFIG.passageScale 倍に細くする
-const PROFILE = PROFILE0.map((r, i) => (i === 0 || i === PROFILE0.length - 1) ? r : [r[0], r[1] * CONFIG.passageScale, r[2] * CONFIG.passageScale, r[3] * CONFIG.passageScale]);
+let PROFILE = [];
+function buildProfile() { PROFILE = PROFILE0.map((r, i) => (i === 0 || i === PROFILE0.length - 1) ? r : [r[0], r[1] * CONFIG.passageScale, r[2] * CONFIG.passageScale, r[3] * CONFIG.passageScale]); }
+buildProfile();
+// ふつう／ハード：ハードは CONFIG.hard の値で上書き、ふつうは最初の値にもどす
+const NORMAL = Object.fromEntries(Object.keys(CONFIG.hard).map(k => [k, CONFIG[k]]));
+function setMode(hard) { S.hard = hard; document.body.classList.toggle('hard', hard); Object.assign(CONFIG, hard ? CONFIG.hard : NORMAL); buildProfile(); }
+const bestKey = () => S.hard ? 'nswab_best_hard' : 'nswab_best';
 function prof(u) {
   for (let i = 1; i < PROFILE.length; i++) if (u <= PROFILE[i][0]) {
     const a = PROFILE[i - 1], b = PROFILE[i], t = (u - a[0]) / (b[0] - a[0]);
@@ -332,7 +345,8 @@ function newRound() {
   });
   $('hint').textContent = HINT_START; $('hint').style.opacity = 1; $('back').classList.remove('on');
 }
-function startGame() {
+function startGame(hard) {
+  if (typeof hard === 'boolean') setMode(hard);
   if (patient) patient.root.visible = false;
   if (player) player.root.visible = false;
   $('big').classList.remove('on'); document.body.classList.remove('cine'); $('you').style.display = 'none';
@@ -353,8 +367,9 @@ function finish(reason) {
   else score = Math.round(ratio * CONFIG.scoreCollect + (1 - S.peakPain) * CONFIG.scorePain * ratio + clamp(S.timeLeft / CONFIG.timeLimit, 0, 1) * CONFIG.scoreTime * ratio);
   const rk = CONFIG.ranks.find(r => score >= r[0]);
   S.score = score; S.rank = rk;
-  let best = 0; try { best = +localStorage.getItem('nswab_best') || 0; if (score > best) { best = score; localStorage.setItem('nswab_best', String(score)); } } catch (e) { best = Math.max(best, score); }
+  let best = 0; try { best = +localStorage.getItem(bestKey()) || 0; if (score > best) { best = score; localStorage.setItem(bestKey(), String(score)); } } catch (e) { best = Math.max(best, score); }
   $('resTitle').textContent = reason === 'revenge' ? '患者の仕返し！ 綿棒を全部入れられた…' : reason === 'out' ? (S.collected >= S.germs.length ? '全部の菌を採取して、綿棒を回収！' : '綿棒を回収して、検査おわり！') : S.unretrieved ? 'タイムアップ！ 綿棒を回収できなかった…（点数は半分）' : 'タイムアップ！';
+  if (S.hard) $('resTitle').textContent = '【ハード】' + $('resTitle').textContent;
   $('rank').textContent = rk[1];
   $('score').textContent = score + '点 ／ ' + rk[2];
   $('detail').innerHTML = `採取率 ${Math.round(ratio * 100)}%（${S.collected}/${S.germs.length}）${S.dropped ? `　抜く時に落ちた菌 ${S.dropped}` : ''}<br>痛みのピーク ${Math.round(S.peakPain * 100)}%　残り ${Math.max(0, S.timeLeft).toFixed(1)}秒<br>ハイスコア ${best}点`;
@@ -773,10 +788,10 @@ const bup = () => { S.retract = false; bAim = null; back.classList.remove('on');
 back.addEventListener('pointerup', bup); back.addEventListener('pointercancel', bup);
 addEventListener('keydown', (e) => { if (e.code === 'Space') { S.retract = true; back.classList.add('on'); e.preventDefault(); } });
 addEventListener('keyup', (e) => { if (e.code === 'Space') bup(); });
-$('startBtn').onclick = startGame; $('retryBtn').onclick = startGame;
+$('startBtn').onclick = () => startGame(false); $('hardBtn').onclick = () => startGame(true); $('retryBtn').onclick = () => startGame(S.hard);
 $('shareBtn').onclick = () => {
   const pct = Math.round(S.collected / S.germs.length * 100);
-  const text = `「${CONFIG.title}」で ${S.score}点（${S.rank[1]}：${S.rank[2]}）！ 鼻の奥の菌を ${pct}% 採取した！`;
+  const text = `「${CONFIG.title}」${S.hard ? 'ハードモード' : ''}で ${S.score}点（${S.rank[1]}：${S.rank[2]}）！ 鼻の奥の菌を ${pct}% 採取した！`;
   window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent('https://nkworks-games.com/oku-made/'), '_blank');
 };
 addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); if (patient) frameCamera(); });
@@ -815,8 +830,8 @@ S.bendX = 0; S.bendY = 0; S.germs = [];
   patients.male = await loadPatient('male'); ld.textContent = '読みこみ中… 80%';
   await new Promise((r) => setTimeout(r, 0));
   patient = patients.male; player = makePlayer(patient); patient.root.visible = true; frameCamera();
-  let best = 0; try { best = +localStorage.getItem('nswab_best') || 0; } catch (e) {}
-  $('bestLine').textContent = best ? `ハイスコア ${best}点` : '';
+  let best = 0, bh = 0; try { best = +localStorage.getItem('nswab_best') || 0; bh = +localStorage.getItem('nswab_best_hard') || 0; } catch (e) {}
+  $('bestLine').textContent = [best ? `ハイスコア ${best}点` : '', bh ? `ハード ${bh}点` : ''].filter(Boolean).join('　');
   $('load').remove(); $('title').classList.add('on'); S.mode = 'title';
   window.__ready = true;
 })();
@@ -858,7 +873,7 @@ window.__TEST__ = {
   },
   ready: true,
 };
-window.__S = S; window.__cfg = CONFIG; window.__start = startGame; window.__cam = camera; window.__scene = scene; window.__get = () => patient;
+window.__setMode = setMode; window.__S = S; window.__cfg = CONFIG; window.__start = startGame; window.__cam = camera; window.__scene = scene; window.__get = () => patient;
 </script>
 </body>
 </html>
