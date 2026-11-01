@@ -528,7 +528,8 @@ class Sim:
         Keff = self._k_eff()
         for s in STOCKS:
             r_ = GROW[s] * (rf_reg if s in ('plant', 'game') else 1.0)
-            S, K = self.S[s], Keff[s]
+            K = Keff[s]
+            S = np.minimum(self.S[s], K)   # 上限が下がった分（浅瀬を潮麦にした所など）は、先に減らす
             self.S[s] = np.minimum(K, S + r_ * S * (1 - S / np.maximum(K, 1e-9)) + 1e-4 * K)
         regrow_f = 0.02 * self.forest * (1 - self.forest / np.maximum(self.forest0, 1e-9))
         self.forest = np.minimum(self.forest0 - self.farmed * 0.999, self.forest + regrow_f + 0.001 * np.maximum(0, self.forest0 - self.farmed - self.forest))
