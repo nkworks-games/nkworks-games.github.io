@@ -10,7 +10,7 @@ from . import materials as M
 from .util import link, link_object, map_range, math_op, mesh_from_arrays, mesh_object, new_material, node
 
 
-def sea_box(algae=1.0, center=(0, 2000), size=24000.0, depth=60.0):
+def sea_box(algae=1.0, center=(0, 2000), size=4000000.0, depth=60.0):
     """入り江用の海：大きな水の塊（表面 z=0）。浅瀬は砂が透け、深いほど紺になる"""
     bm = bmesh.new()
     bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation((center[0], center[1], -depth / 2)) @ Matrix.Diagonal(Vector((size, size, depth, 1))))

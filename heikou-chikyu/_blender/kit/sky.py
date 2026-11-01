@@ -120,7 +120,7 @@ def setup(time='dusk', azimuth=-120.0, elevation=None, cloud=0.5, storm=0.0, see
     # 太陽（夜は月の淡い光）
     if time == 'night':
         light = bpy.data.lights.new('月', 'SUN')
-        light.energy = 0.08
+        light.energy = 0.22
         light.color = (0.65, 0.75, 1.0)
         light.angle = math.radians(0.5)
         el_l, az_l = 35.0, azimuth + 160

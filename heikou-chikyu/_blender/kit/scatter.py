@@ -17,6 +17,7 @@ def instances(name, coll, items):
         at = me.attributes.new(aname, kind, 'POINT')
         at.data.foreach_set('value', arr[:, col].astype(np.int32 if kind == 'INT' else np.float32))
     obj = bpy.data.objects.new(name, me)
+    obj['nocheck'] = True   # 草木・岩は根元を地面に埋めて置く（めり込みの検査からは外す）
     link_object(obj)
     ng = bpy.data.node_groups.new(name + '配置', 'GeometryNodeTree')
     ng.interface.new_socket('Geometry', in_out='INPUT', socket_type='NodeSocketGeometry')

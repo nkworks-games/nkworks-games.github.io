@@ -55,6 +55,7 @@ def parse_args():
     ap.add_argument('--threads', type=int, default=0)
     ap.add_argument('--step', type=int, default=1, help='N コマおきに描く（2 なら半分。間はあとで補う）')
     ap.add_argument('--resume', action='store_true', help='描き終えたコマ・カットは飛ばす（中断したところから）')
+    ap.add_argument('--build-only', action='store_true', help='描かずに .blend だけ保存する（scene_check.py で点検する用）')
     return ap.parse_args(argv)
 
 
@@ -142,8 +143,16 @@ def build_coast(s):
     for k, (x, y, face) in enumerate(huts):
         src = types[k % len(types)]
         ob = bpy.data.objects.new('家', src.data)
-        ob.location = (x, y, ter.height_at(x, y) - 0.12)
+        # 4隅の地面の高さを見て、いちばん低い隅に床を合わせる（下り側が浮かないように）。
+        # 上り側は地面に埋まる＝斜面に建つ家の土台。その深さは embed_ok として点検に伝える
+        bb = [Vector(c) for c in src.bound_box]
+        xs, ys = [c.x for c in bb], [c.y for c in bb]
+        ca, sa = math.cos(face), math.sin(face)
+        hs = [ter.height_at(x + cx * ca - cy * sa, y + cx * sa + cy * ca) for cx in (min(xs), max(xs)) for cy in (min(ys), max(ys))]
+        ob.location = (x, y, min(hs) - 0.03)
         ob.rotation_euler = (0, 0, face)
+        ob['embed_ok'] = round(max(hs) - min(hs) + 0.08, 3)
+        ob['grounded'] = True
         link_object(ob)
     # 畑（芋や果樹）：集落の奥の平らな所
     garden = []
@@ -334,7 +343,7 @@ def build_coast(s):
         o = Pr.fire('焚き火%d' % k, seed + k, smoke=k < vil.get('smoke', 2), strength=s.get('fire_strength', 60.0))
         o.location = (x, y, ter.height_at(x, y))
         fires.append((x, y))
-    poses = ['stand', 'walk', 'carry', 'bend', 'sit', 'look', 'walk']
+    poses = ['stand', 'carry', 'bend', 'sit', 'look', 'stand']   # 止まっている人は、歩く途中の形にしない
     for k in range(vil.get('people', 0)):
         if fires and k % 3 == 0:
             fx, fy = fires[k % len(fires)]
@@ -374,6 +383,7 @@ def build_coast(s):
 
 def place_extras(extras, ter, seed):
     """カットごとに、決まった場所へ置くもの（近くで見せる道具・舟・人など）"""
+    placed = []
     for k, e in enumerate(extras):
         t = e['type']
         x, y = e['loc'][0], e['loc'][1]
@@ -404,7 +414,9 @@ def place_extras(extras, ter, seed):
         elif t in ('outrigger', 'sail'):
             o = Bo.outrigger(name, sd, e.get('length', 8.5), sail=t == 'sail')
         elif t == 'figure':
-            o = P.figure(name, sd, pose=e.get('pose', 'stand'), child=e.get('child', False), phase=e.get('phase', 0.0))
+            pose = e.get('pose', 'stand')
+            cyc = 8 if pose in ('walk', 'carrywalk', 'paddle') else 0
+            o = P.figure(name, sd, pose=pose, child=e.get('child', False), phase=e.get('phase', 0.0), cycle=cyc)
         elif t == 'lightstone':
             o = Pr.lightstone(name, sd, e.get('size', 0.5))
         elif t == 'shelter':
@@ -417,8 +429,21 @@ def place_extras(extras, ter, seed):
         o.rotation_euler = (math.radians(e.get('tilt', 0.0)), 0, math.radians(e.get('rot', 0.0)))
         if e.get('scale'):
             o.scale = (e['scale'],) * 3
-        if 'move' in e:
+        placed.append(o)
+        if 'boat' in e:
+            # 舟に乗る人は舟の子にする（一緒に動き、ずれない）
+            boat = placed[e['boat']]
+            bpy.context.view_layer.update()
+            mw = o.matrix_world.copy()
+            o.parent = boat
+            o.matrix_parent_inverse = boat.matrix_world.inverted()
+            o.matrix_world = mw
+            o['in_boat'] = True
+        elif 'move' in e:
             o['move'] = e['move']
+        if t in ('figure', 'fire', 'pots', 'rack', 'woodpile', 'log', 'shelter', 'hut') and ter is not None and not e.get('float') \
+                and len(e['loc']) < 3 and 'boat' not in e and ground > -0.05:
+            o['grounded'] = True
 
 
 def _rock(seed, coll):
@@ -470,7 +495,7 @@ def build_opensea(s):
         ob.location = Vector(b['loc'])
         ob.rotation_euler = (math.radians(rng.uniform(-2, 2)), math.radians(rng.uniform(-3, 3)), math.radians(b.get('heading', 0)))
         for j in range(b.get('crew', 3)):
-            f = P.figure('乗り手%d_%d' % (k, j), seed * 3 + k * 10 + j, pose='paddle' if j else 'sit', phase=j * 0.3)
+            f = P.figure('乗り手%d_%d' % (k, j), seed * 3 + k * 10 + j, pose='paddle' if j else 'sit', phase=j * 0.3, cycle=8 if j else 0)
             f.parent = ob
             f.location = (0.0, -1.6 + j * 1.3, -0.1)
         boats.append((ob, b))
@@ -607,7 +632,7 @@ def build_islands(s):
     # 空撮は数十〜数百 km 先まで見えるので、遠くの海を広げ、霞を薄く、カメラの描く距離を延ばす
     far = bpy.data.objects.get('遠くの海')
     if far is not None:
-        far.scale = (60.0, 60.0, 1.0)
+        far.scale = (2000.0, 2000.0, 1.0)   # 高い所からでも、海の果てが地平線のすぐ下まで届くように
     from kit.util import set_haze
     set_haze(90000.0, 0.35)
     s['camera'].setdefault('clip', 3.0e6)
@@ -785,6 +810,33 @@ def setup_camera(s, frames, ter=None):
     return cam
 
 
+def animate_cycles(frames, seconds, fps=24):
+    """歩く・こぐ人の形のキーを、時間に合わせて切り替える。
+    歩く人は、進む速さ÷1周期の歩幅で周期を決める（足が地面をすべらないように）"""
+    for ob in list(bpy.data.objects):
+        if 'cycle' not in ob.keys():
+            continue
+        n = int(ob['cycle'])
+        if 'move' in ob.keys() and not ob.get('in_boat'):
+            speed = Vector(ob['move']).length / max(seconds, 1e-6)
+            period = fps * float(ob.get('stride', 1.45)) / max(speed, 0.05)
+        else:
+            period = fps * 1.7   # こぐ：1.7秒で1回
+        for pname in ob['cycle_parts']:
+            part = bpy.data.objects.get(pname)
+            if part is None or part.data.shape_keys is None:
+                continue
+            kbs = part.data.shape_keys.key_blocks
+            for f in range(1, frames + 1):
+                ph = ((f - 1) / period + 0.0) % 1.0 * n
+                i0 = int(ph) % n
+                i1 = (i0 + 1) % n
+                t = ph - int(ph)
+                for k in range(1, n):
+                    kbs[k].value = (1 - t if k == i0 else 0.0) + (t if k == i1 else 0.0)
+                    kbs[k].keyframe_insert('value', frame=f)
+
+
 def use_gpu():
     prefs = bpy.context.preferences.addons['cycles'].preferences
     for kind in ('METAL', 'OPTIX', 'CUDA', 'HIP', 'ONEAPI'):
@@ -877,6 +929,7 @@ def build(s, args):
                 ob.keyframe_insert('location', frame=1)
                 ob.location = ob.location + mv
                 ob.keyframe_insert('location', frame=frames)
+        animate_cycles(frames, s['seconds'])
         for ob, b in boats:
             v = b.get('speed', 2.0)
             hd = math.radians(b.get('heading', 0))
@@ -887,7 +940,24 @@ def build(s, args):
     elif s.get('anim') and args.still and ocean_md is not None:
         ocean_md.time = s['seconds'] / 2
     render_settings(args, s)
+    mark_for_check(kind)
     return frames
+
+
+NOCHECK_NAMES = ('海', '泡', '煙', '炎', '島影', '浅瀬', '雲', '大気', '星', '空')
+
+
+def mark_for_check(kind):
+    """scene_check.py のための印：地面（floor）・調べない物（nocheck：水・煙・炎・遠景・空）"""
+    for ob in bpy.data.objects:
+        if ob.type != 'MESH':
+            continue
+        if ob.name == '地形' or (kind == 'islands' and ob.name.startswith('島') and not ob.name.endswith('浅瀬') and '影' not in ob.name):
+            ob['floor'] = True
+        elif any(k in ob.name for k in NOCHECK_NAMES):
+            ob['nocheck'] = True
+        elif kind == 'planet' and ob.name != '惑星':
+            ob['nocheck'] = True
 
 
 def main():
@@ -906,8 +976,10 @@ def main():
         frames = build(s, args)
         sc = bpy.context.scene
         print('カット %s（%s）組み立て %.1fs・%d コマ' % (s['id'], s.get('title', ''), time.time() - t0, frames), flush=True)
-        if args.blend:
+        if args.blend or args.build_only:
             bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, 'cut%s.blend' % s['id']))
+        if args.build_only:
+            continue
         t1 = time.time()
         if frames > 1:
             d = os.path.join(out, 'cut%s' % s['id'])

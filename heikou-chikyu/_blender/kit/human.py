@@ -147,19 +147,23 @@ def pose_ops(pose, phase=0.0, side=1):
 
     if pose in ('stand', 'look', 'carry'):
         arms_down()
-    if pose == 'walk':
-        sw = math.sin(2 * math.pi * phase)
+    if pose in ('walk', 'carrywalk'):
+        # 太ももの振れは三角波：地面についている間、足が一定の速さで後ろへ動く（体は一定の速さで進むので、足がすべらない）
+        sw = 2 / math.pi * math.asin(math.sin(2 * math.pi * phase))
         for sd, s, sg in (('L', -1, 1), ('R', 1, -1)):
             a = math.radians(24) * sw * sg
             aim('upperleg01.' + sd, 'lowerleg01.' + sd, s * 0.05, math.sin(a), -math.cos(a))
-            flex = math.radians(6 + 34 * max(0.0, -math.sin(2 * math.pi * phase + (0 if sg > 0 else math.pi) - 0.6)))
+            # 膝は、足が地面を離れている間（脚の位相 0.75〜1.25）だけ大きく曲げる
+            pl = (phase + (0.0 if sg > 0 else 0.5)) % 1.0
+            u = ((pl - 0.75) % 1.0) / 0.5
+            flex = math.radians(5 + (48 * math.sin(math.pi * u) if u < 1.0 else 0.0))
             aim('lowerleg01.' + sd, 'foot.' + sd, s * 0.04, math.sin(a - flex), -math.cos(a - flex))
             b = -math.radians(18) * sw * sg
             aim('upperarm01.' + sd, 'lowerarm01.' + sd, s * 0.1, math.sin(b) - 0.03, -math.cos(b))
             f = math.radians(18) + max(0.0, b)
             aim('lowerarm01.' + sd, 'wrist.' + sd, s * 0.05, math.sin(f), -math.cos(f))
         rot('spine05', (1, 0, 0), 3)
-    if pose == 'carry':
+    if pose in ('carry', 'carrywalk'):
         # 右手を頭の上の荷へ
         aim('upperarm01.R', 'lowerarm01.R', 0.45, 0.08, 0.89)
         aim('lowerarm01.R', 'wrist.R', -0.72, 0.05, 0.69)
@@ -384,8 +388,25 @@ def _cloth_band(v_posed, v_rest, z0, z1, offset, arms_mask):
     return f
 
 
-def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None, height=None):
-    """MakeHuman の体から作る人。返すのは体のオブジェクト（髪・目・布は子として付く）"""
+CYCLIC = ('walk', 'carrywalk', 'paddle')
+STRIDE = 1.45   # 歩く1周期（2歩）で進む距離 m（太ももの振れ ±24° と脚の長さから）
+
+
+def _add_cycle_keys(ob, phases, used, offset=None):
+    """歩く・こぐ動きの各位相を、形のキー（シェイプキー）として足す。0 番目は元の形"""
+    ob.shape_key_add(name='位相0', from_mix=False)
+    for k, vk in enumerate(phases[1:], 1):
+        kb = ob.shape_key_add(name='位相%d' % k, from_mix=False)
+        co = vk[used].astype(np.float32)
+        if offset is not None:
+            co = co + offset
+        kb.data.foreach_set('co', co.ravel())
+        kb.value = 0.0
+
+
+def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None, height=None, cycle=0):
+    """MakeHuman の体から作る人。返すのは体のオブジェクト（髪・目・布は子として付く）。
+    cycle>0 で、歩く・こぐ姿勢の1周期を cycle 個の形のキーとして持つ（shots.py が時間に合わせて切り替える）"""
     rng = stream(seed, 'human', name)
     d = data()
     if sex is None:
@@ -404,6 +425,14 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
     shift = np.array([ox, oy, oz])
     v = v - shift
     head_top = head_top - shift
+    phases = None
+    if cycle and pose in CYCLIC:
+        phases = [v]
+        for k in range(1, cycle):
+            vk, _ = skin(v_rest, pose_ops(pose, (phase + k / cycle) % 1.0))
+            vk = vk - shift
+            vk[:, 2] -= vk[body_ids, 2].min() - v[body_ids, 2].min()   # 位相ごとに足もとを地面へ（体が少し上下する）
+            phases.append(vk)
     tone = _tone(v, v_rest)
     k_skin = rng.randrange(len(SKIN))
     # 体と目（1つのメッシュ）
@@ -416,6 +445,9 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
     me.materials.append(eye_material())
     _set_tone(me, used, tone)
     ob = bpy.data.objects.new(name, me)
+    parts = [ob]
+    if phases:
+        _add_cycle_keys(ob, phases, used)
     if coll is not False:
         link_object(ob, coll)
     sub = ob.modifiers.new('なめらか', 'SUBSURF')
@@ -448,6 +480,7 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
         me_tmp.vertices.foreach_get('co', co.ravel())
         co += nrm * 0.007
         me_tmp.vertices.foreach_set('co', co.ravel())
+        cloth_used = used_tmp
         me_tmp.update()
         me_tmp.name = name + '布'
         k = rng.randrange(3)
@@ -461,6 +494,9 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
         s2 = cl.modifiers.new('なめらか', 'SUBSURF')
         s2.levels, s2.render_levels = 0, 1
         cl.parent = ob
+        parts.append(cl)
+        if phases:
+            _add_cycle_keys(cl, phases, cloth_used, nrm * 0.007)
     # 髪：頭皮（生え際より上・後ろ、耳を除く）の面から毛を生やす
     eye_c = []
     for side in ('l', 'r'):
@@ -472,8 +508,12 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
     scalp &= ~((np.abs(v_rest[:, 0] - ec[0]) > 0.062) & (v_rest[:, 2] < ec[2] + 0.035))
     scalp &= v_rest[:, 2] > ec[2] - 0.075
     hf, _ = _faces(['body'], scalp)
-    hme, _ = _mesh(name + '髪の根', v.astype(np.float32), hf)
+    hme, hused = _mesh(name + '髪の根', v.astype(np.float32), hf)
     hob = bpy.data.objects.new(name + '髪', hme)
+    hob['nocheck'] = True      # 毛の根の面（描かない）
+    parts.append(hob)
+    if phases:
+        _add_cycle_keys(hob, phases, hused)
     if coll is not False:
         link_object(hob, coll)
     hob.parent = ob
@@ -514,7 +554,18 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
     hob.show_instancer_for_render = False
     hob.show_instancer_for_viewport = False
     ob['head_top'] = list(map(float, head_top))
-    if pose == 'carry':
+    # 足の裏の頂点（休めの姿勢で左右それぞれ一番低い 40 点。体のメッシュの番号で）。足すべりの検査に使う
+    pos_in_body = -np.ones(len(v_rest), np.int64)
+    pos_in_body[used] = np.arange(len(used))
+    for sd, m in (('L', v_rest[body_ids, 0] < 0), ('R', v_rest[body_ids, 0] > 0)):
+        ids = body_ids[m]
+        ob['sole_' + sd] = [int(i) for i in pos_in_body[ids[np.argsort(v_rest[ids, 2])[:40]]]]
+    if phases:
+        ob['cycle'] = cycle
+        ob['cycle_parts'] = [p.name for p in parts]
+        ob['cycle_phase'] = float(phase)
+        ob['stride'] = STRIDE * (0.65 if child else 1.0)
+    if pose in ('carry', 'carrywalk'):
         # 頭に載せた籠（編み目のある浅い筒）
         from .vegetation import Builder
         B = Builder()

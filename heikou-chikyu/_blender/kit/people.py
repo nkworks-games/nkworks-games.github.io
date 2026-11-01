@@ -28,12 +28,12 @@ def _mats(rng):
     return skin, cloth, hair
 
 
-def figure(name, seed, pose='stand', height=1.65, coll=None, child=False, phase=0.0):
+def figure(name, seed, pose='stand', height=1.65, coll=None, child=False, phase=0.0, cycle=0):
     """人。MakeHuman の体（assets/human.npz）があればそれで作る（kit/human.py）。なければ下の簡単な形"""
     from . import human
     if human.available():
-        return human.figure(name, seed, pose=pose, coll=coll, child=child, phase=phase)
-    return simple_figure(name, seed, pose, height, coll, child, phase)
+        return human.figure(name, seed, pose=pose, coll=coll, child=child, phase=phase, cycle=cycle)
+    return simple_figure(name, seed, 'carry' if pose == 'carrywalk' else pose, height, coll, child, phase)
 
 
 def simple_figure(name, seed, pose='stand', height=1.65, coll=None, child=False, phase=0.0):
