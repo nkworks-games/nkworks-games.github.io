@@ -67,6 +67,14 @@ def open_sea_material(name='沖の海'):
     water.inputs['IOR'].default_value = 1.333
     water.inputs['Specular IOR Level'].default_value = 0.5
     water.inputs['Subsurface Weight'].default_value = 0.0
+    # 細かいさざ波（世界の位置で。遠くの平らな面も鏡のようにならないように）
+    geo = node(nt, 'ShaderNodeNewGeometry', (-1000, -400))
+    rp = node(nt, 'ShaderNodeTexNoise', (-800, -400), Scale=0.08, Detail=10.0, Roughness=0.6)
+    link(nt, geo.outputs['Position'], rp.inputs['Vector'])
+    bump = node(nt, 'ShaderNodeBump', (-550, -400), Strength=0.35, Distance=1.0)
+    link(nt, rp.outputs['Fac'], bump.inputs['Height'])
+    link(nt, bump.outputs['Normal'], water.inputs['Normal'])
+    water.inputs['Roughness'].default_value = 0.07
     white = node(nt, 'ShaderNodeBsdfPrincipled', (-300, -250))
     white.inputs['Base Color'].default_value = (0.75, 0.78, 0.78, 1)
     white.inputs['Roughness'].default_value = 0.7
@@ -96,7 +104,7 @@ def ocean(size=400.0, wave_scale=1.0, choppy=1.0, wind=10.0, resolution=14, seed
     md.random_seed = seed
     md.use_foam = True
     md.foam_layer_name = 'foam'
-    md.foam_coverage = -0.2
+    md.foam_coverage = -0.35
     md.time = time
     obj.location = (-size * repeat / 2, -size * repeat / 2, 0)
     obj.data.materials.append(open_sea_material())

@@ -174,9 +174,13 @@ def main():
     S.append(opensea('056', '夜の航海。星を見上げる（A1-2・1,163年）', time='night', boats=[sail_boat([0, 0, 0.35], 10, crew=3)],
                      camera=dict(loc=[-9, -8, 2.2], target=[0, 4, 4.5], lens=28, loc2=[-8, -4, 2.2], target2=[0, 8, 4.5]), seconds=10, wave=0.4,
                      extras=[dict(type='figure', loc=[0.2, 1.0, 0.3], pose='look', rot=10)]))
-    S.append(islands_shot('063', '群島の空撮（夕方・A1の実際の島々）', 'A1', 2, dict(loc=[0, -38000, 6000], target=[0, 15000, 0], lens=35), anim=False, relief=2.5))
-    S.append(islands_shot('064', '島々の間を行き交う舟（A1-2・2,500年）', 'A1', 2, dict(loc=[-60, -260, 45], target=[0, 400, 0], lens=35, loc2=[-40, -200, 42], target2=[0, 460, 0]), time='day',
-                          boats=[sail_boat([0, 0, 0.35], -5), sail_boat([40, 120, 0.35], 8), sail_boat([-50, 260, 0.35], -12)], seconds=12, relief=2.0))
+    S.append(islands_shot('063', '群島の空撮（夕方・A1の実際の島々）', 'A1', 2, dict(loc=[-20000, -170000, 60000], target=[0, 20000, 0], lens=32), anim=False, relief=2.5, radius_km=320))
+    # 064：中央の大きな島（半径約61km）と北東の島のあいだの海から、北東の島へ向かう舟を見る
+    P0, D, L = (60000.0, 50000.0), (0.75, 0.66), (-0.66, 0.75)
+    at = lambda f, l, z=0.35: [round(P0[0] + D[0] * f + L[0] * l, 1), round(P0[1] + D[1] * f + L[1] * l, 1), z]
+    S.append(islands_shot('064', '島々の間を行き交う舟（A1-2・2,500年）', 'A1', 2,
+                          dict(loc=at(-60, 30, 22), target=at(2500, -120, 0), lens=40, loc2=at(-10, 30, 21), target2=at(2560, -120, 0)), time='day',
+                          boats=[sail_boat(at(90, -25), -48), sail_boat(at(170, 40), -44), sail_boat(at(290, -70), -53)], seconds=12, relief=2.0))
     S.append(islands_shot('069', 'R1-1の島：大木の森のある、大きな火山島（計算の形）', 'R1', 1, dict(loc=[0, -90000, 26000], target=[0, 0, 0], lens=35), time='day', radius_km=60, anim=False, relief=4.0))
     S.append(islands_shot('070', 'R1-4の島：小さな古い火山島（計算の形）', 'R1', 4, dict(loc=[0, -42000, 12000], target=[0, 0, 0], lens=35), time='day', radius_km=60, anim=False, relief=4.0))
     S.append(opensea('074', '遠くの島へ向かう帆の船団（R1-1・2,000年ごろ）', time='day',

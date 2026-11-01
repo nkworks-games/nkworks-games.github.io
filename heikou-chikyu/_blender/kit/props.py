@@ -258,19 +258,20 @@ def lightstone(name, seed, size=0.5, coll=None):
     """軽殻石（架空）：白っぽい、穴の多い軽い石。浜に打ち上がり、水に浮く"""
     rng = stream(seed, 'lightstone', name)
     from mathutils import noise
-    m = M.simple('軽殻石', (0.55, 0.55, 0.52, 1), (0.80, 0.80, 0.76, 1), 0.85, 18.0, 1.2)
+    m = M.simple('軽殻石', (0.30, 0.29, 0.26, 1), (0.50, 0.48, 0.42, 1), 0.9, 45.0, 1.6)
     bm = bmesh.new()
-    bmesh.ops.create_icosphere(bm, subdivisions=3, radius=1.0)
+    bmesh.ops.create_icosphere(bm, subdivisions=5, radius=1.0)
     off = Vector((seed * 1.7, seed * 2.3, seed * 0.7))
     sx, sy, sz = rng.uniform(.8, 1.3), rng.uniform(.7, 1.1), rng.uniform(.5, .8)
     for v in bm.verts:
         p = v.co.copy()
-        p = p * (1 + 0.25 * noise.fractal(p * 1.5 + off, 0.6, 2.0, 4) - 0.35 * noise.cell(p * 3.0 + off))
+        p = p * (1 + 0.22 * noise.fractal(p * 1.5 + off, 0.6, 2.0, 4) - 0.12 * noise.cell(p * 3.0 + off))
         v.co = Vector((p.x * sx, p.y * sy, p.z * sz)) * size
     me = bpy.data.meshes.new(name)
     bm.to_mesh(me)
     bm.free()
     me.materials.append(m)
+    me.polygons.foreach_set('use_smooth', [True] * len(me.polygons))
     obj = bpy.data.objects.new(name, me)
     if coll is not False:
         link_object(obj, coll)

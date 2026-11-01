@@ -93,7 +93,7 @@ def terrain(palette='temperate'):
     zj.inputs[1].default_value = 1.6
     link(nt, z, zj.inputs[2])
     col = mix_color(nt, map_range(nt, zj.outputs[0], *P['beach_top']), sand, land, (-500, 300))
-    steep = map_range(nt, sepn.outputs['Z'], 0.82, 0.68)
+    steep = map_range(nt, sepn.outputs['Z'], 0.62, 0.48)   # 52°より急な所だけ岩肌（それより緩い斜面は木と草）
     col = mix_color(nt, steep, col, rock, (-350, 300))
     # 波打ち際の濡れた砂
     wet = map_range(nt, z, 0.9, 0.15)
@@ -410,7 +410,7 @@ def sea(algae=1.0, name='海'):
         a.inputs[1].default_value = amp
         link(nt, h, a.inputs[2])
         h = a.outputs[0]
-    bump = node(nt, 'ShaderNodeBump', (-400, 0), Strength=0.45, Distance=0.8)
+    bump = node(nt, 'ShaderNodeBump', (-400, 0), Strength=0.12, Distance=0.8)
     link(nt, h, bump.inputs['Height'])
     glass = node(nt, 'ShaderNodeBsdfGlass', (-150, 150))
     glass.inputs['Color'].default_value = (1, 1, 1, 1)
@@ -427,8 +427,9 @@ def sea(algae=1.0, name='海'):
     g = min(1.6, max(0.6, algae))
     vol = node(nt, 'ShaderNodeVolumePrincipled', (-150, -400))
     vol.inputs['Color'].default_value = (0.008, 0.03, 0.028, 1)
-    vol.inputs['Density'].default_value = 0.14
-    vol.inputs['Absorption Color'].default_value = (0.03, 0.55 + 0.06 * (g - 1), 0.62, 1)
+    # 1m あたりの吸収：赤 約0.35・緑 約0.06・青 約0.03（澄んだ熱帯の海に近い値。藻が多いと緑が残る）
+    vol.inputs['Density'].default_value = 0.4
+    vol.inputs['Absorption Color'].default_value = (0.12, 0.84 + 0.04 * (g - 1), 0.92, 1)
     out = node(nt, 'ShaderNodeOutputMaterial', (350, 0))
     link(nt, mix.outputs[0], out.inputs['Surface'])
     link(nt, vol.outputs[0], out.inputs['Volume'])

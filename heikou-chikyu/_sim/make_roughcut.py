@@ -79,7 +79,7 @@ def placeholder(row, path):
 
 
 def find_3d(no):
-    for p in ('final/cut%s.mp4' % no, 'final/cut%s.png' % no, 'preview3/cut%s.png' % no, 'preview2/cut%s.png' % no, 'preview/cut%s.png' % no):
+    for p in ('final/cut%s.mp4' % no, 'final/cut%s.png' % no, 'preview5/cut%s.png' % no, 'preview4/cut%s.png' % no, 'preview3/cut%s.png' % no, 'preview2/cut%s.png' % no, 'preview/cut%s.png' % no):
         f = os.path.join(HERE, 'out', 'renders', p)
         if os.path.exists(f):
             return f

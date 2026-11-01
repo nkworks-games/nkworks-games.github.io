@@ -47,7 +47,19 @@ def setup(time='dusk', azimuth=-120.0, elevation=None, cloud=0.5, storm=0.0, see
         # 昼はかすみを少なく（白っぽくならないように）。朝夕は少し多めで色が出る
         sky.aerosol_density = (0.7 if time == 'day' else 1.6) + 2.5 * storm
         bg = node(nt, 'ShaderNodeBackground', (-300, 100), Strength=sky_str * (1 - 0.4 * storm))
-        link(nt, sky.outputs[0], bg.inputs['Color'])
+        if time == 'day' and storm < 0.5:
+            # 昼の空は地平線ほど白くなりすぎるので、色を少し濃くする（海に映る空も青くなる）
+            hs = node(nt, 'ShaderNodeHueSaturation', (-450, 100))
+            hs.inputs['Saturation'].default_value = 1.55
+            hs.inputs['Value'].default_value = 0.9
+            link(nt, sky.outputs[0], hs.inputs['Color'])
+            tint = node(nt, 'ShaderNodeMix', (-380, 100), data_type='RGBA', blend_type='MULTIPLY')
+            tint.inputs['Factor'].default_value = 1.0
+            link(nt, hs.outputs[0], tint.inputs[6])
+            tint.inputs[7].default_value = (0.80, 0.90, 1.06, 1)   # 地平線の白を、うすい青に
+            link(nt, tint.outputs[2], bg.inputs['Color'])
+        else:
+            link(nt, sky.outputs[0], bg.inputs['Color'])
         base = bg.outputs[0]
     else:
         # 夜：暗い青の空。地平線ほど少し明るい

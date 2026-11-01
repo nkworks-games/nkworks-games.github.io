@@ -138,6 +138,16 @@ def finish(nt, shader_socket, loc=(600, 0), haze=True):
     return out
 
 
+def set_haze(distance, limit):
+    """霞の距離と上限を変える（空撮など、遠くまで見せるカット用）"""
+    g = haze_group()
+    for n in g.nodes:
+        if n.type == 'MATH' and n.operation == 'DIVIDE':
+            n.inputs[1].default_value = -distance
+        if n.type == 'MATH' and n.operation == 'MULTIPLY':   # 霞の群れの中の掛け算は「上限」の1つだけ
+            n.inputs[1].default_value = limit
+
+
 # ---------------------------------------------------------------- メッシュ
 
 def link_object(obj, coll=None):

@@ -172,7 +172,7 @@ def build_coast(s):
             if f < 30:
                 continue
             h = ter.height_at(x, y)
-            if h < 2.6 or ter.slope_at(x, y) > 46:
+            if h < 2.6 or ter.slope_at(x, y) > 58:
                 continue
             if noise.fractal(Vector((x / 70, y / 70, 5.0 + seed)), 0.6, 2.0, 3) < -0.5:
                 continue
@@ -223,7 +223,7 @@ def build_coast(s):
         if f < 18:
             continue
         h = ter.height_at(x, y)
-        if h < 1.9 or ter.slope_at(x, y) > 35:
+        if h < 1.9 or ter.slope_at(x, y) > 50:
             continue
         if any((x - hx) ** 2 + (y - hy) ** 2 < 5 ** 2 for hx, hy, _ in huts):
             continue
@@ -601,6 +601,16 @@ def build_islands(s):
         island_from_world('島%d' % i, lay['rho'][i], float(props['hmax'][i]) * s.get('relief', 1.0), int(i),
                           (x, y, 0), shelf_km=float(props['shelf_w'][i]) * 0.5)
     oc, md = water.ocean(size=600, wave_scale=s.get('wave', 0.6), seed=s.get('seed', 7), repeat=3)
+    # 波のある海は、カメラの下に置く（島から遠い所から撮るカットがある）
+    cx, cy = s['camera']['loc'][0], s['camera']['loc'][1]
+    oc.location = (cx - 900 + 500, cy - 900 + 500 + 400, 0) if abs(cx) > 3000 or abs(cy) > 3000 else oc.location
+    # 空撮は数十〜数百 km 先まで見えるので、遠くの海を広げ、霞を薄く、カメラの描く距離を延ばす
+    far = bpy.data.objects.get('遠くの海')
+    if far is not None:
+        far.scale = (60.0, 60.0, 1.0)
+    from kit.util import set_haze
+    set_haze(90000.0, 0.35)
+    s['camera'].setdefault('clip', 3.0e6)
     boats = []
     for k, b in enumerate(s.get('boats', [])):
         ob = Bo.outrigger('舟%d' % k, s.get('seed', 7) + k, b.get('length', 9.0), sail=b.get('sail', True))
