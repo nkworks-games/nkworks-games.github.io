@@ -139,7 +139,7 @@ def main():
                    reef=True, extras=[dict(type='figure', loc=[54, 38], pose='bend', rot=200), dict(type='figure', loc=[59, 35], pose='bend', rot=150, phase=0.3)]))
     S.append(coast('021', '岸で魚を突く（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[14, 144, 1.5], target=[-2, 134.5, 0.7], lens=50, loc2=[13, 143.4, 1.5], target2=[-2.5, 134.5, 0.7]),
                    extras=[dict(type='figure', loc=[-4, 134], pose='bend', rot=200), dict(type='figure', loc=[2, 136.5], pose='look', rot=150)], seconds=6))
-    S.append(coast('022', '水を運ぶ（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[-17, 128.5, 1.5], target=[-36, 137.5, 1.0], lens=75, loc2=[-17, 128.5, 1.5], target2=[-28.5, 141.0, 1.0], ease=False)   # 歩く人を望遠で追う,
+    S.append(coast('022', '水を運ぶ（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[-17, 128.5, 1.5], target=[-36, 137.5, 1.0], lens=75, loc2=[-17, 128.5, 1.5], target2=[-28.5, 141.0, 1.0], ease=False),   # 歩く人を望遠で追う
                    extras=[dict(type='figure', loc=[-37, 136.1], pose='carrywalk', rot=-65.5, move=[9, 4.1, 0])], seconds=6))   # 高さ 1.6m の等高線に沿って歩く
     S.append(coast('023', '薪を運び、火を焚く（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[16, 138, 1.7], target=[8, 150, 0.8], lens=35, loc2=[15, 139, 1.7], target2=[8, 150, 0.8]),
                    extras=[dict(type='fire', loc=[8, 150], strength=100), dict(type='woodpile', loc=[11, 153]), dict(type='figure', loc=[5, 152], pose='carry', rot=40)], seconds=6))
