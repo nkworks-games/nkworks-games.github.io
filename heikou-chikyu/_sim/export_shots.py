@@ -153,18 +153,23 @@ def main():
                    extras=[dict(type='dugout', loc=[-10, 150], rot=30, tilt=25)]))
     S.append(coast('044', '浜から海を見る人（後ろ姿）、水平線に島影（A1-2・250年）', 'A1', 2, 250, dict(loc=[1.5, 160, 2.3], target=[0, 0, 4], lens=35, loc2=[1.2, 157, 2.2], target2=[0, 0, 4]),
                    extras=[dict(type='figure', loc=[0, 146], pose='look', rot=180)], islands=[dict(radius=1800, height=260, loc=[-6000, -45000, -5])]))
-    S.append(coast('047', '大木を倒し、丸木舟を彫る（A1-2・264年）', 'A1', 2, 264, dict(loc=[-22, 158, 1.8], target=[-36, 171, 0.8], lens=35, loc2=[-23, 159, 1.8], target2=[-36, 171, 0.8]),
-                   extras=[dict(type='log', loc=[-36, 171], rot=70), dict(type='figure', loc=[-34.5, 169.5], pose='bend', rot=150)]))
+    S.append(coast('047', '大木を倒し、丸木舟を彫る（A1-2・264年）', 'A1', 2, 264, dict(loc=[-12, 134, 1.5], target=[-24, 141, 0.5], lens=35, loc2=[-12.6, 134.4, 1.5], target2=[-24, 141, 0.5]),
+                   extras=[dict(type='log', loc=[-24, 141], rot=70), dict(type='figure', loc=[-22.6, 139.6], pose='bend', rot=150),
+                           dict(type='figure', loc=[-26.5, 142.5], pose='stand', rot=200)]))
     S.append(coast('048', '舟に浮き木を取り付ける（A1-2・284年）', 'A1', 2, 284, dict(loc=[20, 128, 1.6], target=[10, 140, 0.5], lens=35, loc2=[19, 129, 1.6], target2=[10, 140, 0.5]),
                    extras=[dict(type='outrigger', loc=[10, 140], rot=80), dict(type='figure', loc=[8.5, 137.5], pose='bend', rot=40), dict(type='figure', loc=[12, 143], pose='stand', rot=200)]))
-    S.append(coast('049', '浜から沖へ漕ぎ出す舟（A1-2・314年）', 'A1', 2, 314, dict(loc=[6, 142, 1.8], target=[0, 100, 0.5], lens=35), time='dawn', seconds=10,
-                   extras=[dict(type='outrigger', loc=[0, 122], rot=180, float=True, move=[0, -40, 0])]))
-    S.append(coast('051', '新しい島の浜に舟が着く（A1-2・314年）', 'A1', 2, 0, dict(loc=[-6, 152, 2.5], target=[0, 100, 1], lens=35), seconds=12,
+    S.append(coast('049', '浜から沖へ漕ぎ出す舟（A1-2・314年）', 'A1', 2, 314, dict(loc=[6, 142, 1.8], target=[0, 108, 0.5], lens=45), time='dawn', seconds=10,
+                   extras=[dict(type='outrigger', loc=[0, 122], rot=180, float=True, move=[0, -40, 0]),
+                           dict(type='figure', loc=[0, 120.8, 0.12], pose='paddle', rot=180, move=[0, -40, 0]),
+                           dict(type='figure', loc=[0, 123.4, 0.12], pose='paddle', rot=180, phase=0.4, move=[0, -40, 0])]))
+    S.append(coast('051', '新しい島の浜に舟が着く（A1-2・314年）', 'A1', 2, 0, dict(loc=[-6, 152, 2.5], target=[0, 104, 0.8], lens=60), seconds=12,
                    settlement=dict(huts=0, fires=0, people=0, racks=0, pots=0, gardens=0), boats=[], forest=1.0,
-                   extras=[dict(type='outrigger', loc=[0, 95], rot=0, float=True, move=[0, 18, 0])]))
+                   extras=[dict(type='outrigger', loc=[0, 95], rot=0, float=True, move=[0, 18, 0]),
+                           dict(type='figure', loc=[0, 96.2, 0.12], pose='paddle', rot=0, move=[0, 18, 0]),
+                           dict(type='figure', loc=[0, 93.6, 0.12], pose='paddle', rot=0, phase=0.5, move=[0, 18, 0])]))
     S.append(coast('055', '帆をあげる舟（A1-2・380年〜）', 'A1', 2, 400, dict(loc=[16, 126, 1.5], target=[0, 112, 3], lens=35, loc2=[15, 124, 1.5], target2=[0, 112, 3]),
                    extras=[dict(type='sail', loc=[0, 112], rot=90, float=True)], seconds=10))
-    S.append(coast('057', '芋や果樹の畑（A1-2・772年〜）', 'A1', 2, 800, dict(loc=[40, 196, 7], target=[0, 245, 0], lens=30, loc2=[36, 200, 6.5], target2=[0, 245, 0]),
+    S.append(coast('057', '芋や果樹の畑（A1-2・772年〜）', 'A1', 2, 800, dict(loc=[70, 150, 48], target=[5, 238, 0], lens=30, loc2=[62, 156, 46], target2=[5, 240, 0]),
                    settlement=dict(gardens=6), seconds=10))
     S.append(opensea('056', '夜の航海。星を見上げる（A1-2・1,163年）', time='night', boats=[sail_boat([0, 0, 0.35], 10, crew=3)],
                      camera=dict(loc=[-9, -8, 2.2], target=[0, 4, 4.5], lens=28, loc2=[-8, -4, 2.2], target2=[0, 8, 4.5]), seconds=10, wave=0.4,

@@ -29,7 +29,15 @@ def _mats(rng):
 
 
 def figure(name, seed, pose='stand', height=1.65, coll=None, child=False, phase=0.0):
-    """簡単な人の形。phase は歩く・こぐ動きの位相（0〜1）"""
+    """人。MakeHuman の体（assets/human.npz）があればそれで作る（kit/human.py）。なければ下の簡単な形"""
+    from . import human
+    if human.available():
+        return human.figure(name, seed, pose=pose, coll=coll, child=child, phase=phase)
+    return simple_figure(name, seed, pose, height, coll, child, phase)
+
+
+def simple_figure(name, seed, pose='stand', height=1.65, coll=None, child=False, phase=0.0):
+    """簡単な人の形（MakeHuman の素材がないときの代わり）。phase は歩く・こぐ動きの位相（0〜1）"""
     rng = stream(seed, 'person', name)
     skin, cloth, hair = _mats(rng)
     h = height * (0.62 if child else 1.0)

@@ -44,7 +44,8 @@ def setup(time='dusk', azimuth=-120.0, elevation=None, cloud=0.5, storm=0.0, see
         sky.sun_elevation = math.radians(max(el, 0.5))
         sky.sun_rotation = math.radians(azimuth)
         sky.altitude = 20.0
-        sky.aerosol_density = 1.6 + 2.5 * storm
+        # 昼はかすみを少なく（白っぽくならないように）。朝夕は少し多めで色が出る
+        sky.aerosol_density = (0.7 if time == 'day' else 1.6) + 2.5 * storm
         bg = node(nt, 'ShaderNodeBackground', (-300, 100), Strength=sky_str * (1 - 0.4 * storm))
         link(nt, sky.outputs[0], bg.inputs['Color'])
         base = bg.outputs[0]
