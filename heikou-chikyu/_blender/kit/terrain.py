@@ -118,7 +118,8 @@ class Terrain:
         H[~land] = -depth[~land]
         if self.use_reef:
             rx, ry = self.REEF
-            reef = -7.5 + 7.9 * np.exp(-((X - rx) ** 2 + (Y - ry) ** 2) / (2 * 9.0 ** 2))
+            g_ = np.exp(-((X - rx) ** 2 + (Y - ry) ** 2) / (2 * 9.0 ** 2))
+            reef = -7.5 + 7.9 * g_ + 0.45 * n_hi * smoothstep(0.3, 0.8, g_)   # 岩場らしいでこぼこ
             H = np.maximum(H, reef)
         self.headmask = headmask
         self.Wb = Wb

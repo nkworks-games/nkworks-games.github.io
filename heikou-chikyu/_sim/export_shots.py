@@ -126,9 +126,9 @@ def main():
     S.append(opensea('001', '夕暮れの海を渡る帆の舟（R1-1・2,900年ごろ）', boats=[sail_boat([0, 0, 0.35], -20)], islands=far,
                      camera=dict(loc=[-24, -12, 3.5], target=[0, 10, 3], lens=35, loc2=[-20, 6, 3.2], target2=[2, 28, 3]), seconds=7))
     S.append(opensea('002', '舟の上から：帆と波、遠くに島影（R1-1）', boats=[sail_boat([0, 0, 0.35], 0)], islands=far,
-                     camera=dict(loc=[0.6, -4.0, 2.0], target=[0.2, 30, 2.6], lens=24, loc2=[0.6, 14.0, 2.0], target2=[0.2, 48, 2.6], ease=False), seconds=6))
+                     camera=dict(loc=[1.3, 3.4, 1.5], target=[-7, 40, 2.0], lens=24, loc2=[1.3, 21.4, 1.5], target2=[-7, 58, 2.0], ease=False), seconds=6))
     S.append(coast('003', '小さな火山島の夕方の浜（R1-4・2,990年）', 'R1', 4, 2990, CAM_BEACH, time='dusk'))
-    S.append(planet('004', '雲の上から惑星の全景へ', dict(loc=[0, -7.4, 1.2], target=[0, 0, 0.6], lens=35, loc2=[0, -24, 5], target2=[0, 0, 0])))
+    S.append(planet('004', '雲の上から惑星の全景へ', dict(loc=[0, -7.5, 2.4], target=[0, 0, 6.4], lens=35, loc2=[0, -24, 5], target2=[0, 0, 0])))
     S.append(planet('006', '惑星がゆっくり回る', dict(loc=[-8, -18, 4], target=[0, 0, 0], lens=50, loc2=[8, -18, 4], target2=[0, 0, 0], ease=False), seconds=8))
     S.append(coast('013', '浜の火と石の道具、数人の後ろ姿（開始時点）', 'A1', 2, 0, dict(loc=[8, 133, 1.6], target=[4, 148, 0.8], lens=35),
                    time='dusk', anim=False, extras=[dict(type='fire', loc=[4, 146], strength=120), dict(type='woodpile', loc=[7, 149]),

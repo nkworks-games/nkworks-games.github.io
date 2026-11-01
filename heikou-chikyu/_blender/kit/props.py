@@ -10,7 +10,7 @@ import bpy
 from mathutils import Matrix, Vector
 
 from . import materials as M
-from .util import add_box, link_object, new_material, node, link, map_range, stream
+from .util import add_box, link_object, new_material, node, link, map_range, math_op, stream
 from .vegetation import Builder
 
 
@@ -197,9 +197,10 @@ def fire(name, seed, smoke=True, coll=None, strength=60.0):
         sep = node(nt, 'ShaderNodeSeparateXYZ', (-600, -250))
         link(nt, tc.outputs['Generated'], sep.inputs[0])
         # 上へ行くほど広がって薄くなる柱
+        lean = math_op(nt, 'ADD', math_op(nt, 'MULTIPLY', sep.outputs['Z'], 0.28), 0.36)
         dx = node(nt, 'ShaderNodeMath', (-400, -250), operation='SUBTRACT')
         link(nt, sep.outputs['X'], dx.inputs[0])
-        dx.inputs[1].default_value = 0.5
+        link(nt, lean, dx.inputs[1])
         dy = node(nt, 'ShaderNodeMath', (-400, -400), operation='SUBTRACT')
         link(nt, sep.outputs['Y'], dy.inputs[0])
         dy.inputs[1].default_value = 0.5
@@ -208,23 +209,24 @@ def fire(name, seed, smoke=True, coll=None, strength=60.0):
         link(nt, dx.outputs[0], cxy.inputs['X'])
         link(nt, dy.outputs[0], cxy.inputs['Y'])
         link(nt, cxy.outputs[0], r2.inputs[0])
-        wid = map_range(nt, sep.outputs['Z'], 0.0, 1.0, 0.08, 0.45)
+        wid = map_range(nt, sep.outputs['Z'], 0.0, 1.0, 0.05, 0.42)
         col_ = node(nt, 'ShaderNodeMath', (-100, -300), operation='DIVIDE')
         link(nt, r2.outputs['Value'], col_.inputs[0])
         link(nt, wid, col_.inputs[1])
         core = map_range(nt, col_.outputs[0], 1.0, 0.3)
-        fade = map_range(nt, sep.outputs['Z'], 1.0, 0.2)
+        fade = map_range(nt, sep.outputs['Z'], 0.85, 0.05)
         d1 = node(nt, 'ShaderNodeMath', (50, -200), operation='MULTIPLY')
         link(nt, core, d1.inputs[0])
         link(nt, fade, d1.inputs[1])
         d2 = node(nt, 'ShaderNodeMath', (200, -100), operation='MULTIPLY')
         link(nt, d1.outputs[0], d2.inputs[0])
-        link(nt, map_range(nt, nz.outputs['Fac'], 0.35, 0.7), d2.inputs[1])
+        link(nt, map_range(nt, nz.outputs['Fac'], 0.45, 0.75), d2.inputs[1])
         d3 = node(nt, 'ShaderNodeMath', (350, -100), operation='MULTIPLY')
         link(nt, d2.outputs[0], d3.inputs[0])
-        d3.inputs[1].default_value = 4.0
+        d3.inputs[1].default_value = 0.9
         vol = node(nt, 'ShaderNodeVolumePrincipled', (500, 0))
-        vol.inputs['Color'].default_value = (0.55, 0.55, 0.55, 1)
+        vol.inputs['Color'].default_value = (0.40, 0.41, 0.43, 1)
+        vol.inputs['Absorption Color'].default_value = (0.25, 0.25, 0.26, 1)
         link(nt, d3.outputs[0], vol.inputs['Density'])
         out = node(nt, 'ShaderNodeOutputMaterial', (750, 0))
         link(nt, vol.outputs[0], out.inputs['Volume'])

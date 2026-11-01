@@ -131,7 +131,7 @@ class Layer:
         self.d.rounded_rectangle(b, radius=radius * SS, fill=tuple(color) + (int(255 * a),))
 
     def onto(self, img):
-        small = self.img.resize((W, H), Image.LANCZOS)
+        small = self.img.reduce(SS)   # 2×2 の平均（LANCZOS より4倍速い）
         img.paste(small, (0, 0), small)
         return img
 

@@ -17,7 +17,7 @@ def _reuse(name):
 # 地面の色の組（気候や星ごとに差し替える）
 GROUND = {
     'temperate': dict(
-        sand=((0.40, 0.35, 0.26, 1), (0.52, 0.46, 0.35, 1)),
+        sand=((0.29, 0.25, 0.18, 1), (0.39, 0.34, 0.25, 1)),
         grass=((0.05, 0.085, 0.02, 1), (0.11, 0.13, 0.04, 1)),
         dry=(0.20, 0.17, 0.08, 1),
         floor=((0.035, 0.032, 0.02, 1), (0.08, 0.07, 0.04, 1)),
@@ -446,13 +446,17 @@ def foam():
     link(nt, tc.outputs['Object'], mp.inputs['Vector'])
     n = node(nt, 'ShaderNodeTexNoise', (-500, 0), Scale=0.9, Detail=10.0, Roughness=0.7)
     link(nt, mp.outputs[0], n.inputs['Vector'])
-    vo = node(nt, 'ShaderNodeTexVoronoi', (-500, -250), Scale=1.8, feature='DISTANCE_TO_EDGE')
-    link(nt, tc.outputs['Object'], vo.inputs['Vector'])
+    n2 = node(nt, 'ShaderNodeTexNoise', (-500, -250), Scale=6.0, Detail=14.0, Roughness=0.75, Distortion=0.6)
+    link(nt, mp.outputs[0], n2.inputs['Vector'])
     depth = node(nt, 'ShaderNodeAttribute', (-500, 250), attribute_name='depth').outputs['Fac']
-    band = map_range(nt, depth, -0.4, -0.04)
-    lace = map_range(nt, vo.outputs['Distance'], 0.0, 0.09, 1.0, 0.0)
-    patchy = map_range(nt, n.outputs['Fac'], 0.42, 0.62)
-    f = math_op(nt, 'MULTIPLY', math_op(nt, 'MULTIPLY', math_op(nt, 'MAXIMUM', patchy, lace), band), 0.7)
+    # 波打ち際（深さ 0 付近）は細い帯、少し沖はまばらな泡
+    edge = math_op(nt, 'MULTIPLY', map_range(nt, depth, -0.2, -0.03), map_range(nt, depth, 0.02, -0.03))
+    off = math_op(nt, 'MULTIPLY', map_range(nt, depth, -0.9, -0.25), map_range(nt, depth, -0.1, -0.3))
+    lace = map_range(nt, n2.outputs['Fac'], 0.53, 0.62)
+    patchy = map_range(nt, n.outputs['Fac'], 0.38, 0.62)
+    f = math_op(nt, 'ADD', math_op(nt, 'MULTIPLY', edge, math_op(nt, 'MAXIMUM', lace, math_op(nt, 'MULTIPLY', patchy, 0.5))),
+                math_op(nt, 'MULTIPLY', math_op(nt, 'MULTIPLY', off, lace), patchy))
+    f = math_op(nt, 'MINIMUM', math_op(nt, 'MULTIPLY', f, 0.75), 0.85)
     white = node(nt, 'ShaderNodeBsdfPrincipled', (200, -100))
     white.inputs['Base Color'].default_value = (0.82, 0.84, 0.84, 1)
     white.inputs['Roughness'].default_value = 0.6

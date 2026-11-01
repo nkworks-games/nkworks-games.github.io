@@ -53,6 +53,8 @@ def parse_args():
     ap.add_argument('--blend', action='store_true')
     ap.add_argument('--gpu', action='store_true')
     ap.add_argument('--threads', type=int, default=0)
+    ap.add_argument('--step', type=int, default=1, help='N コマおきに描く（2 なら半分。間はあとで補う）')
+    ap.add_argument('--resume', action='store_true', help='描き終えたコマ・カットは飛ばす（中断したところから）')
     return ap.parse_args(argv)
 
 
@@ -182,8 +184,10 @@ def build_coast(s):
     thr = cand[n_cut][0] if 0 < n_cut < len(cand) else None
     trees = []
     n_tree_types = len(lib['trees'].objects)
+    cleared = []
     for acc, x, y, h, u in cand:
         if thr is not None and u < 1 / (1 + math.exp((acc - thr) / 60.0)):
+            cleared.append((x, y, h))
             continue
         trees.append((x, y, h - 0.2, rng.randrange(n_tree_types), rng.uniform(0.75, 1.15), rng.uniform(0, 6.3)))
     scatter.instances('森', lib['trees'], trees)
@@ -219,7 +223,7 @@ def build_coast(s):
     # 草はカメラに近いほど多く（遠くは見えないので置かない）
     for _ in range(60000):
         a = rng.uniform(0, 2 * math.pi)
-        d = 3 + 160 * rng.random() ** 2
+        d = 6 + 160 * rng.random() ** 2
         x, y = cam.x + math.cos(a) * d, cam.y + math.sin(a) * d
         f = ter.field_at(x, y)
         h = ter.height_at(x, y)
@@ -228,6 +232,10 @@ def build_coast(s):
         if any((x - hx) ** 2 + (y - hy) ** 2 < 4 ** 2 for hx, hy, _ in huts):
             continue
         grass.append((x, y, h - 0.03, rng.randrange(3), rng.uniform(0.7, 1.3), rng.uniform(0, 6.3)))
+    # 木を切った跡は、裸の土ではなく低い藪と草地になる
+    for x, y, h in cleared:
+        if rng.random() < 0.6:
+            shrubs.append((x + rng.uniform(-1.5, 1.5), y + rng.uniform(-1.5, 1.5), h - 0.1, rng.randrange(3), rng.uniform(0.9, 1.9), rng.uniform(0, 6.3)))
     scatter.instances('低木', lib['shrubs'], shrubs)
     scatter.instances('草', lib['grass'], grass)
     # 地面（森の床と集落の土を書き込む）
@@ -255,6 +263,13 @@ def build_coast(s):
             continue
         sz = rng.uniform(0.6, 2.4) * (1.6 if hm > 0.3 else 1.0)
         rocks.append((x, y, ter.height_at(x, y) - sz * 0.25, rng.randrange(6), sz, rng.uniform(0, 6.3)))
+    if ter.use_reef:   # 潮の引いた岩場：低い岩をたくさん
+        rx, ry = Terrain.REEF
+        for _ in range(260):
+            q, rr = rng.uniform(0, 2 * math.pi), 13 * math.sqrt(rng.random())
+            x, y = rx + math.cos(q) * rr * 1.2, ry + math.sin(q) * rr
+            sz = rng.uniform(0.25, 1.1)
+            rocks.append((x, y, ter.height_at(x, y) - sz * 0.35, rng.randrange(6), sz, rng.uniform(0, 6.3)))
     scatter.instances('岩', rocks_c, rocks)
     # 浜の舟・干し棚・土器・焚き火・人
     beach_y = {}
@@ -352,6 +367,12 @@ def place_extras(extras, ter, seed):
         t = e['type']
         x, y = e['loc'][0], e['loc'][1]
         ground = ter.height_at(x, y) if ter is not None else 0.0
+        if t == 'figure' and ter is not None and not e.get('float') and len(e['loc']) < 3:
+            for _ in range(60):
+                if ground >= -0.45:
+                    break
+                y += 0.5
+                ground = ter.height_at(x, y)
         z = e['loc'][2] if len(e['loc']) > 2 else (max(ground, 0.0) + (0.05 if ground < 0 else 0.0) if e.get('float') else ground)
         name = '%s_%d' % (t, k)
         sd = seed * 1000 + k
@@ -706,10 +727,23 @@ def build_planet(s):
 
 # ---------------------------------------------------------------- カメラと描画
 
-def setup_camera(s, frames):
+def ground_relative(c, ter):
+    """海岸のカットでは、カメラと注視点の高さを「その場所の地面（海なら海面）からの高さ」とみなす。
+    地形は種ごとに少しずつ違うので、絶対の高さで書くと地面に埋まることがある"""
+    if ter is None or c.get('absolute'):
+        return c
+    c = dict(c)
+    for k in ('loc', 'target', 'loc2', 'target2'):
+        if k in c:
+            x, y, z = c[k]
+            c[k] = [x, y, max(ter.height_at(x, y), 0.0) + z]
+    return c
+
+
+def setup_camera(s, frames, ter=None):
     cam = bpy.data.objects.new('カメラ', bpy.data.cameras.new('カメラ'))
     link_object(cam)
-    c = s['camera']
+    c = ground_relative(s['camera'], ter)
     cam.data.lens = c.get('lens', 30)
     cam.data.sensor_width = 36
     cam.data.clip_end = c.get('clip', 40000)
@@ -791,8 +825,9 @@ def build(s, args):
     frames = int(round(s.get('seconds', 0) * fps)) if s.get('anim') and not args.still else 1
     ocean_md = None
     boats = []
+    ter = None
     if kind == 'coast':
-        build_coast(s)
+        ter = build_coast(s)
     elif kind == 'opensea':
         _, ocean_md, boats = build_opensea(s)
     elif kind == 'islands':
@@ -805,7 +840,7 @@ def build(s, args):
     if sk:
         sky.setup(sk.get('time', 'dusk'), sk.get('azimuth', -120), sk.get('elevation'), sk.get('cloud', 0.5),
                   sk.get('storm', 0.0), s.get('seed', 7))
-    setup_camera(s, frames)
+    setup_camera(s, frames, ter)
     sc = bpy.context.scene
     sc.frame_start, sc.frame_end = 1, max(1, frames)
     if frames > 1:
@@ -844,6 +879,8 @@ def main():
     for s in shots:
         if only and s['id'] not in only:
             continue
+        if args.resume and os.path.exists(os.path.join(out, 'cut%s.png' % s['id'])):
+            continue
         t0 = time.time()
         frames = build(s, args)
         sc = bpy.context.scene
@@ -855,8 +892,12 @@ def main():
             d = os.path.join(out, 'cut%s' % s['id'])
             os.makedirs(d, exist_ok=True)
             sc.render.filepath = os.path.join(d, 'f_')
+            sc.frame_step = max(1, args.step)
+            sc.render.use_overwrite = not args.resume
+            sc.render.use_placeholder = args.resume
             bpy.ops.render.render(animation=True)
-            print('  動画 %d コマ・%.1fs（1コマ %.1fs）→ %s' % (frames, time.time() - t1, (time.time() - t1) / frames, d), flush=True)
+            done = len(range(1, frames + 1, max(1, args.step)))
+            print('  動画 %d コマ（%d コマおき）・%.1fs（1コマ %.1fs）→ %s' % (done, max(1, args.step), time.time() - t1, (time.time() - t1) / done, d), flush=True)
         else:
             sc.render.filepath = os.path.join(out, 'cut%s.png' % s['id'])
             bpy.ops.render.render(write_still=True)

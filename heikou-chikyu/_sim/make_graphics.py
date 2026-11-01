@@ -3,6 +3,7 @@
   python3 make_graphics.py            # すべて
   python3 make_graphics.py 027 053    # 一部だけ
   python3 make_graphics.py --still    # 各カットの最後のコマだけ PNG（確認用）
+  python3 make_graphics.py --skip     # もう mp4 があるカットは飛ばす（続きから）
 
 数字はすべて計算の記録（out/main・out/verify-*）から読む。手で書いた数字は、設定（企画の前提）だけ。
 """
@@ -909,6 +910,8 @@ def main():
     for cid in ids:
         if cid not in C:
             print('なし', cid)
+            continue
+        if '--skip' in sys.argv and not still and os.path.exists(os.path.join(OUT, 'cut%s.mp4' % cid)):
             continue
         T = secs.get(cid, 10)
         T_cur[0] = T

@@ -41,6 +41,35 @@
 
 連番画像から動画を作る例：`ffmpeg -framerate 24 -i f_%04d.png -c:v libx264 -pix_fmt yuv420p -crf 18 out.mp4`
 
+## 第1回のショットを描く（shots.py）
+
+`shots/ep1.json` は、計算の記録から作ったショットの一覧（40カット。`_sim/export_shots.py` で作り直せる）。`shots.py` がそれを読んで、海岸・沖・群島・惑星の場面を組み立てて描く。
+
+```bash
+# 構図の確認（960×540・静止画・1カット1分前後）
+/Applications/Blender.app/Contents/MacOS/Blender -b -P heikou-chikyu/_blender/shots.py -- --still --preview --gpu --out ~/heikou-preview
+
+# 本番（1920×1080・64回・1コマおきに描いて間を補う・中断したら同じコマンドで続きから）
+/Applications/Blender.app/Contents/MacOS/Blender -b -P heikou-chikyu/_blender/shots.py -- --gpu --step 2 --resume --out ~/heikou-renders
+
+# 連番画像をカットごとの mp4 に（1コマおきの分は動きから補う）
+python3 heikou-chikyu/_sim/frames_to_mp4.py ~/heikou-renders
+```
+
+| 引数 | 意味 | 既定 |
+|---|---|---|
+| `--only 003,013` | 一部のカットだけ | すべて |
+| `--still` | 動くカットも、最初の1コマだけ描く | なし |
+| `--preview` | 960×540・24回 | なし |
+| `--samples` | 1画素あたりの試行回数 | 64 |
+| `--step 2` | 2コマに1コマだけ描く（描く時間が半分。間は `frames_to_mp4.py` が補う） | 1 |
+| `--resume` | 描き終えたコマ・静止画は飛ばす | なし |
+| `--blend` | 組み立てた場面を .blend でも保存する | なし |
+
+- 海岸のカットのカメラと注視点の高さは「その場所の地面（海なら海面）からの高さ」。島の形は乱数の種ごとに少し違うので、絶対の高さで書くと地面に埋まることがある。絶対の高さで書きたいときは `"camera": {"absolute": true, ...}`。
+- 動くカットは合わせて 316秒（7,584コマ）。M5 の 1コマ 21.7秒で全部描くと約46時間かかるので、`--step 2` で約23時間にする。夜に流して、朝に `--resume` のまま続きを流せばよい。
+- 描く順番の目安：先に静止画のカット（7つ）と短いカットで色と構図を確かめ、それから長いカットを流す。
+
 ## 計算データ → 景色の対応（仮置き）
 
 生物量と画面上の本数は別の量なので、そのまま比例させずに次の規則で対応させています。どれも仮置きで、見せ方に合わせて変えてかまいません。
