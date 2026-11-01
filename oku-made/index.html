@@ -128,7 +128,7 @@ const CONFIG = {
   timeLimit: 45,            // 制限時間(秒)
   depthMax: 0.10,           // 鼻の穴から奥(上咽頭)までの長さ(m)。大人は鼻から耳までの約10cm
   advanceSpeed: 0.2,        // 長押しで進む速さ(1秒で全体の何割か)
-  retractSpeed: 0.35,       // 「戻す」で戻る速さ（ゆっくり抜く）
+  retractSpeed: 0.3,        // 「戻す」で戻る速さ（ゆっくり抜く）
   aimSensitivity: 0.07,     // ドラッグ1pxで何度変わるか
   aimLimit: 28,             // 角度の最大(度)
   startAimError: 6,         // 最初のずれ(度)
@@ -137,6 +137,10 @@ const CONFIG = {
   twitchDeg: 2.6,           // ピクッと動く大きさ(度)
   twitchSignY: -1, twitchSignP: 1,    // 頭の動く向き（テストで、綿棒が空中で止まって見える向きを確認）
   twitchWarn: 0.6,          // 動く何秒前に「ん…」と予告するか
+  sneezeDeg: 7,             // 抜く時のくしゃみの大きさ(度)。「ふぁ…」で頭が少し反って、そのあと逆向きに大きく動く
+  sneezeLook: 2.2,          // くしゃみの見た目の大きさ(倍)
+  sneezeWind: 0.75,         // 「ふぁ…」の長さ(秒)。この間の頭の動きを見て、反対へドラッグで角度を直す
+  sneezeAt: [[0.72, 0.9, 1], [0.32, 0.55, 0.6]],   // 抜く途中のどこでくしゃみが来るか [u下限, u上限, 起きる確率]
   idleDeg: 1.0,             // 待っている間のゆっくりした頭のゆれ(度・見た目だけ)
   blinkEvery: [2.5, 5],     // まばたきの間隔(秒)       // 菌までの道の太さ（1=元の太さ。小さいほど細い）
   germCount: 26,            // 菌の数
@@ -153,7 +157,7 @@ const CONFIG = {
   scoreCollect: 700, scorePain: 200, scoreTime: 100,
   failPenalty: 0.5,         // 仕返し・回収できずに終わったときの点数の割合
   dropNorm: 0.95,           // 抜く途中、壁にこれより近いと菌が落ちる
-  dropEvery: 0.3,           // 壁にこすっている間、何秒ごとに菌が1個落ちるか
+  dropEvery: 0.2,           // 壁にこすっている間、何秒ごとに菌が1個落ちるか
   playerDist: 0.45,         // 仕返しのとき、自分(白塗り)が立つ位置(患者からの距離 m)
   whiteMix: 0.16,
   fingerAxis: 'z', fingerSign: 1,   // 指を曲げる軸と向き（握る動き）
@@ -308,6 +312,7 @@ function floorContact(u, yaw, pitch) {   // 壁にふれているのが「床」
 function bubbleSay(text, dur = 1.1) { const b = $('bubble'); b.textContent = text; b.classList.add('on'); S.bubbleT = dur; }
 const HINT_START = '鼻の床にそって、上に向けずにまっすぐ ／ 長押しで進む ／ ドラッグで角度';
 const HINT_PULL = '奥に着いた！ ドラッグで綿棒を回してこすろう（速すぎると痛い）→「戻す」でゆっくり抜く';
+const HINT_SNEEZE = '抜く時は、くしゃみに注意！「ふぁ…」と頭が動いたら、「戻す」を押したまま指をずらして角度を直そう';
 const HINT_ALL = '全部とれた！「戻す」でゆっくり抜いて、綿棒を回収しよう（壁にこすると菌が落ちる）';
 const HINT_RESIST = '抵抗あり！ 無理に押さず、少し戻して「床にそう角度」で入れなおそう';
 function newRound() {
@@ -316,6 +321,7 @@ function newRound() {
     flinch: 0, revT: 0, revenge: false, failed: false, collected: 0, hintT: 7, wallSayT: 0, maxU: 0, pullHinted: false, allHinted: false, dropAcc: 0, dropped: 0, unretrieved: false, resistHinted: false, floorSide: false, rubPx: 0, rubAcc: 0,
     bendX: rand(-0.0025, 0.0025), bendY: rand(-0.0018, 0.0018), swY: 0, swP: 0,
     twT: rand(CONFIG.twitchEvery[0], CONFIG.twitchEvery[1]), twAge: -1, twK: 0, twY: 0, twP: 0, twWarned: false,
+    snzU: CONFIG.sneezeAt.map(a => Math.random() < a[2] ? rand(a[0], a[1]) : -1), snzAge: -1, snzY: 0, snzP: 0, snzOff: 0, offY: 0, offP: 0, retractHinted: false, sneezes: 0,
     yaw: (Math.random() < .5 ? -1 : 1) * rand(3, CONFIG.startAimError), pitch: Math.random() < .65 ? rand(3, CONFIG.startAimError + 1) : -rand(2, 5),   // 最初は上に向けがち
   });
   S.ey = S.yaw; S.ep = S.pitch;
@@ -369,8 +375,22 @@ function stepPlay(dt) {
     S.twK = S.twAge < 0.12 ? S.twAge / 0.12 : Math.max(0, 1 - (S.twAge - 0.12) / 0.9);
     if (S.twAge > 1.02) { S.twAge = -1; S.twK = 0; S.twWarned = false; S.twT = rand(CONFIG.twitchEvery[0], CONFIG.twitchEvery[1]); }
   }
-  const tw = S.twK * CONFIG.twitchDeg;
-  S.ey = S.yaw + S.swY - tw * S.twY; S.ep = S.pitch + S.swP - tw * S.twP;   // 頭が動いた分、綿棒の角度は反対にずれる
+  // 抜く途中のくしゃみ：「ふぁ…」で頭が少し反る → 「へっくしゅん！」で逆向きに大きく動く → ゆっくりもどる
+  if (S.retract && S.maxU >= 0.9 && !S.retractHinted) { S.retractHinted = true; $('hint').textContent = HINT_SNEEZE; $('hint').style.opacity = 1; S.hintT = 5; }
+  if (S.snzAge < 0 && S.retract && S.maxU >= 0.9) {
+    const i = S.snzU.findIndex(v => v > 0 && S.u <= v);
+    if (i >= 0) { S.snzU[i] = -1; S.snzAge = 0; const a = rand(-0.6, 0.6); S.snzY = Math.sin(a); S.snzP = -Math.cos(a); bubbleSay('ふぁ…ふぁっ…', CONFIG.sneezeWind); S.twAge = -1; S.twK = 0; S.twT = Math.max(S.twT, 2.5); }
+  }
+  if (S.snzAge >= 0) {
+    const W = CONFIG.sneezeWind, t = (S.snzAge += dt);
+    const was = S.snzOff;
+    S.snzOff = t < W ? -0.4 * (t / W) * (t / W) : t < W + 0.1 ? -0.4 + 1.4 * (t - W) / 0.1 : Math.max(0, 1 - (t - W - 0.1) / 0.8);
+    if (t >= W && t - dt < W) { bubbleSay('へっくしゅん！！', 1.0); S.wallSayT = 1.3; S.flinch = 1; S.shakeT = 0.35; sfx('whoosh'); S.sneezes++; }
+    if (t > W + 0.9) { S.snzAge = -1; S.snzOff = 0; }
+  }
+  const tw = S.twK * CONFIG.twitchDeg, sz = S.snzOff * CONFIG.sneezeDeg;
+  S.offY = tw * S.twY + sz * S.snzY; S.offP = tw * S.twP + sz * S.snzP;   // 頭が動いた量(度)
+  S.ey = S.yaw + S.swY - S.offY; S.ep = S.pitch + S.swP - S.offP;   // 頭が動いた分、綿棒の角度は反対にずれる
   let blocked = false;
   if (S.retract) S.u = Math.max(0, S.u - CONFIG.retractSpeed * dt);
   else if (S.holding && S.u < 1) {
@@ -387,7 +407,7 @@ function stepPlay(dt) {
   let rate = clamp((n - 0.8) / 0.2, 0, 1) * CONFIG.painWall * ps;
   if (blocked || inWall) {
     rate += CONFIG.painBlocked * ps; S.flinch = 1;
-    if (!S.resistHinted && S.u > 0.1) { S.resistHinted = true; $('hint').textContent = HINT_RESIST; $('hint').style.opacity = 1; S.hintT = 6; }
+    if (!S.resistHinted && S.u > 0.1 && !S.retract) { S.resistHinted = true; $('hint').textContent = HINT_RESIST; $('hint').style.opacity = 1; S.hintT = 6; }
     if (S.wallSayT <= 0) { bubbleSay(['いたっ！', 'うっ…！', 'ひぃっ'][Math.floor(Math.random() * 3)], 0.9); S.wallSayT = 1.6; }
   } else if (S.u > 0 && n < 0.6) rate -= CONFIG.painCalm;
   if (S.u >= CONFIG.rubDepth && !S.retract) {     // 奥：ドラッグした分だけ綿棒を回してこする
@@ -406,13 +426,13 @@ function stepPlay(dt) {
       rate += CONFIG.painRub * clamp((moved / dt - CONFIG.rubFastSpeed) / CONFIG.rubFastSpeed, 0, 1.5);
     }
   } else S.rubPx = 0;
-  if (S.collected >= S.germs.length && !S.allHinted) { S.allHinted = true; $('hint').textContent = HINT_ALL; $('hint').style.opacity = 1; S.hintT = 9; }
+  if (S.collected >= S.germs.length && !S.allHinted && !S.retract) { S.allHinted = true; $('hint').textContent = HINT_ALL; $('hint').style.opacity = 1; S.hintT = 9; }
   if (S.retract && S.collected > 0 && S.u > 0.03 && (inWall || n > CONFIG.dropNorm)) {   // 抜く途中で壁にこすると、綿棒の菌が落ちる
     S.dropAcc += dt;
     while (S.dropAcc >= CONFIG.dropEvery && S.collected > 0) {
       S.dropAcc -= CONFIG.dropEvery; S.collected--; S.dropped++;
       const g = S.germs.find(g => g.got); if (g) g.got = false;   // 落ちた菌は鼻の奥にもどる（取りなおせる）
-      if (S.wallSayT <= 0.8) { $('hint').textContent = '菌が落ちた！ 壁にこすらないように抜こう'; $('hint').style.opacity = 1; S.hintT = 2.5; }
+      $('hint').textContent = '菌が落ちた！ 壁にこすらないように抜こう'; $('hint').style.opacity = 1; S.hintT = 2.5;
     }
   }
   S.wallSayT -= dt;
@@ -474,8 +494,11 @@ function applyPose() {
   if (S.mode === 'play') {
     yawA += (pain * 9 + Math.sin(S.t * 31) * pain * 1.4) * D2R;          // 痛いと顔をそむける・ふるえる
     pitchA -= fl * 5 * D2R;
-    const tw = (S.twK || 0) * CONFIG.twitchDeg * D2R;                       // ピクッ（綿棒は残るので、角度のずれと逆向きに頭が動く）
-    yawA += tw * S.twY * CONFIG.twitchSignY; pitchA += tw * S.twP * CONFIG.twitchSignP;
+    yawA += (S.offY || 0) * D2R * CONFIG.twitchSignY; pitchA += (S.offP || 0) * D2R * CONFIG.twitchSignP;
+    if (S.snzAge >= 0) {   // くしゃみは見た目をさらに大きく（この分は綿棒も一緒に動くので、角度のずれは sneezeDeg のまま）
+      const ex = (CONFIG.sneezeLook - 1) * S.snzOff * CONFIG.sneezeDeg * D2R;
+      yawA += ex * S.snzY * CONFIG.twitchSignY; pitchA += ex * S.snzP * CONFIG.twitchSignP;
+    }   // ピクッ・くしゃみ（綿棒は残るので、角度のずれと逆向きに頭が動く）
   } else if (S.revenge) pitchA *= Math.max(0, 1 - S.revT / 0.6);        // 仕返し：頭をまっすぐ起こす
   if (!S.revenge) {   // 生きている感じ：呼吸とゆっくりした頭のゆれ（見た目だけ。綿棒も一緒に動くので角度は変わらない）
     const k = CONFIG.idleDeg * D2R;
@@ -486,7 +509,7 @@ function applyPose() {
   if (S.blinkT === undefined || S.blinkT < -0.16) S.blinkT = rand(CONFIG.blinkEvery[0], CONFIG.blinkEvery[1]);
   S.blinkT -= S.dtPose || 0;
   const blink = S.blinkT < 0 ? Math.sin(-S.blinkT / 0.16 * Math.PI) : 0;   // まばたき（0.16秒）
-  const sq = (S.revenge ? 0.35 : Math.max(clamp((pain - 0.2) * 1.6 + fl * 0.7 + (S.twK || 0) * 0.5, 0, 1), blink)) * CONFIG.eyeSquintDeg * D2R;   // 仕返し中はにらむ
+  const sq = (S.revenge ? 0.35 : Math.max(clamp((pain - 0.2) * 1.6 + fl * 0.7 + (S.twK || 0) * 0.5 + (S.snzAge >= 0 ? 0.6 : 0), 0, 1), blink)) * CONFIG.eyeSquintDeg * D2R;   // 仕返し中はにらむ
   const b = p.bones;
   if (sq > 0.001) {
     const rot = (bn, a) => { if (!bn) return; const f = { x: 'rotateX', y: 'rotateY', z: 'rotateZ' }[CONFIG.eyeAxis]; bn[f](a * CONFIG.eyeSign); };
@@ -727,7 +750,7 @@ view.addEventListener('pointerdown', (e) => {
 });
 view.addEventListener('pointermove', (e) => {
   if (S.mode !== 'play' || !S.holding || !aim0) return;
-  if (S.u >= CONFIG.rubDepth) {   // 奥では角度を変えずに「回す」
+  if (S.u >= CONFIG.rubDepth && !S.retract) {   // 奥では角度を変えずに「回す」
     S.rubPx += Math.hypot(e.clientX - aim0.x, e.clientY - aim0.y);
     aim0 = { x: e.clientX, y: e.clientY, yaw: S.yaw, pitch: S.pitch }; return;
   }
@@ -738,8 +761,15 @@ view.addEventListener('pointermove', (e) => {
 const up = () => { S.holding = false; };
 view.addEventListener('pointerup', up); view.addEventListener('pointercancel', up);
 const back = $('back');
-back.addEventListener('pointerdown', (e) => { e.stopPropagation(); S.retract = true; back.classList.add('on'); back.setPointerCapture(e.pointerId); });
-const bup = () => { S.retract = false; back.classList.remove('on'); };
+back.addEventListener('pointerdown', (e) => { e.stopPropagation(); S.retract = true; back.classList.add('on'); back.setPointerCapture(e.pointerId); bAim = { x: e.clientX, y: e.clientY, yaw: S.yaw, pitch: S.pitch }; });
+let bAim = null;
+back.addEventListener('pointermove', (e) => {   // 「戻す」を押したまま指をずらすと、抜きながら角度を直せる
+  if (S.mode !== 'play' || !S.retract || !bAim) return;
+  const k = CONFIG.aimSensitivity, L = CONFIG.aimLimit;
+  S.yaw = clamp(bAim.yaw + (e.clientX - bAim.x) * k, -L, L);
+  S.pitch = clamp(bAim.pitch - (e.clientY - bAim.y) * k, -L, L);
+});
+const bup = () => { S.retract = false; bAim = null; back.classList.remove('on'); };
 back.addEventListener('pointerup', bup); back.addEventListener('pointercancel', bup);
 addEventListener('keydown', (e) => { if (e.code === 'Space') { S.retract = true; back.classList.add('on'); e.preventDefault(); } });
 addEventListener('keyup', (e) => { if (e.code === 'Space') bup(); });
@@ -755,6 +785,7 @@ addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); if
 let last = performance.now();
 renderer.setAnimationLoop(() => {
   const now = performance.now(), dt = Math.min((now - last) / 1000, 0.05); last = now; S.t += dt; S.dtPose = dt;
+  if (S.shakeT > 0) { S.shakeT -= dt; const m = Math.max(0, S.shakeT) * 40; view.style.transform = `translate(${(Math.random() - .5) * m}px,${(Math.random() - .5) * m}px)`; if (S.shakeT <= 0) view.style.transform = ''; }
   if (patient) {
     patient.mixer.update(dt); if (player && player.root.visible) player.mixer.update(dt);
     if (S.mode === 'play') stepPlay(dt); else if (S.mode === 'revenge') S.revT += dt * revScale(S.revT) * CONFIG.revSpeed;
