@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>綿棒は、上ではなく耳の方へ - N.K. Works 開発日記</title>
+<meta name="description" content="『奥までいきます』は、リアルな患者の鼻の奥まで綿棒を入れて、菌を取るゲーム。なんとなく上向きだった綿棒の角度を、本物の検査のやり方を調べて直した話と、仕返しの場面の腕と手のひらを作り直した話。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/blog/oku-made-angle/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:title" content="綿棒は、上ではなく耳の方へ - N.K. Works 開発日記">
+<meta property="og:description" content="『奥までいきます』は、リアルな患者の鼻の奥まで綿棒を入れて、菌を取るゲーム。なんとなく上向きだった綿棒の角度を、本物の検査のやり方を調べて直した話と、仕返しの場面の腕と手のひらを作り直した話。">
+<meta property="og:url" content="https://nkworks-games.com/blog/oku-made-angle/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/assets/site.css">
+<script>
+(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous'; s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();
+</script>
+</head>
+<body>
+
+<header class="site-h"><div class="wrap">
+<a data-google-vignette="false" class="logo" href="/">N.K. Works</a>
+<nav class="nav"><a data-google-vignette="false" href="/games/">ゲーム</a><a data-google-vignette="false" href="/blog/" aria-current="page">開発日記</a><a data-google-vignette="false" href="/about.html">運営者情報</a></nav>
+</div></header>
+
+<main><div class="wrap"><article class="post">
+<p class="crumb"><a data-google-vignette="false" href="/">トップ</a> › <a data-google-vignette="false" href="/blog/">開発日記</a></p>
+<h1>綿棒は、上ではなく耳の方へ</h1><p class="post-meta">2026年11月1日 ・ N.K. Works</p>
+<p>『奥までいきます』は、リアルな男性の患者の鼻に綿棒を入れて、奥の「菌」をこすって取るゲームです。はじまりは「目や鼻までちゃんとある、リアルな人をブラウザゲームに出せるか」という実験でした。人が出せたので、その鼻を使って何か遊べないかと考えて、このゲームになりました。</p>
+<h2>リアルな人は、公開されている3Dモデルで</h2>
+<p>人の3Dモデルは、Microsoftが公開している「Rocketbox」という人物モデル集を使っています。MITライセンスなので、ゲームの中で自由に使えます。顔の写真のような質感がそのままなので、ブラウザの中でも本物っぽく見えます。</p>
+<p>ただ、そのままだとファイルが大きく、スマホで開くと読みこみに時間がかかりました。使わない動きのデータを消して、画像を小さい形式に変えて、約6MBあったゲームを約2MBまで小さくしています。</p>
+<h2>最初の綿棒は、上を向いていた</h2>
+<p>最初に作った時は、綿棒を鼻の穴から上のほうへ入れていました。鼻は上に向かって奥があるような気がしていたからです。でも、本物の鼻の奥の検査のやり方を調べると、まったくちがいました。</p>
+<p>本物では、患者の頭を少し後ろにかたむけて、綿棒は上ではなく、鼻の穴から耳の穴に向かう線にそって入れます。鼻の「床」をすべらせるように、ほぼ水平にまっすぐです。奥までの長さは、大人だと鼻の穴から耳までと同じくらいで、約10cmあります。</p>
+<h2>正しい角度なら、痛がらない</h2>
+<p>そこで、ゲームの中の鼻の通り道を、天井は低く、床はまっすぐの形に作り直しました。綿棒が天井や横の壁にふれると、患者が痛がります。鼻の床にふれた時だけは、正しいやり方なので、痛みのたまり方を半分にしています。調べたとおりに入れるのが、いちばん痛くない入れ方になるようにしました。</p>
+<p>画面の右上には、横から見た断面図と、上から見た断面図を出しています。綿棒がいまどこを通っているかが見えるので、「上に向けない」がわかりやすくなりました。</p>
+<h2>奥では「押す」から「こする」へ</h2>
+<p>最初の版は、長押しで押しこむことしかできず、奥に着いても菌をこすれませんでした。奥に着いたら、ドラッグで綿棒を回してこする操作に変わるようにしています。速くこすりすぎると痛がるので、ゆっくり小さく回すのがコツです。</p>
+<h2>仕返しは、手のひらで</h2>
+<p>痛がらせすぎると、患者が綿棒をうばって、白い「あなた」の鼻に入れ返してきます。半分入れたあと、頭をつかんで、手のひらで奥まで押しこむ場面です。</p>
+<p>ここがいちばん大変でした。最初は、手が顔にめりこんだり、ひじが反対に曲がって腕が折れたように見えたりしました。腕の動きを、手を置きたい位置から「上の腕」と「下の腕」の2本の骨の角度を逆に計算する形に変えて、ひじが外向きに曲がるようにしました。押しこむ手も、最初はこぶしで押しているように見えていたので、手のひらが前に向くように直しました。</p>
+<p>こうした「めりこみ」や「腕の向き」は、目で見るだけだと見落とします。そこで、仕返しの場面を少しずつ止めながら、ひじの曲がり方、手が頭に入りこんでいないか、手のひらがどちらを向いているかを自動で調べるテストを作りました。直すたびにこのテストを通してから出しています。</p>
+<h2>この記事のゲーム</h2><ul class="grid"><li><a data-google-vignette="false" class="card" href="/games/oku-made/"><div class="th"><img src="/games/oku-made/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>奥までいきます</b><span>綿棒を、鼻の奥まで。痛がらせすぎると、仕返し。</span><em>2026年11月1日 公開</em></div></a></li></ul>
+<h2>ほかの日記</h2><ul class="list"><li><a data-google-vignette="false" href="/blog/yasumasete-kehai/"><em>2026年10月29日</em><b>トラブルは、起きる前に見せることにした</b><span>『休ませてください』は、休みを動かして連休を作り、激務の毎日を何日もちこたえるかを競うゲーム。運まかせだったトラブルを、⚠の「気配」と「疲れるとミスが増える」しくみで起きる前に見えるものにして、うまい人とそうでない人の差を広げた話。</span></a></li><li><a data-google-vignette="false" href="/blog/koro-rias-egg/"><em>2026年10月28日</em><b>たまごは、縦に転がすと遊べなかった</b><span>『コロリアス』は、三陸のリアス海岸を回して、割れやすいたまごを宮古まで転がすゲーム。縦にパタパタ転がる形では跳ねて海に落ちてしまうのを、横に寝かせた転がり方に変え、409kmのコースが本当に通れるかを確かめた話。</span></a></li><li><a data-google-vignette="false" href="/blog/shusshin-kimete/"><em>2026年10月27日</em><b>2択10問では、半分しか当たらなかった</b><span>『出身地、当てます』は、2択の質問で出身地を当てるゲーム。はじめは半分しか当たらなかったのを、県ごとの「決め手の質問」と延長戦で、8割5分ほどまで上げた話。</span></a></li></ul>
+<div class="ad-box"><p class="lbl">広告</p>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</article></div></main>
+<footer class="site-f"><div class="wrap">
+<p><a data-google-vignette="false" href="/">トップ</a> ・ <a data-google-vignette="false" href="/games/">ゲーム一覧</a> ・ <a data-google-vignette="false" href="/blog/">開発日記</a> ・ <a data-google-vignette="false" href="/about.html">運営者情報・お問い合わせ</a> ・ <a data-google-vignette="false" href="/privacy-policy.html">プライバシーポリシー</a></p>
+<p>&copy; 2026 N.K. Works</p>
+</div></footer>
+</body>
+</html>
