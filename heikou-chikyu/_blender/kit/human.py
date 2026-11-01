@@ -156,7 +156,7 @@ def pose_ops(pose, phase=0.0, side=1):
             # 膝は、足が地面を離れている間（脚の位相 0.75〜1.25）だけ大きく曲げる
             pl = (phase + (0.0 if sg > 0 else 0.5)) % 1.0
             u = ((pl - 0.75) % 1.0) / 0.5
-            flex = math.radians(5 + (48 * math.sin(math.pi * u) if u < 1.0 else 0.0))
+            flex = math.radians(5 + (62 * math.sin(math.pi * u) if u < 1.0 else 0.0))
             aim('lowerleg01.' + sd, 'foot.' + sd, s * 0.04, math.sin(a - flex), -math.cos(a - flex))
             b = -math.radians(18) * sw * sg
             aim('upperarm01.' + sd, 'lowerarm01.' + sd, s * 0.1, math.sin(b) - 0.03, -math.cos(b))
@@ -554,6 +554,7 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
     hob.show_instancer_for_render = False
     hob.show_instancer_for_viewport = False
     ob['head_top'] = list(map(float, head_top))
+    ob['pose'] = pose
     # 足の裏の頂点（休めの姿勢で左右それぞれ一番低い 40 点。体のメッシュの番号で）。足すべりの検査に使う
     pos_in_body = -np.ones(len(v_rest), np.int64)
     pos_in_body[used] = np.arange(len(used))
@@ -564,7 +565,13 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
         ob['cycle'] = cycle
         ob['cycle_parts'] = [p.name for p in parts]
         ob['cycle_phase'] = float(phase)
-        ob['stride'] = STRIDE * (0.65 if child else 1.0)
+        # 1周期で進む距離＝足の前後の振れ幅の2倍（この体と姿勢から測る。足がすべらないように）
+        # 左足が地面につく瞬間（位相 0.25）と離れる瞬間（0.75）の、足の前後の位置の差が1歩
+        sl_full = used[np.array(ob['sole_L'])]
+        ya = float(np.mean(skin(v_rest, pose_ops(pose, 0.25))[0][sl_full, 1]))
+        yb = float(np.mean(skin(v_rest, pose_ops(pose, 0.75))[0][sl_full, 1]))
+        step = abs(ya - yb)
+        ob['stride'] = round(2 * step, 3) if step > 0.2 else STRIDE * (0.65 if child else 1.0)
     if pose in ('carry', 'carrywalk'):
         # 頭に載せた籠（編み目のある浅い筒）
         from .vegetation import Builder

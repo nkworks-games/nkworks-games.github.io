@@ -200,7 +200,7 @@ for f in frames:
                 if d * 100 > p.get("depth_cm", 0): p["depth_cm"], p["worst"] = round(d * 100, 1), f
         if o in grounded and ftrees:
             g, lo = floor_gap(data[o]["vs"], ftrees)
-            if "sole_L" in o.keys():  # 並行地球：人は、どちらかの足の裏が地面についていればよい（坂では一番低い点が足とは限らない）
+            if "sole_L" in o.keys() and o.get("pose") not in ("sit", "paddle"):  # 並行地球：立つ・歩く人は、どちらかの足の裏が地面についていればよい
                 gs = []
                 for sd in ("L", "R"):
                     for i in list(o.get("sole_" + sd, []))[::4]:
@@ -209,6 +209,11 @@ for f in frames:
                             h = ft.ray_cast(v + Vector((0, 0, 0.5)), Vector((0, 0, -1)), 10)
                             if h[0] is not None: gs.append(v.z - h[0].z)
                 if gs: g, lo = max(0.0, min(gs)), lo
+            else:  # 並行地球：かたい物は、下の方（一番低い点から20cm）のどこかが地面に触れていれば「置かれている」
+                vs_ = data[o]["vs"]; lo_z = min(v.z for v in vs_)
+                low = [v for v in sample(vs_) if v.z < lo_z + 0.2]
+                gs = [v.z - h[0].z for v in low for ft in ftrees for h in [ft.ray_cast(v + Vector((0, 0, 0.5)), Vector((0, 0, -1)), 10)] if h[0] is not None]
+                if gs: g = max(0.0, min(gs))
             if g is not None and g > CONFIG["FLOAT_TOL"]: add(problems, f, "浮いている", f"{o.name}（{round(g*100,1)}cm）", lo)
     # 瞬間移動
     for o in objs:
@@ -289,7 +294,7 @@ if SHOTS and cam:
             df = nt.nodes.new("ShaderNodeBsdfDiffuse"); nt.links.new(hsv.outputs[0], df.inputs["Color"])
             o_ = nt.nodes.new("ShaderNodeOutputMaterial"); nt.links.new(df.outputs[0], o_.inputs["Surface"])
             vl.material_override = m
-            r.engine = "CYCLES"; sc.cycles.samples = 2; sc.cycles.use_denoising = False
+            r.engine = "CYCLES"; sc.cycles.samples = 8; sc.cycles.use_denoising = True
         for k in dir(r):
             if k.startswith("use_stamp_") and isinstance(getattr(r, k), bool): setattr(r, k, k == "use_stamp_frame")
         r.use_stamp = True; r.stamp_font_size = 20  # フレーム番号を焼き込む

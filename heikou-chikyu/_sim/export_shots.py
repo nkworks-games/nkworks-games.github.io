@@ -126,7 +126,7 @@ def main():
     S.append(opensea('001', '夕暮れの海を渡る帆の舟（R1-1・2,900年ごろ）', boats=[sail_boat([0, 0, 0.35], -20)], islands=far,
                      camera=dict(loc=[-24, -12, 3.5], target=[0, 10, 3], lens=35, loc2=[-20, 6, 3.2], target2=[2, 28, 3]), seconds=7))
     S.append(opensea('002', '舟の上から：帆と波、遠くに島影（R1-1）', boats=[sail_boat([0, 0, 0.35], 0)], islands=far,
-                     camera=dict(loc=[0.0, 2.6, 1.9], target=[-2, 40, -1.6], lens=24, loc2=[0.0, 20.6, 1.9], target2=[-2, 58, -1.6], ease=False), seconds=6, wave=1.2))
+                     camera=dict(loc=[-1.0, -4.6, 1.6], target=[-4, 40, 0.8], lens=24, loc2=[-1.0, 13.4, 1.6], target2=[-4, 58, 0.8], ease=False), seconds=6, wave=1.2))   # 艫（とも）の外側から、帆と前を見る（帆から1m離す）
     S.append(coast('003', '小さな火山島の夕方の浜（R1-4・2,990年）', 'R1', 4, 2990, CAM_BEACH, time='dusk'))
     S.append(planet('004', '雲の上から惑星の全景へ', dict(loc=[0, -7.5, 2.4], target=[0, 0, 6.4], lens=35, loc2=[0, -24, 5], target2=[0, 0, 0])))
     S.append(planet('006', '惑星がゆっくり回る', dict(loc=[-8, -18, 4], target=[0, 0, 0], lens=50, loc2=[8, -18, 4], target2=[0, 0, 0], ease=False), seconds=8))
@@ -155,7 +155,7 @@ def main():
                    extras=[dict(type='figure', loc=[0, 146], pose='look', rot=180)], islands=[dict(radius=1800, height=260, loc=[-6000, -45000, -5])]))
     S.append(coast('047', '大木を倒し、丸木舟を彫る（A1-2・264年）', 'A1', 2, 264, dict(loc=[-12, 134, 1.5], target=[-24, 141, 0.5], lens=35, loc2=[-12.6, 134.4, 1.5], target2=[-24, 141, 0.5]),
                    extras=[dict(type='log', loc=[-24, 141], rot=70), dict(type='figure', loc=[-22.6, 139.6], pose='bend', rot=150),
-                           dict(type='figure', loc=[-26.5, 142.5], pose='stand', rot=200)]))
+                           dict(type='figure', loc=[-24.0, 142.9], pose='stand', rot=149)]))
     S.append(coast('048', '舟に浮き木を取り付ける（A1-2・284年）', 'A1', 2, 284, dict(loc=[20, 128, 1.6], target=[10, 140, 0.5], lens=35, loc2=[19, 129, 1.6], target2=[10, 140, 0.5]),
                    extras=[dict(type='outrigger', loc=[10, 140], rot=80), dict(type='figure', loc=[8.5, 137.5], pose='bend', rot=40), dict(type='figure', loc=[12, 143], pose='stand', rot=200)]))
     S.append(coast('049', '浜から沖へ漕ぎ出す舟（A1-2・314年）', 'A1', 2, 314, dict(loc=[6, 142, 1.8], target=[0, 108, 0.5], lens=45), time='dawn', seconds=10,

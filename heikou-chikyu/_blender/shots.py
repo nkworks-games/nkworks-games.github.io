@@ -153,7 +153,7 @@ def build_coast(s):
         hs = [ter.height_at(x + cx * ca - cy * sa, y + cx * sa + cy * ca) for cx in (min(xs), max(xs)) for cy in (min(ys), max(ys))]
         ob.location = (x, y, min(hs) - 0.03)
         ob.rotation_euler = (0, 0, face)
-        ob['embed_ok'] = round(max(hs) - min(hs) + 0.08, 3)
+        ob['embed_ok'] = round(max(hs) - min(hs) + 0.08, 3)   # 地形ができた後に seat_on_lowest で測り直す
         ob['grounded'] = True
         link_object(ob)
     # 畑（芋や果樹）：集落の奥の平らな所
@@ -300,6 +300,20 @@ def build_coast(s):
         if x not in beach_y:
             beach_y[x] = next((yy for yy in np.arange(30, 260, 0.4) if ter.height_at(x, yy) > h0), None)
         return beach_y[x]
+    # 置いた物の足もと（円）を覚えておき、重ならない所にだけ置く（人どうし・人と舟などのめり込みを防ぐ）
+    hr = 3.4
+    for t_ in types:   # 家の大きさ（軒まで）の半分の対角
+        bb_ = [Vector(c) for c in t_.bound_box]
+        hr = max(hr, 0.5 * math.hypot(max(c.x for c in bb_) - min(c.x for c in bb_), max(c.y for c in bb_) - min(c.y for c in bb_)))
+    occ = [(hx, hy, hr) for hx, hy, _ in huts]
+    EX_R = dict(figure=0.5, fire=1.3, pots=0.9, rack=1.9, woodpile=1.0, log=4.0, raft=2.6, dugout=3.6, outrigger=4.6, sail=4.6,
+                lightstone=0.6, shelter=3.0, hut=3.4)
+    for e in s.get('extras', []):
+        occ.append((e['loc'][0], e['loc'][1], EX_R.get(e['type'], 1.0)))
+
+    def free(x, y, r):
+        return all((x - ox) ** 2 + (y - oy) ** 2 >= (r + orr) ** 2 for ox, oy, orr in occ)
+
     k = 0
     for b in s.get('boats', []):
         for _ in range(b.get('count', 1)):
@@ -308,6 +322,12 @@ def build_coast(s):
             yb = beach_at(round(x, 1))
             if yb is None:
                 continue
+            afloat0 = b.get('afloat', False)
+            rb = 2.6 if b['type'] == 'raft' else (3.6 if b['type'] == 'dugout' else 4.6)
+            yy = yb - (14 if afloat0 else -2.5)
+            if not free(x, yy, rb):
+                continue
+            occ.append((x, yy, rb))
             afloat = b.get('afloat', False)
             if b['type'] == 'raft':
                 ob = Bo.raft('いかだ%d' % k, seed + k)
@@ -325,7 +345,13 @@ def build_coast(s):
         if not huts:
             break
         hx, hy, _ = huts[(k * 3) % len(huts)]
-        x, y = hx + rng.uniform(-6, 6), hy - 7
+        for _ in range(30):
+            x, y = hx + rng.uniform(-6, 6), hy - 7 - rng.uniform(0, 3)
+            if free(x, y, 1.9):
+                break
+        else:
+            continue
+        occ.append((x, y, 1.9))
         o = Pr.drying_rack('干し棚%d' % k, seed + k)
         o.location = (x, y, ter.height_at(x, y))
         o['grounded'] = True
@@ -334,8 +360,15 @@ def build_coast(s):
         if not huts:
             break
         hx, hy, _ = huts[(k * 5 + 1) % len(huts)]
+        for _ in range(30):
+            px, py = hx + rng.uniform(1.5, 5), hy - rng.uniform(4, 6)
+            if free(px, py, 0.9):
+                break
+        else:
+            continue
+        occ.append((px, py, 0.9))
         o = Pr.pots('土器%d' % k, seed + k)
-        o.location = (hx + 3, hy - 4, ter.height_at(hx + 3, hy - 4))
+        o.location = (px, py, ter.height_at(px, py))
         o['grounded'] = True
     fires = []
     for k in range(vil.get('fires', 0)):
@@ -343,27 +376,45 @@ def build_coast(s):
             break
         # 焚き火は家の前の浜寄り（画面から見える所）
         hx, hy, _ = huts[(k * 4 + 2) % len(huts)]
-        x = hx + rng.uniform(-4, 4)
-        yb = beach_at(round(x, 1), 1.6) or hy - 6
-        y = min(hy - 6, yb + 6)
+        for _ in range(30):
+            x = hx + rng.uniform(-4, 4)
+            yb = beach_at(round(x, 1), 1.6) or hy - 6
+            y = min(hy - 6, yb + 6) + rng.uniform(-1, 1)
+            if free(x, y, 1.3 + 1.2):     # 火のまわりに座る人の場所も空けておく
+                break
+        else:
+            continue
+        occ.append((x, y, 1.3))
         o = Pr.fire('焚き火%d' % k, seed + k, smoke=k < vil.get('smoke', 2), strength=s.get('fire_strength', 60.0))
         o.location = (x, y, ter.height_at(x, y))
         o['grounded'] = True
         fires.append((x, y))
     poses = ['stand', 'carry', 'bend', 'sit', 'look', 'stand']   # 止まっている人は、歩く途中の形にしない
     for k in range(vil.get('people', 0)):
-        if fires and k % 3 == 0:
-            fx, fy = fires[k % len(fires)]
-            a = rng.uniform(0, 2 * math.pi)
-            x, y, pose = fx + math.cos(a) * 1.6, fy + math.sin(a) * 1.6, 'sit'
-            face = math.atan2(fy - y, fx - x) - math.pi / 2
-        elif huts:
-            hx, hy, _ = huts[rng.randrange(len(huts))]
-            x, y = hx + rng.uniform(-8, 8), hy + rng.uniform(-10, -3)
-            pose = poses[k % len(poses)]
-            face = rng.uniform(0, 2 * math.pi)
-        else:
+        ok = False
+        for tries in range(40):
+            if fires and k % 3 == 0:
+                fx, fy = fires[k % len(fires)]
+                a = rng.uniform(0, 2 * math.pi)
+                x, y, pose = fx + math.cos(a) * 1.9, fy + math.sin(a) * 1.9, 'sit'
+                face = math.atan2(fy - y, fx - x) - math.pi / 2
+                r_ = 0.6
+                occ_ok = all((x - ox) ** 2 + (y - oy) ** 2 >= (r_ + orr) ** 2 for ox, oy, orr in occ if (ox, oy) != (fx, fy))
+            elif huts:
+                hx, hy, _ = huts[rng.randrange(len(huts))]
+                x, y = hx + rng.uniform(-8, 8), hy + rng.uniform(-10, -3)
+                pose = poses[k % len(poses)]
+                face = rng.uniform(0, 2 * math.pi)
+                r_ = 0.6 if pose == 'bend' else 0.5
+                occ_ok = free(x, y, r_)
+            else:
+                break
+            if occ_ok:
+                ok = True
+                break
+        if not ok:
             continue
+        occ.append((x, y, r_))
         o = P.figure('人%d' % k, seed * 7 + k, pose=pose, child=rng.random() < 0.2, phase=rng.random())
         o.location = (x, y, ter.height_at(x, y))
         o['grounded'] = True
@@ -385,7 +436,10 @@ def build_coast(s):
     # 地面に置く物は、実際の地面の面（三角形）にぴったり乗せる（高さの計算値と面の間には数cmの差がある）
     tree = ground_tree()
     for ob in list(bpy.data.objects):
-        if ob.get('grounded') and not ob.get('embed_ok') and ob.parent is None and 'move' not in ob.keys():
+        if ob.get('grounded') and 'embed_ok' in ob.keys():
+            seat_on_lowest(ob, tree)       # 家：下り側が浮かないように（上り側は土台として埋まる）
+            continue
+        if ob.get('grounded') and ob.parent is None and 'move' not in ob.keys():
             # 斜面では、地面の傾きに合わせて少し傾けてから乗せる（人は 6°まで：両足が地面につく）
             tilt_to_ground(ob, tree, 6.0 if 'sole_L' in ob.keys() else 15.0)
             settle(ob, tree)
@@ -480,7 +534,37 @@ def tilt_to_ground(obj, tree, max_deg, band=0.2):
     obj.rotation_euler = (tilt @ obj.rotation_euler.to_matrix()).to_euler()
 
 
-def settle(obj, tree, gap=0.0, band=0.2, cap=2500):
+def _ground_gaps(obj, tree, band, cap=2500):
+    bpy.context.view_layer.update()
+    parts = [obj] + [c for c in obj.children_recursive if c.type == 'MESH' and not c.get('nocheck')
+                     and not any(k in c.name for k in NOCHECK_NAMES)]
+    P_ = _world_points(parts)
+    if not len(P_):
+        return None
+    sel = P_[P_[:, 2] < P_[:, 2].min() + band]
+    if len(sel) > cap:
+        sel = sel[np.linspace(0, len(sel) - 1, cap).astype(int)]
+    gaps = []
+    for x, y, z in sel:
+        h = tree.ray_cast(Vector((float(x), float(y), float(z) + 100.0)), Vector((0, 0, -1)), 400.0)
+        if h[0] is not None:
+            gaps.append(z - h[0].z)
+    return np.array(gaps) if gaps else None
+
+
+def seat_on_lowest(obj, tree, band=0.3):
+    """家など：下の方の頂点のうち一番浮いている所が地面に触れる高さまで下げる。
+    上り側が地面に埋まる深さは embed_ok として点検に伝える（斜面に建つ家の土台）"""
+    if tree is None:
+        return
+    g = _ground_gaps(obj, tree, band)
+    if g is None:
+        return
+    obj.location.z -= float(g.max())
+    obj['embed_ok'] = round(float(g.max() - g.min()) + 0.02, 3)
+
+
+def settle(obj, tree, gap=0.0, band=0.5, cap=2500):
     """物の下の方の頂点を真上から地面へ打ち、どれも地面より下にならず、少なくとも1点が地面に触れる高さへ動かす
     （めり込みも浮きも消す。blender-video-physics-guard の settle を、下の方の頂点ごとに調べる形にしたもの）"""
     if tree is None:
@@ -567,7 +651,8 @@ def place_extras(extras, ter, seed):
             o['in_boat'] = True
         elif 'move' in e:
             o['move'] = e['move']
-        if t in ('figure', 'fire', 'pots', 'rack', 'woodpile', 'log', 'shelter', 'hut') and ter is not None and not e.get('float') \
+        if t in ('figure', 'fire', 'pots', 'rack', 'woodpile', 'log', 'shelter', 'hut', 'raft', 'dugout', 'outrigger', 'sail', 'lightstone') \
+                and ter is not None and not e.get('float') \
                 and len(e['loc']) < 3 and 'boat' not in e:
             o['grounded'] = True   # 浅い水の中に立つ人も、海の底に立つ
 
