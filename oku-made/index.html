@@ -132,7 +132,13 @@ const CONFIG = {
   aimSensitivity: 0.07,     // ドラッグ1pxで何度変わるか
   aimLimit: 28,             // 角度の最大(度)
   startAimError: 6,         // 最初のずれ(度)
-  passageScale: 0.85,       // 菌までの道の太さ（1=元の太さ。小さいほど細い）
+  passageScale: 0.85,
+  twitchEvery: [4, 8],      // 患者が「ピクッ」と動く間隔(秒)。綿棒は手に持ったままなので、頭が動くと角度がずれる
+  twitchDeg: 2.6,           // ピクッと動く大きさ(度)
+  twitchSignY: -1, twitchSignP: 1,    // 頭の動く向き（テストで、綿棒が空中で止まって見える向きを確認）
+  twitchWarn: 0.6,          // 動く何秒前に「ん…」と予告するか
+  idleDeg: 1.0,             // 待っている間のゆっくりした頭のゆれ(度・見た目だけ)
+  blinkEvery: [2.5, 5],     // まばたきの間隔(秒)       // 菌までの道の太さ（1=元の太さ。小さいほど細い）
   germCount: 26,            // 菌の数
   patchRadius: 0.0055,      // 菌が広がる範囲の半径(m)
   tipRadius: 0.0032,        // 綿棒の先で取れる半径(m)
@@ -309,6 +315,7 @@ function newRound() {
     mode: 'play', timeLeft: CONFIG.timeLimit, u: 0, holding: false, retract: false, pain: 0, peakPain: 0,
     flinch: 0, revT: 0, revenge: false, failed: false, collected: 0, hintT: 7, wallSayT: 0, maxU: 0, pullHinted: false, allHinted: false, dropAcc: 0, dropped: 0, unretrieved: false, resistHinted: false, floorSide: false, rubPx: 0, rubAcc: 0,
     bendX: rand(-0.0025, 0.0025), bendY: rand(-0.0018, 0.0018), swY: 0, swP: 0,
+    twT: rand(CONFIG.twitchEvery[0], CONFIG.twitchEvery[1]), twAge: -1, twK: 0, twY: 0, twP: 0, twWarned: false,
     yaw: (Math.random() < .5 ? -1 : 1) * rand(3, CONFIG.startAimError), pitch: Math.random() < .65 ? rand(3, CONFIG.startAimError + 1) : -rand(2, 5),   // 最初は上に向けがち
   });
   S.ey = S.yaw; S.ep = S.pitch;
@@ -353,7 +360,17 @@ function stepPlay(dt) {
   const amp = CONFIG.swayBase + CONFIG.swayPain * S.pain;
   S.swY = amp * (0.6 * Math.sin(S.t * 1.7) + 0.4 * Math.sin(S.t * 0.83 + 1));
   S.swP = amp * (0.6 * Math.cos(S.t * 1.3) + 0.4 * Math.sin(S.t * 2.1 + 2)) * 0.8;
-  S.ey = S.yaw + S.swY; S.ep = S.pitch + S.swP;
+  // 患者がときどき「ピクッ」と動く：予告の「ん…」→すばやく動いて、ゆっくりもどる
+  S.twT -= dt;
+  if (!S.twWarned && S.twT <= CONFIG.twitchWarn) { S.twWarned = true; if (S.u > 0.05) bubbleSay('ん…', 0.6); }
+  if (S.twT <= 0 && S.twAge < 0) { const a = rand(0, Math.PI * 2); S.twAge = 0; S.twY = Math.cos(a); S.twP = Math.sin(a) * 0.7; }
+  if (S.twAge >= 0) {
+    S.twAge += dt;
+    S.twK = S.twAge < 0.12 ? S.twAge / 0.12 : Math.max(0, 1 - (S.twAge - 0.12) / 0.9);
+    if (S.twAge > 1.02) { S.twAge = -1; S.twK = 0; S.twWarned = false; S.twT = rand(CONFIG.twitchEvery[0], CONFIG.twitchEvery[1]); }
+  }
+  const tw = S.twK * CONFIG.twitchDeg;
+  S.ey = S.yaw + S.swY - tw * S.twY; S.ep = S.pitch + S.swP - tw * S.twP;   // 頭が動いた分、綿棒の角度は反対にずれる
   let blocked = false;
   if (S.retract) S.u = Math.max(0, S.u - CONFIG.retractSpeed * dt);
   else if (S.holding && S.u < 1) {
@@ -457,10 +474,19 @@ function applyPose() {
   if (S.mode === 'play') {
     yawA += (pain * 9 + Math.sin(S.t * 31) * pain * 1.4) * D2R;          // 痛いと顔をそむける・ふるえる
     pitchA -= fl * 5 * D2R;
+    const tw = (S.twK || 0) * CONFIG.twitchDeg * D2R;                       // ピクッ（綿棒は残るので、角度のずれと逆向きに頭が動く）
+    yawA += tw * S.twY * CONFIG.twitchSignY; pitchA += tw * S.twP * CONFIG.twitchSignP;
   } else if (S.revenge) pitchA *= Math.max(0, 1 - S.revT / 0.6);        // 仕返し：頭をまっすぐ起こす
+  if (!S.revenge) {   // 生きている感じ：呼吸とゆっくりした頭のゆれ（見た目だけ。綿棒も一緒に動くので角度は変わらない）
+    const k = CONFIG.idleDeg * D2R;
+    pitchA += Math.sin(S.t * 1.6) * 0.5 * k; yawA += Math.sin(S.t * 0.37) * k; rollA += Math.sin(S.t * 0.29 + 1) * 0.8 * k;
+  }
   rotWorld(p.neck, AX, pitchA * 0.4); p.root.updateMatrixWorld(true);
   rotWorld(p.head, AX, pitchA * 0.6); rotWorld(p.head, AY, yawA); rotWorld(p.head, AZ, rollA);
-  const sq = (S.revenge ? 0.35 : clamp((pain - 0.2) * 1.6 + fl * 0.7, 0, 1)) * CONFIG.eyeSquintDeg * D2R;   // 仕返し中はにらむ
+  if (S.blinkT === undefined || S.blinkT < -0.16) S.blinkT = rand(CONFIG.blinkEvery[0], CONFIG.blinkEvery[1]);
+  S.blinkT -= S.dtPose || 0;
+  const blink = S.blinkT < 0 ? Math.sin(-S.blinkT / 0.16 * Math.PI) : 0;   // まばたき（0.16秒）
+  const sq = (S.revenge ? 0.35 : Math.max(clamp((pain - 0.2) * 1.6 + fl * 0.7 + (S.twK || 0) * 0.5, 0, 1), blink)) * CONFIG.eyeSquintDeg * D2R;   // 仕返し中はにらむ
   const b = p.bones;
   if (sq > 0.001) {
     const rot = (bn, a) => { if (!bn) return; const f = { x: 'rotateX', y: 'rotateY', z: 'rotateZ' }[CONFIG.eyeAxis]; bn[f](a * CONFIG.eyeSign); };
@@ -728,7 +754,7 @@ addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); if
 // ===== [SEC:LOOP] =====
 let last = performance.now();
 renderer.setAnimationLoop(() => {
-  const now = performance.now(), dt = Math.min((now - last) / 1000, 0.05); last = now; S.t += dt;
+  const now = performance.now(), dt = Math.min((now - last) / 1000, 0.05); last = now; S.t += dt; S.dtPose = dt;
   if (patient) {
     patient.mixer.update(dt); if (player && player.root.visible) player.mixer.update(dt);
     if (S.mode === 'play') stepPlay(dt); else if (S.mode === 'revenge') S.revT += dt * revScale(S.revT) * CONFIG.revSpeed;
@@ -766,6 +792,9 @@ S.bendX = 0; S.bendY = 0; S.germs = [];
 // ===== [SEC:TEST] =====
 window.__TEST__ = {
   normAt: (u, yaw, pitch) => normAt(u, yaw, pitch),
+  rigQ: () => { const q = new THREE.Quaternion(); patient.rig.getWorldQuaternion(q); return [q.x, q.y, q.z, q.w]; },
+  swabDir: () => { const v = new THREE.Vector3(0, 0, 1).applyQuaternion(swab.quaternion); return [v.x, v.y, v.z]; },
+  headDir: () => { const q = new THREE.Quaternion(); patient.head.getWorldQuaternion(q); const v = new THREE.Vector3(0, 0, 1).applyQuaternion(q); return [v.x, v.y, v.z]; },
   // 仕返しアニメの姿勢を調べる：ひじが逆に曲がる・腕が自分の頭にめり込む・押す手のひらの裏表
   checkRevenge() {
     const v = [], p = patient, pl = player; if (!p || !pl || !S.revenge) return v;
