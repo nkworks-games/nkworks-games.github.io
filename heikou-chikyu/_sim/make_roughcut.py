@@ -2,7 +2,8 @@
 
 カット表（out/script/cuts_v2.csv）の順と秒数で、手元にある素材をつなぐ。
   図・地図・文字：out/video/cutNNN.mp4（make_graphics.py で作ったもの）
-  3D           ：out/renders/final/cutNNN.mp4（frames_to_mp4.py で作る）か cutNNN.png。なければ確認用の静止画
+  3D           ：out/renders/final/cutNNN.mp4（frames_to_mp4.py で作る）か cutNNN.png。なければ動きの確かめ用の小さい動画（motion）、
+                 それもなければ確認用の静止画
                  （out/renders/preview2 → preview の順に探す）をゆっくり寄せて使う
   どちらもない ：カットの内容を書いた仮の画面
 
@@ -79,7 +80,7 @@ def placeholder(row, path):
 
 
 def find_3d(no):
-    for p in ('final/cut%s.mp4' % no, 'final/cut%s.png' % no, 'preview5/cut%s.png' % no, 'preview4/cut%s.png' % no, 'preview3/cut%s.png' % no, 'preview2/cut%s.png' % no, 'preview/cut%s.png' % no):
+    for p in ('final/cut%s.mp4' % no, 'final/cut%s.png' % no, 'motion/cut%s.mp4' % no, 'preview5/cut%s.png' % no, 'preview4/cut%s.png' % no, 'preview3/cut%s.png' % no, 'preview2/cut%s.png' % no, 'preview/cut%s.png' % no):
         f = os.path.join(HERE, 'out', 'renders', p)
         if os.path.exists(f):
             return f

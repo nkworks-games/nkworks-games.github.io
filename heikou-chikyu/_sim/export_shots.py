@@ -159,7 +159,7 @@ def main():
     S.append(coast('048', '舟に浮き木を取り付ける（A1-2・284年）', 'A1', 2, 284, dict(loc=[20, 128, 1.6], target=[10, 140, 0.5], lens=35, loc2=[19, 129, 1.6], target2=[10, 140, 0.5]),
                    extras=[dict(type='outrigger', loc=[10, 140], rot=80), dict(type='figure', loc=[9.74, 138.52], pose='bend', rot=-10, noshift=True),
                            dict(type='figure', loc=[4.88, 140.9], pose='stand', rot=-100, noshift=True)]))
-    S.append(coast('049', '浜から沖へ漕ぎ出す舟（A1-2・314年）', 'A1', 2, 314, dict(loc=[6, 142, 1.8], target=[0, 108, 0.5], lens=45), time='dawn', seconds=10,
+    S.append(coast('049', '浜から沖へ漕ぎ出す舟（A1-2・314年）', 'A1', 2, 314, dict(loc=[6, 142, 1.8], target=[-5, 108, 0.5], lens=45), time='dawn', seconds=10,
                    extras=[dict(type='outrigger', loc=[0, 122], rot=180, float=True, move=[0, -40, 0]),
                            dict(type='figure', loc=[0, 120.8, 0.12], pose='paddle', rot=180, boat=0),
                            dict(type='figure', loc=[0, 123.4, 0.12], pose='paddle', rot=180, phase=0.4, boat=0)]))
