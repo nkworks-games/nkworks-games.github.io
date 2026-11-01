@@ -1159,6 +1159,51 @@ def follow_ground(ob, mv, frames, seconds, tree):
     linear_keys(ob)
 
 
+def _key_points(ob, ids):
+    """形のキーごとの、決めた頂点の位置（キーの番号 → 点の並び）"""
+    kbs = ob.data.shape_keys.key_blocks if ob.data.shape_keys else None
+    if not kbs:
+        co = np.empty(len(ob.data.vertices) * 3, np.float32)
+        ob.data.vertices.foreach_get('co', co)
+        return [co.reshape(-1, 3)[ids]]
+    out = []
+    for k in range(len(kbs)):
+        co = np.empty(len(kbs[k].data) * 3, np.float32)
+        kbs[k].data.foreach_get('co', co)
+        out.append(co.reshape(-1, 3)[ids])
+    return out
+
+
+def add_paddles(frames, seconds):
+    """こぐ人に櫂（かい）を持たせる。両手を通る向きに柄を合わせ、こぐ動き（形のキー）に合わせてフレームごとにキーを打つ"""
+    for ob in list(bpy.data.objects):
+        if ob.get('pose') != 'paddle' or 'hand_L' not in ob.keys():
+            continue
+        hl = _key_points(ob, list(ob['hand_L']))
+        hr = _key_points(ob, list(ob['hand_R']))
+        n = len(hl)
+        period = cycle_period(ob, seconds)
+        pd = P.paddle_tool(ob.name + '櫂')
+        pd.parent = ob
+        pd.matrix_parent_inverse.identity()
+        pd.rotation_mode = 'QUATERNION'
+        for f in range(1, max(1, frames) + 1):
+            if n > 1:
+                w = cycle_weights(f, n, period)
+                L = hl[0] + sum(w[k] * (hl[k] - hl[0]) for k in range(1, n))
+                R = hr[0] + sum(w[k] * (hr[k] - hr[0]) for k in range(1, n))
+            else:
+                L, R = hl[0], hr[0]
+            a, b = Vector(L.mean(0)), Vector(R.mean(0))
+            up, lo = (a, b) if a.z > b.z else (b, a)
+            d = (up - lo).normalized() if (up - lo).length > 1e-4 else Vector((0, 0, 1))
+            pd.location = lo - d * 0.45          # 下の手が柄の 0.45m の所を握る（刃は水の中へ）
+            pd.rotation_quaternion = Vector((0, 0, 1)).rotation_difference(d)
+            if frames > 1:
+                pd.keyframe_insert('location', frame=f)
+                pd.keyframe_insert('rotation_quaternion', frame=f)
+
+
 def animate_cycles(frames, seconds, fps=24):
     """歩く・こぐ人の形のキーを、時間に合わせて切り替える。
     歩く人は、進む速さ÷1周期の歩幅で周期を決める（足が地面をすべらないように）"""
@@ -1288,6 +1333,7 @@ def build(s, args):
             ob.keyframe_insert('location', frame=frames)
     elif s.get('anim') and args.still and ocean_md is not None:
         ocean_md.time = s['seconds'] / 2
+    add_paddles(frames, s.get('seconds', 1))
     render_settings(args, s)
     mark_for_check(kind)
     return frames

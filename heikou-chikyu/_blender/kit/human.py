@@ -202,9 +202,13 @@ def pose_ops(pose, phase=0.0, side=1):
             else:
                 aim('upperleg01.' + sd, 'lowerleg01.' + sd, s * 0.12, 0.97, 0.18)
                 aim('lowerleg01.' + sd, 'foot.' + sd, s * 0.05, 0.35, -0.94)
-                a = math.sin(2 * math.pi * phase)
-                aim('upperarm01.' + sd, 'lowerarm01.' + sd, s * 0.25, 0.6 + 0.15 * a, -0.75)
-                aim('lowerarm01.' + sd, 'wrist.' + sd, -s * 0.3, 0.9, -0.1 + 0.25 * a)
+        if pose == 'paddle':
+            # 櫂の持ち方：右手は下（舟の右の水の中へ伸ばし、前から後ろへかく）、左手は上（胸の前で柄の頭を押す）
+            a = math.sin(2 * math.pi * phase)
+            aim('upperarm01.R', 'lowerarm01.R', 0.40, 0.45 + 0.30 * a, -0.80)
+            aim('lowerarm01.R', 'wrist.R', 0.30, 0.55 + 0.35 * a, -0.78)
+            aim('upperarm01.L', 'lowerarm01.L', -0.05, 0.80 + 0.10 * a, -0.10)
+            aim('lowerarm01.L', 'wrist.L', 0.55, 0.60 + 0.15 * a, 0.50)
     return ops
 
 
@@ -570,6 +574,13 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
     for sd, m in (('L', v_rest[body_ids, 0] < 0), ('R', v_rest[body_ids, 0] > 0)):
         ids = body_ids[m]
         ob['sole_' + sd] = [int(i) for i in pos_in_body[ids[np.argsort(v_rest[ids, 2])[:40]]]]
+    # 手の頂点（手首・指の骨に重みが大きい所。体のメッシュの番号で）。櫂（かい）を持たせるのに使う
+    for sd in ('L', 'R'):
+        hb = [i for i, b in enumerate(bones) if b.endswith('.' + sd) and b.startswith(('wrist', 'finger', 'metacarpal'))]
+        m_ = np.isin(d['w_bone'], hb)
+        hw = np.bincount(d['w_vert'][m_], d['w_val'][m_], minlength=len(v_rest))
+        hid = np.where((hw > 0.5) & (pos_in_body >= 0))[0]
+        ob['hand_' + sd] = [int(i) for i in pos_in_body[hid][::max(1, len(hid) // 30)]]
     if phases:
         ob['cycle'] = cycle
         ob['cycle_parts'] = [p.name for p in parts]
