@@ -18,7 +18,7 @@ import numpy as np
 
 import world as W
 
-VERSION = 'heikou-sim-1.0'
+VERSION = 'heikou-sim-1.1'
 MAXAGE = 90
 
 # ---------------------------------------------------------------- 人口（年齢別の死亡と出生）
@@ -267,11 +267,12 @@ class Sim:
         return r['water_surface'][regions] + r['water_plant'][regions]
 
     def _place_start(self, n, k):
-        """暮らしやすさ（採集と漁で養える人数と、道具なしで得られる水の少ない方）が最も高い地域を中心に、
-        歩くかいかだ（12km）で行ける範囲の、暮らしやすい地域へ 200人ずつ置く。足りなければ同じ地域に重ねる"""
+        """出発の中心の地域を、暮らしやすさ（採集と漁で養える人数と、道具なしで得られる水の少ない方）に
+        比例した確率で選ぶ（陸地の多い所ほど選ばれやすく、試行ごとに変わる）。
+        そこから歩くかいかだで行ける範囲の、暮らしやすい地域へ 200人ずつ置く。足りなければ同じ地域に重ねる"""
         allr = np.arange(self.NRg)
         score = np.minimum(self.forage_cap(allr), self.water_cap0(allr))
-        r0 = int(np.argmax(score))
+        r0 = int(self.r_move.choice(self.NRg, p=score / score.sum()))
         isl0 = self.island_of(r0)
         reach = set(self.isl_regions[isl0])
         for gap, b, vis in self.nbr[isl0]:
