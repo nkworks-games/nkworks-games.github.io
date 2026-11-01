@@ -1,0 +1,169 @@
+{
+ "episode": "並行地球 第1回",
+ "note": "試しのカット（あとで計算の記録から自動で作る）",
+ "shots": [
+  {
+   "id": "003",
+   "title": "小さな火山島の夕方の浜（R1-4・2,990年）",
+   "kind": "coast",
+   "seed": 4,
+   "preset": "volcanic_old",
+   "climate": "subtropical",
+   "ground": "temperate",
+   "forest": 0.96,
+   "reef": false,
+   "settlement": {
+    "huts": 18,
+    "style": "shelter",
+    "racks": 3,
+    "fires": 3,
+    "smoke": 2,
+    "people": 14
+   },
+   "boats": [
+    {
+     "type": "raft",
+     "count": 5
+    }
+   ],
+   "sky": {
+    "time": "dusk",
+    "azimuth": -150,
+    "elevation": 8.0,
+    "cloud": 0.5
+   },
+   "camera": {
+    "loc": [
+     34,
+     98,
+     2.6
+    ],
+    "target": [
+     -14,
+     170,
+     7
+    ],
+    "lens": 30,
+    "loc2": [
+     27,
+     104,
+     2.6
+    ],
+    "target2": [
+     -16,
+     172,
+     7
+    ]
+   },
+   "anim": true,
+   "seconds": 8,
+   "fire_strength": 90.0,
+   "palm_density": 0.3,
+   "exposure": 0.3
+  },
+  {
+   "id": "001",
+   "title": "夕暮れの海を渡る帆の舟（R1-1・2,900年ごろ）",
+   "kind": "opensea",
+   "seed": 1,
+   "wave": 0.6,
+   "boats": [
+    {
+     "loc": [
+      0,
+      0,
+      0.35
+     ],
+     "heading": -20,
+     "sail": true,
+     "length": 9.5,
+     "crew": 3,
+     "speed": 3.0
+    }
+   ],
+   "islands": [
+    {
+     "radius": 900,
+     "height": 180,
+     "loc": [
+      -2600,
+      7000,
+      -5
+     ]
+    },
+    {
+     "radius": 500,
+     "height": 90,
+     "loc": [
+      2200,
+      9500,
+      -5
+     ]
+    }
+   ],
+   "sky": {
+    "time": "dusk",
+    "azimuth": 20,
+    "cloud": 0.5
+   },
+   "camera": {
+    "loc": [
+     -24,
+     -12,
+     3.5
+    ],
+    "target": [
+     0,
+     10,
+     3
+    ],
+    "lens": 35,
+    "loc2": [
+     -20,
+     6,
+     3.2
+    ],
+    "target2": [
+     2,
+     28,
+     3
+    ]
+   },
+   "anim": true,
+   "seconds": 7
+  },
+  {
+   "id": "004",
+   "title": "海の惑星（R1の地形）",
+   "kind": "planet",
+   "terrain": "R1",
+   "spin": 200,
+   "sun_az": 50,
+   "camera": {
+    "loc": [
+     0,
+     -24,
+     5
+    ],
+    "target": [
+     0,
+     0,
+     0
+    ],
+    "lens": 50,
+    "loc2": [
+     0,
+     -19,
+     3.5
+    ],
+    "target2": [
+     0,
+     0,
+     0.3
+    ]
+   },
+   "anim": true,
+   "seconds": 9
+  }
+ ]
+}

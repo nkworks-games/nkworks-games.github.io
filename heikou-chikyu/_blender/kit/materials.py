@@ -250,7 +250,7 @@ def bark(name, c1, c2, kind='fissured'):
     ln = node(nt, 'ShaderNodeTexNoise', (-800, 500), Scale=14.0, Detail=6.0, Roughness=0.6)
     link(nt, vec, ln.inputs['Vector'])
     lich = map_range(nt, ln.outputs['Fac'], 0.64, 0.70)
-    col = mix_color(nt, math_op(nt, 'MULTIPLY', lich, 0.6), col, (0.20, 0.22, 0.17, 1), (-200, 200))
+    col = mix_color(nt, math_op(nt, 'MULTIPLY', lich, 0.35), col, (0.12, 0.13, 0.10, 1), (-200, 200))
     bp = node(nt, 'ShaderNodeBump', (-200, -200), Strength=0.9, Distance=0.04)
     link(nt, h, bp.inputs['Height'])
     bsdf = node(nt, 'ShaderNodeBsdfPrincipled', (50, 100))

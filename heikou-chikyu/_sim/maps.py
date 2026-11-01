@@ -2,7 +2,10 @@
 import math
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+try:
+    from PIL import Image, ImageDraw, ImageFont
+except ImportError:   # Blender の Python には PIL がない（地図の配列だけ使う）
+    Image = ImageDraw = ImageFont = None
 
 import world as W
 
@@ -28,6 +31,10 @@ def land_color(T, P, h, kind):
 
 
 def render(world, width=1440, halo_km=35.0, window=None):
+    return Image.fromarray(render_array(world, width, halo_km, window))
+
+
+def render_array(world, width=1440, halo_km=35.0, window=None):
     """地図（正距円筒図法）。window=(西経度, 東経度, 南緯度, 北緯度) で一部だけ拡大できる"""
     lon_a, lon_b, lat_a, lat_b = window or (-180.0, 180.0, -90.0, 90.0)
     res = (lon_b - lon_a) / width
@@ -83,7 +90,7 @@ def render(world, width=1440, halo_km=35.0, window=None):
             f = np.clip(1 - d / np.maximum(edge, 1e-6), 0, 1)
             shade_l = (0.8 + 0.35 * f)[..., None]
             img[RR[inside], CC[inside]] = np.clip(col * shade_l[inside], 0, 255)
-    return Image.fromarray(img.astype(np.uint8))
+    return img.astype(np.uint8)
 
 
 def to_px(lat, lon, window, width):
