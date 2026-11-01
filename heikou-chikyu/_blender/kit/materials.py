@@ -76,7 +76,8 @@ def terrain(palette='temperate'):
 
     sand = mix_color(nt, n2.outputs['Fac'], *P['sand'], (-1000, 400))
     grass = mix_color(nt, n1.outputs['Fac'], *P['grass'], (-1100, 200))
-    grass = mix_color(nt, map_range(nt, n3.outputs['Fac'], 0.5, 0.68), grass, P['dry'], (-1000, 200))
+    # 乾いた草のむら（遠くから見て裸の土に見えないよう、半分までにとどめる）
+    grass = mix_color(nt, map_range(nt, n3.outputs['Fac'], 0.55, 0.75, 0.0, 0.5), grass, P['dry'], (-1000, 200))
     floor = mix_color(nt, n2.outputs['Fac'], *P['floor'], (-1000, 0))
     soil = mix_color(nt, n2.outputs['Fac'], *P['soil'], (-1000, -200))
     rock = mix_color(nt, n1.outputs['Fac'], *P['rock'], (-1100, -400))
