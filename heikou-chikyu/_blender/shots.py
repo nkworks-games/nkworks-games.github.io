@@ -107,6 +107,11 @@ def vegetation_library(climate, seed):
 
 def build_coast(s):
     seed = s.get('seed', 7)
+    cams = [Vector(s['camera'][k]).xy for k in ('loc', 'loc2') if k in s['camera']]
+
+    def near_cam(x, y, r):
+        # カメラのすぐ近く（動くならその道すじ）に、幹や藪を置かない
+        return any((Vector((x, y)) - c).length < r for c in cams)
     rng = stream(seed, 'coast', s['id'])
     ter = Terrain(seed, s.get('preset', 'volcanic_old'), village=s.get('village', True), reef=s.get('reef', False))
     lib = vegetation_library(s.get('climate', 'tropical'), seed)
@@ -189,6 +194,8 @@ def build_coast(s):
         if thr is not None and u < 1 / (1 + math.exp((acc - thr) / 60.0)):
             cleared.append((x, y, h))
             continue
+        if near_cam(x, y, 9):
+            continue
         trees.append((x, y, h - 0.2, rng.randrange(n_tree_types), rng.uniform(0.75, 1.15), rng.uniform(0, 6.3)))
     scatter.instances('森', lib['trees'], trees)
     palms = []
@@ -204,6 +211,8 @@ def build_coast(s):
                 continue
             if any((x - hx) ** 2 + (y - hy) ** 2 < 6 ** 2 for hx, hy, _ in huts):
                 continue
+            if near_cam(x, y, 9):
+                continue
             palms.append((x, y, h - 0.15, rng.randrange(len(lib['palms'].objects)), rng.uniform(0.8, 1.2), rng.uniform(0, 6.3)))
         scatter.instances('ヤシ', lib['palms'], palms)
     shrubs, grass = [], []
@@ -217,6 +226,8 @@ def build_coast(s):
         if h < 1.9 or ter.slope_at(x, y) > 35:
             continue
         if any((x - hx) ** 2 + (y - hy) ** 2 < 5 ** 2 for hx, hy, _ in huts):
+            continue
+        if near_cam(x, y, 7):
             continue
         if f < 160 and rng.random() < 0.35:
             shrubs.append((x, y, h - 0.1, rng.randrange(3), rng.uniform(0.6, 1.4), rng.uniform(0, 6.3)))
@@ -234,7 +245,7 @@ def build_coast(s):
         grass.append((x, y, h - 0.03, rng.randrange(3), rng.uniform(0.7, 1.3), rng.uniform(0, 6.3)))
     # 木を切った跡は、裸の土ではなく低い藪と草地になる
     for x, y, h in cleared:
-        if rng.random() < 0.6:
+        if rng.random() < 0.6 and not near_cam(x, y, 7):
             shrubs.append((x + rng.uniform(-1.5, 1.5), y + rng.uniform(-1.5, 1.5), h - 0.1, rng.randrange(3), rng.uniform(0.9, 1.9), rng.uniform(0, 6.3)))
     scatter.instances('低木', lib['shrubs'], shrubs)
     scatter.instances('草', lib['grass'], grass)

@@ -9,13 +9,20 @@
   python3 make_roughcut.py            # 字幕（ナレーション）とカット番号を焼き込む
   python3 make_roughcut.py --clean    # 何も焼き込まない（編集ソフトに持っていく用）
 
-出力：out/roughcut/roughcut.mp4（音はまだ無音。ナレーションは合成音声で後から入れる）
+ナレーション：out/voice/ に VOICEVOX で書き出した音声（001_….wav のように番号で始まるもの）があれば、
+  out/script/voicevox_ep1.txt の行の順＝ナレーションのあるカットの順に、各カットの頭（0.3秒後）へ置く。
+  音声がカットより長いときは、その一覧を最後に出す（カットの秒数を直す目安）。
+
+出力：out/roughcut/roughcut.mp4（音声がなければ無音）
 """
 import csv
+import glob
 import os
+import re
 import subprocess
 import sys
 
+import numpy as np
 from PIL import Image, ImageDraw
 
 from motion import BG, H, MUTED, TEXT, TEXT2, W, font
@@ -72,7 +79,7 @@ def placeholder(row, path):
 
 
 def find_3d(no):
-    for p in ('final/cut%s.mp4' % no, 'final/cut%s.png' % no, 'preview2/cut%s.png' % no, 'preview/cut%s.png' % no):
+    for p in ('final/cut%s.mp4' % no, 'final/cut%s.png' % no, 'preview3/cut%s.png' % no, 'preview2/cut%s.png' % no, 'preview/cut%s.png' % no):
         f = os.path.join(HERE, 'out', 'renders', p)
         if os.path.exists(f):
             return f
@@ -109,6 +116,48 @@ def segment(row, clean):
     return out
 
 
+SR = 48000
+
+
+def load_wav(path):
+    """どんな形式の音声も 48kHz・ステレオ・float にそろえて読む"""
+    raw = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', path, '-f', 's16le', '-ac', '2', '-ar', str(SR), '-'],
+                         check=True, capture_output=True).stdout
+    return np.frombuffer(raw, np.int16).reshape(-1, 2).astype(np.float32) / 32768.0
+
+
+def voice_track(rows, path):
+    """ナレーションを並べた1本の音声。なければ None"""
+    files = sorted(glob.glob(os.path.join(HERE, 'out', 'voice', '*.wav')))
+    files = [f for f in files if re.match(r'^\d+', os.path.basename(f))]
+    if not files:
+        return None
+    files.sort(key=lambda f: int(re.match(r'^(\d+)', os.path.basename(f)).group(1)))
+    narrated = [r for r in rows if r['narration'].strip()]
+    if len(files) != len(narrated):
+        print('注意：音声 %d 個、ナレーションのあるカット %d 個（順に対応させる）' % (len(files), len(narrated)))
+    start, t = {}, 0.0
+    for r in rows:
+        start[r['no']] = t
+        t += int(r['sec'])
+    buf = np.zeros((int(t * SR) + SR, 2), np.float32)
+    over = []
+    for f, r in zip(files, narrated):
+        a = load_wav(f)
+        i0 = int((start[r['no']] + 0.3) * SR)
+        n = min(len(a), len(buf) - i0)
+        buf[i0:i0 + n] += a[:n]
+        dur = len(a) / SR
+        if dur + 0.3 > int(r['sec']):
+            over.append((r['no'], dur, int(r['sec'])))
+    for no, dur, sec in over:
+        print('長い：カット %s の音声 %.1f秒（カット %d秒）' % (no, dur, sec))
+    pcm = (np.clip(buf, -1, 1) * 32767).astype(np.int16)
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-f', 's16le', '-ac', '2', '-ar', str(SR), '-i', '-', path],
+                   input=pcm.tobytes(), check=True)
+    return path
+
+
 def main():
     clean = '--clean' in sys.argv
     os.makedirs(SEG, exist_ok=True)
@@ -122,9 +171,10 @@ def main():
         for p in segs:
             f.write("file '%s'\n" % p)
     name = 'roughcut_clean.mp4' if clean else 'roughcut.mp4'
-    # 無音の音声を付けておく（編集ソフトで扱いやすいように）
-    ff(['-f', 'concat', '-safe', '0', '-i', lst, '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo',
-        '-c:v', 'copy', '-c:a', 'aac', '-shortest', os.path.join(OUT, name)])
+    # 音声：ナレーションがあれば並べたもの、なければ無音（編集ソフトで扱いやすいように）
+    vt = voice_track(rows, os.path.join(OUT, 'voice.wav'))
+    audio = ['-i', vt] if vt else ['-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo']
+    ff(['-f', 'concat', '-safe', '0', '-i', lst] + audio + ['-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', os.path.join(OUT, name)])
     total = sum(int(r['sec']) for r in rows)
     print('できた', os.path.join(OUT, name), '%d分%02d秒' % (total // 60, total % 60))
 

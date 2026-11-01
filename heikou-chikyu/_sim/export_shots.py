@@ -137,10 +137,10 @@ def main():
     S.append(coast('019', '朝の浜の集落（R1-1・0年ごろ）', 'R1', 1, 0, CAM_DRONE, time='dawn', anim=False))
     S.append(coast('020', '潮の引いた岩場で貝をとる（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[68, 22, 1.8], target=[56, 38, 0.3], lens=40, loc2=[66, 24, 1.7], target2=[56, 38, 0.3]),
                    reef=True, extras=[dict(type='figure', loc=[54, 38], pose='bend', rot=200), dict(type='figure', loc=[59, 35], pose='bend', rot=150, phase=0.3)]))
-    S.append(coast('021', '岸で魚を突く（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[-22, 150, 1.8], target=[-4, 118, 0.6], lens=45, loc2=[-20, 148, 1.8], target2=[-3, 118, 0.6]),
-                   extras=[dict(type='figure', loc=[-4, 120], pose='look', rot=170), dict(type='figure', loc=[2, 116], pose='bend', rot=200)], seconds=6))
-    S.append(coast('022', '水を運ぶ（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[-8, 150, 1.8], target=[-30, 172, 1.2], lens=40),
-                   extras=[dict(type='figure', loc=[-36, 171], pose='carry', rot=-90, move=[10, 0, 0])], seconds=6))
+    S.append(coast('021', '岸で魚を突く（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[14, 144, 1.5], target=[-2, 134.5, 0.7], lens=50, loc2=[13, 143.4, 1.5], target2=[-2.5, 134.5, 0.7]),
+                   extras=[dict(type='figure', loc=[-4, 134], pose='bend', rot=200), dict(type='figure', loc=[2, 136.5], pose='look', rot=150)], seconds=6))
+    S.append(coast('022', '水を運ぶ（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[-14, 132, 1.6], target=[-30, 140.5, 1.0], lens=45),
+                   extras=[dict(type='figure', loc=[-37, 140.5], pose='carry', rot=-90, move=[9, 0, 0])], seconds=6))
     S.append(coast('023', '薪を運び、火を焚く（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[16, 138, 1.7], target=[8, 150, 0.8], lens=35, loc2=[15, 139, 1.7], target2=[8, 150, 0.8]),
                    extras=[dict(type='fire', loc=[8, 150], strength=100), dict(type='woodpile', loc=[11, 153]), dict(type='figure', loc=[5, 152], pose='carry', rot=40)], seconds=6))
     S.append(coast('031', '小さな火山島の浜。家は少ない（R1-4・100年）', 'R1', 4, 100, CAM_DRONE, time='day', anim=False))
