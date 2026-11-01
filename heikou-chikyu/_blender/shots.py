@@ -57,6 +57,7 @@ def parse_args():
     ap.add_argument('--step', type=int, default=1, help='N コマおきに描く（2 なら半分。間はあとで補う）')
     ap.add_argument('--resume', action='store_true', help='描き終えたコマ・カットは飛ばす（中断したところから）')
     ap.add_argument('--build-only', action='store_true', help='描かずに .blend だけ保存する（scene_check.py で点検する用）')
+    ap.add_argument('--frames', default='', help='動くカットの、決めたコマだけを静止画で描く（first,mid,last か番号。本番前の確かめ用）')
     return ap.parse_args(argv)
 
 
@@ -1329,6 +1330,17 @@ def main():
         if args.build_only:
             continue
         t1 = time.time()
+        if args.frames and frames > 1:
+            want = []
+            for w in args.frames.split(','):
+                w = w.strip()
+                want.append({'first': 1, 'mid': (frames + 1) // 2, 'last': frames}.get(w) or int(w))
+            for f in want:
+                sc.frame_set(f)
+                sc.render.filepath = os.path.join(out, 'cut%s_f%04d.png' % (s['id'], f))
+                bpy.ops.render.render(write_still=True)
+            print('  確かめのコマ %s・%.1fs' % (want, time.time() - t1), flush=True)
+            continue
         if frames > 1:
             d = os.path.join(out, 'cut%s' % s['id'])
             os.makedirs(d, exist_ok=True)

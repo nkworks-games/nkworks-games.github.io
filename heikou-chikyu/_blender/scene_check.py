@@ -312,6 +312,16 @@ if SHOTS and cam:
             o_ = nt.nodes.new("ShaderNodeOutputMaterial"); nt.links.new(df.outputs[0], o_.inputs["Surface"])
             vl.material_override = m
             r.engine = "CYCLES"; sc.cycles.samples = 8; sc.cycles.use_denoising = True
+            # 煙などの「体積だけ」の材質は、上書きすると不透明な箱になって奥が見えなくなるので、確認画像の間だけ描かない
+            def volume_only(o):
+                ms = [sl.material for sl in o.material_slots if sl.material and sl.material.node_tree]
+                if not ms: return False
+                for mt in ms:
+                    outs = [n for n in mt.node_tree.nodes if n.type == "OUTPUT_MATERIAL"]
+                    if not outs or outs[0].inputs["Surface"].is_linked or not outs[0].inputs["Volume"].is_linked: return False
+                return True
+            hidden_vol = [o for o in sc.objects if o.type == "MESH" and not o.hide_render and volume_only(o)]
+            for o in hidden_vol: o.hide_render = True
         for k in dir(r):
             if k.startswith("use_stamp_") and isinstance(getattr(r, k), bool): setattr(r, k, k == "use_stamp_frame")
         r.use_stamp = True; r.stamp_font_size = 20  # フレーム番号を焼き込む
@@ -323,6 +333,7 @@ if SHOTS and cam:
     finally:
         r.engine, r.resolution_percentage, r.filepath, r.image_settings.file_format = keep; r.use_stamp = False
         vl.material_override = keep_ov
+        for o in locals().get("hidden_vol", []): o.hide_render = False
         if keep_spp is not None: sc.cycles.samples = keep_spp
     if shot_files:
         cols = 4; rows = math.ceil(len(shot_files) / cols)
