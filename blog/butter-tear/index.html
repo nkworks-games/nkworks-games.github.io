@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>強く押せばいい、をなくすためにパンを破った - N.K. Works 開発日記</title>
+<meta name="description" content="『バターは端まで』は、トーストを焼いて20秒でバターやジャムを塗るゲーム。すくうと減るビン、押す強さのゲージ、塗る面を下に向けるナイフで本物の塗り方に近づけたあと、「強く押すほどいい」にならないよう、押しすぎるとパンが破れるしくみを焼き加減とつないだ話。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/blog/butter-tear/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:title" content="強く押せばいい、をなくすためにパンを破った - N.K. Works 開発日記">
+<meta property="og:description" content="『バターは端まで』は、トーストを焼いて20秒でバターやジャムを塗るゲーム。すくうと減るビン、押す強さのゲージ、塗る面を下に向けるナイフで本物の塗り方に近づけたあと、「強く押すほどいい」にならないよう、押しすぎるとパンが破れるしくみを焼き加減とつないだ話。">
+<meta property="og:url" content="https://nkworks-games.com/blog/butter-tear/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/assets/site.css">
+<script>
+(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous'; s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();
+</script>
+</head>
+<body>
+
+<header class="site-h"><div class="wrap">
+<a data-google-vignette="false" class="logo" href="/">N.K. Works</a>
+<nav class="nav"><a data-google-vignette="false" href="/games/">ゲーム</a><a data-google-vignette="false" href="/blog/" aria-current="page">開発日記</a><a data-google-vignette="false" href="/about.html">運営者情報</a></nav>
+</div></header>
+
+
+<main><div class="wrap"><article class="post">
+<p class="crumb"><a data-google-vignette="false" href="/">トップ</a> › <a data-google-vignette="false" href="/blog/">開発日記</a></p>
+<h1>強く押せばいい、をなくすためにパンを破った</h1><p class="post-meta">2026年11月1日 ・ N.K. Works</p>
+<p>『バターは端まで』は、オーブントースターでパンを焼いて、20秒でバターやジャムを塗るゲームです。はじまりは「パンにどれだけきれいにバターを塗れるか、その点数を競うゲーム」という思いつきでした。採点は、塗り残し・厚さのムラ・耳やお皿へのはみ出しの3つです。</p>
+<h2>パンの上は、112×112のマス目</h2>
+<p>「塗る」をゲームにするために、パンの上を縦横112マスに分けて、マスごとに「どれだけ塗ってあるか」を数字で持っています。ナイフが通ったマスには、ナイフに乗っている量の一部が置かれ、その分ナイフの量が減ります。すでに塗ってあるマスをなぞると、少しすくい直して先へ運びます。</p>
+<p>このしくみだと、同じ所を何度かなぞるうちに、厚い所の分が薄い所へならされていきます。本物のバターを伸ばす時と同じで、「置く」と「伸ばす」が分かれて感じられるようになりました。</p>
+<h2>ビンは減る、バターは下の面</h2>
+<p>最初の版は、ビンの中身がいくらすくっても減らず、ナイフのバターは刃の上に乗ったまま塗っていました。実際に遊んでみると、「すくったら減ってほしい」「塗る時はバターが乗っている面が下に来てほしい」というところが気になりました。</p>
+<p>そこで、すくうたびにビンの中身の高さが下がり、バターのかたまりは短くなるようにしました。中身は、注文どおりに塗るのに要る量の約2倍だけです。ナイフは、塗りはじめるとくるっと傾いて、バターが下の面に回り、刃の後ろから少しはみ出して見えるようにしています。</p>
+<h2>押す強さのゲージ</h2>
+<p>次に足したのが、押しこむ強さのゲージです。画面の左はしに縦のゲージを置いて、指で上下に動かせるようにしました。スマホなら、片方の指で塗りながら、もう片方の指で強さを変えられます。</p>
+<p>弱く押すと、パンのでこぼこの高い所にしかつかず、まだらで厚くなります。強く押すと、すくい直しが増えて薄く伸びますが、端へ押し出されてはみ出しやすくなります。ちょうどいい強さは塗るものでちがい、かたいバターやピーナッツバターは強め、やわらかいジャムやはちみつは弱めです。</p>
+<h2>それでも「強く押せばいい」になりかけた</h2>
+<p>強く押すと薄くきれいに伸びるので、強めにしておけば失敗が少ない、という形になりかけていました。強さを選ぶ意味をもう一段つけるために、押しすぎるとパンが「ビリッ」と破れて、穴があくようにしました。</p>
+<p>破れやすさは、焼き加減とつなげています。焼きが浅いパンほど弱く、かたいバターほど引っかかって破れやすくなります。温かいうちはバターが溶けて引っかかりにくいので、トーストが冷めるほど破れやすくなります。ゲージの上には「ここから上は破れる」という赤いしましまを出していて、焼き加減や時間で動きます。焼き不足なら、やさしく塗るしかありません。</p>
+<h2>注文と、今日の5枚</h2>
+<p>同じパンを同じように塗るだけだと、2回目から作業になります。そこで、1枚ごとにお客さんの注文をつけました。「薄めで」「たっぷり」ではちょうどいい厚さが変わり、「耳まで」では耳も塗る所に、「左半分だけ」ではパンの上に点線が出ます。</p>
+<p>タイトルの「今日の5枚」は、同じ日ならだれが遊んでも同じ注文になります。結果は5枚のパンを並べた画像になるので、同じ条件の点数を見せ合えます。</p>
+<h2>見えないまちがいは、テストで</h2>
+<p>塗る量の計算は、目で見るだけだとまちがいに気づけません。そこで「パンの上の量＋ナイフの量＝すくった量」になっているか、「ビンの減った量とすくった量が合っているか」「塗っている間、バターの面が下を向いているか」を、いろいろな速さの画面で自動で調べるテストを作りました。直すたびに、このテストを通してから出しています。</p>
+<h2>この記事のゲーム</h2><ul class="grid"><li><a data-google-vignette="false" class="card" href="/games/butter-hashimade/"><div class="th"><img src="/games/butter-hashimade/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>バターは端まで</b><span>トーストを焼いて、20秒で端まで塗る。</span><em>2026年11月1日 公開</em></div></a></li></ul>
+<h2>ほかの日記</h2><ul class="list"><li><a data-google-vignette="false" href="/blog/oku-made-angle/"><em>2026年11月1日</em><b>綿棒は、上ではなく耳の方へ</b><span>『奥までいきます』は、リアルな患者の鼻の奥まで綿棒を入れて、菌を取るゲーム。なんとなく上向きだった綿棒の角度を、本物の検査のやり方を調べて直した話と、仕返しの場面の腕と手のひらを作り直した話。</span></a></li><li><a data-google-vignette="false" href="/blog/yasumasete-kehai/"><em>2026年10月29日</em><b>トラブルは、起きる前に見せることにした</b><span>『休ませてください』は、休みを動かして連休を作り、激務の毎日を何日もちこたえるかを競うゲーム。運まかせだったトラブルを、⚠の「気配」と「疲れるとミスが増える」しくみで起きる前に見えるものにして、うまい人とそうでない人の差を広げた話。</span></a></li><li><a data-google-vignette="false" href="/blog/koro-rias-egg/"><em>2026年10月28日</em><b>たまごは、縦に転がすと遊べなかった</b><span>『コロリアス』は、三陸のリアス海岸を回して、割れやすいたまごを宮古まで転がすゲーム。縦にパタパタ転がる形では跳ねて海に落ちてしまうのを、横に寝かせた転がり方に変え、409kmのコースが本当に通れるかを確かめた話。</span></a></li></ul>
+<div class="ad-box"><p class="lbl">広告</p>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</article></div></main>
+<footer class="site-f"><div class="wrap">
+<p><a data-google-vignette="false" href="/">トップ</a> ・ <a data-google-vignette="false" href="/games/">ゲーム一覧</a> ・ <a data-google-vignette="false" href="/blog/">開発日記</a> ・ <a data-google-vignette="false" href="/about.html">運営者情報・お問い合わせ</a> ・ <a data-google-vignette="false" href="/privacy-policy.html">プライバシーポリシー</a></p>
+<p>&copy; 2026 N.K. Works</p>
+</div></footer>
+</body>
+</html>
