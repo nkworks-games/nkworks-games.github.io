@@ -487,8 +487,8 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
     if long_hair:
         # 長い髪：外へ少し出てから、後ろと下へ流れる（前の毛が顔にかからない）
         st.use_advanced_hair = True
-        st.normal_factor = 0.03
-        st.object_align_factor = (0.0, -0.015, -0.2)
+        st.normal_factor = 0.012
+        st.object_align_factor = (0.0, -0.008, -0.075)   # 長さはおよそ 35〜40cm
         st.hair_step = 6
     else:
         st.use_advanced_hair = False
