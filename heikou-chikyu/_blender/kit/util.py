@@ -27,10 +27,8 @@ def smoothstep(e0, e1, x):
 
 def new_material(name):
     m = bpy.data.materials.new(name)
-    try:
+    if bpy.app.version < (5, 0, 0):  # 5.0 からは最初からノードを使う（use_nodes は 6.0 で消える）
         m.use_nodes = True
-    except Exception:
-        pass
     nt = m.node_tree
     for n in list(nt.nodes):
         nt.nodes.remove(n)
