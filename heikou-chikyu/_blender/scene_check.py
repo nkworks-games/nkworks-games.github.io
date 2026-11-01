@@ -200,6 +200,15 @@ for f in frames:
                 if d * 100 > p.get("depth_cm", 0): p["depth_cm"], p["worst"] = round(d * 100, 1), f
         if o in grounded and ftrees:
             g, lo = floor_gap(data[o]["vs"], ftrees)
+            if "sole_L" in o.keys():  # 並行地球：人は、どちらかの足の裏が地面についていればよい（坂では一番低い点が足とは限らない）
+                gs = []
+                for sd in ("L", "R"):
+                    for i in list(o.get("sole_" + sd, []))[::4]:
+                        v = data[o]["vs"][i]
+                        for ft in ftrees:
+                            h = ft.ray_cast(v + Vector((0, 0, 0.5)), Vector((0, 0, -1)), 10)
+                            if h[0] is not None: gs.append(v.z - h[0].z)
+                if gs: g, lo = max(0.0, min(gs)), lo
             if g is not None and g > CONFIG["FLOAT_TOL"]: add(problems, f, "浮いている", f"{o.name}（{round(g*100,1)}cm）", lo)
     # 瞬間移動
     for o in objs:
@@ -266,9 +275,21 @@ if SHOTS and cam:
     bad = [p["worst"] for p in sorted(problems, key=lambda p: p["in_camera"] is False) if p["worst"] is not None]
     want = sorted(set(bad[:CONFIG["MAX_SHOTS_PROBLEM"]] + [round(sc.frame_start + i * (sc.frame_end - sc.frame_start) / max(1, SHOTS - 1)) for i in range(SHOTS)]))
     r = sc.render; keep = (r.engine, r.resolution_percentage, r.filepath, r.image_settings.file_format)
+    vl = bpy.context.view_layer; keep_ov = vl.material_override; keep_spp = sc.cycles.samples if hasattr(sc, "cycles") else None
     try:
         r.engine = "BLENDER_WORKBENCH"; r.resolution_percentage = 25; r.image_settings.file_format = "PNG"
         sh = sc.display.shading; sh.show_xray = False; sh.color_type = "RANDOM"  # 物ごとに色を変えて重なりを見やすく
+        if os.environ.get("CHECK_ENGINE", "").upper() == "CYCLES":
+            # 並行地球：GPU（OpenGL）の無い所では Workbench が非常に遅いので、Cycles を少ない回数で使い、
+            # 物ごとに乱数の色を塗る材質で上書きする（Workbench の RANDOM と同じ見え方）
+            m = bpy.data.materials.new("点検用の色"); nt = m.node_tree
+            for n in list(nt.nodes): nt.nodes.remove(n)
+            oi = nt.nodes.new("ShaderNodeObjectInfo"); hsv = nt.nodes.new("ShaderNodeCombineColor"); hsv.mode = "HSV"
+            nt.links.new(oi.outputs["Random"], hsv.inputs[0]); hsv.inputs[1].default_value = 0.6; hsv.inputs[2].default_value = 0.8
+            df = nt.nodes.new("ShaderNodeBsdfDiffuse"); nt.links.new(hsv.outputs[0], df.inputs["Color"])
+            o_ = nt.nodes.new("ShaderNodeOutputMaterial"); nt.links.new(df.outputs[0], o_.inputs["Surface"])
+            vl.material_override = m
+            r.engine = "CYCLES"; sc.cycles.samples = 2; sc.cycles.use_denoising = False
         for k in dir(r):
             if k.startswith("use_stamp_") and isinstance(getattr(r, k), bool): setattr(r, k, k == "use_stamp_frame")
         r.use_stamp = True; r.stamp_font_size = 20  # フレーム番号を焼き込む
@@ -279,6 +300,8 @@ if SHOTS and cam:
         warnings.append(dict(frame=None, kind="確認画像", msg=f"レンダーできなかった: {e}"))
     finally:
         r.engine, r.resolution_percentage, r.filepath, r.image_settings.file_format = keep; r.use_stamp = False
+        vl.material_override = keep_ov
+        if keep_spp is not None: sc.cycles.samples = keep_spp
     if shot_files:
         cols = 4; rows = math.ceil(len(shot_files) / cols)
         lst = os.path.join(OUT, "list.txt")

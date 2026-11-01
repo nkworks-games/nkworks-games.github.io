@@ -18,6 +18,9 @@ BLENDER = os.environ.get('BLENDER', '')
 
 
 def run_blender(args):
+    """GPU の無い所（BLENDER が未設定＝Python の bpy）では、確認画像を Cycles で描く（scene_check.py の CHECK_ENGINE）"""
+    if not BLENDER:
+        os.environ.setdefault('CHECK_ENGINE', 'CYCLES')
     if BLENDER:
         cmd = [BLENDER, '-b', '--factory-startup'] + args
     else:   # Python の bpy パッケージ
@@ -32,7 +35,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--only', default='')
     ap.add_argument('--step', default='4')
-    ap.add_argument('--shots', default='8')
+    ap.add_argument('--shots', default='4')
     ap.add_argument('--out', default=os.path.join(HERE, '..', '_sim', 'out', 'check'))
     a = ap.parse_args()
     out = os.path.abspath(a.out)

@@ -25,6 +25,7 @@ import bpy  # bpy を先に読み込む（Python のパッケージ版では bme
 import bmesh
 import numpy as np
 from mathutils import Matrix, Vector, noise
+from mathutils.bvhtree import BVHTree
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -115,6 +116,7 @@ def build_coast(s):
         return any((Vector((x, y)) - c).length < r for c in cams)
     rng = stream(seed, 'coast', s['id'])
     ter = Terrain(seed, s.get('preset', 'volcanic_old'), village=s.get('village', True), reef=s.get('reef', False))
+    flatten_paths(ter, s.get('extras', []))   # 草木を置く前に、歩く道を平らにしておく
     lib = vegetation_library(s.get('climate', 'tropical'), seed)
     vx, vy = Terrain.VILLAGE
     # 集落：家（数は計算の人口から決めて、カットの設定に入れてある）
@@ -316,6 +318,8 @@ def build_coast(s):
             y = yb - (14 + rng.uniform(0, 12) if afloat else -rng.uniform(1, 4))
             z = 0.05 if afloat else ter.height_at(x, y) + 0.15
             ob.location = (x, y, z)
+            if not afloat:
+                ob['grounded'] = True
             ob.rotation_euler = (0, 0, rng.uniform(-0.35, 0.35) + (math.pi / 2 if afloat else 0))
     for k in range(vil.get('racks', 0)):
         if not huts:
@@ -324,6 +328,7 @@ def build_coast(s):
         x, y = hx + rng.uniform(-6, 6), hy - 7
         o = Pr.drying_rack('干し棚%d' % k, seed + k)
         o.location = (x, y, ter.height_at(x, y))
+        o['grounded'] = True
         o.rotation_euler = (0, 0, rng.uniform(-0.4, 0.4))
     for k in range(vil.get('pots', 0)):
         if not huts:
@@ -331,6 +336,7 @@ def build_coast(s):
         hx, hy, _ = huts[(k * 5 + 1) % len(huts)]
         o = Pr.pots('土器%d' % k, seed + k)
         o.location = (hx + 3, hy - 4, ter.height_at(hx + 3, hy - 4))
+        o['grounded'] = True
     fires = []
     for k in range(vil.get('fires', 0)):
         if not huts:
@@ -342,6 +348,7 @@ def build_coast(s):
         y = min(hy - 6, yb + 6)
         o = Pr.fire('焚き火%d' % k, seed + k, smoke=k < vil.get('smoke', 2), strength=s.get('fire_strength', 60.0))
         o.location = (x, y, ter.height_at(x, y))
+        o['grounded'] = True
         fires.append((x, y))
     poses = ['stand', 'carry', 'bend', 'sit', 'look', 'stand']   # 止まっている人は、歩く途中の形にしない
     for k in range(vil.get('people', 0)):
@@ -359,6 +366,7 @@ def build_coast(s):
             continue
         o = P.figure('人%d' % k, seed * 7 + k, pose=pose, child=rng.random() < 0.2, phase=rng.random())
         o.location = (x, y, ter.height_at(x, y))
+        o['grounded'] = True
         o.rotation_euler = (0, 0, face)
     # 潮麦の浅瀬（追加検証の世界）：水深0.5〜1.5mの所に群生
     tw = s.get('tidewheat')
@@ -374,11 +382,129 @@ def build_coast(s):
                 items.append((x, y, h, rng.randrange(3), rng.uniform(0.8, 1.15), rng.uniform(0, 6.3)))
         scatter.instances('潮麦', tcoll, items)
     place_extras(s.get('extras', []), ter, seed)
+    # 地面に置く物は、実際の地面の面（三角形）にぴったり乗せる（高さの計算値と面の間には数cmの差がある）
+    tree = ground_tree()
+    for ob in list(bpy.data.objects):
+        if ob.get('grounded') and not ob.get('embed_ok') and ob.parent is None and 'move' not in ob.keys():
+            # 斜面では、地面の傾きに合わせて少し傾けてから乗せる（人は 6°まで：両足が地面につく）
+            tilt_to_ground(ob, tree, 6.0 if 'sole_L' in ob.keys() else 15.0)
+            settle(ob, tree)
     for k, isl in enumerate(s.get('islands', [])):
         island_silhouette('島影%d' % k, seed + k, isl['radius'], isl['height'], isl['loc'])
     water.sea_box(s.get('algae', 1.0))
     water.foam(ter)
     return ter
+
+
+def flatten_paths(ter, extras, half=1.4, blend=1.6):
+    """歩く人の通り道を、横方向に平らな踏み分け道にする（両足が同じ高さの地面に乗る）。
+    道の中心の高さは元の地形のまま（道に沿った上り下りは残る）"""
+    for e in extras:
+        if e.get('type') != 'figure' or 'move' not in e or e.get('pose') not in ('walk', 'carrywalk'):
+            continue
+        a = np.array(e['loc'][:2], float)
+        d = np.array(e['move'][:2], float)
+        L = np.linalg.norm(d)
+        if L < 0.1:
+            continue
+        u = d / L
+        nrm = np.array([-u[1], u[0]])
+        P0 = np.stack([ter.X - a[0], ter.Y - a[1]], -1)
+        t = np.clip(P0 @ u, -2.0, L + 2.0)
+        lat = np.abs(P0 @ nrm)
+        # 中心線の高さ（格子の上で、道に沿った距離 t ごとに）
+        ts = np.linspace(-2.0, L + 2.0, 60)
+        hs = np.array([ter.height_at(a[0] + u[0] * q, a[1] + u[1] * q) for q in ts])
+        hc = np.interp(t, ts, hs)
+        w = np.clip(1 - (lat - half) / blend, 0, 1)
+        w[(P0 @ u < -3.0) | (P0 @ u > L + 3.0)] = 0
+        ter.H[:] = ter.H * (1 - w) + hc * w
+
+
+def ground_tree():
+    """地形の面の判定（BVH）"""
+    ob = bpy.data.objects.get('地形')
+    if ob is None:
+        return None
+    bpy.context.view_layer.update()
+    return BVHTree.FromObject(ob, bpy.context.evaluated_depsgraph_get())
+
+
+def _world_points(objs):
+    dg = bpy.context.evaluated_depsgraph_get()
+    out = []
+    for o in objs:
+        ev = o.evaluated_get(dg)
+        me = ev.to_mesh()
+        n = len(me.vertices)
+        if n:
+            co = np.empty(n * 3, np.float32)
+            me.vertices.foreach_get('co', co)
+            co = co.reshape(-1, 3)
+            mw = np.array(ev.matrix_world)
+            out.append(co @ mw[:3, :3].T + mw[:3, 3])
+        ev.to_mesh_clear()
+    return np.concatenate(out) if out else np.zeros((0, 3))
+
+
+def tilt_to_ground(obj, tree, max_deg, band=0.2):
+    """物の下の方の頂点の真下の地面に平面を当てはめ、その傾きに合わせて物を傾ける（max_deg まで）"""
+    if tree is None:
+        return
+    bpy.context.view_layer.update()
+    parts = [obj] + [c for c in obj.children_recursive if c.type == 'MESH' and not c.get('nocheck')
+                     and not any(k in c.name for k in NOCHECK_NAMES)]
+    P_ = _world_points(parts)
+    if len(P_) < 3:
+        return
+    sel = P_[P_[:, 2] < P_[:, 2].min() + band]
+    if len(sel) > 600:
+        sel = sel[np.linspace(0, len(sel) - 1, 600).astype(int)]
+    g = []
+    for x, y, z in sel:
+        h = tree.ray_cast(Vector((float(x), float(y), float(z) + 100.0)), Vector((0, 0, -1)), 400.0)
+        if h[0] is not None:
+            g.append((x, y, h[0].z))
+    g = np.array(g)
+    if len(g) < 3 or np.ptp(g[:, 0]) + np.ptp(g[:, 1]) < 0.05:
+        return
+    A = np.c_[g[:, 0] - g[:, 0].mean(), g[:, 1] - g[:, 1].mean(), np.ones(len(g))]
+    a, b, _ = np.linalg.lstsq(A, g[:, 2], rcond=None)[0]
+    n = Vector((-a, -b, 1.0)).normalized()
+    ang = math.degrees(math.acos(max(-1.0, min(1.0, n.z))))
+    if ang < 0.3:
+        return
+    if ang > max_deg:
+        n = Vector((0, 0, 1)).slerp(n, max_deg / ang).normalized()
+    tilt = Vector((0, 0, 1)).rotation_difference(n).to_matrix()
+    obj.rotation_euler = (tilt @ obj.rotation_euler.to_matrix()).to_euler()
+
+
+def settle(obj, tree, gap=0.0, band=0.2, cap=2500):
+    """物の下の方の頂点を真上から地面へ打ち、どれも地面より下にならず、少なくとも1点が地面に触れる高さへ動かす
+    （めり込みも浮きも消す。blender-video-physics-guard の settle を、下の方の頂点ごとに調べる形にしたもの）"""
+    if tree is None:
+        return False
+    bpy.context.view_layer.update()
+    parts = [obj] + [c for c in obj.children_recursive if c.type == 'MESH' and not c.get('nocheck')
+                     and not any(k in c.name for k in NOCHECK_NAMES)]
+    P_ = _world_points([o for o in parts if o.type == 'MESH'])
+    if not len(P_):
+        return False
+    lo = P_[:, 2].min()
+    sel = P_[P_[:, 2] < lo + band]
+    if len(sel) > cap:
+        sel = sel[np.linspace(0, len(sel) - 1, cap).astype(int)]
+    best = None
+    for x, y, z in sel:
+        h = tree.ray_cast(Vector((float(x), float(y), float(z) + 100.0)), Vector((0, 0, -1)), 400.0)
+        if h[0] is not None:
+            d = h[0].z - z
+            best = d if best is None else max(best, d)
+    if best is None:
+        return False
+    obj.location.z += best + gap
+    return True
 
 
 def place_extras(extras, ter, seed):
@@ -442,8 +568,8 @@ def place_extras(extras, ter, seed):
         elif 'move' in e:
             o['move'] = e['move']
         if t in ('figure', 'fire', 'pots', 'rack', 'woodpile', 'log', 'shelter', 'hut') and ter is not None and not e.get('float') \
-                and len(e['loc']) < 3 and 'boat' not in e and ground > -0.05:
-            o['grounded'] = True
+                and len(e['loc']) < 3 and 'boat' not in e:
+            o['grounded'] = True   # 浅い水の中に立つ人も、海の底に立つ
 
 
 def _rock(seed, coll):
@@ -810,6 +936,80 @@ def setup_camera(s, frames, ter=None):
     return cam
 
 
+def linear_keys(ob):
+    """位置のキーを直線でつなぐ（ベジェの行き過ぎで地面にめり込まないように）"""
+    ad = ob.animation_data
+    if not (ad and ad.action):
+        return
+    act = ad.action
+    curves = list(getattr(act, 'fcurves', []) or [])
+    for layer in getattr(act, 'layers', []):          # Blender 4.4 以降の重ねられるアクション
+        for strip in layer.strips:
+            for cb in getattr(strip, 'channelbags', []):
+                curves += list(cb.fcurves)
+    for fc in curves:
+        for kp in fc.keyframe_points:
+            kp.interpolation = 'LINEAR'
+
+
+def cycle_weights(f, n, period):
+    """フレーム f での形のキーの重み（1〜n-1 番。0 番は元の形）"""
+    ph = ((f - 1) / period) % 1.0 * n
+    i0 = int(ph) % n
+    i1 = (i0 + 1) % n
+    t = ph - int(ph)
+    return [(1 - t if k == i0 else 0.0) + (t if k == i1 else 0.0) for k in range(n)]
+
+
+def cycle_period(ob, seconds, fps=24):
+    if 'move' in ob.keys() and not ob.get('in_boat'):
+        speed = Vector(ob['move']).length / max(seconds, 1e-6)
+        return fps * float(ob.get('stride', 1.45)) / max(speed, 0.05)
+    return fps * 1.7   # こぐ：1.7秒で1回
+
+
+def follow_ground(ob, mv, frames, seconds, tree):
+    """地面を歩く人：フレームごとに、地面についている方の足の下の地面へ高さを合わせてキーを打つ
+    （坂を下っても浮かない・上っても埋まらない）。足の形は形のキーから計算する（フレームを進めずに済む）"""
+    start = ob.location.copy()
+    kbs = ob.data.shape_keys.key_blocks if ob.data.shape_keys else None
+    n = int(ob.get('cycle', 0))
+    soles = {sd: list(ob.get('sole_' + sd, [])) for sd in ('L', 'R')}
+    keyco = {}
+    if kbs and n:
+        for sd, ids in soles.items():
+            for k in range(n):
+                co = np.empty(len(kbs[k].data) * 3, np.float32)
+                kbs[k].data.foreach_get('co', co)
+                keyco[(sd, k)] = co.reshape(-1, 3)[ids]
+    period = cycle_period(ob, seconds)
+    R = ob.rotation_euler.to_matrix()
+    for f in range(1, frames + 1):
+        t = (f - 1) / max(1, frames - 1)
+        pos = start + mv * t
+        best = None
+        if keyco:
+            w = cycle_weights(f, n, period)
+            feet = {}
+            for sd in ('L', 'R'):
+                base = keyco[(sd, 0)]
+                loc = base + sum(w[k] * (keyco[(sd, k)] - base) for k in range(1, n))
+                feet[sd] = loc
+            sd = min(feet, key=lambda q: feet[q][:, 2].min())   # 地面についている方の足
+            for p_ in feet[sd]:
+                wp = Vector((pos.x, pos.y, 0.0)) + R @ Vector(p_)
+                h = tree.ray_cast(Vector((wp.x, wp.y, wp.z + 100.0)), Vector((0, 0, -1)), 400.0)
+                if h[0] is not None:
+                    d = h[0].z - wp.z
+                    best = d if best is None else max(best, d)
+        else:
+            h = tree.ray_cast(Vector((pos.x, pos.y, pos.z + 100.0)), Vector((0, 0, -1)), 400.0)
+            best = (h[0].z) if h[0] is not None else pos.z
+        ob.location = (pos.x, pos.y, best if best is not None else pos.z)
+        ob.keyframe_insert('location', frame=f)
+    linear_keys(ob)
+
+
 def animate_cycles(frames, seconds, fps=24):
     """歩く・こぐ人の形のキーを、時間に合わせて切り替える。
     歩く人は、進む速さ÷1周期の歩幅で周期を決める（足が地面をすべらないように）"""
@@ -817,23 +1017,16 @@ def animate_cycles(frames, seconds, fps=24):
         if 'cycle' not in ob.keys():
             continue
         n = int(ob['cycle'])
-        if 'move' in ob.keys() and not ob.get('in_boat'):
-            speed = Vector(ob['move']).length / max(seconds, 1e-6)
-            period = fps * float(ob.get('stride', 1.45)) / max(speed, 0.05)
-        else:
-            period = fps * 1.7   # こぐ：1.7秒で1回
+        period = cycle_period(ob, seconds, fps)
         for pname in ob['cycle_parts']:
             part = bpy.data.objects.get(pname)
             if part is None or part.data.shape_keys is None:
                 continue
             kbs = part.data.shape_keys.key_blocks
             for f in range(1, frames + 1):
-                ph = ((f - 1) / period + 0.0) % 1.0 * n
-                i0 = int(ph) % n
-                i1 = (i0 + 1) % n
-                t = ph - int(ph)
+                w = cycle_weights(f, n, period)
                 for k in range(1, n):
-                    kbs[k].value = (1 - t if k == i0 else 0.0) + (t if k == i1 else 0.0)
+                    kbs[k].value = w[k]
                     kbs[k].keyframe_insert('value', frame=f)
 
 
@@ -893,6 +1086,8 @@ def render_settings(args, s):
 
 def build(s, args):
     reset()
+    # 新しく打つキーは直線でつなぐ（ベジェの行き過ぎで、接地している物が地面にめり込まないように）
+    bpy.context.preferences.edit.keyframe_new_interpolation_type = 'LINEAR'
     kind = s['kind']
     fps = 24
     frames = int(round(s.get('seconds', 0) * fps)) if s.get('anim') and not args.still else 1
@@ -923,12 +1118,17 @@ def build(s, args):
             ocean_md.keyframe_insert('time', frame=1)
             ocean_md.time = s['seconds']
             ocean_md.keyframe_insert('time', frame=frames)
+        tree = ground_tree() if kind == 'coast' else None
         for ob in bpy.data.objects:
             if 'move' in ob.keys():
                 mv = Vector(ob['move'])
+                if tree is not None and ob.get('grounded'):
+                    follow_ground(ob, mv, frames, s['seconds'], tree)
+                    continue
                 ob.keyframe_insert('location', frame=1)
                 ob.location = ob.location + mv
                 ob.keyframe_insert('location', frame=frames)
+                linear_keys(ob)
         animate_cycles(frames, s['seconds'])
         for ob, b in boats:
             v = b.get('speed', 2.0)
