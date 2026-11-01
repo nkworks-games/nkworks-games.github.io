@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>親戚弾幕</title>
+<meta name="description" content="お正月、親戚の質問が文字の弾になって飛んでくる。何秒耐えられるか。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<meta property="og:title" content="親戚弾幕">
+<meta property="og:description" content="親戚の質問が弾幕になって飛んでくるゲーム。何秒耐えられるか。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nkworks-games.com/shinseki-danmaku/">
+<meta property="og:image" content="https://nkworks-games.com/shinseki-danmaku/card.png">
+<link rel="canonical" href="https://nkworks-games.com/shinseki-danmaku/">
+<meta name="theme-color" content="#2a1a12">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#2a1a12;color:#3a2618;font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hidden{display:none!important}
+/* HUD */
+.hud{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 8px) 10px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:6px;pointer-events:none;color:#fff;z-index:5}
+.hud .box{background:rgba(40,18,8,.62);border-radius:12px;padding:4px 10px;font-size:12px;line-height:1.3;min-width:86px;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.hud .box b{font-size:19px;font-weight:800}
+.hud .box.r{text-align:right}
+#timer{font-size:34px;font-weight:900;color:#fff;text-shadow:0 2px 0 #7d1519,0 0 10px rgba(0,0,0,.6);min-width:70px;text-align:center;line-height:1}
+#timer small{display:block;font-size:11px;font-weight:700;letter-spacing:.1em}
+/* 大きい文字 */
+.bigmsg{position:fixed;left:0;right:0;top:40%;text-align:center;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-weight:900;font-size:clamp(34px,9vw,64px);color:#fff4d6;text-shadow:0 0 0 #000,3px 3px 0 #a8262b,-2px -2px 0 #a8262b,2px -2px 0 #a8262b,-2px 2px 0 #a8262b,0 6px 18px rgba(0,0,0,.6);pointer-events:none;z-index:6}
+/* オーバーレイ */
+.overlay{position:fixed;inset:0;display:flex;justify-content:center;padding:16px;z-index:10}
+.overlay.bottom{align-items:flex-end;padding-bottom:calc(env(safe-area-inset-bottom) + 18px)}
+.overlay.center{align-items:center;background:rgba(30,12,6,.55);overflow-y:auto}
+.card{background:rgba(255,248,234,.95);border:3px solid #c9a24a;border-radius:20px;padding:16px 18px;max-width:430px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.card h1{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-size:52px;letter-spacing:.08em;color:#a8262b;line-height:1.1;margin:2px 0 6px}
+.card .sub{font-size:13px;color:#8a5a2b;letter-spacing:.2em}
+.card .lead{font-size:15px;font-weight:700;margin-bottom:10px}
+.how{list-style:none;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.how li{background:#fff;border:2px solid #e5cf9a;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700}
+.btn{appearance:none;border:none;border-radius:999px;padding:12px 18px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;background:#fff;color:#a8262b;border:2px solid #a8262b}
+.btn.main{background:#a8262b;color:#fff8e6;width:100%;font-size:19px;border-color:#7d1519;box-shadow:0 4px 0 #6a1013}
+.btn.main:active{transform:translateY(3px);box-shadow:0 1px 0 #6a1013}
+.btn.x{background:#111;color:#fff;border-color:#111}
+.credit{margin-top:10px;font-size:11px;color:#9a7a55;letter-spacing:.15em}
+.rcard img{width:100%;border-radius:10px;display:block;margin-bottom:10px;border:2px solid #e5cf9a}
+.national{font-size:13px;line-height:1.6;background:#fff;border-radius:12px;padding:8px 10px;margin-bottom:10px;text-align:left}
+.national b{color:#a8262b}
+.btns{display:flex;gap:8px;margin-bottom:10px}
+.btns .btn{flex:1;font-size:15px;padding:11px 8px}
+.hint{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 22px);text-align:center;color:#fff;font-weight:800;font-size:15px;text-shadow:0 2px 4px rgba(0,0,0,.7);pointer-events:none;z-index:5}
+.toplink{display:inline-block;margin-top:10px;font-size:12px;color:#8a5a2b}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hud hidden">
+  <div class="box">かわした<br><b id="dodged">0</b></div>
+  <div id="timer">0.0<small>秒</small></div>
+  <div class="box r"><b id="lives">❤❤❤</b><br>🧧 <b id="otoN">0</b></div>
+</div>
+<div id="bigmsg" class="bigmsg hidden"></div>
+<div id="hint" class="hint hidden">👆 画面のどこをドラッグしても動けます</div>
+
+<div id="title" class="overlay bottom">
+  <div class="card">
+    <div class="sub">お正月の座敷で</div>
+    <h1>親戚弾幕</h1>
+    <p class="lead">親戚の質問が、弾になって飛んでくる。</p>
+    <ul class="how"><li>👆 ドラッグでよける</li><li>🧧 お年玉で回復</li><li>❤ 3回当たると退散</li></ul>
+    <button id="startBtn" class="btn main">座敷に入る</button>
+    <div class="credit">N.K. Works</div>
+  </div>
+</div>
+
+<div id="result" class="overlay center hidden">
+  <div class="card rcard">
+    <img id="rimg" alt="結果の画像">
+    <div id="national" class="national hidden"></div>
+    <div class="btns"><button id="postBtn" class="btn x">結果をポスト</button><button id="saveBtn" class="btn">画像を保存</button></div>
+    <button id="againBtn" class="btn main">もう一回 帰省する</button>
+    <a class="toplink" href="https://nkworks-games.com/">ほかのゲーム（N.K. Works）</a>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ===== [SEC:CONFIG] =====
+const CONFIG = {
+  FIXED: 1 / 120, MAX_FRAME: 0.1,
+  LIVES: 3, INVULN: 1.0,              // ライフの数・当たったあと当たらない秒数
+  ROOM_W: 5, ROOM_D: 10,              // 動ける座敷の広さ（横・奥行き）。スマホの縦画面に合わせて縦長
+  CAM_L: { pitch: 56, fov: 36, tz: 0.3 },   // 横長の画面のカメラ（見下ろす角度・画角・注目する位置）
+  CAM_P: { pitch: 62, fov: 44, tz: 0.5 },   // 縦長の画面のカメラ
+  REL_OUT: 0.85,                      // 親戚が座る位置（座敷の端からの距離）
+  PLAYER_MAX_SPEED: 11,               // ドラッグで追いかける最高の速さ（1秒あたり）
+  PLAYER_SPEED_KEY: 5.2,              // 矢印キーの速さ
+  DRAG_GAIN: 1.25,                    // ドラッグした量の何倍動くか
+  BULLET_Y: 0.45, BULLET_LINE: 0.27,  // 文字の弾の高さ・1行ぶんの高さ
+  BULLET_MAX_W: 1.35,                 // 長い質問はこの幅まで文字を小さくする
+  HIT_W: 0.92,                        // 弾の当たり判定の幅（見た目の何倍）
+  HIT_DEPTH: 0.3,                     // 弾の当たり判定の奥行き
+  SPEED_START: 1.8, SPEED_END: 3.0,   // 弾の速さ（はじめ→終わり）
+  INTERVAL_START: 3.8, INTERVAL_END: 2.1, // 1人が質問する間隔（はじめ→RAMP_TIME秒）
+  RAMP_TIME: 50, HARD_RATE: 0.006,    // ここまでで速さ・間隔が終わりの値になる。そのあとも1秒ごとに少しずつ難しく
+  SPEED_MAX: 3.8, INTERVAL_MIN: 1.3,  // 難しくなる上限
+  AIM_SPREAD: 0.2, FAN_ANGLE: 0.42, FAN_WAIT: 1.8, SLOW_WAIT: 1.3, // ねらいのずれ・3方向の角度・3方向と大きい弾の人の間隔の倍率
+  SLOW_SPEED: 0.7, SLOW_SIZE: 1.2,    // おばあちゃんの弾（ゆっくり大きい）
+  OTO_FIRST: 6, OTO_INTERVAL: 7, OTO_LIFE: 5.0, OTO_R: 0.3, OTO_MAX: 2, // お年玉（拾うとライフ+1）
+  WAVE_FIRST: 45, WAVE_EVERY: 45, WAVE_LULL: 2.5, WAVE_LEN: 9, // おばちゃんの「ところで…」の波（はじめ・間隔・静かな時間・波の長さ）
+  RING_INTERVAL: 1.9, RING_N: 5, RING_SPREAD: 1.7,
+  REPLY_TIME: 1.0, ENDING_TIME: 2.0,
+  FIREBASE: {"apiKey": "AIzaSyDgzaEzIltyI-UkB_i1LKrcq0fLPtXqel0", "authDomain": "nkworks-games.firebaseapp.com", "projectId": "nkworks-games", "storageBucket": "nkworks-games.firebasestorage.app", "messagingSenderId": "996468697479", "appId": "1:996468697479:web:ccea287b2ddeb1ff234b22"}, // 全ゲーム共通の Firebase（nkworks-games）。無料プランなので上限に来たら止まるだけ
+  FB_COLLECTION: 'shinseki-danmaku', FB_SHARDS: 5, FB_MIN_PLAYS: 30, FB_TIMEOUT: 6000,
+  URL: 'https://nkworks-games.com/shinseki-danmaku/',
+};
+
+// ===== [SEC:DATA] =====
+// 見た目・お金・結婚・病気の質問は入れない
+const QUESTIONS = [ // 「/」は吹き出しの改行
+  ['a01', '大きく/なったねえ', 0], ['a02', '学校どう？', 0], ['a03', '元気に/してた？', 0], ['a04', '何年生に/なった？', 0],
+  ['a05', '背伸びた？', 0], ['a06', 'ちゃんと/食べてる？', 0], ['a07', '今いくつ/だっけ？', 0], ['a08', '覚えてる？', 0],
+  ['a09', '冬休み/いつまで？', 0], ['a10', '寒く/なかった？', 0],
+  ['b01', '部活なに/してるの？', 1], ['b02', '勉強/してる？', 1], ['b03', 'ゲーム/ばっかり？', 1], ['b04', 'スマホ/ばっかり？', 1],
+  ['b05', 'テスト/どうだった？', 1], ['b06', '友だち/できた？', 1], ['b07', 'お手伝い/してる？', 1], ['b08', '最近/どうなの？', 1],
+  ['b09', '習い事は/続けてる？', 1], ['b10', 'ちゃんと/寝てる？', 1],
+  ['c01', '将来/どうするの？', 2], ['c02', '進路は/決めた？', 2], ['c03', '受験/いつだっけ？', 2], ['c04', '就職/どうするの？', 2],
+  ['c05', 'これから/どうするの？', 2],
+].map(([id, raw, lv]) => ({ id, raw, text: raw.replace(/\//g, ''), lv }));
+const QBY = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
+const REPLIES = ['ぼちぼちです', 'まあまあです', 'おかげさまで', 'はは…', 'それなりに', 'なんとか…', 'ええ、まあ'];
+const TITLES = [[15, 'あいさつだけで精一杯'], [30, 'お茶一杯ぶん耐えた人'], [45, 'おせちまで食べた人'], [60, '親戚の集まりの常連'], [90, '帰省の達人'], [Infinity, '親戚の集まりの主（ぬし）']]; // 耐えた秒数がこれ未満なら
+const FONT = '"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif';
+const SERIF = '"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif';
+
+// ===== [SEC:UTIL] =====
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let rng = mulberry32(1);
+const rand = (a, b) => a + (b - a) * rng();
+const pick = arr => arr[Math.floor(rng() * arr.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const $ = id => document.getElementById(id);
+const HW = CONFIG.ROOM_W / 2, HD = CONFIG.ROOM_D / 2;
+
+// ===== [SEC:RENDERER] =====
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x2a1a12);
+const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 200);
+scene.add(new THREE.HemisphereLight(0xfff1dc, 0x6b4a32, 1.6));
+const sun = new THREE.DirectionalLight(0xffe2b8, 1.9);
+sun.position.set(-4, 12, 7); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
+sun.shadow.bias = -0.0006;
+scene.add(sun);
+const lam = c => new THREE.MeshLambertMaterial({ color: c });
+
+// ===== [SEC:TEXTURES] =====
+function roundRect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+const STYLE = [
+  { bg: '#fffdf6', fg: '#2b1d14', bd: '#2b1d14' },
+  { bg: '#fff3c4', fg: '#3a2410', bd: '#7a4a10' },
+  { bg: '#ffe0e0', fg: '#7d1519', bd: '#a8262b' },
+];
+const texCache = new Map();
+// 文字の吹き出しの材料。返すのは {mat, aspect}
+function bubble(text, style = 0, font = 60) {
+  const key = text + '|' + style + '|' + font;
+  if (texCache.has(key)) return texCache.get(key);
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  const lines = text.split('/'), lh = font * 1.12;
+  g.font = `800 ${font}px ${FONT}`;
+  const pad = font * 0.36, bw = 6;
+  const w = Math.ceil(Math.max(...lines.map(l => g.measureText(l).width)) + pad * 2), h = Math.ceil(lh * lines.length + font * 0.42);
+  c.width = w + bw * 2; c.height = h + bw * 2;
+  const s = STYLE[style];
+  roundRect(g, bw, bw, w, h, Math.min(h / 2, font * 0.75)); g.fillStyle = s.bg; g.fill(); g.lineWidth = bw; g.strokeStyle = s.bd; g.stroke();
+  g.font = `800 ${font}px ${FONT}`; g.fillStyle = s.fg; g.textAlign = 'center'; g.textBaseline = 'middle';
+  lines.forEach((l, i) => g.fillText(l, c.width / 2, c.height / 2 + (i - (lines.length - 1) / 2) * lh + font * 0.04));
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, depthWrite: false, transparent: true });
+  const v = { mat, aspect: c.width / c.height, tex, lines: lines.length };
+  texCache.set(key, v);
+  return v;
+}
+function softRectTexture(round) {
+  const c = document.createElement('canvas'); c.width = 128; c.height = round ? 128 : 48;
+  const g = c.getContext('2d'); g.filter = 'blur(5px)'; g.fillStyle = '#fff';
+  if (round) { g.beginPath(); g.arc(64, 64, 50, 0, Math.PI * 2); g.fill(); }
+  else { roundRect(g, 10, 10, 108, 28, 14); g.fill(); }
+  const t = new THREE.CanvasTexture(c); return t;
+}
+const shadowRectMat = new THREE.MeshBasicMaterial({ color: 0x000000, map: softRectTexture(false), transparent: true, opacity: 0.32, depthWrite: false });
+const shadowCircleMat = new THREE.MeshBasicMaterial({ color: 0x000000, map: softRectTexture(true), transparent: true, opacity: 0.38, depthWrite: false });
+const planeGeo = new THREE.PlaneGeometry(1, 1); planeGeo.rotateX(-Math.PI / 2);
+
+function tatamiTexture() {
+  const S = 100, c = document.createElement('canvas'); c.width = CONFIG.ROOM_W * S; c.height = CONFIG.ROOM_D * S;
+  const g = c.getContext('2d');
+  const mats = []; // 畳の並び（横1.75×縦3.5 と 横3.5×縦1.75 をまぜる）
+  const cw = c.width / 4, rh = c.height / 5;
+  for (let col = 0; col < 4; col++) for (let row = 0; row < 5; row++) mats.push([col * cw, row * rh, cw, rh, (col + row) % 2]);
+  for (const [x, y, w, h, dir] of mats) {
+    g.fillStyle = dir ? '#cdbf86' : '#c5b97c'; g.fillRect(x, y, w, h);
+    g.strokeStyle = 'rgba(120,100,50,.18)'; g.lineWidth = 1.2;
+    for (let i = 3; i < (dir ? h : w); i += 5) { g.beginPath(); if (dir) { g.moveTo(x, y + i); g.lineTo(x + w, y + i); } else { g.moveTo(x + i, y); g.lineTo(x + i, y + h); } g.stroke(); }
+    g.fillStyle = '#33402c'; // 畳のへり
+    if (dir) { g.fillRect(x, y, w, 7); g.fillRect(x, y + h - 7, w, 7); } else { g.fillRect(x, y, 7, h); g.fillRect(x + w - 7, y, 7, h); }
+  }
+  g.strokeStyle = '#2a2014'; g.lineWidth = 10; g.strokeRect(5, 5, c.width - 10, c.height - 10);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+function shojiTexture(w, h) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const g = c.getContext('2d');
+  g.fillStyle = '#f6efdc'; g.fillRect(0, 0, c.width, c.height);
+  g.strokeStyle = '#8a6a44'; g.lineWidth = 6;
+  const nx = Math.round(w * 2.2), ny = 6;
+  for (let i = 0; i <= nx; i++) { const x = i * c.width / nx; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.stroke(); }
+  for (let j = 0; j <= ny; j++) { const y = j * c.height / ny; g.beginPath(); g.moveTo(0, y); g.lineTo(c.width, y); g.stroke(); }
+  g.fillStyle = '#6b4a2c'; g.fillRect(0, c.height - 40, c.width, 40); g.fillRect(0, 0, c.width, 22);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+function scrollTexture() {
+  const c = document.createElement('canvas'); c.width = 160; c.height = 420; const g = c.getContext('2d');
+  g.fillStyle = '#5b3a2a'; g.fillRect(0, 0, 160, 420); g.fillStyle = '#f7f0dc'; g.fillRect(16, 40, 128, 340);
+  g.fillStyle = '#1e140c'; g.font = `900 92px ${SERIF}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('迎', 80, 150); g.fillText('春', 80, 270);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+
+// ===== [SEC:ROOM] =====
+{
+  const base = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), lam(0x9c8a52)); base.rotation.x = -Math.PI / 2; base.receiveShadow = true; scene.add(base);
+  const tat = new THREE.Mesh(new THREE.PlaneGeometry(CONFIG.ROOM_W, CONFIG.ROOM_D), new THREE.MeshLambertMaterial({ map: tatamiTexture() }));
+  tat.rotation.x = -Math.PI / 2; tat.position.y = 0.004; tat.receiveShadow = true; scene.add(tat);
+  const backZ = -(HD + CONFIG.REL_OUT + 1.05), wallW = CONFIG.ROOM_W + 6;
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(wallW, 3.2), new THREE.MeshLambertMaterial({ map: shojiTexture(wallW, 3.2) }));
+  back.position.set(0, 1.6, backZ); back.receiveShadow = true; scene.add(back);
+  for (const s of [-1, 1]) {
+    const side = new THREE.Mesh(new THREE.PlaneGeometry(CONFIG.ROOM_D + 6, 3.2), new THREE.MeshLambertMaterial({ map: shojiTexture(CONFIG.ROOM_D + 6, 3.2) }));
+    side.position.set(s * (HW + CONFIG.REL_OUT + 1.3), 1.6, 0.5); side.rotation.y = -s * Math.PI / 2; scene.add(side);
+  }
+  const scroll = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 1.84), new THREE.MeshLambertMaterial({ map: scrollTexture() }));
+  scroll.position.set(-(HW + 0.3), 1.75, backZ + 0.02); scene.add(scroll);
+  // 鏡餅
+  const kg = new THREE.Group();
+  const stand = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.32, 0.62), lam(0xd9b46a)); stand.position.y = 0.16; kg.add(stand);
+  const m1 = new THREE.Mesh(new THREE.SphereGeometry(0.28, 20, 12), lam(0xfffaf0)); m1.scale.y = 0.55; m1.position.y = 0.45; kg.add(m1);
+  const m2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 12), lam(0xfffaf0)); m2.scale.y = 0.6; m2.position.y = 0.6; kg.add(m2);
+  const mk = new THREE.Mesh(new THREE.SphereGeometry(0.1, 14, 10), lam(0xf08a1a)); mk.position.y = 0.76; kg.add(mk);
+  kg.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  kg.position.set(HW + 0.6, 0, backZ + 0.5); scene.add(kg);
+}
+
+// ===== [SEC:PEOPLE] =====
+const SKIN = 0xf1c7a1;
+function makePerson(o) {
+  const g = new THREE.Group(); g.rotation.order = 'YXZ';
+  if (o.seated) { const z = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.12, 0.95), lam(o.zab || 0x7a2e5a)); z.position.y = 0.06; z.receiveShadow = true; g.add(z); }
+  const pivot = new THREE.Group(); g.add(pivot); // 身を乗り出す時に傾ける
+  const baseY = o.seated ? 0.12 : 0, bodyH = o.seated ? 0.62 : 0.78, k = o.small ? 0.85 : 1;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry((o.rTop ?? 0.24) * k, (o.rBot ?? 0.36) * k, bodyH * k, 20), lam(o.cloth));
+  body.position.y = baseY + bodyH * k / 2; body.castShadow = true; pivot.add(body);
+  const hr = 0.25 * k, hy = baseY + bodyH * k + hr * 0.85;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(hr, 22, 16), lam(SKIN)); head.position.y = hy; head.castShadow = true; pivot.add(head);
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(hr * (o.perm ? 1.16 : 1.06), 22, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), lam(o.hair));
+  hair.position.y = hy; hair.rotation.x = -0.4; hair.castShadow = true; pivot.add(hair);
+  if (o.bun) { const b = new THREE.Mesh(new THREE.SphereGeometry(hr * 0.45, 12, 10), lam(o.hair)); b.position.set(0, hy + hr * 0.75, -hr * 0.5); pivot.add(b); }
+  const eyeM = lam(0x1a1a1a);
+  for (const s of [-1, 1]) {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(hr * 0.1, 8, 6), eyeM); e.position.set(s * hr * 0.36, hy + hr * 0.02, hr * 0.92); pivot.add(e);
+    const ch = new THREE.Mesh(new THREE.SphereGeometry(hr * 0.12, 8, 6), lam(0xf59a8a)); ch.scale.z = 0.4; ch.position.set(s * hr * 0.55, hy - hr * 0.28, hr * 0.8); pivot.add(ch);
+    if (o.glasses) { const r = new THREE.Mesh(new THREE.TorusGeometry(hr * 0.2, hr * 0.035, 6, 16), lam(0x333333)); r.position.set(s * hr * 0.36, hy + hr * 0.02, hr * 0.98); pivot.add(r); }
+  }
+  g.userData = { body, pivot, headY: hy };
+  return g;
+}
+function faceTo(g, x, z) { g.rotation.y = Math.atan2(x - g.position.x, z - g.position.z); }
+
+const OUT = CONFIG.REL_OUT;
+const REL_DEFS = [
+  { x: -1.6, z: -(HD + OUT), cloth: 0x4e5b3c, hair: 0xe6e6e6, glasses: true, type: 'aim', from: 0, zab: 0x6b2c4f },
+  { x: 0, z: -(HD + OUT), cloth: 0x7d4f6e, hair: 0xd8d8d8, bun: true, type: 'slow', from: 0.5, zab: 0x2c4f6b },
+  { x: 1.6, z: -(HD + OUT), cloth: 0x2f4766, hair: 0x1e1e1e, type: 'fan', from: 9, zab: 0x6b2c4f },
+  { x: -(HW + OUT), z: -2.4, cloth: 0xc4473f, hair: 0x4a2c1c, perm: true, type: 'boss', from: 4, zab: 0x2c6b4f },
+  { x: -(HW + OUT), z: 2.4, cloth: 0x5d4b8a, hair: 0x2b2b2b, glasses: true, type: 'aim', from: 15, zab: 0x6b4f2c },
+  { x: (HW + OUT), z: -2.4, cloth: 0x3f7f74, hair: 0x3a2416, type: 'aim', from: 6, zab: 0x6b2c4f },
+  { x: (HW + OUT), z: 2.4, cloth: 0xd99a2b, hair: 0x5a3a22, small: true, type: 'fan', from: 22, zab: 0x2c4f6b },
+];
+const rels = REL_DEFS.map(d => {
+  const g = makePerson({ ...d, seated: true }); g.position.set(d.x, 0, d.z); faceTo(g, 0, 0.6); scene.add(g);
+  return { ...d, g, next: 0, anim: 0, lean: 0 };
+});
+const boss = rels.find(r => r.type === 'boss');
+
+const player = makePerson({ seated: false, cloth: 0x3b6ea5, hair: 0x2a1c14, rTop: 0.19, rBot: 0.24 });
+scene.add(player);
+player.updateMatrixWorld(true);
+const PLAYER_R = (() => { const b = new THREE.Box3().setFromObject(player.userData.body, true); return (b.max.x - b.min.x) / 2; })();
+const playerShadow = new THREE.Mesh(planeGeo, shadowCircleMat); playerShadow.scale.set(PLAYER_R * 2.6, 1, PLAYER_R * 2.6); scene.add(playerShadow);
+const replySprite = new THREE.Sprite(bubble('ぼちぼちです', 0, 54).mat); replySprite.renderOrder = 20; replySprite.visible = false; scene.add(replySprite);
+const tokorodeSprite = new THREE.Sprite(bubble('ところで…', 2, 80).mat); tokorodeSprite.renderOrder = 21; tokorodeSprite.visible = false; scene.add(tokorodeSprite);
+const XL = HW - PLAYER_R, ZL = HD - PLAYER_R;
+
+// ===== [SEC:STATE] =====
+let state = 'title';
+let gameT = 0, hits = 0, dodged = 0, lives = 3, invulnT = 0, otoN = 0, lastQ = null, hitsByQ = {}, nextOto = 0, replyT = 0, flashT = 0, endT = 0, demoT = 0, ringT = 0;
+const P = { x: 0, z: 3, vx: 0, vz: 0 }; const target = { x: 0, z: 3 };
+let bullets = [], otos = [], floats = [];
+let snapshot = null, lastResult = null, resultCanvas = null, lastCheckT = 0;
+
+// ===== [SEC:BULLETS] =====
+function spawnBullet(x, z, ang, speed, q, size = 1, counted = true) {
+  const st = q.lv; const b = bubble(q.raw, st);
+  let h = (CONFIG.BULLET_LINE * b.lines + 0.1) * size, w = h * b.aspect;
+  if (w > CONFIG.BULLET_MAX_W * size) { w = CONFIG.BULLET_MAX_W * size; h = w / b.aspect; }
+  const sprite = new THREE.Sprite(b.mat); sprite.scale.set(w, h, 1); sprite.renderOrder = 10; scene.add(sprite);
+  const shadow = new THREE.Mesh(planeGeo, shadowRectMat); shadow.scale.set(w * CONFIG.HIT_W * 1.08, 1, CONFIG.HIT_DEPTH * 1.6); shadow.renderOrder = 1; scene.add(shadow);
+  const o = { x, z, vx: Math.cos(ang) * speed, vz: Math.sin(ang) * speed, hw: w * CONFIG.HIT_W / 2, hd: CONFIG.HIT_DEPTH / 2, q, sprite, shadow, counted, hit: false };
+  bullets.push(o); return o;
+}
+function removeBullet(b) { scene.remove(b.sprite); scene.remove(b.shadow); }
+function clearBullets() { for (const b of bullets) removeBullet(b); bullets = []; }
+const ramp = () => clamp(gameT / CONFIG.RAMP_TIME, 0, 1), extra = () => Math.max(0, gameT - CONFIG.RAMP_TIME) * CONFIG.HARD_RATE;
+function curSpeed() { return Math.min(CONFIG.SPEED_MAX, lerp(CONFIG.SPEED_START, CONFIG.SPEED_END, ramp()) * (1 + extra())); }
+function curInterval() { return Math.max(CONFIG.INTERVAL_MIN, lerp(CONFIG.INTERVAL_START, CONFIG.INTERVAL_END, ramp()) / (1 + extra())); }
+function waveInfo() { // おばちゃんの波：lull＝「ところで…」の静かな時間、wave＝波の最中、s＝波が始まってからの秒数
+  if (gameT < CONFIG.WAVE_FIRST) return { lull: false, wave: false, s: -1 };
+  const s = (gameT - CONFIG.WAVE_FIRST) % CONFIG.WAVE_EVERY;
+  return { lull: s < CONFIG.WAVE_LULL, wave: s >= CONFIG.WAVE_LULL && s < CONFIG.WAVE_LULL + CONFIG.WAVE_LEN, s };
+}
+function chooseQ() {
+  const t = gameT; let lv;
+  if (waveInfo().wave) lv = rng() < 0.6 ? 2 : 1; else if (t < 15) lv = 0; else if (t < 30) lv = rng() < 0.3 ? 1 : 0; else if (t < CONFIG.WAVE_FIRST) lv = rng() < 0.6 ? 1 : 0; else lv = rng() < 0.15 ? 2 : rng() < 0.6 ? 1 : 0;
+  return pick(QUESTIONS.filter(q => q.lv === lv));
+}
+function relFire(r) {
+  const ang = Math.atan2(P.z - r.z, P.x - r.x) + rand(-CONFIG.AIM_SPREAD, CONFIG.AIM_SPREAD), sp = curSpeed();
+  if (r.type === 'slow') spawnBullet(r.x, r.z, ang, sp * CONFIG.SLOW_SPEED, chooseQ(), CONFIG.SLOW_SIZE);
+  else if (r.type === 'fan') for (const d of [-1, 0, 1]) spawnBullet(r.x, r.z, ang + d * CONFIG.FAN_ANGLE, sp, chooseQ());
+  else spawnBullet(r.x, r.z, ang, sp, chooseQ());
+  r.anim = 0.3;
+}
+function bossRing() {
+  const r = boss, base = Math.atan2(0 - r.z, 0 - r.x), n = CONFIG.RING_N;
+  for (let i = 0; i < n; i++) spawnBullet(r.x, r.z, base + (i / (n - 1) - 0.5) * CONFIG.RING_SPREAD, curSpeed() * 0.9, pick(QUESTIONS.filter(q => q.lv === 2)));
+  r.anim = 0.3;
+}
+
+// ===== [SEC:OTOSHIDAMA] =====
+const otoGeo = new THREE.BoxGeometry(0.34, 0.04, 0.48), otoBand = new THREE.BoxGeometry(0.36, 0.05, 0.06);
+const otoMat = lam(0xd42a2a), otoBandMat = lam(0xf3d27a);
+const ringGeo = new THREE.RingGeometry(0.34, 0.42, 32); ringGeo.rotateX(-Math.PI / 2);
+const ringMat = new THREE.MeshBasicMaterial({ color: 0xffd860, transparent: true, opacity: 0.8, depthWrite: false });
+function spawnOto() {
+  const r = pick(rels), dx = -r.x, dz = 0.6 - r.z, d = Math.hypot(dx, dz) || 1;
+  const x = clamp(r.x + dx / d * 1.5, -HW + 0.45, HW - 0.45), z = clamp(r.z + dz / d * 1.5, -HD + 0.45, HD - 0.45);
+  const g = new THREE.Group(); const env = new THREE.Mesh(otoGeo, otoMat); env.castShadow = true; g.add(env);
+  const band = new THREE.Mesh(otoBand, otoBandMat); band.position.z = -0.08; g.add(band);
+  const ring = new THREE.Mesh(ringGeo, ringMat); ring.position.y = -0.1; g.add(ring);
+  g.position.set(x, 0.12, z); g.rotation.y = rand(-0.6, 0.6); scene.add(g);
+  otos.push({ x, z, life: CONFIG.OTO_LIFE, g, ring });
+}
+function clearOtos() { for (const o of otos) scene.remove(o.g); otos = []; for (const f of floats) { scene.remove(f.s); f.s.material.dispose(); } floats = []; }
+function floatText(text, x, z) {
+  const b = bubble(text, 1, 56); const m = b.mat.clone(); const s = new THREE.Sprite(m); s.scale.set(0.34 * b.aspect, 0.34, 1); s.renderOrder = 22;
+  scene.add(s); floats.push({ s, x, z, t: 0 });
+}
+
+// ===== [SEC:GAME] =====
+function startGame(seed) {
+  rng = mulberry32(seed >>> 0);
+  clearBullets(); clearOtos();
+  state = 'play'; gameT = 0; hits = 0; dodged = 0; lives = CONFIG.LIVES; invulnT = 0; otoN = 0; lastQ = null; hitsByQ = {}; replyT = 0; flashT = 0; endT = 0; ringT = 0; lastCheckT = 0;
+  P.x = 0; P.z = 3; P.vx = P.vz = 0; target.x = P.x; target.z = P.z; player.rotation.y = Math.PI;
+  for (const r of rels) { r.next = r.from + rand(0.3, 1.4); r.anim = 0; r.lean = 0; }
+  nextOto = CONFIG.OTO_FIRST;
+  snapshot = null; lastResult = null; dragId = null;
+  $('title').classList.add('hidden'); $('result').classList.add('hidden'); $('bigmsg').classList.add('hidden'); $('hud').classList.remove('hidden');
+}
+function onHit(b) {
+  b.hit = true; hits++; hitsByQ[b.q.id] = (hitsByQ[b.q.id] || 0) + 1; lastQ = b.q;
+  lives = Math.max(0, lives - 1); invulnT = CONFIG.INVULN; flashT = 0.25;
+  replySprite.material = bubble(pick(REPLIES), 0, 54).mat; replyT = CONFIG.REPLY_TIME;
+  if (lives <= 0) toEnding();
+}
+function tickPlayer(dt) {
+  const kx = (keys.has('ArrowRight') || keys.has('KeyD') ? 1 : 0) - (keys.has('ArrowLeft') || keys.has('KeyA') ? 1 : 0);
+  const kz = (keys.has('ArrowDown') || keys.has('KeyS') ? 1 : 0) - (keys.has('ArrowUp') || keys.has('KeyW') ? 1 : 0);
+  if (kx || kz) { const l = Math.hypot(kx, kz); dragBy(kx / l * CONFIG.PLAYER_SPEED_KEY * dt, kz / l * CONFIG.PLAYER_SPEED_KEY * dt); }
+  const dx = target.x - P.x, dz = target.z - P.z, d = Math.hypot(dx, dz), step = CONFIG.PLAYER_MAX_SPEED * dt;
+  if (d > 1e-6) { const s = Math.min(1, step / d); P.vx = dx * s / dt; P.vz = dz * s / dt; P.x += dx * s; P.z += dz * s; } else { P.vx = P.vz = 0; }
+  P.x = clamp(P.x, -XL, XL); P.z = clamp(P.z, -ZL, ZL);
+}
+function tickBullets(dt, collide) {
+  const lim = 3.5;
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    b.x += b.vx * dt; b.z += b.vz * dt;
+    if (collide && !b.hit && state === 'play') {
+      const cx = clamp(P.x, b.x - b.hw, b.x + b.hw) - P.x, cz = clamp(P.z, b.z - b.hd, b.z + b.hd) - P.z;
+      if (cx * cx + cz * cz < PLAYER_R * PLAYER_R) {
+        if (invulnT <= 0) { onHit(b); removeBullet(b); bullets.splice(i, 1); continue; }
+        b.graze = true; // 点滅中にすり抜けた弾は「かわした」に数えない
+      }
+    }
+    if (Math.abs(b.x) > HW + lim || Math.abs(b.z) > HD + lim) {
+      if (b.counted && !b.hit && !b.graze && collide && state === 'play') dodged++;
+      removeBullet(b); bullets.splice(i, 1);
+    }
+  }
+}
+function tick(dt) {
+  for (const r of rels) r.anim = Math.max(0, r.anim - dt);
+  replyT = Math.max(0, replyT - dt); flashT = Math.max(0, flashT - dt);
+  for (let i = floats.length - 1; i >= 0; i--) { const f = floats[i]; f.t += dt; if (f.t > 0.9) { scene.remove(f.s); f.s.material.dispose(); floats.splice(i, 1); } }
+  if (state === 'title' || state === 'result') { // 待ち画面：ゆっくり質問が飛ぶだけ
+    demoT -= dt;
+    if (demoT <= 0) { const r = pick(rels); spawnBullet(r.x, r.z, Math.atan2(rand(-2, 3) - r.z, rand(-2.5, 2.5) - r.x), 1.6, pick(QUESTIONS.filter(q => q.lv === 0)), 1, false); r.anim = 0.3; demoT = 0.9; }
+    tickBullets(dt, false);
+    return;
+  }
+  if (state === 'ending') { endT += dt; if (endT >= CONFIG.ENDING_TIME) toResult(); return; }
+  // play
+  gameT += dt; invulnT = Math.max(0, invulnT - dt);
+  tickPlayer(dt);
+  const w = waveInfo();
+  boss.lean = clamp(boss.lean + (w.lull || w.wave ? dt : -dt) * 2.5, 0, 1);
+  if (!w.lull) {
+    for (const r of rels) {
+      if (gameT < r.from) continue;
+      if (r === boss && w.wave) continue;
+      if (gameT >= r.next) { relFire(r); r.next = gameT + curInterval() * (r.type === 'fan' ? CONFIG.FAN_WAIT : r.type === 'slow' ? CONFIG.SLOW_WAIT : 1) * rand(0.8, 1.25); }
+    }
+    if (w.wave) { ringT -= dt; if (ringT <= 0) { bossRing(); ringT = CONFIG.RING_INTERVAL; } } else ringT = 0;
+  }
+  tickBullets(dt, true);
+  if (state !== 'play') return; // ライフが0になった
+  // お年玉（拾うとライフ+1）
+  if (gameT >= nextOto) { if (otos.length < CONFIG.OTO_MAX) spawnOto(); nextOto = gameT + CONFIG.OTO_INTERVAL * rand(0.8, 1.2); }
+  for (let i = otos.length - 1; i >= 0; i--) {
+    const o = otos[i]; o.life -= dt;
+    if (Math.hypot(o.x - P.x, o.z - P.z) < CONFIG.OTO_R + PLAYER_R) {
+      const was = lives; lives = Math.min(CONFIG.LIVES, lives + 1); otoN++; floatText(lives > was ? '❤ +1' : '満タン！', o.x, o.z);
+      scene.remove(o.g); otos.splice(i, 1); continue;
+    }
+    if (o.life <= 0) { scene.remove(o.g); otos.splice(i, 1); }
+  }
+}
+function toEnding() {
+  state = 'ending'; endT = 0; dragId = null; $('hint').classList.add('hidden');
+  const m = $('bigmsg'); m.textContent = 'ちょっとトイレに…'; m.classList.remove('hidden');
+  render(); try { snapshot = renderer.domElement.toDataURL('image/jpeg', 0.85); } catch (e) { snapshot = null; }
+}
+function toResult() {
+  state = 'result'; $('bigmsg').classList.add('hidden'); $('hud').classList.add('hidden');
+  clearOtos(); clearBullets(); demoT = 0.5;
+  const sec = Math.floor(gameT * 10) / 10;
+  const title = TITLES.find(([max]) => sec < max)[1];
+  lastResult = { sec, dodged, hits, otoN, lastQ: lastQ ? lastQ.text : '', lastQid: lastQ ? lastQ.id : null, title };
+  $('result').classList.remove('hidden');
+  const myResult = lastResult;
+  buildResultImage(myResult, snapshot).then(c => { if (lastResult !== myResult) return; resultCanvas = c; $('rimg').src = c.toDataURL('image/png'); });
+  showNational(myResult);
+}
+
+// ===== [SEC:RESULT_IMAGE] =====
+function fitFont(g, text, weight, size, family, maxW) { let s = size; do { g.font = `${weight} ${s}px ${family}`; s -= 2; } while (g.measureText(text).width > maxW && s > 14); }
+function buildResultImage(res, snapURL) {
+  return new Promise(resolve => {
+    const W = 1200, H = 630, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+    const grd = g.createLinearGradient(0, 0, 0, H); grd.addColorStop(0, '#b52a2f'); grd.addColorStop(1, '#7d1519'); g.fillStyle = grd; g.fillRect(0, 0, W, H);
+    g.strokeStyle = '#e0b85a'; g.lineWidth = 10; g.strokeRect(18, 18, W - 36, H - 36); g.lineWidth = 2; g.strokeRect(34, 34, W - 68, H - 68);
+    const finish = img => {
+      const px = 64, py = 64, pw = 490, ph = 502;
+      g.fillStyle = '#fff8ea'; g.fillRect(px - 8, py - 8, pw + 16, ph + 16);
+      if (img) { const s = Math.max(pw / img.width, ph / img.height), sw = pw / s, sh = ph / s; g.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, px, py, pw, ph); }
+      else { g.fillStyle = '#cdbf86'; g.fillRect(px, py, pw, ph); }
+      const rx = 600, mw = 540; g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+      g.fillStyle = '#f3d27a'; g.font = `900 60px ${SERIF}`; g.fillText('親戚弾幕', rx, 122);
+      g.fillStyle = '#fff'; g.font = `700 32px ${FONT}`; g.fillText('親戚の質問に', rx, 186);
+      g.font = `900 92px ${FONT}`; const num = `${res.sec.toFixed(1)}秒`; g.fillText(num, rx, 282); const nw = g.measureText(num).width;
+      g.font = `800 40px ${FONT}`; g.fillText('耐えた！', rx + nw + 12, 280);
+      g.font = `700 29px ${FONT}`; g.fillText(`かわした質問 ${res.dodged}個　🧧 お年玉 ${res.otoN}袋`, rx, 338);
+      g.fillStyle = '#ffe9b0'; g.font = `700 26px ${FONT}`; g.fillText('とどめの質問', rx, 392);
+      g.fillStyle = '#fff'; fitFont(g, `『${res.lastQ}』`, 900, 46, FONT, mw); g.fillText(`『${res.lastQ}』`, rx, 448);
+      g.fillStyle = '#f3d27a'; roundRect(g, rx, 474, mw, 66, 33); g.fill();
+      g.fillStyle = '#7d1519'; g.textAlign = 'center'; fitFont(g, '称号：' + res.title, 900, 32, FONT, mw - 30); g.fillText('称号：' + res.title, rx + mw / 2, 518);
+      g.fillStyle = 'rgba(255,255,255,.8)'; g.font = `500 21px ${FONT}`; g.textAlign = 'right'; g.fillText('nkworks-games.com/shinseki-danmaku', W - 52, H - 50);
+      resolve(c);
+    };
+    if (snapURL) { const im = new Image(); im.onload = () => finish(im); im.onerror = () => finish(null); im.src = snapURL; } else finish(null);
+  });
+}
+function shareText(res) {
+  return `親戚の質問に${res.sec.toFixed(1)}秒耐えた！とどめは『${res.lastQ}』 #親戚弾幕`;
+}
+
+// ===== [SEC:FIREBASE] =====
+// 数を数えるだけ。上限で止まった時や設定がない時は、全国の表示を出さない
+let fb = null, fbFailed = false, fbCache = null;
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+async function fbGet() {
+  if (fb || fbFailed || !CONFIG.FIREBASE) return fb;
+  try {
+    const base = 'https://www.gstatic.com/firebasejs/10.12.2/';
+    const [A, AU, F] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+    const app = A.initializeApp(CONFIG.FIREBASE, 'shinseki-danmaku');
+    await AU.signInAnonymously(AU.getAuth(app));
+    fb = { F, db: F.getFirestore(app) };
+  } catch (e) { fbFailed = true; }
+  return fb;
+}
+async function sendAndRead(res) {
+  const f = await withTimeout(fbGet(), CONFIG.FB_TIMEOUT).catch(() => null); if (!f) return null;
+  const { F, db } = f, col = CONFIG.FB_COLLECTION;
+  const data = { plays: F.increment(1), h: { ['b' + Math.min(Math.floor(res.sec / 5), 40)]: F.increment(1) } }; // 5秒ごとの人数
+  if (res.lastQid) data.q = { [res.lastQid]: F.increment(1) };                                                   // とどめの質問
+  try { await withTimeout(F.setDoc(F.doc(db, col, 's' + Math.floor(Math.random() * CONFIG.FB_SHARDS)), data, { merge: true }), CONFIG.FB_TIMEOUT); } catch (e) { }
+  if (fbCache && Date.now() - fbCache.at < 60000) return fbCache.agg;
+  try {
+    const snaps = await withTimeout(Promise.all([...Array(CONFIG.FB_SHARDS)].map((_, i) => F.getDoc(F.doc(db, col, 's' + i)))), CONFIG.FB_TIMEOUT);
+    const agg = { plays: 0, h: {}, q: {} };
+    for (const s of snaps) { if (!s.exists()) continue; const d = s.data(); agg.plays += d.plays || 0; for (const [k, v] of Object.entries(d.h || {})) agg.h[k] = (agg.h[k] || 0) + v; for (const [k, v] of Object.entries(d.q || {})) agg.q[k] = (agg.q[k] || 0) + v; }
+    fbCache = { at: Date.now(), agg }; return agg;
+  } catch (e) { return null; }
+}
+async function showNational(res) {
+  const el = $('national'); el.classList.add('hidden');
+  if (!CONFIG.FIREBASE) return;
+  el.textContent = '全国の結果を集計中…'; el.classList.remove('hidden');
+  const agg = await sendAndRead(res);
+  if (lastResult !== res) return;
+  if (!agg || agg.plays < CONFIG.FB_MIN_PLAYS) { el.classList.add('hidden'); return; }
+  let topId = null, topN = -1; for (const [k, v] of Object.entries(agg.q)) if (v > topN && QBY[k]) { topN = v; topId = k; }
+  const my = Math.min(Math.floor(res.sec / 5), 40); let better = 0, same = 0, total = 0;
+  for (const [k, v] of Object.entries(agg.h)) { const n = +k.slice(1); total += v; if (n > my) better += v; else if (n === my) same += v; }
+  const rank = total ? Math.max(1, Math.round(100 * (better + same / 2) / total)) : 50;
+  const line3 = rank <= 50 ? `耐えた時間：全国で <b>上位${rank}%</b>` : `あなたは全国の <b>${100 - rank}%</b> の人より長く耐えました`;
+  el.innerHTML = `これまでに <b>${agg.plays.toLocaleString()}人</b> が帰省しました<br>` + (topId ? `全国でいちばんとどめを刺した質問：<b>『${QBY[topId].text}』</b><br>` : '') + line3;
+}
+
+// ===== [SEC:INPUT] =====
+const keys = new Set();
+const KEYCODES = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'KeyW', 'KeyS'];
+addEventListener('keydown', e => { if (KEYCODES.includes(e.code)) { keys.add(e.code); e.preventDefault(); } });
+addEventListener('keyup', e => keys.delete(e.code));
+addEventListener('blur', () => keys.clear());
+const ray = new THREE.Raycaster(), floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), ndc = new THREE.Vector2();
+const lastFP = new THREE.Vector3(), curFP = new THREE.Vector3();
+let dragId = null;
+function floorPoint(cx, cy, out) { const r = canvas.getBoundingClientRect(); ndc.set((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera); return ray.ray.intersectPlane(floorPlane, out); }
+function dragBy(dx, dz) { if (!Number.isFinite(dx) || !Number.isFinite(dz)) return; target.x = clamp(target.x + dx, -XL, XL); target.z = clamp(target.z + dz, -ZL, ZL); }
+canvas.addEventListener('pointerdown', e => { if (state !== 'play') return; if (!floorPoint(e.clientX, e.clientY, lastFP)) return; dragId = e.pointerId; canvas.setPointerCapture(e.pointerId); target.x = P.x; target.z = P.z; });
+canvas.addEventListener('pointermove', e => { if (e.pointerId !== dragId || state !== 'play') return; if (!floorPoint(e.clientX, e.clientY, curFP)) return; dragBy((curFP.x - lastFP.x) * CONFIG.DRAG_GAIN, (curFP.z - lastFP.z) * CONFIG.DRAG_GAIN); lastFP.copy(curFP); });
+const endDrag = e => { if (e.pointerId === dragId) dragId = null; };
+canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+$('startBtn').addEventListener('click', () => { manual = false; startGame((Date.now() ^ (Math.random() * 1e9)) >>> 0); });
+$('againBtn').addEventListener('click', () => { manual = false; startGame((Date.now() ^ (Math.random() * 1e9)) >>> 0); });
+$('postBtn').addEventListener('click', () => {
+  if (!lastResult) return;
+  const u = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText(lastResult)) + '&url=' + encodeURIComponent(CONFIG.URL);
+  window.open(u, '_blank', 'noopener');
+});
+$('saveBtn').addEventListener('click', async () => {
+  if (!resultCanvas || !lastResult) return;
+  const blob = await new Promise(r => resultCanvas.toBlob(r, 'image/png')); if (!blob) return;
+  const file = new File([blob], 'shinseki-danmaku.png', { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], text: shareText(lastResult) + ' ' + CONFIG.URL }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'shinseki-danmaku.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+
+// ===== [SEC:CAMERA] =====
+const camTarget = new THREE.Vector3(), camDir = new THREE.Vector3();
+const fitPts = [];
+for (const s of [-1, 1]) {
+  fitPts.push(new THREE.Vector3(s * (HW + 0.15), 0, HD + 0.3), new THREE.Vector3(s * (HW + 0.15), 0, -(HD + 0.2)));       // 座敷の四すみ
+  fitPts.push(new THREE.Vector3(s * (HW + OUT), 0.9, -2.4), new THREE.Vector3(s * (HW + OUT), 0.9, 2.4));                   // 横の親戚（縦画面では半分見えればよい）
+  fitPts.push(new THREE.Vector3(s * 2.1, 1.35, -(HD + OUT + 0.4)));                                                     // 奥の親戚の頭
+}
+const tmpV = new THREE.Vector3();
+function fitCamera() {
+  const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false);
+  const k = clamp((w / h - 0.6) / 0.6, 0, 1); // 0＝縦長、1＝横長
+  const pitch = lerp(CONFIG.CAM_P.pitch, CONFIG.CAM_L.pitch, k) * Math.PI / 180;
+  camera.fov = lerp(CONFIG.CAM_P.fov, CONFIG.CAM_L.fov, k); camera.aspect = w / h; camera.updateProjectionMatrix();
+  camTarget.set(0, 0, lerp(CONFIG.CAM_P.tz, CONFIG.CAM_L.tz, k)); camDir.set(0, Math.sin(pitch), Math.cos(pitch));
+  const topLim = 1 - 2 * Math.min(0.2, 78 / h); // 上のHUDの分あける
+  let lo = 2, hi = 80;
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2; camera.position.copy(camTarget).addScaledVector(camDir, mid); camera.lookAt(camTarget); camera.updateMatrixWorld();
+    const ok = fitPts.every(p => { tmpV.copy(p).project(camera); return tmpV.z < 1 && Math.abs(tmpV.x) < 0.97 && tmpV.y < topLim && tmpV.y > -0.97; });
+    if (ok) hi = mid; else lo = mid;
+  }
+  camera.position.copy(camTarget).addScaledVector(camDir, hi); camera.lookAt(camTarget); camera.updateMatrixWorld();
+}
+addEventListener('resize', fitCamera); fitCamera();
+
+// ===== [SEC:RENDER] =====
+function render() {
+  for (const b of bullets) { b.sprite.position.set(b.x, CONFIG.BULLET_Y, b.z); b.shadow.position.set(b.x, 0.012, b.z); }
+  player.position.set(P.x, 0, P.z); playerShadow.position.set(P.x, 0.011, P.z);
+  const sp = Math.hypot(P.vx, P.vz);
+  if (state === 'play' && sp > 0.3) { const want = Math.atan2(P.vx, P.vz); let d = want - player.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); player.rotation.y += d * 0.25; }
+  player.userData.body.material.emissive.setHex(flashT > 0 ? 0x992222 : 0x000000);
+  replySprite.visible = replyT > 0 && state === 'play';
+  if (replySprite.visible) { const a = replySprite.material.map.image; replySprite.scale.set(0.32 * a.width / a.height, 0.32, 1); replySprite.position.set(P.x, 1.75, P.z); }
+  for (const r of rels) {
+    const bob = r.anim > 0 ? Math.sin((0.3 - r.anim) / 0.3 * Math.PI) * 0.08 : 0;
+    r.g.userData.pivot.position.y = bob;
+    r.g.userData.pivot.rotation.x = (r.lean || 0) * 0.35;
+  }
+  const lb = boss.lean;
+  const wv = waveInfo(); tokorodeSprite.visible = state === 'play' && wv.s >= 0 && wv.s < CONFIG.WAVE_LULL + 0.8;
+  player.visible = !(state === 'play' && invulnT > 0 && Math.floor(invulnT * 12) % 2 === 0);
+  if (tokorodeSprite.visible) { const a = tokorodeSprite.material.map.image; tokorodeSprite.scale.set(0.62 * a.width / a.height, 0.62, 1); tokorodeSprite.position.set(boss.x + 1.3 * lb, 1.9, boss.z); }
+  for (const o of otos) { const t = performance.now() / 1000; o.g.position.y = 0.12 + Math.abs(Math.sin(t * 4 + o.x)) * 0.06; o.g.visible = o.life > 1.5 || Math.floor(o.life * 8) % 2 === 0; o.ring.material.opacity = 0.5 + 0.3 * Math.sin(t * 6); }
+  for (const f of floats) { f.s.position.set(f.x, 0.8 + f.t * 0.9, f.z); f.s.material.opacity = 1 - f.t / 0.9; }
+  if (state === 'play' || state === 'ending') {
+    $('timer').firstChild.nodeValue = gameT.toFixed(1);
+    $('hint').classList.toggle('hidden', gameT > 3.5);
+    $('dodged').textContent = dodged; $('lives').textContent = '❤'.repeat(lives) + '♡'.repeat(CONFIG.LIVES - lives); $('otoN').textContent = otoN;
+  }
+  renderer.render(scene, camera);
+}
+
+// ===== [SEC:LOOP] =====
+let acc = 0, last = performance.now(), manual = false, paused = false;
+function update(frameDt) {
+  acc += Math.min(frameDt, CONFIG.MAX_FRAME);
+  while (acc >= CONFIG.FIXED) { tick(CONFIG.FIXED); acc -= CONFIG.FIXED; }
+}
+function frame(now) { if (!paused && !manual) update((now - last) / 1000); last = now; render(); requestAnimationFrame(frame); }
+document.addEventListener('visibilitychange', () => { paused = document.hidden; last = performance.now(); if (paused) { keys.clear(); dragId = null; } });
+requestAnimationFrame(frame);
+
+// ===== [SEC:TEST] =====
+window.__TEST__ = {
+  keys: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'],
+  randomInput(r) { if (state !== 'play') return; const a = r * Math.PI * 2, m = ((r * 13) % 1) * 2.5; dragBy(Math.cos(a) * m, Math.sin(a) * m); },
+  reset(seed) { manual = true; startGame(seed); },
+  peek() { return { p: { x: P.x, z: P.z, r: PLAYER_R }, b: bullets.map(o => ({ x: o.x, z: o.z, vx: o.vx, vz: o.vz, hw: o.hw, hd: o.hd })), o: otos.map(o => ({ x: o.x, z: o.z })), lim: { x: XL, z: ZL } }; },
+  drag(dx, dz) { dragBy(dx, dz); },
+  step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); render(); },
+  state() { return { state, t: +gameT.toFixed(2), x: +P.x.toFixed(2), z: +P.z.toFixed(2), bullets: bullets.length, hits, dodged, lives, otoN, over: state === 'result' }; },
+  check() {
+    const v = [], fin = Number.isFinite;
+    if (!fin(P.x) || !fin(P.z)) v.push('プレイヤーの位置がNaN');
+    if (Math.abs(P.x) > XL + 1e-6 || Math.abs(P.z) > ZL + 1e-6) v.push('プレイヤーが座敷の外に出た');
+    for (const r of rels) if (Math.hypot(P.x - r.g.position.x, P.z - r.g.position.z) < PLAYER_R + 0.48) { v.push('プレイヤーが親戚にめり込んだ'); break; }
+    for (const b of bullets) {
+      if (!fin(b.x) || !fin(b.z)) { v.push('弾の位置がNaN'); break; }
+      const sw = b.sprite.scale.x; if (Math.abs(2 * b.hw - sw) / sw > 0.1) { v.push('弾の当たり判定と見た目の幅がちがう'); break; }
+      if (Math.hypot(b.vx, b.vz) > CONFIG.SPEED_MAX * 1.3) { v.push('弾が速すぎる'); break; }
+    }
+    const measured = (() => { const b = new THREE.Box3().setFromObject(player.userData.body, true); return (b.max.x - b.min.x) / 2; })();
+    if (Math.abs(PLAYER_R - measured) / measured > 0.1) v.push('プレイヤーの当たり判定と見た目がちがう');
+    for (const o of otos) if (Math.abs(o.x) > HW || Math.abs(o.z) > HD) { v.push('お年玉が座敷の外'); break; }
+    if (state === 'play' && gameT + 1e-9 < lastCheckT) v.push('時間が戻った');
+    if (state === 'play') lastCheckT = gameT;
+    if (lives < 0 || lives > CONFIG.LIVES) v.push('ライフの数がおかしい');
+    if (state === 'play' && lives <= 0) v.push('ライフ0なのに続いている');
+    if (hits < 0 || dodged < 0 || otoN < 0) v.push('数がマイナス');
+    if (bullets.length > 300) v.push('弾が増えすぎ');
+    if (!['title', 'play', 'ending', 'result'].includes(state)) v.push('状態がおかしい');
+    return v;
+  },
+  ready: true,
+};
+</script>
+</body>
+</html>
