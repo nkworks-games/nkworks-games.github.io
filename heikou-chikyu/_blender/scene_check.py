@@ -119,13 +119,26 @@ def aabb_hit(a, b, pad=0.0):
     return all(a[0][i] - pad <= b[1][i] and b[0][i] - pad <= a[1][i] for i in range(3))
 def sample(vs):
     step = max(1, len(vs) // CONFIG["MAX_VERTS"]); return vs[::step]
+def _crossings(tree, o, d, maxn=64):
+    """並行地球：o から d の向きに、面を何回横切るか"""
+    n = 0
+    for _ in range(maxn):
+        h = tree.ray_cast(o, d)
+        if h[0] is None: break
+        n += 1; o = h[0] + d * 1e-4
+    return n
+_DIRS = [Vector((0.267, 0.534, 0.802)).normalized(), Vector((-0.71, 0.31, -0.63)).normalized(), Vector((0.12, -0.93, 0.35)).normalized()]
+def inside(tree, v):
+    """並行地球：閉じた形の内側か。3つの向きに光線を打ち、横切る回数が奇数の向きが多ければ内側
+    （一番近い面の向きだけで決めると、くぼみや細かい部品の多い形で外側の点を内側と間違える）"""
+    return sum(_crossings(tree, v, d) % 2 for d in _DIRS) >= 2
 def depth_into(vs, tree, closed):
     """vs の頂点が tree の中にどれだけ深く入っているか（閉じた形だけ測れる）"""
     if not closed: return 0.0, None
     best, at = 0.0, None
     for v in sample(vs):
         loc, nrm, _, d = tree.find_nearest(v)
-        if loc is not None and (v - loc).dot(nrm) < 0 and d > best: best, at = d, v
+        if loc is not None and (v - loc).dot(nrm) < 0 and d > best and inside(tree, v): best, at = d, v
     return best, at
 def floor_depth(vs, ftree):
     """床より下に出ている深さ（真上に床の表側がある頂点）"""
@@ -243,11 +256,15 @@ for f in frames:
             ids = list(o.get("sole_" + sd, []))
             if not ids: continue
             vs = data[o]["vs"]; p = sum((vs[i] for i in ids), Vector()) / len(ids)
-            lo = min(vs[i].z for i in ids)
-            g = None
-            for ft in ftrees:
-                h = ft.ray_cast(Vector((p.x, p.y, lo + 0.5)), Vector((0, 0, -1)), 10)
-                if h[0] is not None: g = lo - h[0].z if g is None else min(g, lo - h[0].z)
+            # 接地中＝足の裏全体（かかとから指の付け根まで）が地面から FOOT_PLANT_H 以内。
+            # 骨のある人で「足首の高さ」で決めるのと同じ考え（かかとが上がり始めたら接地中ではない）
+            gs_ = []
+            for i in ids[::4]:
+                v = vs[i]
+                for ft in ftrees:
+                    h = ft.ray_cast(v + Vector((0, 0, 0.5)), Vector((0, 0, -1)), 10)
+                    if h[0] is not None: gs_.append(v.z - h[0].z)
+            g = max(gs_) if gs_ else None
             planted = g is not None and g < CONFIG["FOOT_PLANT_H"]
             key = (o.name, sd)
             if planted and key in prev_soles and prev_soles[key][1]:

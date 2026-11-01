@@ -142,18 +142,25 @@ def build_coast(s):
             types.append(Pr.shelter('住まい%d' % k, seed * 100 + k, coll=False))
         else:
             types.append(Pr.hut('家%d' % k, seed * 100 + k, coll=False, stilts=(k == 4 and vil.get('storehouse', False))))
+    hut_occ = []
     for k, (x, y, face) in enumerate(huts):
         src = types[k % len(types)]
         ob = bpy.data.objects.new('家', src.data)
         # 4隅の地面の高さを見て、いちばん低い隅に床を合わせる（下り側が浮かないように）。
         # 上り側は地面に埋まる＝斜面に建つ家の土台。その深さは embed_ok として点検に伝える
-        bb = [Vector(c) for c in src.bound_box]
-        xs, ys = [c.x for c in bb], [c.y for c in bb]
+        # 型の大きさは頂点から測る（場面に置いていない型の bound_box は 0 のことがある）
+        vco = np.empty(len(src.data.vertices) * 3, np.float32)
+        src.data.vertices.foreach_get('co', vco)
+        vco = vco.reshape(-1, 3)
+        xs, ys = [float(vco[:, 0].min()), float(vco[:, 0].max())], [float(vco[:, 1].min()), float(vco[:, 1].max())]
         ca, sa = math.cos(face), math.sin(face)
         hs = [ter.height_at(x + cx * ca - cy * sa, y + cx * sa + cy * ca) for cx in (min(xs), max(xs)) for cy in (min(ys), max(ys))]
         ob.location = (x, y, min(hs) - 0.03)
         ob.rotation_euler = (0, 0, face)
         ob['embed_ok'] = round(max(hs) - min(hs) + 0.08, 3)   # 地形ができた後に seat_on_lowest で測り直す
+        # 足もとの円：囲む箱の中心（回した後）と、半分の対角
+        cxl, cyl = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+        hut_occ.append((x + cxl * ca - cyl * sa, y + cxl * sa + cyl * ca, 0.5 * math.hypot(max(xs) - min(xs), max(ys) - min(ys))))
         ob['grounded'] = True
         link_object(ob)
     # 畑（芋や果樹）：集落の奥の平らな所
@@ -301,11 +308,7 @@ def build_coast(s):
             beach_y[x] = next((yy for yy in np.arange(30, 260, 0.4) if ter.height_at(x, yy) > h0), None)
         return beach_y[x]
     # 置いた物の足もと（円）を覚えておき、重ならない所にだけ置く（人どうし・人と舟などのめり込みを防ぐ）
-    hr = 3.4
-    for t_ in types:   # 家の大きさ（軒まで）の半分の対角
-        bb_ = [Vector(c) for c in t_.bound_box]
-        hr = max(hr, 0.5 * math.hypot(max(c.x for c in bb_) - min(c.x for c in bb_), max(c.y for c in bb_) - min(c.y for c in bb_)))
-    occ = [(hx, hy, hr) for hx, hy, _ in huts]
+    occ = list(hut_occ)
     EX_R = dict(figure=0.5, fire=1.3, pots=0.9, rack=1.9, woodpile=1.0, log=4.0, raft=2.6, dugout=3.6, outrigger=4.6, sail=4.6,
                 lightstone=0.6, shelter=3.0, hut=3.4)
     for e in s.get('extras', []):
@@ -340,6 +343,7 @@ def build_coast(s):
             ob.location = (x, y, z)
             if not afloat:
                 ob['grounded'] = True
+                ob['rest'] = True
             ob.rotation_euler = (0, 0, rng.uniform(-0.35, 0.35) + (math.pi / 2 if afloat else 0))
     for k in range(vil.get('racks', 0)):
         if not huts:
@@ -398,14 +402,14 @@ def build_coast(s):
                 a = rng.uniform(0, 2 * math.pi)
                 x, y, pose = fx + math.cos(a) * 1.9, fy + math.sin(a) * 1.9, 'sit'
                 face = math.atan2(fy - y, fx - x) - math.pi / 2
-                r_ = 0.6
+                r_ = 0.75
                 occ_ok = all((x - ox) ** 2 + (y - oy) ** 2 >= (r_ + orr) ** 2 for ox, oy, orr in occ if (ox, oy) != (fx, fy))
             elif huts:
                 hx, hy, _ = huts[rng.randrange(len(huts))]
                 x, y = hx + rng.uniform(-8, 8), hy + rng.uniform(-10, -3)
                 pose = poses[k % len(poses)]
                 face = rng.uniform(0, 2 * math.pi)
-                r_ = 0.6 if pose == 'bend' else 0.5
+                r_ = 0.9 if pose == 'bend' else 0.55
                 occ_ok = free(x, y, r_)
             else:
                 break
@@ -440,8 +444,11 @@ def build_coast(s):
             seat_on_lowest(ob, tree)       # 家：下り側が浮かないように（上り側は土台として埋まる）
             continue
         if ob.get('grounded') and ob.parent is None and 'move' not in ob.keys():
-            # 斜面では、地面の傾きに合わせて少し傾けてから乗せる（人は 6°まで：両足が地面につく）
-            tilt_to_ground(ob, tree, 6.0 if 'sole_L' in ob.keys() else 15.0)
+            if ob.get('rest'):
+                rest_on_ground(ob, tree)    # 舟・いかだ：いくつかの支え（船体と浮き木など）が地面につく向き
+            else:
+                # 斜面では、地面の傾きに合わせて少し傾けてから乗せる（人は 6°まで：両足が地面につく）
+                tilt_to_ground(ob, tree, 6.0 if 'sole_L' in ob.keys() else 15.0)
             settle(ob, tree)
     for k, isl in enumerate(s.get('islands', [])):
         island_silhouette('島影%d' % k, seed + k, isl['radius'], isl['height'], isl['loc'])
@@ -552,6 +559,50 @@ def _ground_gaps(obj, tree, band, cap=2500):
     return np.array(gaps) if gaps else None
 
 
+def rest_on_ground(obj, tree, max_deg=10.0, step=2.0, band=0.5, n=500):
+    """かたい物（舟・いかだ）：少しずつ傾けてみて、下の方の頂点と地面のすき間のばらつきが一番小さい向きにする
+    （支えが何か所も地面につく＝置かれた物らしい向き）。そのあと settle で高さを合わせる"""
+    if tree is None:
+        return
+    from mathutils import Euler
+    bpy.context.view_layer.update()
+    parts = [obj] + [c for c in obj.children_recursive if c.type == 'MESH' and not c.get('nocheck')
+                     and not any(k in c.name for k in NOCHECK_NAMES)]
+    P_ = _world_points(parts)
+    if not len(P_):
+        return
+    low = P_   # 全体（何も沈まない高さを決めるため）
+    if len(low) > n:
+        low = low[np.linspace(0, len(low) - 1, n).astype(int)]
+    o = np.array(obj.location)
+    best = None
+    angs = np.arange(-max_deg, max_deg + 1e-6, step)
+    for ax in angs:
+        for ay in angs:
+            Rd = np.array(Euler((math.radians(ax), math.radians(ay), 0.0)).to_matrix())
+            pts = (low - o) @ Rd.T + o
+            gaps, zs_ = [], []
+            for x, y, z in pts:
+                h = tree.ray_cast(Vector((float(x), float(y), float(z) + 100.0)), Vector((0, 0, -1)), 400.0)
+                if h[0] is not None:
+                    gaps.append(z - h[0].z)
+                    zs_.append(z)
+            if len(gaps) < 3:
+                continue
+            g = np.array(gaps)
+            # 何も地面に沈まない高さまで上げたとき（全体を -min だけ上げる）、一番低い所（下から20cm）が地面からどれだけ浮くか
+            zl = np.array(zs_)
+            lift = -g.min()
+            low_gap = float((g[zl < zl.min() + 0.2] + lift).min()) if (zl < zl.min() + 0.2).any() else 1e9
+            key = (round(low_gap, 3), abs(ax) + abs(ay))
+            if best is None or key < best[0]:
+                best = (key, ax, ay)
+    if best is None:
+        return
+    Rd = Euler((math.radians(best[1]), math.radians(best[2]), 0.0)).to_matrix()
+    obj.rotation_euler = (Rd @ obj.rotation_euler.to_matrix()).to_euler()
+
+
 def seat_on_lowest(obj, tree, band=0.3):
     """家など：下の方の頂点のうち一番浮いている所が地面に触れる高さまで下げる。
     上り側が地面に埋まる深さは embed_ok として点検に伝える（斜面に建つ家の土台）"""
@@ -564,7 +615,7 @@ def seat_on_lowest(obj, tree, band=0.3):
     obj['embed_ok'] = round(float(g.max() - g.min()) + 0.02, 3)
 
 
-def settle(obj, tree, gap=0.0, band=0.5, cap=2500):
+def settle(obj, tree, gap=0.0, band=100.0, cap=4000):
     """物の下の方の頂点を真上から地面へ打ち、どれも地面より下にならず、少なくとも1点が地面に触れる高さへ動かす
     （めり込みも浮きも消す。blender-video-physics-guard の settle を、下の方の頂点ごとに調べる形にしたもの）"""
     if tree is None:
@@ -598,7 +649,7 @@ def place_extras(extras, ter, seed):
         t = e['type']
         x, y = e['loc'][0], e['loc'][1]
         ground = ter.height_at(x, y) if ter is not None else 0.0
-        if t == 'figure' and ter is not None and not e.get('float') and len(e['loc']) < 3:
+        if t == 'figure' and ter is not None and not e.get('float') and len(e['loc']) < 3 and not e.get('noshift'):
             for _ in range(60):
                 if ground >= -0.45:
                     break
@@ -625,7 +676,7 @@ def place_extras(extras, ter, seed):
             o = Bo.outrigger(name, sd, e.get('length', 8.5), sail=t == 'sail')
         elif t == 'figure':
             pose = e.get('pose', 'stand')
-            cyc = 8 if pose in ('walk', 'carrywalk', 'paddle') else 0
+            cyc = 16 if pose in ('walk', 'carrywalk') else (8 if pose == 'paddle' else 0)   # 歩く足は細かく（間をつなぐと足が下がるので）
             o = P.figure(name, sd, pose=pose, child=e.get('child', False), phase=e.get('phase', 0.0), cycle=cyc)
         elif t == 'lightstone':
             o = Pr.lightstone(name, sd, e.get('size', 0.5))
@@ -640,7 +691,13 @@ def place_extras(extras, ter, seed):
         if e.get('scale'):
             o.scale = (e['scale'],) * 3
         placed.append(o)
-        if 'boat' in e:
+        if 'parent' in e:
+            # parent の名前の物の子にする。loc・rot はその物から見た位置と向き（舟の上の位置をそのまま書ける）
+            o.parent = bpy.data.objects[e['parent']]
+            o.matrix_parent_inverse.identity()
+            o.location = tuple(e['loc'][:3])
+            o['in_boat'] = True
+        elif 'boat' in e:
             # 舟に乗る人は舟の子にする（一緒に動き、ずれない）
             boat = placed[e['boat']]
             bpy.context.view_layer.update()
@@ -653,8 +710,10 @@ def place_extras(extras, ter, seed):
             o['move'] = e['move']
         if t in ('figure', 'fire', 'pots', 'rack', 'woodpile', 'log', 'shelter', 'hut', 'raft', 'dugout', 'outrigger', 'sail', 'lightstone') \
                 and ter is not None and not e.get('float') \
-                and len(e['loc']) < 3 and 'boat' not in e:
+                and len(e['loc']) < 3 and 'boat' not in e and 'parent' not in e:
             o['grounded'] = True   # 浅い水の中に立つ人も、海の底に立つ
+            if t in ('raft', 'dugout', 'outrigger', 'sail') and not e.get('tilt'):
+                o['rest'] = True
 
 
 def _rock(seed, coll):
@@ -1081,7 +1140,11 @@ def follow_ground(ob, mv, frames, seconds, tree):
                 loc = base + sum(w[k] * (keyco[(sd, k)] - base) for k in range(1, n))
                 feet[sd] = loc
             sd = min(feet, key=lambda q: feet[q][:, 2].min())   # 地面についている方の足
-            for p_ in feet[sd]:
+            low = feet[sd]
+            other = 'R' if sd == 'L' else 'L'
+            if feet[other][:, 2].min() < low[:, 2].min() + 0.03:      # 両足が地面近く（着地の瞬間）：どちらも地面に沈まないように
+                low = np.concatenate([low, feet[other]])
+            for p_ in low:
                 wp = Vector((pos.x, pos.y, 0.0)) + R @ Vector(p_)
                 h = tree.ray_cast(Vector((wp.x, wp.y, wp.z + 100.0)), Vector((0, 0, -1)), 400.0)
                 if h[0] is not None:

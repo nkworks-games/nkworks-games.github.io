@@ -151,12 +151,21 @@ def pose_ops(pose, phase=0.0, side=1):
         # 太ももの振れは三角波：地面についている間、足が一定の速さで後ろへ動く（体は一定の速さで進むので、足がすべらない）
         sw = 2 / math.pi * math.asin(math.sin(2 * math.pi * phase))
         for sd, s, sg in (('L', -1, 1), ('R', 1, -1)):
-            a = math.radians(24) * sw * sg
+            pl = (phase + (0.0 if sg > 0 else 0.5)) % 1.0     # 脚ごとの位相（0.25 で着地、0.75 で離地）
+            u = ((pl - 0.75) % 1.0) / 0.5                    # 足を振る間 0→1
+            if 0.25 <= pl < 0.75:
+                fl = 1 - 4 * (pl - 0.25)                     # 地面についている間：一定の速さで前→後ろ（体の進みと釣り合う）
+            else:
+                # 振る間：後ろ→前。両端の速さを「地面についている間」と同じにつなぐ（エルミート曲線）。
+                # 着地の直前に少し引き戻すので、着地の瞬間に足が地面に対して止まっている（すべらない）
+                h00, h10 = 2 * u ** 3 - 3 * u ** 2 + 1, u ** 3 - 2 * u ** 2 + u
+                h01, h11 = -2 * u ** 3 + 3 * u ** 2, u ** 3 - u ** 2
+                fl = -h00 - 2 * h10 + h01 - 2 * h11
+            a = math.radians(24) * fl
             aim('upperleg01.' + sd, 'lowerleg01.' + sd, s * 0.05, math.sin(a), -math.cos(a))
             # 膝は、足が地面を離れている間（脚の位相 0.75〜1.25）だけ大きく曲げる
-            pl = (phase + (0.0 if sg > 0 else 0.5)) % 1.0
-            u = ((pl - 0.75) % 1.0) / 0.5
-            flex = math.radians(5 + (62 * math.sin(math.pi * u) if u < 1.0 else 0.0))
+            # sin² にして、離地と着地の瞬間に膝の動きが止まるように（着地の直前に足先が前へ振り出されない）
+            flex = math.radians(5 + (78 * math.sin(math.pi * u ** 0.85) ** 2 if u < 1.0 else 0.0))   # 曲げの山を少し後ろへ（着地前に足が下がりすぎない）
             aim('lowerleg01.' + sd, 'foot.' + sd, s * 0.04, math.sin(a - flex), -math.cos(a - flex))
             b = -math.radians(18) * sw * sg
             aim('upperarm01.' + sd, 'lowerarm01.' + sd, s * 0.1, math.sin(b) - 0.03, -math.cos(b))

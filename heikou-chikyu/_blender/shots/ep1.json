@@ -1359,11 +1359,11 @@
     {
      "type": "figure",
      "loc": [
-      -24.0,
-      142.9
+      -23.68,
+      143.64
      ],
      "pose": "stand",
-     "rot": 149
+     "rot": 160
     }
    ]
   },
@@ -1447,20 +1447,22 @@
     {
      "type": "figure",
      "loc": [
-      8.5,
-      137.5
+      9.74,
+      138.52
      ],
      "pose": "bend",
-     "rot": 40
+     "rot": -10,
+     "noshift": true
     },
     {
      "type": "figure",
      "loc": [
-      12,
-      143
+      4.88,
+      140.9
      ],
      "pose": "stand",
-     "rot": 200
+     "rot": -100,
+     "noshift": true
     }
    ]
   },
@@ -1552,11 +1554,7 @@
      ],
      "pose": "paddle",
      "rot": 180,
-     "move": [
-      0,
-      -40,
-      0
-     ]
+     "boat": 0
     },
     {
      "type": "figure",
@@ -1568,11 +1566,7 @@
      "pose": "paddle",
      "rot": 180,
      "phase": 0.4,
-     "move": [
-      0,
-      -40,
-      0
-     ]
+     "boat": 0
     }
    ]
   },
@@ -1646,11 +1640,7 @@
      ],
      "pose": "paddle",
      "rot": 0,
-     "move": [
-      0,
-      18,
-      0
-     ]
+     "boat": 0
     },
     {
      "type": "figure",
@@ -1662,11 +1652,7 @@
      "pose": "paddle",
      "rot": 0,
      "phase": 0.5,
-     "move": [
-      0,
-      18,
-      0
-     ]
+     "boat": 0
     }
    ]
   },
@@ -1898,12 +1884,13 @@
     {
      "type": "figure",
      "loc": [
-      0.2,
-      1.0,
+      0.0,
+      3.4,
       0.3
      ],
      "pose": "look",
-     "rot": 10
+     "rot": 10,
+     "parent": "舟0"
     }
    ]
   },
