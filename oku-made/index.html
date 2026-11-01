@@ -132,6 +132,7 @@ const CONFIG = {
   aimSensitivity: 0.07,     // ドラッグ1pxで何度変わるか
   aimLimit: 28,             // 角度の最大(度)
   startAimError: 6,         // 最初のずれ(度)
+  passageScale: 0.85,       // 菌までの道の太さ（1=元の太さ。小さいほど細い）
   germCount: 26,            // 菌の数
   patchRadius: 0.0055,      // 菌が広がる範囲の半径(m)
   tipRadius: 0.0032,        // 綿棒の先で取れる半径(m)
@@ -275,7 +276,9 @@ if (CONFIG.debug) { pivotDbg = new THREE.Mesh(new THREE.SphereGeometry(0.002), n
 // ===== [SEC:TUBE] =====
 // 鼻の中の道。u=0(入口)〜1(一番奥)。[u, 横の半分の広さ, 天井までの高さ, 床までの深さ](m)
 // 綿棒の基準の線(角度0)は「鼻の床にそってまっすぐ奥へ」。上に向けると天井(鼻甲介)にぶつかる。途中でいちばん狭くなる
-const PROFILE = [[0, .0095, .0120, .0120], [.12, .0068, .0085, .0100], [.28, .0038, .0050, .0075], [.42, .0035, .0045, .0070], [.58, .0048, .0060, .0085], [.78, .0072, .0095, .0110], [1, .0092, .0125, .0125]];
+const PROFILE0 = [[0, .0095, .0120, .0120], [.12, .0068, .0085, .0100], [.28, .0038, .0050, .0075], [.42, .0035, .0045, .0070], [.58, .0048, .0060, .0085], [.78, .0072, .0095, .0110], [1, .0092, .0125, .0125]];
+// 入り口(u=0)と菌のいる奥(u=1)はそのまま、途中の道だけ CONFIG.passageScale 倍に細くする
+const PROFILE = PROFILE0.map((r, i) => (i === 0 || i === PROFILE0.length - 1) ? r : [r[0], r[1] * CONFIG.passageScale, r[2] * CONFIG.passageScale, r[3] * CONFIG.passageScale]);
 function prof(u) {
   for (let i = 1; i < PROFILE.length; i++) if (u <= PROFILE[i][0]) {
     const a = PROFILE[i - 1], b = PROFILE[i], t = (u - a[0]) / (b[0] - a[0]);
@@ -762,6 +765,7 @@ S.bendX = 0; S.bendY = 0; S.germs = [];
 })();
 // ===== [SEC:TEST] =====
 window.__TEST__ = {
+  normAt: (u, yaw, pitch) => normAt(u, yaw, pitch),
   // 仕返しアニメの姿勢を調べる：ひじが逆に曲がる・腕が自分の頭にめり込む・押す手のひらの裏表
   checkRevenge() {
     const v = [], p = patient, pl = player; if (!p || !pl || !S.revenge) return v;
