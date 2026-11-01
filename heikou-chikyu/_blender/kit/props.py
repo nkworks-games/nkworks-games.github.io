@@ -250,3 +250,50 @@ def woodpile(name, seed, coll=None):
         x0 = rng.uniform(-0.1, 0.1)
         B.tube([Vector((x0 - 0.6, y, z)), Vector((x0 + 0.6, y + rng.uniform(-.1, .1), z))], [0.05, 0.045], segs=5, mat=0, cap=True)
     return B.finish(name, [m['pole']], coll)
+
+
+def lightstone(name, seed, size=0.5, coll=None):
+    """軽殻石（架空）：白っぽい、穴の多い軽い石。浜に打ち上がり、水に浮く"""
+    rng = stream(seed, 'lightstone', name)
+    from mathutils import noise
+    m = M.simple('軽殻石', (0.55, 0.55, 0.52, 1), (0.80, 0.80, 0.76, 1), 0.85, 18.0, 1.2)
+    bm = bmesh.new()
+    bmesh.ops.create_icosphere(bm, subdivisions=3, radius=1.0)
+    off = Vector((seed * 1.7, seed * 2.3, seed * 0.7))
+    sx, sy, sz = rng.uniform(.8, 1.3), rng.uniform(.7, 1.1), rng.uniform(.5, .8)
+    for v in bm.verts:
+        p = v.co.copy()
+        p = p * (1 + 0.25 * noise.fractal(p * 1.5 + off, 0.6, 2.0, 4) - 0.35 * noise.cell(p * 3.0 + off))
+        v.co = Vector((p.x * sx, p.y * sy, p.z * sz)) * size
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    me.materials.append(m)
+    obj = bpy.data.objects.new(name, me)
+    if coll is not False:
+        link_object(obj, coll)
+    return obj
+
+
+def log_carving(name, seed, length=7.0, coll=None):
+    """くりぬき途中の丸木（台の上）と、削りくず"""
+    rng = stream(seed, 'log', name)
+    m = _mats()
+    wood_in = M.simple('削った木', (0.30, 0.20, 0.11, 1), (0.48, 0.34, 0.20, 1), 0.8, 6.0, 0.4, (1, 1, 5), kind='wave')
+    B = Builder()
+    r = 0.42
+    # 外側：太い丸太（上を少し平らに）
+    B.tube([Vector((0, -length / 2, 0.9)), Vector((0, length / 2, 0.9))], [r, r * 0.92], segs=14, mat=0, cap=True)
+    # くりぬいた内側（明るい木肌の溝）
+    for k in range(12):
+        y = (k / 11 - 0.5) * length * 0.75
+        B.leaf(Vector((-0.3, y, 1.28)), Vector((1, 0, 0)), Vector((0, 0, 1)), 0.6, length * 0.08, mat=1, fold=-0.4, droop=0.0)
+    # 台
+    for y in (-length * 0.3, length * 0.3):
+        for x in (-0.5, 0.5):
+            B.tube([Vector((x, y, 0)), Vector((x * 0.3, y, 0.6))], [0.06, 0.05], segs=5, mat=2)
+    # 削りくず
+    for _ in range(80):
+        p = Vector((rng.uniform(-1.5, 1.5), rng.uniform(-length / 2, length / 2), 0.02))
+        B.leaf(p, Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), 0)), Vector((0, 0, 1)), rng.uniform(0.06, 0.14), 0.04, mat=1, fold=0.2, droop=0.0)
+    return B.finish(name, [m['pole'], wood_in, m['pole']], coll)

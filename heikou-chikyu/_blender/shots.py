@@ -325,9 +325,68 @@ def build_coast(s):
         o = P.figure('人%d' % k, seed * 7 + k, pose=pose, child=rng.random() < 0.2, phase=rng.random())
         o.location = (x, y, ter.height_at(x, y))
         o.rotation_euler = (0, 0, face)
+    # 潮麦の浅瀬（追加検証の世界）：水深0.5〜1.5mの所に群生
+    tw = s.get('tidewheat')
+    if tw:
+        tcoll = scatter.library('潮麦の型')
+        for k in range(3):
+            V.tidewheat('潮麦%d' % k, seed * 70 + k, coll=tcoll)
+        items = []
+        for _ in range(int(40000 * tw.get('density', 1.0))):
+            x, y = rng.uniform(-300, 300), rng.uniform(-30, 160)
+            h = ter.height_at(x, y)
+            if -1.5 < h < -0.5 and noise.fractal(Vector((x / 30, y / 30, 9.0)), 0.6, 2.0, 3) > -0.15:
+                items.append((x, y, h, rng.randrange(3), rng.uniform(0.8, 1.15), rng.uniform(0, 6.3)))
+        scatter.instances('潮麦', tcoll, items)
+    place_extras(s.get('extras', []), ter, seed)
+    for k, isl in enumerate(s.get('islands', [])):
+        island_silhouette('島影%d' % k, seed + k, isl['radius'], isl['height'], isl['loc'])
     water.sea_box(s.get('algae', 1.0))
     water.foam(ter)
     return ter
+
+
+def place_extras(extras, ter, seed):
+    """カットごとに、決まった場所へ置くもの（近くで見せる道具・舟・人など）"""
+    for k, e in enumerate(extras):
+        t = e['type']
+        x, y = e['loc'][0], e['loc'][1]
+        ground = ter.height_at(x, y) if ter is not None else 0.0
+        z = e['loc'][2] if len(e['loc']) > 2 else (max(ground, 0.0) + (0.05 if ground < 0 else 0.0) if e.get('float') else ground)
+        name = '%s_%d' % (t, k)
+        sd = seed * 1000 + k
+        if t == 'fire':
+            o = Pr.fire(name, sd, smoke=e.get('smoke', True), strength=e.get('strength', 80.0))
+        elif t == 'pots':
+            o = Pr.pots(name, sd, n=e.get('n', 5))
+        elif t == 'rack':
+            o = Pr.drying_rack(name, sd)
+        elif t == 'woodpile':
+            o = Pr.woodpile(name, sd)
+        elif t == 'log':
+            o = Pr.log_carving(name, sd)
+        elif t == 'raft':
+            o = Bo.raft(name, sd)
+        elif t == 'dugout':
+            o = Bo.dugout(name, sd, e.get('length', 6.5))
+        elif t in ('outrigger', 'sail'):
+            o = Bo.outrigger(name, sd, e.get('length', 8.5), sail=t == 'sail')
+        elif t == 'figure':
+            o = P.figure(name, sd, pose=e.get('pose', 'stand'), child=e.get('child', False), phase=e.get('phase', 0.0))
+        elif t == 'lightstone':
+            o = Pr.lightstone(name, sd, e.get('size', 0.5))
+        elif t == 'shelter':
+            o = Pr.shelter(name, sd)
+        elif t == 'hut':
+            o = Pr.hut(name, sd)
+        else:
+            continue
+        o.location = (x, y, z + e.get('dz', 0.0))
+        o.rotation_euler = (math.radians(e.get('tilt', 0.0)), 0, math.radians(e.get('rot', 0.0)))
+        if e.get('scale'):
+            o.scale = (e['scale'],) * 3
+        if 'move' in e:
+            o['move'] = e['move']
 
 
 def _rock(seed, coll):
@@ -385,6 +444,137 @@ def build_opensea(s):
         boats.append((ob, b))
     for k, isl in enumerate(s.get('islands', [])):
         island_silhouette('島影%d' % k, seed + k, isl['radius'], isl['height'], isl['loc'])
+    return oc, md, boats
+
+
+# ---------------------------------------------------------------- 島々の空撮（計算の島の形から）
+
+def island_material():
+    from kit.util import new_material, node, link, map_range
+    m = bpy.data.materials.get('島の地表')
+    if m:
+        return m
+    m, nt = new_material('島の地表')
+    geo = node(nt, 'ShaderNodeNewGeometry', (-900, 0))
+    sep = node(nt, 'ShaderNodeSeparateXYZ', (-700, 0))
+    link(nt, geo.outputs['Position'], sep.inputs[0])
+    sn = node(nt, 'ShaderNodeSeparateXYZ', (-700, -250))
+    link(nt, geo.outputs['Normal'], sn.inputs[0])
+    tc = node(nt, 'ShaderNodeTexCoord', (-900, 300))
+    nz = node(nt, 'ShaderNodeTexNoise', (-700, 300), Scale=0.004, Detail=8.0)
+    link(nt, tc.outputs['Object'], nz.inputs['Vector'])
+    nz2 = node(nt, 'ShaderNodeTexNoise', (-700, 500), Scale=0.05, Detail=6.0)
+    link(nt, tc.outputs['Object'], nz2.inputs['Vector'])
+    sand = (0.42, 0.37, 0.27, 1)
+    forest = M.mix_color(nt, nz2.outputs['Fac'], (0.012, 0.03, 0.008, 1), (0.03, 0.06, 0.015, 1), (-400, 300))
+    rock = M.mix_color(nt, nz.outputs['Fac'], (0.06, 0.055, 0.05, 1), (0.14, 0.12, 0.10, 1), (-400, 100))
+    col = M.mix_color(nt, map_range(nt, sep.outputs['Z'], 2.5, 6.0), sand, forest, (-200, 300))
+    steep = map_range(nt, sn.outputs['Z'], 0.75, 0.55)
+    col = M.mix_color(nt, steep, col, rock, (0, 300))
+    bsdf = node(nt, 'ShaderNodeBsdfPrincipled', (200, 200))
+    link(nt, col, bsdf.inputs['Base Color'])
+    bsdf.inputs['Roughness'].default_value = 0.9
+    from kit.util import finish
+    finish(nt, bsdf.outputs[0], (600, 200))
+    return m
+
+
+def shallow_material():
+    from kit.util import new_material, node, link, map_range
+    m = bpy.data.materials.get('浅瀬の色')
+    if m:
+        return m
+    m, nt = new_material('浅瀬の色')
+    at = node(nt, 'ShaderNodeAttribute', (-600, 0), attribute_name='f')
+    a = map_range(nt, at.outputs['Fac'], 0.0, 1.0, 0.75, 0.0)
+    em = node(nt, 'ShaderNodeBsdfPrincipled', (-200, 100))
+    em.inputs['Base Color'].default_value = (0.05, 0.32, 0.30, 1)
+    em.inputs['Roughness'].default_value = 0.05
+    tr = node(nt, 'ShaderNodeBsdfTransparent', (-200, -100))
+    mix = node(nt, 'ShaderNodeMixShader', (100, 0))
+    link(nt, a, mix.inputs[0])
+    link(nt, tr.outputs[0], mix.inputs[1])
+    link(nt, em.outputs[0], mix.inputs[2])
+    out = node(nt, 'ShaderNodeOutputMaterial', (300, 0))
+    link(nt, mix.outputs[0], out.inputs['Surface'])
+    return m
+
+
+def island_from_world(name, rho_km, hmax, seed, loc, shelf_km=2.0):
+    """計算の島の形（方位ごとの半径 km）から、島の地形（m）を作る"""
+    rho = np.asarray(rho_km)[::2] * 1000.0
+    nth = len(rho)
+    rings = np.concatenate([np.linspace(0, 0.9, 30) ** 0.8, np.linspace(0.91, 1.0, 10), [1.03]])
+    th = np.linspace(0, 2 * math.pi, nth, endpoint=False)
+    verts = []
+    off = Vector((seed * 1.3, seed * 0.7, 0))
+    for f in rings:
+        for k in range(nth):
+            r = rho[k] * f
+            x, y = r * math.sin(th[k]), r * math.cos(th[k])
+            n = noise.fractal(Vector((x / 4000, y / 4000, 0)) + off, 0.55, 2.0, 6)
+            if f <= 1.0:
+                z = hmax * max(0.0, 1 - f) ** 1.25 * (0.8 + 0.4 * n) + 1.6 * min(1.0, (1 - f) / 0.02)
+            else:
+                z = -30.0
+            verts.append((x, y, z))
+    faces = []
+    for i in range(len(rings) - 1):
+        for k in range(nth):
+            a, b2 = i * nth + k, i * nth + (k + 1) % nth
+            faces.append([a, b2, b2 + nth, a + nth])
+    me = bpy.data.meshes.new(name)
+    me.from_pydata(verts, [], faces)
+    me.update()
+    me.polygons.foreach_set('use_smooth', np.ones(len(me.polygons), bool))
+    me.materials.append(island_material())
+    o = bpy.data.objects.new(name, me)
+    link_object(o)
+    o.location = loc
+    # 浅瀬の色の輪
+    verts2, faces2, fval = [], [], []
+    for j, f in enumerate(np.linspace(0, 1, 6)):
+        for k in range(nth):
+            r = rho[k] * 0.995 + f * shelf_km * 1000
+            verts2.append((r * math.sin(th[k]), r * math.cos(th[k]), 0.15))
+            fval.append(f)
+    for j in range(5):
+        for k in range(nth):
+            a, b2 = j * nth + k, j * nth + (k + 1) % nth
+            faces2.append([a, b2, b2 + nth, a + nth])
+    me2 = bpy.data.meshes.new(name + '浅瀬')
+    me2.from_pydata(verts2, [], faces2)
+    at = me2.attributes.new('f', 'FLOAT', 'POINT')
+    at.data.foreach_set('value', np.array(fval, np.float32))
+    me2.materials.append(shallow_material())
+    o2 = bpy.data.objects.new(name + '浅瀬', me2)
+    link_object(o2)
+    o2.location = loc
+    o2.visible_shadow = False
+    return o
+
+
+def build_islands(s):
+    """計算の世界の島々を、実際の位置と形で並べる（空撮用）"""
+    import world as W
+    w = W.build_world(s['terrain'])
+    lay, props = w['lay'], w['props']
+    c = s['center_island']
+    lat0, lon0 = lay['lat'][c], lay['lon'][c]
+    d = W.gc_dist(lat0, lon0, lay['lat'], lay['lon'])
+    near = np.nonzero(d < s.get('radius_km', 150))[0]
+    for i in near:
+        brg = W.bearing(lat0, lon0, lay['lat'][i], lay['lon'][i])
+        x, y = d[i] * math.sin(brg) * 1000, d[i] * math.cos(brg) * 1000
+        island_from_world('島%d' % i, lay['rho'][i], float(props['hmax'][i]) * s.get('relief', 1.0), int(i),
+                          (x, y, 0), shelf_km=float(props['shelf_w'][i]) * 0.5)
+    oc, md = water.ocean(size=600, wave_scale=s.get('wave', 0.6), seed=s.get('seed', 7), repeat=3)
+    boats = []
+    for k, b in enumerate(s.get('boats', [])):
+        ob = Bo.outrigger('舟%d' % k, s.get('seed', 7) + k, b.get('length', 9.0), sail=b.get('sail', True))
+        ob.location = Vector(b['loc'])
+        ob.rotation_euler = (0, 0, math.radians(b.get('heading', 0)))
+        boats.append((ob, b))
     return oc, md, boats
 
 
@@ -605,8 +795,12 @@ def build(s, args):
         build_coast(s)
     elif kind == 'opensea':
         _, ocean_md, boats = build_opensea(s)
+    elif kind == 'islands':
+        _, ocean_md, boats = build_islands(s)
     elif kind == 'planet':
         build_planet(s)
+    if kind in ('opensea', 'islands') and s.get('extras'):
+        place_extras(s['extras'], None, s.get('seed', 7))
     sk = s.get('sky')
     if sk:
         sky.setup(sk.get('time', 'dusk'), sk.get('azimuth', -120), sk.get('elevation'), sk.get('cloud', 0.5),
@@ -621,6 +815,12 @@ def build(s, args):
             ocean_md.keyframe_insert('time', frame=1)
             ocean_md.time = s['seconds']
             ocean_md.keyframe_insert('time', frame=frames)
+        for ob in bpy.data.objects:
+            if 'move' in ob.keys():
+                mv = Vector(ob['move'])
+                ob.keyframe_insert('location', frame=1)
+                ob.location = ob.location + mv
+                ob.keyframe_insert('location', frame=frames)
         for ob, b in boats:
             v = b.get('speed', 2.0)
             hd = math.radians(b.get('heading', 0))
