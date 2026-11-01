@@ -102,7 +102,7 @@ canvas#view{position:fixed;inset:0;display:block;touch-action:none}
 -->
 <div class="screen" id="title">
   <h1>奥まで<br>いきます</h1>
-  <p>患者の鼻の奥の「菌」を、綿棒でこすって取ろう。<br>綿棒は<b>鼻の床にそって、上に向けずにまっすぐ</b>奥へ。<br>画面を<b>長押し</b>で進み、<b>ドラッグ</b>で角度を決めます。<br>天井や横の壁にふれると痛がります。痛がらせすぎると…患者に仕返しされます！<br>奥でこすったら「戻す」でゆっくり抜くと、検査おわりです。</p>
+  <p>患者の鼻の奥の「菌」を、綿棒でこすって取ろう。<br>綿棒は<b>鼻の床にそって、上に向けずにまっすぐ</b>奥へ。<br>画面を<b>長押し</b>で進み、<b>ドラッグ</b>で角度を決めます。<br>天井や横の壁にふれると痛がります。痛がらせすぎると…患者に仕返しされます！<br>奥でこすったら「戻す」でゆっくり抜いて、<b>綿棒を回収したら</b>検査おわり。</p>
   <button class="btn" id="startBtn">はじめる</button>
   <p id="bestLine"></p>
   <p class="credit">人物：Microsoft Rocketbox Avatar Library（MIT License, © 2020 Microsoft）</p>
@@ -144,7 +144,9 @@ const CONFIG = {
   painCalm: 0.12,           // 余裕があるときの痛みの減り方
   swayBase: 0.5, swayPain: 1.6,   // 患者のゆれ(度)。痛いほど大きい
   scoreCollect: 700, scorePain: 200, scoreTime: 100,
-  failPenalty: 0.5,         // 仕返しで終わったときの点数の割合
+  failPenalty: 0.5,         // 仕返し・回収できずに終わったときの点数の割合
+  dropNorm: 0.95,           // 抜く途中、壁にこれより近いと菌が落ちる
+  dropEvery: 0.3,           // 壁にこすっている間、何秒ごとに菌が1個落ちるか
   playerDist: 0.45,         // 仕返しのとき、自分(白塗り)が立つ位置(患者からの距離 m)
   whiteMix: 0.16,
   fingerAxis: 'z', fingerSign: 1,   // 指を曲げる軸と向き（握る動き）
@@ -297,11 +299,12 @@ function floorContact(u, yaw, pitch) {   // 壁にふれているのが「床」
 function bubbleSay(text, dur = 1.1) { const b = $('bubble'); b.textContent = text; b.classList.add('on'); S.bubbleT = dur; }
 const HINT_START = '鼻の床にそって、上に向けずにまっすぐ ／ 長押しで進む ／ ドラッグで角度';
 const HINT_PULL = '奥に着いた！ ドラッグで綿棒を回してこすろう（速すぎると痛い）→「戻す」でゆっくり抜く';
+const HINT_ALL = '全部とれた！「戻す」でゆっくり抜いて、綿棒を回収しよう（壁にこすると菌が落ちる）';
 const HINT_RESIST = '抵抗あり！ 無理に押さず、少し戻して「床にそう角度」で入れなおそう';
 function newRound() {
   Object.assign(S, {
     mode: 'play', timeLeft: CONFIG.timeLimit, u: 0, holding: false, retract: false, pain: 0, peakPain: 0,
-    flinch: 0, revT: 0, revenge: false, failed: false, collected: 0, hintT: 7, wallSayT: 0, maxU: 0, pullHinted: false, resistHinted: false, floorSide: false, rubPx: 0, rubAcc: 0,
+    flinch: 0, revT: 0, revenge: false, failed: false, collected: 0, hintT: 7, wallSayT: 0, maxU: 0, pullHinted: false, allHinted: false, dropAcc: 0, dropped: 0, unretrieved: false, resistHinted: false, floorSide: false, rubPx: 0, rubAcc: 0,
     bendX: rand(-0.0025, 0.0025), bendY: rand(-0.0018, 0.0018), swY: 0, swP: 0,
     yaw: (Math.random() < .5 ? -1 : 1) * rand(3, CONFIG.startAimError), pitch: Math.random() < .65 ? rand(3, CONFIG.startAimError + 1) : -rand(2, 5),   // 最初は上に向けがち
   });
@@ -329,15 +332,16 @@ function finish(reason) {
   S.mode = 'result'; S.reason = reason;
   const ratio = S.collected / S.germs.length;
   let score;
-  if (S.failed) score = Math.round(ratio * CONFIG.scoreCollect * CONFIG.failPenalty);
+  S.unretrieved = reason === 'time' && S.u > 0.03 && S.collected > 0;   // 綿棒が鼻の中のまま＝回収できず
+  if (S.failed || S.unretrieved) score = Math.round(ratio * CONFIG.scoreCollect * CONFIG.failPenalty);
   else score = Math.round(ratio * CONFIG.scoreCollect + (1 - S.peakPain) * CONFIG.scorePain * ratio + clamp(S.timeLeft / CONFIG.timeLimit, 0, 1) * CONFIG.scoreTime * ratio);
   const rk = CONFIG.ranks.find(r => score >= r[0]);
   S.score = score; S.rank = rk;
   let best = 0; try { best = +localStorage.getItem('nswab_best') || 0; if (score > best) { best = score; localStorage.setItem('nswab_best', String(score)); } } catch (e) { best = Math.max(best, score); }
-  $('resTitle').textContent = reason === 'revenge' ? '患者の仕返し！ 綿棒を全部入れられた…' : reason === 'clear' ? '全部の菌を採取！' : reason === 'out' ? '綿棒を抜いて、検査おわり！' : 'タイムアップ！';
+  $('resTitle').textContent = reason === 'revenge' ? '患者の仕返し！ 綿棒を全部入れられた…' : reason === 'out' ? (S.collected >= S.germs.length ? '全部の菌を採取して、綿棒を回収！' : '綿棒を回収して、検査おわり！') : S.unretrieved ? 'タイムアップ！ 綿棒を回収できなかった…（点数は半分）' : 'タイムアップ！';
   $('rank').textContent = rk[1];
   $('score').textContent = score + '点 ／ ' + rk[2];
-  $('detail').innerHTML = `採取率 ${Math.round(ratio * 100)}%（${S.collected}/${S.germs.length}）<br>痛みのピーク ${Math.round(S.peakPain * 100)}%　残り ${Math.max(0, S.timeLeft).toFixed(1)}秒<br>ハイスコア ${best}点`;
+  $('detail').innerHTML = `採取率 ${Math.round(ratio * 100)}%（${S.collected}/${S.germs.length}）${S.dropped ? `　抜く時に落ちた菌 ${S.dropped}` : ''}<br>痛みのピーク ${Math.round(S.peakPain * 100)}%　残り ${Math.max(0, S.timeLeft).toFixed(1)}秒<br>ハイスコア ${best}点`;
   setTimeout(() => { if (S.mode === 'result') $('result').classList.add('on'); }, reason === 'revenge' ? 600 : 300);
   $('hint').style.opacity = 0;
 }
@@ -376,18 +380,27 @@ function stepPlay(dt) {
         S.rubAcc -= CONFIG.rubPxPerGerm;
         let best = null, bd = 1e9;
         for (const g of S.germs) if (!g.got) { const dd = (x - g.x) ** 2 + (y - g.y) ** 2; if (dd < bd) { bd = dd; best = g; } }
+        if (!best) break;
         best.got = true; S.collected++;
       }
       rate += CONFIG.painRub * clamp((moved / dt - CONFIG.rubFastSpeed) / CONFIG.rubFastSpeed, 0, 1.5);
     }
   } else S.rubPx = 0;
+  if (S.collected >= S.germs.length && !S.allHinted) { S.allHinted = true; $('hint').textContent = HINT_ALL; $('hint').style.opacity = 1; S.hintT = 9; }
+  if (S.retract && S.collected > 0 && S.u > 0.03 && (inWall || n > CONFIG.dropNorm)) {   // 抜く途中で壁にこすると、綿棒の菌が落ちる
+    S.dropAcc += dt;
+    while (S.dropAcc >= CONFIG.dropEvery && S.collected > 0) {
+      S.dropAcc -= CONFIG.dropEvery; S.collected--; S.dropped++;
+      const g = S.germs.find(g => g.got); if (g) g.got = false;   // 落ちた菌は鼻の奥にもどる（取りなおせる）
+      if (S.wallSayT <= 0.8) { $('hint').textContent = '菌が落ちた！ 壁にこすらないように抜こう'; $('hint').style.opacity = 1; S.hintT = 2.5; }
+    }
+  }
   S.wallSayT -= dt;
   S.pain = clamp(S.pain + rate * dt, 0, 1); S.peakPain = Math.max(S.peakPain, S.pain);
   if (S.pain > 0.75 && S.wallSayT <= 0 && !blocked && !inWall) { bubbleSay('……（イラッ）', 0.9); S.wallSayT = 1.8; }
   S.hintT -= dt; if (S.hintT < 0) $('hint').style.opacity = 0;
   if (S.pain >= 1) startRevenge();
-  else if (S.collected >= S.germs.length) finish('clear');
-  else if (S.maxU >= 0.9 && S.u <= 0.03) finish('out');       // 奥まで入れて、また抜いたら終了
+  else if (S.maxU >= 0.9 && S.u <= 0.03) finish('out');       // 奥まで入れて、抜いて回収したら終了（全部取っても抜くまでは終わらない）
   else if (S.timeLeft <= 0) { S.timeLeft = 0; finish('time'); }
 }
 // ===== [SEC:XSEC] =====
