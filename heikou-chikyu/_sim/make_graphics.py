@@ -1027,12 +1027,13 @@ def compare_table(title, rows_, tagk='計算', note=None):
         for ent in (A_, R_):
             label_chip(img, (cx[ent] - 170, 250), ENTITY_JA[ent], ENTITY[ent], appear(t, 0.3), size=32)
         lay = Layer()
+        step = 92 if len(rows_) <= 5 else 78     # 下の方は字幕の場所なので、行が多い表は詰める
         for i in range(len(rows_)):
-            yy = 330 + i * 92
-            lay.line([(150, yy + 70), (1770, yy + 70)], GRID, 1, appear(t, 0.6 + 0.6 * i))
+            yy = 320 + i * step
+            lay.line([(150, yy + step - 18), (1770, yy + step - 18)], GRID, 1, appear(t, 0.6 + 0.6 * i))
         lay.onto(img)
         for i, (lab, va, vr) in enumerate(rows_):
-            yy = 330 + i * 92
+            yy = 320 + i * step
             a = appear(t, 0.6 + 0.6 * i)
             text(d, (150, yy + 34), lab, 34, TEXT2, a, anchor='lm')
             for ent, v in ((A_, va), (R_, vr)):
