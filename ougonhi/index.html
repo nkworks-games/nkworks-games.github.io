@@ -62,7 +62,8 @@ footer{font-size:11px;color:var(--sub);text-align:center;margin-top:8px}
 .zb{width:48px;height:40px;border:1.5px solid var(--navy);border-radius:6px;background:#fff;color:var(--navy);font-size:22px;font-weight:700;line-height:1;padding:0}
 #cropinfo{flex:1;font-size:13px;color:var(--sub);text-align:center;font-variant-numeric:tabular-nums}
 .row2{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
-#pv{margin:0 auto;box-shadow:0 0 0 1px var(--gold)}
+.btn:disabled{opacity:.4;pointer-events:none}
+#pv{margin:0 auto;box-shadow:0 0 0 1px var(--gold);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 #pvc{display:block;width:100%;height:100%}
 .opt .ol{font-size:12.5px;color:var(--sub);letter-spacing:.15em;margin-bottom:5px}
 .seg{display:flex;border:1.5px solid var(--navy);border-radius:6px;overflow:hidden;background:#fff}
@@ -123,11 +124,11 @@ footer{font-size:11px;color:var(--sub);text-align:center;margin-top:8px}
 </section>
 <section id="s-app" class="screen hide">
   <h2>修正申請書</h2>
-  <p class="lead">修正の向きを選んでください。</p>
+  <p class="lead">修正の向きを選んでください。<br>写真は指で動かしたり、2本指で拡大・縮小できます。</p>
   <div id="pv"><canvas id="pvc"></canvas></div>
   <div class="opt"><div class="ol">渦の中心</div><div class="seg" id="seg-spin"><button data-v="a">おまかせ</button><button data-v="0">右下</button><button data-v="1">左下</button><button data-v="2">左上</button><button data-v="3">右上</button></div></div>
   <div class="opt"><div class="ol">形</div><div class="seg" id="seg-shape"><button data-v="a">おまかせ</button><button data-v="p">縦長</button><button data-v="l">横長</button></div></div>
-  <button id="b-crop" class="btn b2 sm">大きさ・位置を変える</button>
+  <div class="row2"><button id="b-pvreset" class="btn b2 sm">元に戻す</button><button id="b-crop" class="btn b2 sm">枠の形も変える</button></div>
   <div id="pvsum"></div>
   <button id="b-go" class="btn">この内容で提出する</button>
   <button id="b-back" class="lnk">ほかの写真にする</button>
@@ -563,7 +564,7 @@ function renderApp() {
   for (const b of $('seg-spin').children) b.classList.toggle('on', b.dataset.v === (S.spin == null ? 'a' : String(S.spin)));
   for (const b of $('seg-shape').children) b.classList.toggle('on', b.dataset.v === (S.shape || 'a'));
   $('pvsum').innerHTML = `${S.crop ? '調整した範囲を ' : ''}<b>${S.frame.portrait ? '縦長' : '横長'}</b>・渦の中心は<b>${SPIN[sp.i].n}</b> で修正します`;
-  $('b-crop').textContent = S.crop ? '大きさ・位置を変え直す' : '大きさ・位置を変える';
+  $('b-crop').textContent = '枠の形も変える'; $('b-pvreset').disabled = !S.crop;
   // 見本の 大きさ：ほかの 部品を 置いた 残りの 高さ（スマホ 1画面に 収める）
   const pv = $('pv'); pv.style.width = pv.style.height = '0px';
   const vh = Math.min(innerHeight, (window.visualViewport && visualViewport.height) || innerHeight), rest = $('s-app').offsetHeight;
@@ -577,6 +578,68 @@ function renderApp() {
   for (const v of [G1, G2]) { g.beginPath(); g.moveTo(v * c.width, 0); g.lineTo(v * c.width, c.height); g.moveTo(0, v * c.height); g.lineTo(c.width, v * c.height); g.stroke(); }
   g.lineWidth = Math.max(2, c.width / 170); g.strokeStyle = 'rgba(232,200,110,.98)'; g.beginPath();
   sp.pts.forEach((q, j) => j ? g.lineTo(q[0] * k, q[1] * k) : g.moveTo(q[0] * k, q[1] * k)); g.stroke(); g.restore();
+}
+// ---------------- 見本の 上で 写真を 動かす：指で ずらす／2本指・ホイールで 拡大・縮小 ----------------
+//   見本の 枠に 見えている 範囲が、そのまま 修正する 写真に なる（はみ出した 所は 余白）。指を はなすと 線と 渦を 引き直す
+const PV = { ptr: new Map(), act: null, v: null, moved: false, wt: 0 }, pvEl = $('pv'), pvc = $('pvc');
+function pvView() {   // 今の 見え方を「元の 写真（S.full）→ 見本の 画面」の 倍率と 位置で 表す
+  const F = S.full, C = S.crop || { x: 0, y: 0, w: F.width, h: F.height }, r = S.rect0, s = pvEl.clientWidth / S.frame.W, sc = r.w * s / C.w;
+  return { sc, ox: r.x * s - C.x * sc, oy: r.y * s - C.y * sc, w: pvEl.clientWidth, h: pvEl.clientHeight };
+}
+function pvClamp(v) {   // 縮小：写真が 枠に 収まる 大きさの 1/4 まで／拡大：枠の 短い辺に 写真が 24px 分 入る ところまで。写真は 少なくとも 30px 枠に 重ねる
+  const F = S.full, fit = Math.min(v.w / F.width, v.h / F.height);
+  v.sc = clamp(v.sc, fit * 0.25, Math.max(fit * 2, Math.min(v.w, v.h) / 24));
+  const iw = F.width * v.sc, ih = F.height * v.sc, mx = Math.min(30, iw, v.w), my = Math.min(30, ih, v.h);
+  v.ox = clamp(v.ox, mx - iw, v.w - mx); v.oy = clamp(v.oy, my - ih, v.h - my);
+}
+function pvDraw() {   // 動かして いる 間の 見本（写真と 黄金比の 線だけ）
+  const v = PV.v, F = S.full, g = pvc.getContext('2d'), d = pvc.width / v.w;
+  g.setTransform(d, 0, 0, d, 0, 0); g.fillStyle = '#e9e3d3'; g.fillRect(0, 0, v.w, v.h);
+  g.imageSmoothingQuality = 'high'; g.drawImage(F, v.ox, v.oy, F.width * v.sc, F.height * v.sc);
+  g.strokeStyle = 'rgba(217,184,100,.95)'; g.lineWidth = 1.2;
+  for (const t of [G1, G2]) { g.beginPath(); g.moveTo(t * v.w, 0); g.lineTo(t * v.w, v.h); g.moveTo(0, t * v.h); g.lineTo(v.w, t * v.h); g.stroke(); }
+  g.setTransform(1, 0, 0, 1, 0, 0);
+}
+function pvCommit() {   // 見えている 範囲を 修正する 写真に して、線と 渦を 引き直す
+  const v = PV.v, F = S.full; PV.v = null; if (!v || !PV.moved) return; PV.moved = false;
+  const b = { x: -v.ox / v.sc, y: -v.oy / v.sc, w: v.w / v.sc, h: v.h / v.sc }, e = Math.max(F.width, F.height) * 0.005;
+  const all = Math.abs(b.x) < e && Math.abs(b.y) < e && Math.abs(b.w - F.width) < e && Math.abs(b.h - F.height) < e;
+  S.crop = all ? null : { x: Math.round(b.x), y: Math.round(b.y), w: Math.max(8, Math.round(b.w)), h: Math.max(8, Math.round(b.h)) };
+  S.orig = workPhoto(); S.plan = null; renderApp();
+}
+{
+  const pos = e => { const r = pvEl.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  const two = () => { const [a, b] = [...PV.ptr.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, m: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } }; };
+  pvEl.addEventListener('pointerdown', e => {
+    if (S.busy || !S.full) return;
+    e.preventDefault(); try { pvEl.setPointerCapture(e.pointerId); } catch (_) { }
+    if (!PV.v) PV.v = pvView();
+    const p = pos(e); PV.ptr.set(e.pointerId, p); const v = PV.v;
+    if (PV.ptr.size === 2) { const t = two(); PV.act = { k: 'pinch', d0: t.d, s0: v.sc, ix: (t.m.x - v.ox) / v.sc, iy: (t.m.y - v.oy) / v.sc }; }
+    else if (PV.ptr.size === 1) PV.act = { k: 'pan', p0: p, ox0: v.ox, oy0: v.oy };
+  });
+  pvEl.addEventListener('pointermove', e => {
+    if (!PV.ptr.has(e.pointerId) || !PV.act || !PV.v) return;
+    const p = pos(e); PV.ptr.set(e.pointerId, p); const a = PV.act, v = PV.v;
+    if (a.k === 'pinch') { if (PV.ptr.size < 2) return; const t = two(); v.sc = a.s0 * t.d / a.d0; pvClamp(v); v.ox = t.m.x - a.ix * v.sc; v.oy = t.m.y - a.iy * v.sc; }
+    else { if (Math.hypot(p.x - a.p0.x, p.y - a.p0.y) < 3 && !PV.moved) return; v.ox = a.ox0 + p.x - a.p0.x; v.oy = a.oy0 + p.y - a.p0.y; }
+    pvClamp(v); PV.moved = true; pvDraw();
+  });
+  const up = e => {
+    if (!PV.ptr.has(e.pointerId)) return;
+    PV.ptr.delete(e.pointerId);
+    if (PV.ptr.size === 1 && PV.act && PV.act.k === 'pinch') { const p = [...PV.ptr.values()][0]; PV.act = { k: 'pan', p0: p, ox0: PV.v.ox, oy0: PV.v.oy }; return; }   // 1本指に もどったら そのまま ずらす
+    if (!PV.ptr.size) { PV.act = null; pvCommit(); }
+  };
+  pvEl.addEventListener('pointerup', up); pvEl.addEventListener('pointercancel', up);
+  pvEl.addEventListener('wheel', e => {
+    if (S.busy || !S.full) return;
+    e.preventDefault(); if (!PV.v) PV.v = pvView();
+    const v = PV.v, p = pos(e), ix = (p.x - v.ox) / v.sc, iy = (p.y - v.oy) / v.sc;
+    v.sc *= Math.exp(-e.deltaY * 0.0015); pvClamp(v); v.ox = p.x - ix * v.sc; v.oy = p.y - iy * v.sc; pvClamp(v); PV.moved = true; pvDraw();
+    clearTimeout(PV.wt); PV.wt = setTimeout(() => { if (!PV.ptr.size) pvCommit(); }, 300);
+  }, { passive: false });
+  $('b-pvreset').onclick = () => { if (S.busy || !S.full) return; S.crop = null; S.orig = workPhoto(); S.plan = null; renderApp(); };
 }
 // 提出：選んだ 向きで 元の 写真から 修正する（修正回数は 1回目から。直した 枚数は 写真1枚につき 1回だけ 数える）
 async function go() {
