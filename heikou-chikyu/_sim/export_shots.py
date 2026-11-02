@@ -8,6 +8,7 @@
 """
 import gzip
 import json
+import math
 import os
 import pickle
 
@@ -110,6 +111,22 @@ def planet(cid, title, camera, seconds=9, **kw):
     return s
 
 
+def neighbor_xy(tid, trial, which=0):
+    """始まりの島から、海の幅が近い順に which 番目の島の中心の位置（m。build_islands と同じ計算で、始まりの島が原点）"""
+    r = run(tid, trial)
+    w = world(tid)
+    isl = int(w['reg']['island'][r['start_regions'][0]])
+    L = w['links']
+    i, j, gap = np.asarray(L['i']), np.asarray(L['j']), np.asarray(L['gap'])
+    m = (i == isl) | (j == isl)
+    nbs = sorted(zip(np.where(i[m] == isl, j[m], i[m]), gap[m]), key=lambda x: x[1])
+    nb = int(nbs[which][0])
+    lay = w['lay']
+    d = W.gc_dist(lay['lat'][isl], lay['lon'][isl], lay['lat'][nb], lay['lon'][nb])
+    b = W.bearing(lay['lat'][isl], lay['lon'][isl], lay['lat'][nb], lay['lon'][nb])
+    return (float(d * math.sin(b) * 1000), float(d * math.cos(b) * 1000))
+
+
 def islands_shot(cid, title, tid, trial, camera, time='dusk', radius_km=150, boats=None, seconds=10, anim=True, relief=1.0):
     r = run(tid, trial)
     w = world(tid)
@@ -133,7 +150,9 @@ def main():
     S.append(coast('013', '浜の火と石の道具、数人の後ろ姿（開始時点）', 'A1', 2, 0, dict(loc=[8, 133, 1.6], target=[4, 148, 0.8], lens=35),
                    time='dusk', anim=False, extras=[dict(type='fire', loc=[4, 146], strength=120), dict(type='woodpile', loc=[7, 149]),
                                                    dict(type='figure', loc=[2.6, 144.6], pose='sit', rot=-60), dict(type='figure', loc=[5.6, 144.4], pose='sit', rot=60),
-                                                   dict(type='figure', loc=[4.2, 143.9], pose='sit', rot=0)]))
+                                                   dict(type='figure', loc=[4.2, 143.9], pose='sit', rot=0), dict(type='raft', loc=[8.8, 144.8], rot=70)],
+                   anchors={'fire': {'obj': 'fire_0', 'dz': 0.35}, 'wood': {'obj': 'woodpile_1', 'dz': 0.45}, 'raft': {'obj': 'raft_5', 'dz': 0.25},
+                            'people': {'obj': 'figure_3', 'dz': 1.0}}))
     S.append(coast('019', '朝の浜の集落（R1-1・0年ごろ）', 'R1', 1, 0, CAM_DRONE, time='dawn', anim=False))
     S.append(coast('020', '潮の引いた岩場で貝をとる（A1-2・100年ごろ）', 'A1', 2, 100, dict(loc=[68, 22, 1.8], target=[56, 38, 0.3], lens=40, loc2=[66, 24, 1.7], target2=[56, 38, 0.3]),
                    reef=True, extras=[dict(type='figure', loc=[54, 38], pose='bend', rot=200), dict(type='figure', loc=[59, 35], pose='bend', rot=150, phase=0.3)]))
@@ -162,7 +181,9 @@ def main():
     S.append(coast('049', '浜から沖へ漕ぎ出す舟（A1-2・314年）', 'A1', 2, 314, dict(loc=[6, 142, 1.8], target=[-5, 108, 0.5], lens=45), time='dawn', seconds=10,
                    extras=[dict(type='outrigger', loc=[0, 122], rot=180, float=True, move=[0, -40, 0]),
                            dict(type='figure', loc=[0, 120.8, 0.12], pose='paddle', rot=180, boat=0),
-                           dict(type='figure', loc=[0, 123.4, 0.12], pose='paddle', rot=180, phase=0.4, boat=0)]))
+                           dict(type='figure', loc=[0, 123.4, 0.12], pose='paddle', rot=180, phase=0.4, boat=0)],
+                   islands=[dict(radius=2600, height=380, loc=[-15400, -47400, -5])],      # 50km 先の島（カメラの向きの先）
+                   anchors={'island': [-15400, -47400, 420], 'boat': {'obj': 'outrigger_0', 'dz': 1.2}}))
     S.append(coast('051', '新しい島の浜に舟が着く（A1-2・314年）', 'A1', 2, 0, dict(loc=[-6, 152, 2.5], target=[0, 104, 0.8], lens=60), seconds=12,
                    settlement=dict(huts=0, fires=0, people=0, racks=0, pots=0, gardens=0), boats=[], forest=1.0,
                    extras=[dict(type='outrigger', loc=[0, 95], rot=0, float=True, move=[0, 18, 0]),
@@ -183,13 +204,32 @@ def main():
                           dict(loc=at(-60, 30, 22), target=at(2500, -120, 0), lens=40, loc2=at(-10, 30, 21), target2=at(2560, -120, 0)), time='day',
                           boats=[sail_boat(at(90, -25), -48), sail_boat(at(170, 40), -44), sail_boat(at(290, -70), -53)], seconds=12, relief=2.0))
     S.append(islands_shot('069', 'R1-1の島：大木の森のある、大きな火山島（計算の形）', 'R1', 1, dict(loc=[0, -80000, 31000], target=[0, 0, 0], lens=35), time='day', radius_km=60, anim=False, relief=4.0))
-    S.append(islands_shot('070', 'R1-4の島：小さな古い火山島（計算の形）', 'R1', 4, dict(loc=[0, -42000, 12000], target=[0, 0, 0], lens=35), time='day', radius_km=60, anim=False, relief=4.0))
+    nb = neighbor_xy('R1', 4)            # いちばん近い島（104km）の位置
+    RAFT_R = round(math.sqrt(771 / math.pi) * 1000 + 30000)
+    mid = (nb[0] / 2, nb[1] / 2)
+    u = (-nb[0] / math.hypot(*nb), -nb[1] / math.hypot(*nb))
+    S.append(dict(islands_shot('070', 'R1-4の島：小さな古い火山島と、いちばん近い島（計算の形）', 'R1', 4,
+                               dict(loc=[mid[0] + u[0] * 230000, mid[1] + u[1] * 230000, 170000], target=[mid[0], mid[1], 0], lens=32),
+                               time='day', radius_km=200, anim=False, relief=4.0),
+                  # いかだの届く海（30km）：海岸から30km。島（771km²）と同じ広さの円の半径 15.7km に足した円で近づける
+                  rings=[dict(c=[0, 0], r=RAFT_R, w=1100, color=[1.0, 0.42, 0.15], strength=1.6)],
+                  anchors={'start': [0, 0, 900], 'near': [nb[0], nb[1], 700], 'ring': [RAFT_R * u[1], -RAFT_R * u[0], 30]}))
+    S[-1]['sky']['azimuth'] = 40     # 太陽をカメラの後ろへ（海面の照り返しが画面に入らない）
+    nba = neighbor_xy('A1', 2, which=0)  # いちばん近い島（26km・低いサンゴの島）
+    nbf = neighbor_xy('A1', 2, which=1)  # 314年に初めて移り住んだ島（50km）
+    S.append(dict(islands_shot('221', '群島の歴史の始まりの島と、まわりの島（計算の形）', 'A1', 2,
+                               dict(loc=[0, -230000, 175000], target=[0, 35000, 0], lens=30, loc2=[0, -205000, 160000], target2=[0, 35000, 0]),
+                               time='day', radius_km=220, anim=True, relief=2.5, seconds=10),
+                  anchors={'start': [0, 0, 1500], 'near': [nba[0], nba[1], 200], 'first': [nbf[0], nbf[1], 1400]}))
     S.append(opensea('074', '遠くの島へ向かう帆の船団（R1-1・2,000年ごろ）', time='day',
                      boats=[sail_boat([0, 0, 0.35], -10), sail_boat([-25, -30, 0.35], -10), sail_boat([20, -45, 0.35], -10), sail_boat([-8, -70, 0.35], -10)],
                      islands=[dict(radius=1600, height=300, loc=[-4000, 16000, -5])],
                      camera=dict(loc=[45, -95, 9], target=[-5, 10, 2], lens=40, loc2=[40, -70, 8], target2=[-8, 40, 2]), seconds=12))
     S.append(coast('076', '浜で沖を見る人（後ろ姿）と、いかだ（R1-4・1,500年）', 'R1', 4, 1500, dict(loc=[2, 160, 2.2], target=[0, 0, 3.5], lens=35, loc2=[1.6, 157, 2.2], target2=[0, 0, 3.5]),
-                   time='dusk', extras=[dict(type='figure', loc=[0, 145], pose='look', rot=180), dict(type='raft', loc=[6, 138], rot=10)], seconds=12))
+                   time='dusk', extras=[dict(type='figure', loc=[0, 145], pose='look', rot=180), dict(type='raft', loc=[6, 138], rot=10)], seconds=12,
+                   # 104km 先の島（向きは画面に合わせた再構成）。島は水平線の下に隠れるが、上にかかる雲が見える
+                   islands=[dict(radius=6000, height=280, loc=[-1300, -104000, -5], cloud=dict(size=9000, base=900, top=4200))],
+                   anchors={'island': [-1300, -104000, 300], 'cloud': [-1300, -104000, 2400], 'raft': {'obj': 'raft_1', 'dz': 0.3}}))
     S.append(coast('079', '大きな島の空撮（C1-3）', 'C1', 3, 2500, dict(loc=[0, -500, 260], target=[0, 350, 0], lens=40, loc2=[0, -380, 230], target2=[0, 360, 0])))
     S.append(coast('081', '海岸の集落と畑、背後に手つかずの内陸の森（C1-3・2,500年）', 'C1', 3, 2500, dict(loc=[70, 40, 32], target=[0, 200, 8], lens=28, loc2=[58, 55, 30], target2=[0, 205, 8]),
                    village_scale=2.0, settlement=dict(gardens=6), seconds=12))

@@ -35,8 +35,8 @@ KAN = '〇一二三四五六七八九十百千万'
 
 
 def cut_table():
-    """いまのカット表（第3版があればそれ）"""
-    for name in ('cuts_v3.csv', 'cuts_v2.csv'):
+    """いまのカット表（新しい版から）"""
+    for name in ('cuts_v4.csv', 'cuts_v3.csv', 'cuts_v2.csv'):
         p = os.path.join(HERE, 'out', 'script', name)
         if os.path.exists(p):
             return p
@@ -65,7 +65,7 @@ def fmt(n, unit_next):
     return format(n, ',')
 
 
-KEEP_AFTER_ONE = '方段気角度緒つ'   # 一方・一段・一気・一角・一度・一緒・一つ は言葉のまま
+KEEP_AFTER_ONE = '方段気角度緒つ歩'   # 一方・一段・一気・一角・一度・一緒・一つ・一歩 は言葉のまま
 
 
 def to_display(s):
@@ -81,7 +81,8 @@ def to_display(s):
                 j += 1
             seq, nxt, prev = s[i:j], s[j:j + 2], s[i - 1] if i else ''
             word_juubun = seq == '十' and nxt[:1] == '分' and s[j + 1:j + 2] != 'の'   # 「十分（じゅうぶん）」は言葉のまま（三分の二などは数）
-            if prev == '数' or (seq == '一' and nxt[:1] in KEEP_AFTER_ONE) or seq == '万' or word_juubun:
+            tsu = len(seq) == 1 and seq in D and nxt[:1] == 'つ'    # 一つ・三つ・五つ（数え方の「つ」）は漢字のまま
+            if prev == '数' or (seq == '一' and nxt[:1] in KEEP_AFTER_ONE) or seq == '万' or word_juubun or tsu:
                 out.append(seq)
             else:
                 out.append(fmt(kan2int(seq), nxt))
@@ -111,7 +112,7 @@ def parse_year(src):
 
 def hud_spec(row, shot):
     """カットに付ける表示の中身。付けないカットは None"""
-    if not row['kind'].startswith('3D'):
+    if not row['kind'].startswith('3D') or row['kind'] == '3D分割':   # 左右に並べるカットは、左右それぞれに名前を出す（annotations.py）
         return None
     src = row['source']
     rec = (shot or {}).get('record', '')
@@ -198,7 +199,7 @@ def main():
         if disp:
             n += 1
             srt.append('%d\n%s --> %s\n%s\n' % (n, srt_time(t + 0.3), srt_time(t + sec - 0.2), disp))
-        spec = hud_spec(r, shots.get(r['no']))
+        spec = hud_spec(r, shots.get(r.get('shot') or r['no']))
         p = os.path.join(OUT_HUD, 'hud%s.png' % r['no'])
         if spec:
             draw_hud(spec).save(p)

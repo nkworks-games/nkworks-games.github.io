@@ -1,6 +1,8 @@
 """並行地球 第1回：粗いつなぎ（通し確認用の動画）を作る
 
-カット表（out/script/cuts_v3.csv、なければ cuts_v2.csv）の順と秒数で、手元にある素材をつなぐ。
+カット表（out/script/cuts_v4.csv、なければ v3・v2）の順と秒数で、手元にある素材をつなぐ。
+  列 shot があれば、その番号の 3D を使う（'L|R' は左右に並べる）。annotations.py に解説のあるカットは、
+  矢印・名前・数字を1コマずつ重ねる（矢印の先は Blender が書いた anchors_cutNNN.json から）
   図・地図・文字：out/video/cutNNN.mp4（make_graphics.py で作ったもの）
   3D           ：out/renders/final/cutNNN.mp4（frames_to_mp4.py で作る）か cutNNN.png。なければ動きの確かめ用の小さい動画（motion）、
                  それもなければ確認用の静止画
@@ -37,8 +39,8 @@ ENC = ['-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-preset', 'veryf
 
 
 def cut_table():
-    """いまのカット表（第3版があればそれ）"""
-    for name in ('cuts_v3.csv', 'cuts_v2.csv'):
+    """いまのカット表（新しい版から）"""
+    for name in ('cuts_v4.csv', 'cuts_v3.csv', 'cuts_v2.csv'):
         p = os.path.join(HERE, 'out', 'script', name)
         if os.path.exists(p):
             return p
@@ -105,12 +107,67 @@ def placeholder(row, path):
     img.save(path)
 
 
-def find_3d(no):
+def find_3d(no, need_anchor=False):
+    """3D の素材（本番の動画 → 本番の静止画 → 動きの確かめ → 確認用の静止画 の順）。
+    need_anchor：矢印の先の点の記録（同じ場所の anchors_cutNNN.json）があるものだけ。返り値（素材, 点の記録）"""
     for p in ('final/cut%s.mp4' % no, 'final/cut%s.png' % no, 'motion/cut%s.mp4' % no, 'preview5/cut%s.png' % no, 'preview4/cut%s.png' % no, 'preview3/cut%s.png' % no, 'preview2/cut%s.png' % no, 'preview/cut%s.png' % no):
         f = os.path.join(HERE, 'out', 'renders', p)
-        if os.path.exists(f):
-            return f
-    return None
+        a = os.path.join(os.path.dirname(f), 'anchors_cut%s.json' % no)
+        if os.path.exists(f) and (os.path.exists(a) or not need_anchor):
+            return f, (a if os.path.exists(a) else None)
+    return (find_3d(no)[0], None) if need_anchor else (None, None)
+
+
+def input_args(src):
+    return ['-i', src] if src.endswith('.mp4') else ['-loop', '1', '-i', src]
+
+
+def base_chain(i, src, sec, crop=None):
+    """i 番目の入力を、1920×1080（crop＝左右に並べるときの切り出しの位置 0〜1）にそろえる filter"""
+    f = '[%d:v]' % i + ('fps=%d,' % FPS if src.endswith('.mp4') else '') + 'scale=%d:%d,setsar=1' % (W, H)
+    if src.endswith('.mp4'):
+        f += ',tpad=stop_mode=clone:stop_duration=%d' % sec
+    if crop is not None:
+        f += ',crop=%d:%d:%d:0' % (W // 2, H, int((W - W // 2) * crop))
+    return f
+
+
+def annotated_segment(row, clean, out, ov):
+    """解説（矢印・名前・数字）を1コマずつ重ねるカット。左右に並べるカットもここ"""
+    import annotations as AN
+    no, sec = row['no'], int(row['sec'])
+    n = sec * FPS
+    shot = row.get('shot') or no
+    sp = AN.split_of(no)
+    shots = shot.split('|') if sp else [shot]
+    need = AN.needs_anchor(no)
+    srcs, anchors, chains = [], [], []
+    for i, s in enumerate(shots):
+        src, a = find_3d(s, need)
+        if src is None:
+            ph = os.path.join(SEG, 'ph%s_%d.png' % (no, i))
+            placeholder(dict(row, visual='3D %s' % s), ph)
+            src = ph
+        srcs.append(src)
+        anchors.append(AN.load_anchors(a))
+        chains.append(base_chain(i, src, sec, sp.get('crop', (0.5, 0.5))[i] if sp else None))
+    k = len(srcs)
+    fc = ';'.join('%s[s%d]' % (c, i) for i, c in enumerate(chains))
+    fc += ';[s0][s1]hstack=inputs=2[b]' if sp else ';[s0]null[b]'
+    fc += ';[b][%d:v]overlay=0:0:format=auto' % k
+    args = ['ffmpeg', '-y', '-loglevel', 'error']
+    for src in srcs:
+        args += input_args(src)
+    args += ['-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', '%dx%d' % (W, H), '-r', str(FPS), '-i', 'pipe:0',
+             '-filter_complex', fc, '-frames:v', str(n)] + ENC + ['-an', out]
+    base = Image.open(ov).convert('RGBA')
+    pr = subprocess.Popen(args, stdin=subprocess.PIPE)
+    for b in AN.frames(row, sec, base, anchors):
+        pr.stdin.write(b)
+    pr.stdin.close()
+    if pr.wait() != 0:
+        raise RuntimeError('ffmpeg に失敗：カット %s' % no)
+    return out
 
 
 def segment(row, clean):
@@ -121,7 +178,10 @@ def segment(row, clean):
     n = sec * FPS
     src = None
     if row['kind'].startswith('3D'):
-        src = find_3d(no)
+        import annotations as AN
+        if AN.has_notes(no):
+            return annotated_segment(row, clean, out, ov)
+        src = find_3d(row.get('shot') or no)[0]
     else:
         f = os.path.join(HERE, 'out', 'video', 'cut%s.mp4' % no)
         src = f if os.path.exists(f) else None

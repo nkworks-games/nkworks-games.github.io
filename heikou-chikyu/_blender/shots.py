@@ -57,6 +57,7 @@ def parse_args():
     ap.add_argument('--step', type=int, default=1, help='N コマおきに描く（2 なら半分。間はあとで補う）')
     ap.add_argument('--resume', action='store_true', help='描き終えたコマ・カットは飛ばす（中断したところから）')
     ap.add_argument('--build-only', action='store_true', help='描かずに .blend だけ保存する（scene_check.py で点検する用）')
+    ap.add_argument('--anchors', action='store_true', help='描かずに、注記（矢印）の先の点が画面のどこに来るかを、コマごとに anchors_cutNNN.json に書く')
     ap.add_argument('--frames', default='', help='動くカットの、決めたコマだけを静止画で描く（first,mid,last か番号。本番前の確かめ用）')
     return ap.parse_args(argv)
 
@@ -453,6 +454,8 @@ def build_coast(s):
             settle(ob, tree)
     for k, isl in enumerate(s.get('islands', [])):
         island_silhouette('島影%d' % k, seed + k, isl['radius'], isl['height'], isl['loc'])
+        if isl.get('cloud'):
+            cap_cloud('雲%d' % k, seed + k, isl['loc'], **isl['cloud'])
     water.sea_box(s.get('algae', 1.0))
     water.foam(ter)
     return ter
@@ -481,6 +484,60 @@ def flatten_paths(ter, extras, half=1.4, blend=1.6):
         w = np.clip(1 - (lat - half) / blend, 0, 1)
         w[(P0 @ u < -3.0) | (P0 @ u > L + 3.0)] = 0
         ter.H[:] = ter.H * (1 - w) + hc * w
+
+
+def add_rings(s, kind):
+    """海の上に描く輪（いかだの届く距離など）。光る細い帯なので、空から見ても形が分かる。点検では調べない"""
+    for k, r in enumerate(s.get('rings', [])):
+        R, w = float(r['r']), float(r.get('w', r['r'] * 0.012))
+        n = 256
+        verts, faces = [], []
+        for i in range(n):
+            a = 2 * math.pi * i / n
+            for rr in (R - w / 2, R + w / 2):
+                verts.append((r['c'][0] + rr * math.cos(a), r['c'][1] + rr * math.sin(a), r.get('z', 30.0 if kind == 'islands' else 0.3)))
+        for i in range(n):
+            j = (i + 1) % n
+            faces.append((2 * i, 2 * j, 2 * j + 1, 2 * i + 1))
+        me = bpy.data.meshes.new('注記の輪%d' % k)
+        me.from_pydata(verts, [], faces)
+        from kit.util import new_material, node, link
+        mat, nt = new_material('注記の輪%d' % k)
+        em = node(nt, 'ShaderNodeEmission', (0, 0))
+        em.inputs['Color'].default_value = tuple(r.get('color', (1.0, 0.55, 0.25))) + (1,)
+        em.inputs['Strength'].default_value = r.get('strength', 6.0)
+        out = node(nt, 'ShaderNodeOutputMaterial', (200, 0))
+        link(nt, em.outputs[0], out.inputs['Surface'])
+        me.materials.append(mat)
+        ob = bpy.data.objects.new('注記の輪%d' % k, me)
+        ob['nocheck'] = True
+        ob.visible_shadow = False
+        link_object(ob)
+
+
+def write_anchors(s, frames, path):
+    """注記の先の点（s['anchors']）が、コマごとに画面のどこに来るか（左上が0,0・右下が1,1）。
+    点は世界の座標 [x,y,z] か、{"obj": 名前, "dz": 高さ}（物の位置。動く物はコマごとに読む）"""
+    sc = bpy.context.scene
+    cam = sc.camera
+    anchors = s.get('anchors', {})
+    out = {'fps': 24, 'frames': max(1, frames), 'anchors': {k: [] for k in anchors}}
+    for f in range(1, max(1, frames) + 1):
+        sc.frame_set(f)
+        for k, a in anchors.items():
+            if isinstance(a, dict):
+                ob = bpy.data.objects.get(a['obj'])
+                if ob is None:
+                    out['anchors'][k].append(None)
+                    continue
+                co = ob.matrix_world.translation + Vector((0, 0, a.get('dz', 0.0)))
+            else:
+                co = Vector(a)
+            from bpy_extras.object_utils import world_to_camera_view
+            v = world_to_camera_view(sc, cam, co)
+            out['anchors'][k].append([round(v.x, 4), round(1 - v.y, 4), v.z > 0])
+    with open(path, 'w', encoding='utf-8') as fh:
+        json.dump(out, fh)
 
 
 def ground_tree():
@@ -755,6 +812,34 @@ def island_silhouette(name, seed, radius, height, loc):
     return o
 
 
+def cap_cloud(name, seed, loc, size=7000.0, base=900.0, top=3200.0):
+    """遠くの島の上にかかる積雲（島が水平線の下に隠れても、雲で島のありかが分かる）。
+    底が平らな、ふくらみの集まり。白い面（夕日の色に染まる）"""
+    rng = stream(seed, 'capcloud', name)
+    bm = bmesh.new()
+    for k in range(18):
+        r = size * rng.uniform(0.14, 0.28)
+        x = rng.uniform(-0.42, 0.42)
+        # 真ん中ほど高く積み上がる（もくもくした頭）
+        hmax = (top - base - 2 * r) * (1 - abs(x) / 0.5) ** 0.7
+        c = Vector((x * size, rng.uniform(-0.25, 0.25) * size, base + r * 0.7 + max(0.0, hmax) * rng.uniform(0.2, 1.0)))
+        g = bmesh.ops.create_icosphere(bm, subdivisions=3, radius=r)
+        for v in g['verts']:
+            p = v.co.copy()
+            n = noise.fractal(p / r * 1.4 + Vector((seed + k, k * 0.7, 0)), 0.55, 2.0, 4)
+            v.co = c + p * (1 + 0.22 * n)
+            v.co.z = max(v.co.z, base)       # 底は平ら
+    o = mesh_object(name, bm)
+    o.location = loc
+    # 夕方の逆光で見るので、白ではなく影の灰色（もやで明るくなる）。海面には映さない（映ると縦の柱に見える）
+    o.data.materials.append(M.simple('雲の影', (0.30, 0.30, 0.34, 1), (0.44, 0.43, 0.47, 1), 0.95, 0.002, 0.05))
+    o.data.polygons.foreach_set('use_smooth', np.ones(len(o.data.polygons), bool))
+    o['nocheck'] = True
+    o.visible_shadow = False
+    o.visible_glossy = False
+    return o
+
+
 def build_opensea(s):
     seed = s.get('seed', 7)
     rng = stream(seed, 'opensea', s['id'])
@@ -772,6 +857,8 @@ def build_opensea(s):
         boats.append((ob, b))
     for k, isl in enumerate(s.get('islands', [])):
         island_silhouette('島影%d' % k, seed + k, isl['radius'], isl['height'], isl['loc'])
+        if isl.get('cloud'):
+            cap_cloud('雲%d' % k, seed + k, isl['loc'], **isl['cloud'])
     return oc, md, boats
 
 
@@ -1061,9 +1148,12 @@ def setup_camera(s, frames, ter=None):
     cam = bpy.data.objects.new('カメラ', bpy.data.cameras.new('カメラ'))
     link_object(cam)
     c = ground_relative(s['camera'], ter)
+    s['_cam'] = c          # 注記の位置を計算するために、地面からの高さを足した後のカメラを覚えておく
     cam.data.lens = c.get('lens', 30)
     cam.data.sensor_width = 36
-    cam.data.clip_end = c.get('clip', 40000)
+    # 遠くの島影（と、その上の雲）があるカットは、島の先まで描く（40km より先は切れて見えなくなる）
+    far = max([math.hypot(i['loc'][0], i['loc'][1]) + i['radius'] * 1.5 + 5000 for i in s.get('islands', [])] + [0])
+    cam.data.clip_end = max(c.get('clip', 40000), far)
     cam.data.clip_start = c.get('clip_start', 0.1)
 
     def aim(loc, tgt):
@@ -1296,6 +1386,7 @@ def build(s, args):
         _, ocean_md, boats = build_islands(s)
     elif kind == 'planet':
         build_planet(s)
+    add_rings(s, kind)
     if kind in ('opensea', 'islands') and s.get('extras'):
         place_extras(s['extras'], None, s.get('seed', 7))
     sk = s.get('sky')
@@ -1374,6 +1465,10 @@ def main():
         if args.blend or args.build_only:
             bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, 'cut%s.blend' % s['id']))
         if args.build_only:
+            continue
+        if args.anchors or s.get('anchors'):
+            write_anchors(s, frames, os.path.join(out, 'anchors_cut%s.json' % s['id']))
+        if args.anchors:
             continue
         t1 = time.time()
         if args.frames and frames > 1:

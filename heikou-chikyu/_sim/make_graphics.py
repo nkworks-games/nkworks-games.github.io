@@ -48,8 +48,8 @@ def world(tid):
 
 
 def cut_table():
-    """いまのカット表（第3版があればそれ）"""
-    for name in ('cuts_v3.csv', 'cuts_v2.csv'):
+    """いまのカット表（新しい版から）"""
+    for name in ('cuts_v4.csv', 'cuts_v3.csv', 'cuts_v2.csv'):
         p = os.path.join(HERE, 'out', 'script', name)
         if os.path.exists(p):
             return p
@@ -989,7 +989,7 @@ def two_islands(title):
         dlat = half_km * 0.6 / 111.2
         dlon = half_km / (111.2 * math.cos(math.radians(lat0)))
         wins[ent] = (lon0 - dlon, lon0 + dlon, lat0 - dlat, lat0 + dlat)
-    info = {A_: ('近接した群島の世界', '最初の島 12,121km²・いちばん近い島 約50km'), R_: ('遠く離れた小島の世界', '最初の島 771km²・いちばん近い島 104km')}
+    info = {A_: ('近接した群島の世界', '最初の島 12,121km²・いちばん近い島 26km'), R_: ('遠く離れた小島の世界', '最初の島 771km²・いちばん近い島 104km')}
 
     def draw(t):
         img = canvas()
@@ -1068,7 +1068,7 @@ def two_histories(C):
         ('平均寿命', '%d歳' % round(e0(ra)), '%d歳' % round(e0(rr))),
     ], note='余暇・暮らしに困る人は最後の100年の平均、平均寿命は最後の500年の年齢別の死亡率から')
     C['205'] = compare_table('分かれ目になったもの', [
-        ('いちばん近い島', '約50km', '104km'),
+        ('いちばん近い島', '26km（50km先にも）', '104km'),
         ('届く舟', '浮き木の舟 160km（284年〜）', 'いかだ 30km'),
         ('育てられる植物', '芋・果樹（4年目に見つける）', 'なし'),
         ('舟にする大木', 'たくさん', '群島の100分の1以下'),
