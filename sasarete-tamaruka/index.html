@@ -148,28 +148,28 @@ const CONFIG = {
   PEEK_GRACE: 0.12,               // ライトがついた直後の猶予（秒）
   FIRST_WARN_DELAY: 1.2,
   // 数値が3つの項目は [最初, 90秒, 150秒]。90秒まではこれまでと同じで、150秒に向けてさらに上がり、それ以降は同じ強さ
-  WARN_TIME: [0.75, 0.45, 0.3],
+  WARN_TIME: [0.75, 0.45, 0.45],      // 反応の速さで難しくしない：90秒以降は短くしない
   PEEK_TIME: [1.0, 1.9],          // ランダム範囲
-  SEARCH_TIME: [[2.4, 1.6, 0.6], [3.6, 2.8, 1.1]], // [短い方, 長い方]
-  PEEK_CREEP: [0.05, 0.08, 0.12],      // ライト中に手がじわじわ近づく速さ（m/秒）
+  SEARCH_TIME: [[2.4, 1.6, 1.6], [3.6, 2.8, 2.8]], // [短い方, 長い方]（のぞく回数はこれ以上ふやさない。そのぶん、手が刺しまくる）
+  PEEK_CREEP: [0.05, 0.08, 0.08],      // ライト中に手がじわじわ近づく速さ（m/秒）
   CREEP_STOP: 0.06,               // ライト中はここまでしか近づかない（m）。ライト中は突かない
-  REACH_DELAY: [0.45, 0.3, 0.14],       // ライトが消えてから手が動き出すまで（秒）
+  REACH_DELAY: [0.45, 0.3, 0.3],       // ライトが消えてから手が動き出すまで（秒）
   // プラグの手
-  HAND_SPEED: [0.45, 0.75, 1.6], REACH_SPEED: [1.2, 1.8, 2.8], LUNGE_SPEED: 2.0, Z_SPEED: 0.5,
-  POKE_IN: [0.15, 0.10, 0.06], PRESS: [0.28, 0.18, 0.12], RETRACT: 0.10,
+  HAND_SPEED: [0.45, 0.75, 2.2], REACH_SPEED: [1.2, 1.8, 2.8], LUNGE_SPEED: 2.0, Z_SPEED: 0.5,
+  POKE_IN: [0.15, 0.10, 0.05], PRESS: [0.28, 0.18, 0.08], RETRACT: [0.10, 0.10, 0.04], // 刺す→引くの1回が、後半はとても速い
   RETRACT_Z: 0.05, SCRIBBLE_R: 0.012,
-  AIM_ERR: [0.03, 0.015, 0.006], SEARCH_R: [0.075, 0.05, 0.025], HUNCH: [0.25, 0.55, 0.9],
+  AIM_ERR: [0.03, 0.015, 0.003], SEARCH_R: [0.075, 0.05, 0.012], HUNCH: [0.25, 0.55, 0.95], // 刺す場所のずれ：後半はほぼぴったり
   SLOT_AIM: [0, 0, 1],            // 差しこみ口そのものをねらう度合い（0＝コンセントの中心あたり）
   LEAD: [0, 0, 1],                // コンセントが逃げる先を読んで先まわりする度合い（1＝完全に先読み）
   HAND_X: [-0.22, 0.22], HAND_Y: [0.07, 1.02], HIDE_Y: 1.02,
   // 時間で増える行動（秒）
-  FEINT_FROM: 8, FEINT_P: [0.3, 0.3, 0.45],
-  DOUBLE_FROM: 20, DOUBLE_P: [0.35, 0.35, 0.75], DOUBLE_GAP: [[0.45, 0.45, 0.28], [0.7, 0.7, 0.45]], DOUBLE_WARN: [0.42, 0.42, 0.3],
-  TWO_HANDS_FROM: 35, PAT_SPEED: 0.45, PAT_TIME: 0.28, PAT_SEARCH_R: 0.15, LUNGE_DELAY: [0.32, 0.32, 0.14],
+  FEINT_FROM: 8, FEINT_P: [0.3, 0.3, 0.3],
+  DOUBLE_FROM: 20, DOUBLE_P: [0.35, 0.35, 0.35], DOUBLE_GAP: [[0.45, 0.45, 0.45], [0.7, 0.7, 0.7]], DOUBLE_WARN: [0.42, 0.42, 0.42],
+  TWO_HANDS_FROM: 35, PAT_SPEED: 0.45, PAT_TIME: 0.28, PAT_SEARCH_R: 0.15, LUNGE_DELAY: [0.32, 0.32, 0.32],
   HAND_SEP: 0.13, RETREAT_SPEED: 1.5,
   // 必殺・手さぐり乱舞（少し遅れてコンセントを追いかけ、ものすごい速さで突きまくる）
-  RUSH_FROM: 22, RUSH_EVERY: [[18, 18, 6], [26, 26, 10]], RUSH_WARN: [1.1, 1.1, 0.8], RUSH_TIME: [1.8, 3.0, 5.0], REST_TIME: [1.0, 1.0, 0.5],
-  RUSH_SPEED: [0.75, 1.25, 2.4], RUSH_LAG: [0.55, 0.3, 0.05], RUSH_JITTER: 0.03, RUSH_Z: 0.018, RUSH_POKE_V: 0.6,
+  RUSH_FROM: 22, RUSH_EVERY: [[18, 18, 7], [26, 26, 11]], RUSH_WARN: [1.1, 1.1, 1.1], RUSH_TIME: [1.8, 3.0, 5.0], REST_TIME: [1.0, 1.0, 0.8],
+  RUSH_SPEED: [0.75, 1.25, 2.4], RUSH_LAG: [0.55, 0.3, 0.05], RUSH_JITTER: [0.03, 0.03, 0.012], RUSH_Z: 0.018, RUSH_POKE_V: [0.6, 0.6, 1.2],
   FOLLOW_X: 'vyaPudzd1E54661',    // 「作者をフォロー」のXアカウント（タイトル画面と結果画面）
   RAMP_TIME: 90,                  // この秒数まで第1段階の上昇
   OVER_END: 150,                  // この秒数まで第2段階の上昇（ここが最高難度）
@@ -700,7 +700,7 @@ function updateHand1(dt) {
       break;
     }
     case 'retract': {
-      tip.z += RZ / CONFIG.RETRACT * dt;
+      tip.z += RZ / lv(CONFIG.RETRACT) * dt;
       if (tip.z >= RZ) {
         tip.z = RZ; H1.mode = 'move';
         if (H1.pending) { H1.goal.set(H1.pending.x, H1.pending.y); H1.kind = H1.pending.kind; H1.pending = null; }
@@ -714,7 +714,7 @@ function updateHand1(dt) {
       break;
     }
     case 'rush': {
-      const RZr = CONFIG.RUSH_Z, v = CONFIG.RUSH_POKE_V;
+      const RZr = CONFIG.RUSH_Z, v = lv(CONFIG.RUSH_POKE_V);
       if (H1.rs === 'go') {
         const arrived = moveXY(tip, H1.rushGoal, dl(CONFIG.RUSH_SPEED) * dt); tip.z = approach(tip.z, RZr, v * dt);
         if (arrived && tip.z === RZr) H1.rs = 'in';
@@ -724,7 +724,7 @@ function updateHand1(dt) {
       } else {
         tip.z = approach(tip.z, RZr, v * dt);
         if (tip.z === RZr) { // 少し前のコンセントの位置（の差しこみ口）をねらう
-          const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * CONFIG.RUSH_JITTER, sy = rnd() < 0.5 ? 1 : -1;
+          const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * lv(CONFIG.RUSH_JITTER), sy = rnd() < 0.5 ? 1 : -1;
           const [lx, ly] = leadVec(dl(CONFIG.RUSH_SPEED), RZr / v);
           H1.rushGoal.set(clampHandX(G.rushTrack.x + lx + Math.cos(a) * r), clampHandY(G.rushTrack.y + ly + sy * O.recepDY + Math.sin(a) * r)); H1.rs = 'go';
         }
