@@ -333,7 +333,7 @@ def presence_strip(title, ent, tech, span=(0, 3000), sub=None, tagk='計算'):
         if lost and cnt[-1] == 0 and now >= max(lost):
             lines.append('%s年　最後の集団が失い、斧は消える' % fmt_int(max(lost)))
         for i, s_ in enumerate(lines):
-            text(d, (x0, 860 + i * 52), s_, 36, TEXT, 1.0)
+            text(d, (x1, yb + 150 + i * 50), s_, 34, TEXT, 1.0, anchor='ra')   # 右寄せ・上の方に（下は字幕の場所）
         if sub:
             text(d, (150, H - 40), sub, 30, TEXT2, appear(t, 0.75 * T_cur[0]), anchor='ls')
         tag(img, tagk, appear(t, 0.1))

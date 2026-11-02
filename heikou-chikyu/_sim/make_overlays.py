@@ -80,7 +80,8 @@ def to_display(s):
             while j < len(s) and s[j] in KAN:
                 j += 1
             seq, nxt, prev = s[i:j], s[j:j + 2], s[i - 1] if i else ''
-            if prev == '数' or (seq == '一' and nxt[:1] in KEEP_AFTER_ONE) or seq == '万':
+            word_juubun = seq == '十' and nxt[:1] == '分' and s[j + 1:j + 2] != 'の'   # 「十分（じゅうぶん）」は言葉のまま（三分の二などは数）
+            if prev == '数' or (seq == '一' and nxt[:1] in KEEP_AFTER_ONE) or seq == '万' or word_juubun:
                 out.append(seq)
             else:
                 out.append(fmt(kan2int(seq), nxt))

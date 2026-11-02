@@ -82,13 +82,13 @@ def overlay_png(row, path, clean):
         img.alpha_composite(Image.open(hud).convert('RGBA'))
     if not clean:
         d = ImageDraw.Draw(img)
-        lines = wrap(subtitle_of(row))[-3:]
-        y = H - 70 - 58 * len(lines)
+        lines = wrap(subtitle_of(row), 34)[-3:]
+        y = H - 40 - 50 * len(lines)
         for s in lines:
-            w = d.textlength(s, font=font(40))
-            d.rounded_rectangle([W / 2 - w / 2 - 18, y - 6, W / 2 + w / 2 + 18, y + 52], radius=8, fill=(0, 0, 0, 150))
-            d.text((W / 2, y + 23), s, font=font(40), fill=TEXT + (255,), anchor='mm')
-            y += 58
+            w = d.textlength(s, font=font(36))
+            d.rounded_rectangle([W / 2 - w / 2 - 16, y - 5, W / 2 + w / 2 + 16, y + 45], radius=8, fill=(0, 0, 0, 150))
+            d.text((W / 2, y + 20), s, font=font(36), fill=TEXT + (255,), anchor='mm')
+            y += 50
         tag = '%s　%s　%s' % (row['no'], row['kind'], row['label'])
         tw = d.textlength(tag, font=font(22))
         d.rounded_rectangle([W - 60 - tw, 112, W - 44, 146], radius=6, fill=(0, 0, 0, 120))

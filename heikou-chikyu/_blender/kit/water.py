@@ -46,6 +46,9 @@ def foam(ter):
     obj = bpy.data.objects.new('泡', me)
     link_object(obj)
     obj.visible_shadow = False
+    # 地形の格子（2.5m）に沿った角ばった泡の線を、なめらかな線にする（深さの値も一緒になめらかに補われる）
+    sub = obj.modifiers.new('なめらか', 'SUBSURF')
+    sub.levels, sub.render_levels = 2, 2
     return obj
 
 
