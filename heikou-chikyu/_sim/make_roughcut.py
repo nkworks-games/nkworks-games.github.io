@@ -52,12 +52,27 @@ def wrap(s, n=30):
     return lines
 
 
+_SUBS = None
+
+
+def subtitle_of(row):
+    """字幕の文（make_overlays.py が作った、数字を算用数字にしたもの）。なければナレーションのまま"""
+    global _SUBS
+    if _SUBS is None:
+        p = os.path.join(HERE, 'out', 'script', 'subtitles_ep1.csv')
+        _SUBS = {r['no']: r['subtitle'] for r in csv.DictReader(open(p, encoding='utf-8'))} if os.path.exists(p) else {}
+    return _SUBS.get(row['no'], row['narration']).strip()
+
+
 def overlay_png(row, path, clean):
-    """字幕とカット番号だけを描いた透明な画像"""
+    """重ねる透明な画像：左上の「どの歴史・何年目」（out/overlay/hudNNN.png）＋字幕とカット番号（確認用）"""
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    hud = os.path.join(HERE, 'out', 'overlay', 'hud%s.png' % row['no'])
+    if not clean and os.path.exists(hud):
+        img.alpha_composite(Image.open(hud).convert('RGBA'))
     if not clean:
         d = ImageDraw.Draw(img)
-        lines = wrap(row['narration'].strip())[-3:]
+        lines = wrap(subtitle_of(row))[-3:]
         y = H - 70 - 58 * len(lines)
         for s in lines:
             w = d.textlength(s, font=font(40))
@@ -65,8 +80,9 @@ def overlay_png(row, path, clean):
             d.text((W / 2, y + 23), s, font=font(40), fill=TEXT + (255,), anchor='mm')
             y += 58
         tag = '%s　%s　%s' % (row['no'], row['kind'], row['label'])
-        d.rounded_rectangle([24, 20, 40 + d.textlength(tag, font=font(24)), 58], radius=6, fill=(0, 0, 0, 140))
-        d.text((32, 39), tag, font=font(24), fill=TEXT2 + (255,), anchor='lm')
+        tw = d.textlength(tag, font=font(22))
+        d.rounded_rectangle([W - 60 - tw, 112, W - 44, 146], radius=6, fill=(0, 0, 0, 120))
+        d.text((W - 52, 129), tag, font=font(22), fill=TEXT2 + (255,), anchor='rm')
     img.save(path)
 
 
