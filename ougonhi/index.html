@@ -127,17 +127,17 @@ footer{font-size:11px;color:var(--sub);text-align:center;margin-top:8px}
   <div id="pv"><canvas id="pvc"></canvas></div>
   <div class="opt"><div class="ol">渦の中心</div><div class="seg" id="seg-spin"><button data-v="a">おまかせ</button><button data-v="0">右下</button><button data-v="1">左下</button><button data-v="2">左上</button><button data-v="3">右上</button></div></div>
   <div class="opt"><div class="ol">形</div><div class="seg" id="seg-shape"><button data-v="a">おまかせ</button><button data-v="p">縦長</button><button data-v="l">横長</button></div></div>
-  <button id="b-crop" class="btn b2 sm">一部を切り取る</button>
+  <button id="b-crop" class="btn b2 sm">大きさ・位置を変える</button>
   <div id="pvsum"></div>
   <button id="b-go" class="btn">この内容で提出する</button>
   <button id="b-back" class="lnk">ほかの写真にする</button>
 </section>
 <section id="s-crop" class="screen hide">
-  <h2>切り取り</h2>
-  <p class="lead">角や辺を引っぱって、範囲を選んでください。</p>
+  <h2>大きさ・位置</h2>
+  <p class="lead">写真を指で動かし、2本指で拡大・縮小できます。<br>角を引っぱると枠の形が変わります。</p>
   <div id="cropvp"><canvas id="cropc"></canvas></div>
   <div class="croptools"><button id="z-out" class="zb" aria-label="縮小">－</button><span id="cropinfo"></span><button id="z-in" class="zb" aria-label="拡大">＋</button></div>
-  <div class="row2"><button id="b-cropall" class="btn b2 sm">全体を選ぶ</button><button id="b-cropok" class="btn sm">この範囲にする</button></div>
+  <div class="row2"><button id="b-cropall" class="btn b2 sm">元に戻す</button><button id="b-cropok" class="btn sm">この範囲にする</button></div>
   <button id="b-cropno" class="lnk">やめる</button>
 </section>
 <section id="s-fix" class="screen hide">
@@ -430,42 +430,58 @@ function setFrame(force) {
   return rect0;
 }
 
-// 作業用の 写真：切り取った 部分（なければ 全体）。全体は 長い辺 1600px まで、切り取りは 長い辺 640〜1600px に そろえる
+// 作業用の 写真：枠で 選んだ 範囲（なければ 全体）。全体は 長い辺 1600px まで、範囲は 長い辺 640〜1600px に そろえる
+//   範囲が 写真の 外に はみ出した 所は、修正前の 画像と 同じ クリーム色の 余白で 埋める
 function workPhoto() {
   const F = S.full, b = S.crop || { x: 0, y: 0, w: F.width, h: F.height }, L = Math.max(b.w, b.h), k = S.crop ? clamp(L, 640, 1600) / L : Math.min(1, 1600 / L);
   const c = mk(Math.max(8, Math.round(b.w * k)), Math.max(8, Math.round(b.h * k))), g = c.getContext('2d');
-  g.imageSmoothingQuality = 'high'; g.drawImage(F, b.x, b.y, b.w, b.h, 0, 0, c.width, c.height); return c;
+  g.fillStyle = '#e9e3d3'; g.fillRect(0, 0, c.width, c.height);
+  const x1 = Math.max(0, b.x), y1 = Math.max(0, b.y), x2 = Math.min(F.width, b.x + b.w), y2 = Math.min(F.height, b.y + b.h);   // 写真と 重なる 所だけ 描く
+  if (x2 > x1 && y2 > y1) { g.imageSmoothingQuality = 'high'; g.drawImage(F, x1, y1, x2 - x1, y2 - y1, (x1 - b.x) * k, (y1 - b.y) * k, (x2 - x1) * k, (y2 - y1) * k); }
+  return c;
 }
 
-// ---------------- 切り取り：角・辺を 引っぱる／枠の 中を ずらす／2本指・＋－・ホイールで 拡大（枠の 外を ずらすと 写真が 動く）----------------
-const CR = { box: null, z: 1, ox: 0, oy: 0, s0: 1, vw: 0, vh: 0, ptr: new Map(), act: null }, cropvp = $('cropvp'), cropc = $('cropc');
+// ---------------- 大きさ・位置：枠は 画面の 真ん中に 固定。写真を 指で ずらす／2本指・＋－・ホイールで 拡大・縮小 ----------------
+//   枠の 角・辺を 引っぱると 枠の 形が 変わり、指を はなすと 枠が 真ん中に もどる（中身は そのまま）
+//   写真を 枠より 小さく すると、すき間は 余白に なる
+const CR = { fb: null, sc: 1, ox: 0, oy: 0, vw: 0, vh: 0, ptr: new Map(), act: null }, cropvp = $('cropvp'), cropc = $('cropc');
+const CR_PAD = 18;   // 枠の まわりの すき間（はしの 角も つかめるように）
 function openCrop() {
   if (!S.full || S.busy) return;
-  const F = S.full; CR.box = S.crop ? { ...S.crop } : { x: 0, y: 0, w: F.width, h: F.height }; CR.z = 1; CR.ptr.clear(); CR.act = null;
-  show('s-crop'); sizeCrop(); fitView(); drawCrop();
+  const F = S.full; CR.ptr.clear(); CR.act = null;
+  show('s-crop'); sizeCrop();
+  setFromRect(S.crop || { x: 0, y: 0, w: F.width, h: F.height }); drawCrop();
 }
 function sizeCrop() {
   cropvp.style.height = '0px';
   const vh = Math.min(innerHeight, (window.visualViewport && visualViewport.height) || innerHeight), rest = $('s-crop').offsetHeight;
-  const h = Math.round(clamp(vh - rest - 4, 220, vh * 0.66)), w = cropvp.clientWidth, dpr = Math.min(2, window.devicePixelRatio || 1), F = S.full;
+  const h = Math.round(clamp(vh - rest - 4, 220, vh * 0.66)), w = cropvp.clientWidth, dpr = Math.min(2, window.devicePixelRatio || 1);
   cropvp.style.height = h + 'px'; CR.vw = w; CR.vh = h; cropc.width = Math.round(w * dpr); cropc.height = Math.round(h * dpr);
-  CR.s0 = Math.min((w - 28) / F.width, (h - 28) / F.height);   // まわりに 14px あけて、はしの 角も つかめるように
 }
-const crSc = () => CR.s0 * CR.z;
-function clampView() {
-  const F = S.full, sc = crSc(), iw = F.width * sc, ih = F.height * sc;
-  CR.ox = iw <= CR.vw - 28 ? (CR.vw - iw) / 2 : clamp(CR.ox, CR.vw - 14 - iw, 14);
-  CR.oy = ih <= CR.vh - 28 ? (CR.vh - ih) / 2 : clamp(CR.oy, CR.vh - 14 - ih, 14);
+function fitBox(r) {   // 横÷縦 ＝ r の 枠を、画面の 真ん中に いちばん 大きく 置く
+  const aw = CR.vw - CR_PAD * 2, ah = CR.vh - CR_PAD * 2, w = Math.min(aw, ah * r), h = w / r;
+  return { x: (CR.vw - w) / 2, y: (CR.vh - h) / 2, w, h };
 }
-function fitView() { CR.z = 1; clampView(); }
-function zoomAt(z, px, py) {   // (px, py) の 下の 点を 動かさずに 拡大・縮小
-  const sc0 = crSc(), ix = (px - CR.ox) / sc0, iy = (py - CR.oy) / sc0;
-  CR.z = clamp(z, 1, 8); const sc = crSc(); CR.ox = px - ix * sc; CR.oy = py - iy * sc; clampView(); drawCrop();
+function setFromRect(r) {   // 写真の 中の 範囲 r が、ちょうど 枠に なるように する
+  CR.fb = fitBox(r.w / r.h); CR.sc = CR.fb.w / r.w; CR.ox = CR.fb.x - r.x * CR.sc; CR.oy = CR.fb.y - r.y * CR.sc; clampView();
 }
-function boxScr() { const sc = crSc(), b = CR.box; return { x: CR.ox + b.x * sc, y: CR.oy + b.y * sc, w: b.w * sc, h: b.h * sc }; }
+const cropRect = () => ({ x: (CR.fb.x - CR.ox) / CR.sc, y: (CR.fb.y - CR.oy) / CR.sc, w: CR.fb.w / CR.sc, h: CR.fb.h / CR.sc });   // 枠の 範囲（写真の 座標）
+function scLim() {   // 縮小：写真が 枠に 収まる 大きさの 1/4 まで／拡大：枠の 短い辺に 写真が 24px 分 しか 入らない ところまで
+  const F = S.full, fit = Math.min(CR.fb.w / F.width, CR.fb.h / F.height);
+  return [fit * 0.25, Math.max(fit * 2, Math.min(CR.fb.w, CR.fb.h) / 24)];
+}
+function clampView() {   // 写真が 枠から 出ていって しまわないように（少なくとも 30px は 枠に 重なる）
+  const F = S.full, b = CR.fb, iw = F.width * CR.sc, ih = F.height * CR.sc, mx = Math.min(30, iw, b.w), my = Math.min(30, ih, b.h);
+  CR.ox = clamp(CR.ox, b.x + mx - iw, b.x + b.w - mx); CR.oy = clamp(CR.oy, b.y + my - ih, b.y + b.h - my);
+}
+function zoomAt(sc, px, py) {   // (px, py) の 下の 点を 動かさずに 拡大・縮小
+  const [a, z] = scLim(), ix = (px - CR.ox) / CR.sc, iy = (py - CR.oy) / CR.sc;
+  CR.sc = clamp(sc, a, z); CR.ox = px - ix * CR.sc; CR.oy = py - iy * CR.sc; clampView(); drawCrop();
+}
 function drawCrop() {
-  const F = S.full, g = cropc.getContext('2d'), d = cropc.width / CR.vw, sc = crSc(), b = boxScr();
+  const F = S.full, g = cropc.getContext('2d'), d = cropc.width / CR.vw, sc = CR.sc, b = CR.fb;
   g.setTransform(d, 0, 0, d, 0, 0); g.fillStyle = '#2b2925'; g.fillRect(0, 0, CR.vw, CR.vh);
+  g.fillStyle = '#e9e3d3'; g.fillRect(b.x, b.y, b.w, b.h);   // 枠の 中の すき間＝余白
   g.imageSmoothingQuality = 'high'; g.drawImage(F, CR.ox, CR.oy, F.width * sc, F.height * sc);
   g.fillStyle = 'rgba(20,18,14,.6)'; g.beginPath(); g.rect(0, 0, CR.vw, CR.vh); g.rect(b.x, b.y, b.w, b.h); g.fill('evenodd');   // 枠の 外を 暗く
   g.strokeStyle = 'rgba(217,184,100,.55)'; g.lineWidth = 1;   // 枠の 中に 黄金比の 線（うすく）
@@ -476,61 +492,67 @@ function drawCrop() {
   for (const [x, y, sx, sy] of [[b.x, b.y, 1, 1], [b.x + b.w, b.y, -1, 1], [b.x, b.y + b.h, 1, -1], [b.x + b.w, b.y + b.h, -1, -1]]) { g.beginPath(); g.moveTo(x + sx * L, y); g.lineTo(x, y); g.lineTo(x, y + sy * L); g.stroke(); }
   g.lineWidth = 3.5; const m = Math.min(16, b.w / 4, b.h / 4);
   for (const [x, y, hor] of [[b.x + b.w / 2, b.y, 1], [b.x + b.w / 2, b.y + b.h, 1], [b.x, b.y + b.h / 2, 0], [b.x + b.w, b.y + b.h / 2, 0]]) { g.beginPath(); if (hor) { g.moveTo(x - m, y); g.lineTo(x + m, y); } else { g.moveTo(x, y - m); g.lineTo(x, y + m); } g.stroke(); }
-  const r = CR.box.w / CR.box.h, f = v => v.toFixed(2);
+  const r = b.w / b.h, f = v => v.toFixed(2);
   $('cropinfo').textContent = `横：縦 ＝ ${r >= 1 ? f(r) + '：1' : '1：' + f(1 / r)}`;
 }
-function cropHit(p) {   // 押した 場所：角（nw など）・辺（n など）・枠の 中（move）・枠の 外（pan）
-  const b = boxScr(), T = 22, nx = Math.abs(p.x - b.x) < T, fx = Math.abs(p.x - b.x - b.w) < T, ny = Math.abs(p.y - b.y) < T, fy = Math.abs(p.y - b.y - b.h) < T;
-  const inX = p.x > b.x - T && p.x < b.x + b.w + T, inY = p.y > b.y - T && p.y < b.y + b.h + T;
-  if (inX && inY) {
+function cropHit(p) {   // 押した 場所：角（nw など）・辺（n など）なら 枠の 形を 変える。それ以外は 写真を ずらす（pan）
+  const b = CR.fb, T = 22, nx = Math.abs(p.x - b.x) < T, fx = Math.abs(p.x - b.x - b.w) < T, ny = Math.abs(p.y - b.y) < T, fy = Math.abs(p.y - b.y - b.h) < T;
+  if (p.x > b.x - T && p.x < b.x + b.w + T && p.y > b.y - T && p.y < b.y + b.h + T) {
     const v = ny ? 'n' : fy ? 's' : '', h = nx ? 'w' : fx ? 'e' : '';
     if (v || h) return v + h;
-    // 枠の 中：枠を ずらす。ただし 拡大して 枠が 画面いっぱいに なっている 時は 写真を 動かす（そうしないと 写真を 動かせない）
-    if (p.x > b.x && p.x < b.x + b.w && p.y > b.y && p.y < b.y + b.h) return b.x <= 14 && b.y <= 14 && b.x + b.w >= CR.vw - 14 && b.y + b.h >= CR.vh - 14 ? 'pan' : 'move';
   }
   return 'pan';
 }
 {
   const pos = e => { const r = cropvp.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
   const two = () => { const [a, b] = [...CR.ptr.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, m: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } }; };
+  const recenter = () => { setFromRect(cropRect()); drawCrop(); };   // 形を 変えた 枠を 真ん中に もどす
   cropvp.addEventListener('pointerdown', e => {
     e.preventDefault(); try { cropvp.setPointerCapture(e.pointerId); } catch (_) { }
     const p = pos(e); CR.ptr.set(e.pointerId, p);
-    if (CR.ptr.size === 2) { const t = two(), sc = crSc(); CR.act = { k: 'pinch', d0: t.d, z0: CR.z, ix: (t.m.x - CR.ox) / sc, iy: (t.m.y - CR.oy) / sc }; return; }
-    if (CR.ptr.size === 1) CR.act = { k: cropHit(p), p0: p, b0: { ...CR.box }, ox0: CR.ox, oy0: CR.oy };
+    if (CR.ptr.size === 2) {
+      if (CR.act && CR.act.k !== 'pan') setFromRect(cropRect());   // 枠を 引っぱって いる 途中なら 先に 確定
+      const t = two(); CR.act = { k: 'pinch', d0: t.d, s0: CR.sc, ix: (t.m.x - CR.ox) / CR.sc, iy: (t.m.y - CR.oy) / CR.sc }; drawCrop(); return;
+    }
+    if (CR.ptr.size === 1) CR.act = { k: cropHit(p), p0: p, b0: { ...CR.fb }, ox0: CR.ox, oy0: CR.oy };
   });
   cropvp.addEventListener('pointermove', e => {
     if (!CR.ptr.has(e.pointerId) || !CR.act) return;
-    const p = pos(e); CR.ptr.set(e.pointerId, p); const a = CR.act, F = S.full;
+    const p = pos(e); CR.ptr.set(e.pointerId, p); const a = CR.act;
     if (a.k === 'pinch') {
       if (CR.ptr.size < 2) return;
-      const t = two(); CR.z = clamp(a.z0 * t.d / a.d0, 1, 8); const sc = crSc(); CR.ox = t.m.x - a.ix * sc; CR.oy = t.m.y - a.iy * sc; clampView(); drawCrop(); return;
+      const t = two(), [lo, hi] = scLim(); CR.sc = clamp(a.s0 * t.d / a.d0, lo, hi); CR.ox = t.m.x - a.ix * CR.sc; CR.oy = t.m.y - a.iy * CR.sc; clampView(); drawCrop(); return;
     }
-    const sc = crSc(), dx = (p.x - a.p0.x) / sc, dy = (p.y - a.p0.y) / sc, b0 = a.b0, mn = Math.max(24, Math.min(F.width, F.height) * 0.03);
-    if (a.k === 'pan') { CR.ox = a.ox0 + p.x - a.p0.x; CR.oy = a.oy0 + p.y - a.p0.y; clampView(); }
-    else if (a.k === 'move') { CR.box.x = clamp(b0.x + dx, 0, F.width - b0.w); CR.box.y = clamp(b0.y + dy, 0, F.height - b0.h); }
-    else {
+    const dx = p.x - a.p0.x, dy = p.y - a.p0.y, b0 = a.b0, mn = 40;
+    if (a.k === 'pan') { CR.ox = a.ox0 + dx; CR.oy = a.oy0 + dy; clampView(); }
+    else {   // 枠の 形を 変える（画面の 中だけ）
       let x1 = b0.x, y1 = b0.y, x2 = b0.x + b0.w, y2 = b0.y + b0.h;
-      if (a.k.includes('w')) x1 = clamp(x1 + dx, 0, x2 - mn); if (a.k.includes('e')) x2 = clamp(x2 + dx, x1 + mn, F.width);
-      if (a.k.includes('n')) y1 = clamp(y1 + dy, 0, y2 - mn); if (a.k.includes('s')) y2 = clamp(y2 + dy, y1 + mn, F.height);
-      CR.box = { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+      if (a.k.includes('w')) x1 = clamp(x1 + dx, 4, x2 - mn); if (a.k.includes('e')) x2 = clamp(x2 + dx, x1 + mn, CR.vw - 4);
+      if (a.k.includes('n')) y1 = clamp(y1 + dy, 4, y2 - mn); if (a.k.includes('s')) y2 = clamp(y2 + dy, y1 + mn, CR.vh - 4);
+      CR.fb = { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
     }
     drawCrop();
   });
-  const up = e => { CR.ptr.delete(e.pointerId); if (CR.act && CR.act.k === 'pinch' ? CR.ptr.size < 2 : !CR.ptr.size) CR.act = null; };
+  const up = e => {
+    if (!CR.ptr.has(e.pointerId)) return;
+    CR.ptr.delete(e.pointerId); const a = CR.act;
+    if (a && a.k === 'pinch') { if (CR.ptr.size < 2) CR.act = null; return; }
+    if (!CR.ptr.size) { CR.act = null; if (a && a.k !== 'pan') recenter(); }
+  };
   cropvp.addEventListener('pointerup', up); cropvp.addEventListener('pointercancel', up);
-  cropvp.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(CR.z * Math.exp(-e.deltaY * 0.0015), p.x, p.y); }, { passive: false });
-  const zc = () => { const b = boxScr(); return [clamp(b.x + b.w / 2, 0, CR.vw), clamp(b.y + b.h / 2, 0, CR.vh)]; };   // ＋－ は 枠の 真ん中を 中心に
-  $('z-in').onclick = () => zoomAt(CR.z * 1.5, ...zc());
-  $('z-out').onclick = () => zoomAt(CR.z / 1.5, ...zc());
-  $('b-cropall').onclick = () => { const F = S.full; CR.box = { x: 0, y: 0, w: F.width, h: F.height }; fitView(); drawCrop(); };
+  cropvp.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); zoomAt(CR.sc * Math.exp(-e.deltaY * 0.0015), p.x, p.y); }, { passive: false });
+  const zc = () => [CR.fb.x + CR.fb.w / 2, CR.fb.y + CR.fb.h / 2];   // ＋－ は 枠の 真ん中を 中心に
+  $('z-in').onclick = () => zoomAt(CR.sc * 1.5, ...zc());
+  $('z-out').onclick = () => zoomAt(CR.sc / 1.5, ...zc());
+  $('b-cropall').onclick = () => { const F = S.full; setFromRect({ x: 0, y: 0, w: F.width, h: F.height }); drawCrop(); };
   $('b-cropok').onclick = () => {
-    const F = S.full, b = CR.box, all = b.w * b.h >= F.width * F.height * 0.995;
-    S.crop = all ? null : { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.w), h: Math.round(b.h) }; S.orig = workPhoto(); S.plan = null; openApp();
+    const F = S.full, b = cropRect(), e = Math.max(F.width, F.height) * 0.005;   // ほぼ 写真 全体なら「全体」あつかい
+    const all = Math.abs(b.x) < e && Math.abs(b.y) < e && Math.abs(b.w - F.width) < e && Math.abs(b.h - F.height) < e;
+    S.crop = all ? null : { x: Math.round(b.x), y: Math.round(b.y), w: Math.max(8, Math.round(b.w)), h: Math.max(8, Math.round(b.h)) }; S.orig = workPhoto(); S.plan = null; openApp();
   };
   $('b-cropno').onclick = openApp;
   $('b-crop').onclick = openCrop;
-  addEventListener('resize', () => { if (!$('s-crop').classList.contains('hide')) { sizeCrop(); clampView(); drawCrop(); } });
+  addEventListener('resize', () => { if (!$('s-crop').classList.contains('hide') && CR.fb) { const r = cropRect(); sizeCrop(); setFromRect(r); drawCrop(); } });
 }
 
 // ---------------- 修正申請書：修正の 前に 渦の 向きと 形を 選ぶ（見本が すぐ 変わる）----------------
@@ -540,8 +562,8 @@ function renderApp() {
   const { W, H } = S.frame, sp = spiralFor(W, H, plan);
   for (const b of $('seg-spin').children) b.classList.toggle('on', b.dataset.v === (S.spin == null ? 'a' : String(S.spin)));
   for (const b of $('seg-shape').children) b.classList.toggle('on', b.dataset.v === (S.shape || 'a'));
-  $('pvsum').innerHTML = `${S.crop ? '切り取った部分を ' : ''}<b>${S.frame.portrait ? '縦長' : '横長'}</b>・渦の中心は<b>${SPIN[sp.i].n}</b> で修正します`;
-  $('b-crop').textContent = S.crop ? '切り取る範囲を変える' : '一部を切り取る';
+  $('pvsum').innerHTML = `${S.crop ? '調整した範囲を ' : ''}<b>${S.frame.portrait ? '縦長' : '横長'}</b>・渦の中心は<b>${SPIN[sp.i].n}</b> で修正します`;
+  $('b-crop').textContent = S.crop ? '大きさ・位置を変え直す' : '大きさ・位置を変える';
   // 見本の 大きさ：ほかの 部品を 置いた 残りの 高さ（スマホ 1画面に 収める）
   const pv = $('pv'); pv.style.width = pv.style.height = '0px';
   const vh = Math.min(innerHeight, (window.visualViewport && visualViewport.height) || innerHeight), rest = $('s-app').offsetHeight;
