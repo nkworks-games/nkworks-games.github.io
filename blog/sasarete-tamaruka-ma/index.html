@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ライトが消えた直後に手が来る、をなくした - N.K. Works 開発日記</title>
-<meta name="description" content="『刺さらないのは、わざとです』は、家具の裏のコンセントになって、プラグを持った手から逃げるゲーム。ライトが消えた瞬間に手が来て避けられなかった問題を直した話と、後半の手を先まわりさせて、180秒を超えるのがほとんど無理な強さにした話。">
+<meta name="description" content="『刺されてたまるか！』は、家具の裏のコンセントになって、プラグを持った手から逃げるゲーム。ライトが消えた瞬間に手が来て避けられなかった問題を直した話と、後半の手を先まわりさせて、180秒を超えるのがほとんど無理な強さにした話。">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
-<link rel="canonical" href="https://nkworks-games.com/blog/sasaranai-ma/">
+<link rel="canonical" href="https://nkworks-games.com/blog/sasarete-tamaruka-ma/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="N.K. Works">
 <meta property="og:title" content="ライトが消えた直後に手が来る、をなくした - N.K. Works 開発日記">
-<meta property="og:description" content="『刺さらないのは、わざとです』は、家具の裏のコンセントになって、プラグを持った手から逃げるゲーム。ライトが消えた瞬間に手が来て避けられなかった問題を直した話と、後半の手を先まわりさせて、180秒を超えるのがほとんど無理な強さにした話。">
-<meta property="og:url" content="https://nkworks-games.com/blog/sasaranai-ma/">
+<meta property="og:description" content="『刺されてたまるか！』は、家具の裏のコンセントになって、プラグを持った手から逃げるゲーム。ライトが消えた瞬間に手が来て避けられなかった問題を直した話と、後半の手を先まわりさせて、180秒を超えるのがほとんど無理な強さにした話。">
+<meta property="og:url" content="https://nkworks-games.com/blog/sasarete-tamaruka-ma/">
 <meta name="twitter:card" content="summary">
 <link rel="stylesheet" href="/assets/site.css">
 <script>
@@ -28,7 +28,7 @@
 <main><div class="wrap"><article class="post">
 <p class="crumb"><a data-google-vignette="false" href="/">トップ</a> › <a data-google-vignette="false" href="/blog/">開発日記</a></p>
 <h1>ライトが消えた直後に手が来る、をなくした</h1><p class="post-meta">2026年11月2日 ・ N.K. Works</p>
-<p>『刺さらないのは、わざとです』は、家具の裏の壁についたコンセントになって、プラグを持った手から逃げるゲームです。ライトで照らされている間は動けず、暗い間だけ動ける、「だるまさんがころんだ」に近いルールが中心になっています。ここでは、作っていていちばん手間がかかった「手の動かし方」について書きます。</p>
+<p>『刺されてたまるか！』は、家具の裏の壁についたコンセントになって、プラグを持った手から逃げるゲームです。ライトで照らされている間は動けず、暗い間だけ動ける、「だるまさんがころんだ」に近いルールが中心になっています。ここでは、作っていていちばん手間がかかった「手の動かし方」について書きます。</p>
 <h2>見られたら止まる、を成り立たせる</h2>
 <p>のぞく人は、いきなりライトをつけるわけではありません。まず、ガサゴソという音がして、画面の上の目のマークが黄色になり、ライトが少しちらつきます。最初はこの予告が0.75秒あり、時間がたつと0.3秒まで短くなります。そのあとライトがつくと、1cmほど動いただけで「見られた！」になります。ライトがついた直後の0.12秒だけは、指を止める時間として見のがしています。</p>
 <h2>ライトが消えた瞬間に刺さる、は理不尽だった</h2>
@@ -43,7 +43,7 @@
 <p>難しさを数字で決めても、遊ぶ人にとって難しすぎないか、簡単すぎないかは、遊んでみないとわかりません。そこで、コンセントを動かして逃げる「自動プレイ」を作って、何度も遊ばせました。反応が0.22秒の操作では180秒に届かず、反応が0.15秒の速い操作でも、16回のうち180秒を超えたのは0〜1回でした。手の位置がすべてわかり、反応が0.1秒、速さが1.8m/秒という、人間ではむずかしい操作でも、16回のうち0〜3回でした。</p>
 <h2>どんな端末でも、同じ強さにする</h2>
 <p>動きの計算は、画面の更新の回数とは関係なく、1/120秒ごとに進めています。60fpsの画面でも、144fpsの画面でも、動きが重くて20fpsになる端末でも、手の強さが変わらないためです。60fps・144fps・20fps、0.5秒の止まり、3秒の止まりの5つの場合で、手やプラグのコードが壁や家具にめりこんでいないか、速さが決めた値をこえていないかを、自動で調べてから出しています。</p>
-<h2>この記事のゲーム</h2><ul class="grid"><li><a data-google-vignette="false" class="card" href="/games/sasaranai-wazato/"><div class="th"><img src="/games/sasaranai-wazato/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>刺さらないのは、わざとです</b><span>プラグを持った手から逃げる。ライトが当たったら、動くな。</span><em>2026年11月2日 公開</em></div></a></li></ul>
+<h2>この記事のゲーム</h2><ul class="grid"><li><a data-google-vignette="false" class="card" href="/games/sasarete-tamaruka/"><div class="th"><img src="/games/sasarete-tamaruka/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>刺されてたまるか！</b><span>プラグを持った手から逃げる。ライトが当たったら、動くな。</span><em>2026年11月2日 公開</em></div></a></li></ul>
 <h2>ほかの日記</h2><ul class="list"><li><a data-google-vignette="false" href="/blog/butter-tear/"><em>2026年11月1日</em><b>強く押せばいい、をなくすためにパンを破った</b><span>『バターは端まで』は、トーストを焼いて20秒でバターやジャムを塗るゲーム。すくうと減るビン、押す強さのゲージ、塗る面を下に向けるナイフで本物の塗り方に近づけたあと、「強く押すほどいい」にならないよう、押しすぎるとパンが破れるしくみを焼き加減とつないだ話。</span></a></li><li><a data-google-vignette="false" href="/blog/oku-made-angle/"><em>2026年11月1日</em><b>綿棒は、上ではなく耳の方へ</b><span>『奥までいきます』は、リアルな患者の鼻の奥まで綿棒を入れて、菌を取るゲーム。なんとなく上向きだった綿棒の角度を、本物の検査のやり方を調べて直した話と、仕返しの場面の腕と手のひらを作り直した話。</span></a></li><li><a data-google-vignette="false" href="/blog/yasumasete-kehai/"><em>2026年10月29日</em><b>トラブルは、起きる前に見せることにした</b><span>『休ませてください』は、休みを動かして連休を作り、激務の毎日を何日もちこたえるかを競うゲーム。運まかせだったトラブルを、⚠の「気配」と「疲れるとミスが増える」しくみで起きる前に見えるものにして、うまい人とそうでない人の差を広げた話。</span></a></li></ul>
 <div class="ad-box"><p class="lbl">広告</p>
 <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>
