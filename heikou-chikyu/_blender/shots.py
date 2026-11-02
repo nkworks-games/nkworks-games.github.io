@@ -812,13 +812,50 @@ def island_silhouette(name, seed, radius, height, loc):
     return o
 
 
+def cloud_material():
+    from kit.util import new_material, node, link, map_range, finish
+    m = bpy.data.materials.get('遠くの雲')
+    if m:
+        return m
+    m, nt = new_material('遠くの雲')
+    lw = node(nt, 'ShaderNodeLayerWeight', (-700, 0))
+    lw.inputs['Blend'].default_value = 0.5
+    edge = map_range(nt, lw.outputs['Facing'], 0.25, 0.85)          # 0＝こちらを向く面、1＝ふち
+    geo = node(nt, 'ShaderNodeNewGeometry', (-700, 300))
+    sep = node(nt, 'ShaderNodeSeparateXYZ', (-500, 300))
+    link(nt, geo.outputs['Position'], sep.inputs[0])
+    tc = node(nt, 'ShaderNodeTexCoord', (-900, -300))
+    nz = node(nt, 'ShaderNodeTexNoise', (-700, -300), Scale=0.0009, Detail=6.0, Roughness=0.6)
+    link(nt, tc.outputs['Object'], nz.inputs['Vector'])
+    # 上ほど明るく（夕日の光の当たる頭）、下は影
+    up = map_range(nt, sep.outputs['Z'], 900.0, 4200.0)
+    col = M.mix_color(nt, up, (0.40, 0.38, 0.43, 1), (0.78, 0.68, 0.66, 1), (-250, 300))
+    dif = node(nt, 'ShaderNodeBsdfDiffuse', (0, 300))
+    link(nt, col, dif.inputs['Color'])
+    # ふちと、むらの薄いところは透ける
+    alpha = node(nt, 'ShaderNodeMath', (-250, -100), operation='SUBTRACT')
+    alpha.inputs[0].default_value = 1.0
+    link(nt, edge, alpha.inputs[1])
+    thin = map_range(nt, nz.outputs['Fac'], 0.35, 0.55)
+    a2 = node(nt, 'ShaderNodeMath', (-100, -150), operation='MULTIPLY')
+    link(nt, alpha.outputs[0], a2.inputs[0])
+    link(nt, thin, a2.inputs[1])
+    tr = node(nt, 'ShaderNodeBsdfTransparent', (0, 0))
+    mix = node(nt, 'ShaderNodeMixShader', (200, 100))
+    link(nt, a2.outputs[0], mix.inputs[0])
+    link(nt, tr.outputs[0], mix.inputs[1])
+    link(nt, dif.outputs[0], mix.inputs[2])
+    finish(nt, mix.outputs[0], (600, 100))
+    return m
+
+
 def cap_cloud(name, seed, loc, size=7000.0, base=900.0, top=3200.0):
     """遠くの島の上にかかる積雲（島が水平線の下に隠れても、雲で島のありかが分かる）。
     底が平らな、ふくらみの集まり。白い面（夕日の色に染まる）"""
     rng = stream(seed, 'capcloud', name)
     bm = bmesh.new()
-    for k in range(18):
-        r = size * rng.uniform(0.14, 0.28)
+    for k in range(30):
+        r = size * rng.uniform(0.10, 0.22)
         x = rng.uniform(-0.42, 0.42)
         # 真ん中ほど高く積み上がる（もくもくした頭）
         hmax = (top - base - 2 * r) * (1 - abs(x) / 0.5) ** 0.7
@@ -831,8 +868,9 @@ def cap_cloud(name, seed, loc, size=7000.0, base=900.0, top=3200.0):
             v.co.z = max(v.co.z, base)       # 底は平ら
     o = mesh_object(name, bm)
     o.location = loc
-    # 夕方の逆光で見るので、白ではなく影の灰色（もやで明るくなる）。海面には映さない（映ると縦の柱に見える）
-    o.data.materials.append(M.simple('雲の影', (0.30, 0.30, 0.34, 1), (0.44, 0.43, 0.47, 1), 0.95, 0.002, 0.05))
+    # 夕方の逆光で見るので、白ではなく影の灰色（もやで明るくなる）。ふちは透けてやわらかく。
+    # 海面には映さない（映ると縦の柱に見える）
+    o.data.materials.append(cloud_material())
     o.data.polygons.foreach_set('use_smooth', np.ones(len(o.data.polygons), bool))
     o['nocheck'] = True
     o.visible_shadow = False
