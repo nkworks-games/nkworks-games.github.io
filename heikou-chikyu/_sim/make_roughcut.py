@@ -11,6 +11,7 @@
 
   python3 make_roughcut.py            # 字幕（ナレーション）とカット番号を焼き込む
   python3 make_roughcut.py --clean    # 何も焼き込まない（編集ソフトに持っていく用）
+  python3 make_roughcut.py --only 097,211   # そのカットだけ作り直す（ほかは前に作ったものを使う）
 
 ナレーション：out/voice/ に VOICEVOX で書き出した音声（001_….wav のように番号で始まるもの）があれば、
   out/script/voicevox_ep1.txt の行の順＝ナレーションのあるカットの順に、各カットの頭（0.3秒後）へ置く。
@@ -247,10 +248,16 @@ def voice_track(rows, path):
 
 def main():
     clean = '--clean' in sys.argv
+    # --only 097,211：そのカットだけ作り直し、ほかは前に作ったもの（seg/cutNNN.mp4）を使う
+    only = set(sys.argv[sys.argv.index('--only') + 1].split(',')) if '--only' in sys.argv else None
     os.makedirs(SEG, exist_ok=True)
     rows = list(csv.DictReader(open(cut_table(), encoding='utf-8')))
     segs = []
     for r in rows:
+        old = os.path.join(SEG, 'cut%s.mp4' % r['no'])
+        if only is not None and r['no'] not in only and os.path.exists(old):
+            segs.append(old)
+            continue
         segs.append(segment(r, clean))
         print('cut', r['no'], r['sec'], 's', flush=True)
     lst = os.path.join(SEG, 'list.txt')
