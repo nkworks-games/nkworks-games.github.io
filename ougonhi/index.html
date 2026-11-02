@@ -311,6 +311,7 @@ function bestSpiral(W, H, ex, ey) {   // 渦の 中心が (ex, ey) に いちば
   for (const fx of [false, true]) for (const fy of [false, true]) { const s = spiralPts(W, H, fx, fy), d = Math.hypot(s.eye[0] - ex, s.eye[1] - ey); if (!best || d < best.d) best = { ...s, d }; }
   return best;
 }
+const spiralEye = (W, H, fx, fy) => { const e = bestSpiral(W, H, fx * W, fy * H).eye; return [e[0] / W, e[1] / H]; };   // (fx, fy) に いちばん 近い 渦の 目（0〜1）
 // 渦の 向き 4通り（渦の 中心が どの 角に あるか）。結果画面の ボタンを 押すたびに この 順に 変わる
 const SPIN = [{ n: '右下', r: 1, b: 1 }, { n: '左下', r: 0, b: 1 }, { n: '左上', r: 0, b: 0 }, { n: '右上', r: 1, b: 0 }];
 const spinPt = i => [SPIN[i].r ? G2 : G1, SPIN[i].b ? G2 : G1];   // その 向きの 渦の 中心に いちばん 近い 黄金比の 交点
@@ -331,7 +332,8 @@ function planFirst(orig, fr = frameOf(orig.width, orig.height), spin = null) {
   const near = (v, pref) => Math.abs(v - G1) < Math.abs(v - G2) - 1e-9 ? G1 : Math.abs(v - G2) < Math.abs(v - G1) - 1e-9 ? G2 : pref;
   const yN = near(yS, G2), xN = near(xS, G1);
   const dev = (Math.abs(fr.r - PHI) / PHI + Math.abs(yS - yN) + Math.abs(xS - xN)) / 3 * 100;   // ずれは いちばん 近い 黄金比の 線で 測る（渦の 向きを 変えても 同じ）
-  const [xT, yT] = spin == null ? [xN, yN] : spinPt(spin);   // 渦の 向きを 選んだ 時は、目立つ 線の 交点を その 渦の 中心へ
+  const [xG, yG] = spin == null ? [xN, yN] : spinPt(spin);   // まず いちばん 近い（選んだ 向きの）黄金比の 交点を 決めて、
+  const [xT, yT] = spiralEye(fr.W, fr.H, xG, yG);              // 目立つ 線の 交点は、その 近くの 黄金螺旋の 中心（渦の 目）へ 動かす
   return { fr, sx: [0, xS, 1], tx: [0, xT, 1], sy: [0, yS, 1], ty: [0, yT, 1], guidesX: [G1, G2], guidesY: [G1, G2], dev, none: weakH && weakV, square: fr.square, ex: xT, ey: yT };
 }
 // 2回目から：今の 画像で 目立つ 線を n 本ずつ（最大 12 本）さがし、黄金比の 分割を くり返した 位置へ
@@ -340,7 +342,11 @@ function planAgain(cur, n) {
   const depth = n <= 1 ? 1 : n <= 4 ? 2 : 3, C = goldenPoints(depth);
   const ys = a.rows.pos.length ? a.rows.pos : [0.5], xs = a.cols.pos.length ? a.cols.pos : [0.5];
   const yt = assign(ys, C), xt = assign(xs, C);
-  return { sx: [0, ...xs, 1], tx: [0, ...xt, 1], sy: [0, ...ys, 1], ty: [0, ...yt, 1], guidesX: xt, guidesY: yt, ex: xt[0], ey: yt[0] };
+  // 渦の 目に いちばん 近い 線を 1本ずつ、渦の 目の 位置へ（渦の 中心と 写真の 線を そろえる）
+  const [xE, yE] = spiralEye(cur.width, cur.height, ...(S.spin == null ? [xt[0], yt[0]] : spinPt(S.spin)));
+  const near = (a, v) => a.reduce((b, x, i) => Math.abs(x - v) < Math.abs(a[b] - v) ? i : b, 0);
+  xt[near(xt, xE)] = xE; yt[near(yt, yE)] = yE;
+  return { sx: [0, ...xs, 1], tx: [0, ...xt, 1], sy: [0, ...ys, 1], ty: [0, ...yt, 1], guidesX: xt, guidesY: yt, ex: xE, ey: yE };
 }
 
 // ---------------- 3秒の 修正 ----------------
