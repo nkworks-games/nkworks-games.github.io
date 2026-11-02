@@ -205,16 +205,19 @@ const planeGeo = new THREE.PlaneGeometry(1, 1); planeGeo.rotateX(-Math.PI / 2);
 function tatamiTexture() {
   const S = 100, c = document.createElement('canvas'); c.width = CONFIG.ROOM_W * S; c.height = CONFIG.ROOM_D * S;
   const g = c.getContext('2d');
-  const mats = []; // 畳の並び（横1.75×縦3.5 と 横3.5×縦1.75 をまぜる）
-  const cw = c.width / 4, rh = c.height / 5;
-  for (let col = 0; col < 4; col++) for (let row = 0; row < 5; row++) mats.push([col * cw, row * rh, cw, rh, (col + row) % 2]);
-  for (const [x, y, w, h, dir] of mats) {
+  // 畳の並び：横4×縦8マスを 1:2 の畳16枚でうめる（4枚の角が1点に集まらない「祝儀敷き」）。[列, 行, 横マス, 縦マス]
+  const LAYOUT = [[0,0,2,1],[2,0,2,1],[0,1,1,2],[1,1,2,1],[3,1,1,2],[1,2,2,1],[0,3,2,1],[2,3,2,1],[0,4,1,2],[1,4,2,1],[3,4,1,2],[1,5,1,2],[2,5,1,2],[0,6,1,2],[3,6,1,2],[1,7,2,1]];
+  const u = c.width / 4;
+  const mats = LAYOUT.map(([cx, cy, cw, ch]) => [cx * u, cy * u, cw * u, ch * u, ch > cw]); // dir＝縦長
+  for (const [x, y, w, h, dir] of mats) { // 畳おもて（目は短い辺と平行）
     g.fillStyle = dir ? '#cdbf86' : '#c5b97c'; g.fillRect(x, y, w, h);
     g.strokeStyle = 'rgba(120,100,50,.18)'; g.lineWidth = 1.2;
     for (let i = 3; i < (dir ? h : w); i += 5) { g.beginPath(); if (dir) { g.moveTo(x, y + i); g.lineTo(x + w, y + i); } else { g.moveTo(x + i, y); g.lineTo(x + i, y + h); } g.stroke(); }
-    g.fillStyle = '#33402c'; // 畳のへり
-    if (dir) { g.fillRect(x, y, w, 7); g.fillRect(x, y + h - 7, w, 7); } else { g.fillRect(x, y, 7, h); g.fillRect(x + w - 7, y, 7, h); }
   }
+  g.fillStyle = 'rgba(90,72,30,.55)'; // 短い辺のつなぎ目（境目の線の真ん中に描く）
+  for (const [x, y, w, h, dir] of mats) { if (dir) { g.fillRect(x, y - 1, w, 2); g.fillRect(x, y + h - 1, w, 2); } else { g.fillRect(x - 1, y, 2, h); g.fillRect(x + w - 1, y, 2, h); } }
+  g.fillStyle = '#33402c'; // 長い辺のへり（境目の線の真ん中に描くので、どの段でも線がまっすぐそろう）
+  for (const [x, y, w, h, dir] of mats) { if (dir) { g.fillRect(x - 6, y, 12, h); g.fillRect(x + w - 6, y, 12, h); } else { g.fillRect(x, y - 6, w, 12); g.fillRect(x, y + h - 6, w, 12); } }
   g.strokeStyle = '#2a2014'; g.lineWidth = 10; g.strokeRect(5, 5, c.width - 10, c.height - 10);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
