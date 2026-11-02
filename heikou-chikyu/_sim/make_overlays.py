@@ -33,6 +33,16 @@ U = {'十': 10, '百': 100, '千': 1000}
 KAN = '〇一二三四五六七八九十百千万'
 
 
+
+def cut_table():
+    """いまのカット表（第3版があればそれ）"""
+    for name in ('cuts_v3.csv', 'cuts_v2.csv'):
+        p = os.path.join(HERE, 'out', 'script', name)
+        if os.path.exists(p):
+            return p
+    raise FileNotFoundError('カット表がない')
+
+
 def kan2int(s):
     total, sect, num = 0, 0, 0
     for ch in s:
@@ -175,7 +185,7 @@ def srt_time(t):
 
 
 def main():
-    rows = list(csv.DictReader(open(os.path.join(HERE, 'out', 'script', 'cuts_v2.csv'), encoding='utf-8')))
+    rows = list(csv.DictReader(open(cut_table(), encoding='utf-8')))
     shots = {s['id']: s for s in json.load(open(os.path.join(HERE, '..', '_blender', 'shots', 'ep1.json'), encoding='utf-8'))['shots']}
     os.makedirs(OUT_HUD, exist_ok=True)
     subs, srt, t, n = [], [], 0.0, 0

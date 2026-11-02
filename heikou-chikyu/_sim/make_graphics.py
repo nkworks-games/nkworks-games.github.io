@@ -47,8 +47,17 @@ def world(tid):
     return _worlds[tid]
 
 
+def cut_table():
+    """いまのカット表（第3版があればそれ）"""
+    for name in ('cuts_v3.csv', 'cuts_v2.csv'):
+        p = os.path.join(HERE, 'out', 'script', name)
+        if os.path.exists(p):
+            return p
+    raise FileNotFoundError('カット表がない')
+
+
 def seconds_of():
-    rows = list(csv.DictReader(open(os.path.join(HERE, 'out', 'script', 'cuts_v2.csv'), encoding='utf-8')))
+    rows = list(csv.DictReader(open(cut_table(), encoding='utf-8')))
     return {r['no']: int(r['sec']) for r in rows}
 
 
@@ -505,7 +514,7 @@ def build_cuts():
     ser = lambda e, key, arm='main': np.asarray(run(*FEAT[e], arm=arm)['series'][key])
 
     C['005'] = title_card(['並行地球', '地球の99％が海だったら'])
-    C['066'] = title_card(['分かれ道'])
+    C['066'] = title_card(['三千年後'])
     C['088'] = title_card(['もし、この星に', '〇〇があったら'], tagk='架空')
     C['007'] = big_numbers('陸地の割合', [('現実の地球', '29%', '陸は約1億4,900万km²', None),
                                          ('この星', '1%', '約510万km²（オーストラリアの約3分の2）', None)], tagk='事実',
@@ -522,7 +531,7 @@ def build_cuts():
     C['039'] = bullets('技術が失われるとき', ['人が少ない（大人25人未満で急に失われやすい）', '材料が手に入らない', '教える余暇がない'], gap=1.2)
     C['041'] = bullets('世界を比べる4つの物差し', ['人口', '平均寿命（年齢別の死亡率から）', '貧困（食べ物・水・住まいが足りない人の割合）',
                                               '暮らしの余裕（大人1人の余暇の日数）'], gap=1.0)
-    C['078'] = title_card(['始まりの場所の運が、', '三千年を分けた'], tagk='計算')
+    C['078'] = title_card(['余裕が、', '海を越える舟を生んだ'], tagk='計算')
     C['085'] = title_card(['参考：計算を延ばすと', '4,108年に初めて海の向こうへ移り住む'], sub='本編の比較には含めない', tagk='参考')
     C['087'] = bullets('分かれ目になったもの', ['海の距離と、舟の届く距離', '育てられる植物があるか', '暮らしの余裕（余暇）'], tagk='計算')
     C['089'] = bullets('行き詰まりの3つの原因', ['育てられる植物がない', '舟の材料（大木）がない', '余暇がない（年に数日）'], tagk='計算')
@@ -535,10 +544,10 @@ def build_cuts():
     C['106'] = bullets('結論1', ['島どうしが近い世界では、多くの場合', '3,000年で数十の島へ', '人口は数万〜十万人あまり'], tagk='計算')
     C['107'] = bullets('結論2', ['ひとつの大きな島の世界では', '暮らしが島の中で足りていた', '海の向こうへは、5回とも移り住まなかった'], tagk='計算')
     C['108'] = bullets('結論3', ['遠く離れた小島の世界では', 'どこから始まったかが、行く末を大きく分けた', '5回中3回は最初の島から出られなかった'], tagk='計算')
-    C['109'] = bullets('結論4', ['海を越える舟も、新しい道具も', 'それを生んだのは、暮らしの余裕だった'], tagk='計算')
+    C['109'] = bullets('結論', ['海を越える舟も、新しい道具も', 'それを生んだのは、暮らしの余裕だった'], tagk='計算')
     C['110'] = title_card(['数字は、仮定と規則しだいで変わる'], sub='出生率・技術を思いつく速さ・住民の判断の規則', tagk='設定')
     C['114'] = title_card(['並行地球 第1回', '地球の99％が海だったら'],
-                          sub='計算：heikou-sim 1.1（追加検証 1.2）・3DCG：Blender / Cycles・音声：合成音声', tagk=None)
+                          sub='計算：heikou-sim 1.1（追加検証 1.2）・3DCG：Blender / Cycles・人の体：MakeHuman（CC0）・音声：VOICEVOX', tagk=None)
     # 地形
     C['009'] = terrain_pair('C1', 'C2', '大きな陸地へ集中')
     C['010'] = terrain_pair('A1', 'A2', '近接した群島')
@@ -742,6 +751,7 @@ def build_cuts():
     C['028'] = still_map('R1-4', 0, '小さな火山島の歴史：最初の島（771km²）に5集団', margin=90)
     C['080'] = map_timelapse('C1-3', '大きな島の歴史：海岸に沿って広がる', 0, 3000, margin=600)
     C['050'] = still_map('A1-2', 320, '群島の歴史：314年、50kmの海を渡る', margin=300)
+    C['203b'] = still_map('A1-2', 0, '群島の歴史：最初の島と、まわりの近い島々', margin=170)
     C['054'] = map_timelapse('A1-2', '群島の歴史：人と技術が島から島へ', 300, 1500, margin=400)
 
     def r14_extra(lay, win, t, hpx):
@@ -897,7 +907,193 @@ def build_cuts():
         tag(img, '設定', appear(t, 0.1))
         return img
     C['026'] = regrow
+    two_histories(C)
     return C
+
+
+# ---------------------------------------------------------------- 第3版：二つの歴史（群島の歴史 A1-2 と 小さな火山島の歴史 R1-4）
+
+A_, R_ = 'A1-2', 'R1-4'
+
+
+def composite_scores():
+    """40の歴史の「変わり方」：6つの物差し（人口の増え方・住む島・技術・舟の届く距離・余暇の変化・貧しさの減り方）の標準得点の合計"""
+    rows = []
+    for t_ in TIDS:
+        for k in range(5):
+            s = run(t_, k)['series']
+            pop = np.asarray(s['pop'])
+            rows.append(('%s-%d' % (t_, k), [math.log10(max(pop[-1], 1) / pop[0]), math.log10(max(s['islands'][-1], 1)),
+                                             float(np.mean(s['techs'][-100:]) - np.mean(s['techs'][:10])),
+                                             math.log10(max(float(np.mean(s['range_km'][-100:])), 1)),
+                                             float(np.mean(s['leisure'][-100:]) - np.mean(s['leisure'][:100])),
+                                             float(np.mean(s['poor'][:100]) - np.mean(s['poor'][-100:]))]))
+    F = np.array([r[1] for r in rows])
+    Z = ((F - F.mean(0)) / np.where(F.std(0) > 0, F.std(0), 1)).sum(1)
+    return {r[0]: float(z) for r, z in zip(rows, Z)}
+
+
+def score_strip(title, emphasis='ends'):
+    """40の歴史を変わり方で並べ、二つの歴史に名前を付ける。emphasis='between' では、あいだの38を囲む"""
+    sc = composite_scores()
+    ids = sorted(sc, key=sc.get)
+    x0, x1, y = 200, 1720, 600
+    lo, hi = sc[ids[0]], sc[ids[-1]]
+    X = lambda v: x0 + (v - lo) / (hi - lo) * (x1 - x0)
+    items = ['人口の増え方', '住む島の数', '技術の数', '舟の届く距離', '暮らしの余裕', '貧しさの減り方']
+
+    def draw(t):
+        img = canvas()
+        d = ImageDraw.Draw(img)
+        text(d, (150, 130), title, 50, TEXT, appear(t, 0.1), bold=True)
+        for i, it in enumerate(items):
+            a = appear(t, 0.4 + 0.25 * i)
+            text(d, (150 + i * 270, 250), it, 30, TEXT2, a)
+        lay = Layer()
+        lay.line([(x0, y), (x1, y)], MUTED, 2, appear(t, 1.8))
+        for k, hid in enumerate(ids):
+            a = appear(t, 2.0 + 0.04 * k)
+            special = hid in (A_, R_)
+            col = ENTITY[hid] if special else (110, 120, 132)
+            lay.circle((X(sc[hid]), y), 16 if special else 10, col, a, outline=BG, ow=2)
+        if emphasis == 'between':
+            a = appear(t, 1.0)
+            xa, xb = X(sc[ids[1]]) - 14, X(sc[ids[-2]]) + 14
+            lay.line([(xa, y + 110), (xa, y + 126), (xb, y + 126), (xb, y + 110)], TEXT2, 3, a)
+        lay.onto(img)
+        a = appear(t, 2.0 + 0.04 * len(ids) + 0.3)
+        text(d, (x0, y + 60), '変わらなかった', 28, MUTED, appear(t, 1.8), anchor='la')
+        text(d, (x1, y + 60), '大きく変わった', 28, MUTED, appear(t, 1.8), anchor='ra')
+        for hid, anc in ((A_, 'rd'), (R_, 'ld')):
+            xx = X(sc[hid])
+            text(d, (xx, y - 40), ENTITY_JA[hid], 36, TEXT, a, bold=True, anchor=anc)
+            text(d, (xx, y - 84), '40の歴史のうち %s' % ('1番目' if hid == A_ else '40番目'), 26, TEXT2, a, anchor=anc)
+        if emphasis == 'between':
+            text(d, ((x0 + x1) / 2, y + 146), 'ほかの38の歴史は、このあいだ', 34, TEXT, appear(t, 1.2), anchor='ma')
+        text(d, (150, H - 60), '6つの物差しそれぞれで40の歴史の中の位置（標準得点）を出し、足し合わせた', 26, MUTED, appear(t, 1.0), anchor='ls')
+        tag(img, '計算', appear(t, 0.1))
+        return img
+    return draw
+
+
+def two_islands(title):
+    """二つの歴史の始まりの島を、同じ縮尺で並べる"""
+    half_km = 170.0
+    wins = {}
+    for ent in (A_, R_):
+        tid, k = FEAT[ent]
+        r = run(tid, k)
+        w = world(tid)
+        isl = int(w['reg']['island'][r['start_regions'][0]])
+        lat0, lon0 = w['lay']['lat'][isl], w['lay']['lon'][isl]
+        dlat = half_km * 0.6 / 111.2
+        dlon = half_km / (111.2 * math.cos(math.radians(lat0)))
+        wins[ent] = (lon0 - dlon, lon0 + dlon, lat0 - dlat, lat0 + dlat)
+    info = {A_: ('近接した群島の世界', '最初の島 12,121km²・いちばん近い島 約50km'), R_: ('遠く離れた小島の世界', '最初の島 771km²・いちばん近い島 104km')}
+
+    def draw(t):
+        img = canvas()
+        d = ImageDraw.Draw(img)
+        text(d, (80, 90), title, 46, TEXT, appear(t, 0.1), bold=True)
+        for i, ent in enumerate((A_, R_)):
+            tid, k = FEAT[ent]
+            win = wins[ent]
+            m = map_image(tid, 900, win)
+            x0, y0 = 50 + i * 960, 210
+            al = appear(t, 0.4 + 1.2 * i)
+            img.paste(Image.blend(Image.new('RGB', m.size, BG), m, al), (x0, y0))
+            lay = Layer()
+            groups_layer(lay, ent, tid, snap_at(run(tid, k), 0), win, x0, y0, 900, m.height, al, scale=1.0)
+            # 100km の物差し
+            px = 900 * 100 / (2 * half_km)
+            lay.line([(x0 + 30, y0 + m.height - 30), (x0 + 30 + px, y0 + m.height - 30)], TEXT, 4, al)
+            lay.onto(img)
+            text(d, (x0 + 30 + px / 2, y0 + m.height - 44), '100km', 24, TEXT, al, anchor='md')
+            label_chip(img, (x0 + 14, y0 + m.height + 44), ENTITY_JA[ent], ENTITY[ent], al, size=36)
+            text(d, (x0 + 14, y0 + m.height + 96), info[ent][0], 28, TEXT2, al)
+            text(d, (x0 + 14, y0 + m.height + 140), info[ent][1], 28, TEXT2, al)
+        tag(img, '計算', appear(t, 0.1))
+        return img
+    return draw
+
+
+def compare_table(title, rows_, tagk='計算', note=None):
+    """二つの歴史を表で並べる。rows_：(項目, 群島の値, 小さな火山島の値)"""
+    def draw(t):
+        img = canvas()
+        d = ImageDraw.Draw(img)
+        text(d, (150, 120), title, 48, TEXT, appear(t, 0.1), bold=True)
+        cx = {A_: 1000, R_: 1480}
+        for ent in (A_, R_):
+            label_chip(img, (cx[ent] - 170, 250), ENTITY_JA[ent], ENTITY[ent], appear(t, 0.3), size=32)
+        lay = Layer()
+        for i in range(len(rows_)):
+            yy = 330 + i * 92
+            lay.line([(150, yy + 70), (1770, yy + 70)], GRID, 1, appear(t, 0.6 + 0.6 * i))
+        lay.onto(img)
+        for i, (lab, va, vr) in enumerate(rows_):
+            yy = 330 + i * 92
+            a = appear(t, 0.6 + 0.6 * i)
+            text(d, (150, yy + 34), lab, 34, TEXT2, a, anchor='lm')
+            for ent, v in ((A_, va), (R_, vr)):
+                main_, sub_ = (v, None) if isinstance(v, str) else v   # （大きい数字, 小さい添え書き）
+                if sub_:
+                    text(d, (cx[ent], yy + 22), main_, 40, TEXT, a, bold=True, anchor='mm')
+                    text(d, (cx[ent], yy + 58), sub_, 24, TEXT2, a, anchor='mm')
+                else:
+                    text(d, (cx[ent], yy + 34), main_, 42, TEXT, a, bold=True, anchor='mm')
+        if note:
+            text(d, (150, H - 50), note, 26, MUTED, appear(t, 0.6 + 0.6 * len(rows_)), anchor='ls')
+        tag(img, tagk, appear(t, 0.1))
+        return img
+    return draw
+
+
+def two_histories(C):
+    ra, rr = run(*FEAT[A_]), run(*FEAT[R_])
+    sa, sr = ra['series'], rr['series']
+    last = lambda s, k: float(np.mean(s[k][-100:]))
+    e0 = lambda r: metrics.life_expectancy(r['deaths_age'], r['pop_age'], 2500, 3000)
+    C['202'] = score_strip('40の歴史を「どれだけ変わったか」で並べる')
+    C['206'] = score_strip('40の歴史の変わり方', emphasis='between')
+    C['203'] = two_islands('二つの歴史の始まりの島（同じ縮尺）')
+    C['204'] = compare_table('3,000年後', [
+        ('人口', '%s人' % fmt_int(sa['pop'][-1]), '%s人' % fmt_int(sr['pop'][-1])),
+        ('住む島', '%d' % sa['islands'][-1], '%d' % sr['islands'][-1]),
+        ('使える技術', '%d' % round(last(sa, 'techs')), '%d' % round(last(sr, 'techs'))),
+        ('舟の届く距離', '%skm' % fmt_int(round(last(sa, 'range_km'), -1)), 'いかだ %dkm' % round(last(sr, 'range_km'))),
+        ('余暇（大人1人・1年）', '%d日' % round(last(sa, 'leisure')), '%d日' % round(last(sr, 'leisure'))),
+        ('暮らしに困る人', '%d%%' % round(100 * last(sa, 'poor')), '%d%%' % round(100 * last(sr, 'poor'))),
+        ('平均寿命', '%d歳' % round(e0(ra)), '%d歳' % round(e0(rr))),
+    ], note='余暇・暮らしに困る人は最後の100年の平均、平均寿命は最後の500年の年齢別の死亡率から')
+    C['205'] = compare_table('分かれ目になったもの', [
+        ('いちばん近い島', '約50km', '104km'),
+        ('届く舟', '浮き木の舟 160km（284年〜）', 'いかだ 30km'),
+        ('育てられる植物', '芋・果樹（4年目に見つける）', 'なし'),
+        ('舟にする大木', 'たくさん', '群島の100分の1以下'),
+        ('余暇（大人1人・1年）', '100日以上', 'ほとんどなし'),
+    ], note='舟の届く距離は、この計算で決めた値（いかだ30km・丸木舟40km・浮き木の舟160km・帆500km）')
+    pa, pr = np.asarray(sa['pop'], float), np.asarray(sr['pop'], float)
+    C['207'] = lines_chart('二つの歴史の人口（目盛りは10倍ごと）', [(pa, ENTITY[A_], ENTITY_JA[A_], 4, 1.0), (pr, ENTITY[R_], ENTITY_JA[R_], 4, 1.0)],
+                           (0, 2999), (200, 200000), log=True, xticks=[0, 1000, 2000, 3000], yticks=[300, 1000, 10000, 100000], ylabel='人口')
+    sm = lambda v, k=25: np.convolve(np.pad(np.asarray(v, float), (k, k), mode='edge'), np.ones(2 * k + 1) / (2 * k + 1), 'valid')
+    rt = run('R1', 4, 'verify-tide')['series']
+    C['209'] = lines_chart('小さな火山島の歴史：岸の魚の量（手つかずを1）', [(sm(sr['fish']), (110, 120, 132), '潮麦なし', 3, 1.0), (sm(rt['fish']), ENTITY[R_], '潮麦あり', 4, 1.0)],
+                           (0, 2999), (0.4, 1.05), xticks=[0, 1000, 2000, 3000], yticks=[0.4, 0.6, 0.8, 1.0], yfmt=lambda v: '%.1f' % v, ylabel='25年の平均',
+                           notes=[(4.0, '潮麦あり＝はじめから潮麦がある世界（ほかの規則・地形・始まりの場所は同じ）')])
+    ta, tr = run('A1', 2, 'verify-tide')['series'], rt
+    C['211'] = compare_table('はじめから潮麦があったら：3,000年後', [
+        ('人口', ('%s人' % fmt_int(ta['pop'][-1]), '潮麦なし %s人' % fmt_int(sa['pop'][-1])), ('%s人' % fmt_int(tr['pop'][-1]), '潮麦なし %s人' % fmt_int(sr['pop'][-1]))),
+        ('住む島', ('%d' % ta['islands'][-1], '潮麦なし %d' % sa['islands'][-1]), ('%d' % tr['islands'][-1], '潮麦なし %d' % sr['islands'][-1])),
+        ('余暇（大人1人・1年）', '%d日' % round(last(ta, 'leisure')), '%d日' % round(last(tr, 'leisure'))),
+        ('暮らしに困る人', '%d%%' % round(100 * last(ta, 'poor')), '%d%%' % round(100 * last(tr, 'poor'))),
+    ], tagk='架空', note='潮麦は架空の植物（はじめからある世界）。ほかの規則・地形・始まりの場所は同じ')
+    pa2, pr2 = run('A1', 2, 'verify-pop2000')['series'], run('R1', 4, 'verify-pop2000')['series']
+    C['210'] = compare_table('2,000人で始めると：3,000年後', [
+        ('人口', ('%s人' % fmt_int(pa2['pop'][-1]), '1,000人だと %s人' % fmt_int(sa['pop'][-1])), ('%s人' % fmt_int(pr2['pop'][-1]), '1,000人だと %s人' % fmt_int(sr['pop'][-1]))),
+        ('住む島', ('%d' % pa2['islands'][-1], '1,000人だと %d' % sa['islands'][-1]), ('%d' % pr2['islands'][-1], '1,000人だと %d' % sr['islands'][-1])),
+        ('余暇（大人1人・1年）', ('%d日' % round(last(pa2, 'leisure')), '1,000人だと %d日' % round(last(sa, 'leisure'))), ('%d日' % round(last(pr2, 'leisure')), '1,000人だと %d日' % round(last(sr, 'leisure')))),
+    ], tagk='設定', note='最初の人数だけを変えた（地形・始まりの場所・規則は同じ）')
 
 
 def main():

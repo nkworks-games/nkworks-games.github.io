@@ -210,6 +210,15 @@ def main():
     S.append(planet('105', '惑星の全景', dict(loc=[0, -22, 4], target=[0, 0, 0], lens=50, loc2=[-3, -21.5, 4], target2=[0, 0, 0]), seconds=10))
     S.append(opensea('111', '冒頭の帆の舟へ戻る（R1-1・2,900年）', boats=[sail_boat([0, 0, 0.35], 30)], islands=far,
                      camera=dict(loc=[22, -16, 5], target=[0, 6, 3], lens=35, loc2=[16, 2, 4.5], target2=[-4, 24, 3]), seconds=14))
+    # 第3版で足したカット（小さな火山島の歴史）
+    S.append(coast('212', 'やせた浜で、貝を探す人々（R1-4・50年）', 'R1', 4, 50, dict(loc=[10, 112, 1.4], target=[-3, 124, 0.6], lens=40, loc2=[9.4, 112.6, 1.4], target2=[-3.4, 124, 0.6]),
+                   extras=[dict(type='figure', loc=[-4, 121.6], pose='bend', rot=160, noshift=True),
+                           dict(type='figure', loc=[2.5, 123.4], pose='bend', rot=200, noshift=True, phase=0.3),
+                           dict(type='figure', loc=[-10, 125.5], pose='stand', rot=170, noshift=True)], seconds=8))
+    S.append(coast('213', 'いかだで浅瀬に出る人と、浜の人（R1-4・2,000年）', 'R1', 4, 2000, dict(loc=[16, 128, 1.6], target=[2, 118, 0.6], lens=35, loc2=[15.4, 127.6, 1.6], target2=[1.6, 118, 0.6]),
+                   extras=[dict(type='raft', loc=[6, 116.5], rot=20, float=True, move=[-2.0, -1.0, 0]),
+                           dict(type='figure', loc=[6, 116.5, 0.27], pose='stand', rot=200, boat=0),
+                           dict(type='figure', loc=[-2, 124], pose='look', rot=190, noshift=True)], seconds=9))
     S.append(coast('112', '小さな火山島の浜の夕暮れ。火を囲む人影（R1-4・2,990年）', 'R1', 4, 2990, dict(loc=[20, 112, 2.0], target=[0, 160, 3], lens=32, loc2=[16, 118, 2.0], target2=[-2, 162, 3]),
                    time='dusk', seconds=14, sky=dict(elevation=2.0)))
     S.append(planet('113', 'カメラが空へ上がり、惑星の全景へ', dict(loc=[0, -7.0, 0.9], target=[0, 0, 0.9], lens=35, loc2=[0, -26, 6], target2=[0, 0, 0]), seconds=16))

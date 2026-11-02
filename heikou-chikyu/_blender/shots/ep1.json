@@ -2932,6 +2932,200 @@
    "seconds": 14
   },
   {
+   "id": "212",
+   "title": "やせた浜で、貝を探す人々（R1-4・50年）",
+   "kind": "coast",
+   "seed": 44,
+   "preset": "volcanic_old",
+   "climate": "subtropical",
+   "ground": "temperate",
+   "forest": 0.97,
+   "palm_density": 0.35,
+   "sky": {
+    "time": "day",
+    "azimuth": -140,
+    "elevation": null,
+    "cloud": 0.5
+   },
+   "camera": {
+    "loc": [
+     10,
+     112,
+     1.4
+    ],
+    "target": [
+     -3,
+     124,
+     0.6
+    ],
+    "lens": 40,
+    "loc2": [
+     9.4,
+     112.6,
+     1.4
+    ],
+    "target2": [
+     -3.4,
+     124,
+     0.6
+    ]
+   },
+   "anim": true,
+   "seconds": 8,
+   "record": "R1-4・50年（main）",
+   "techs": [],
+   "pop": 477,
+   "settlement": {
+    "huts": 24,
+    "style": "shelter",
+    "racks": 0,
+    "pots": 0,
+    "gardens": 0,
+    "storehouse": false,
+    "fires": 3,
+    "smoke": 2,
+    "people": 15
+   },
+   "boats": [
+    {
+     "type": "raft",
+     "count": 5
+    }
+   ],
+   "extras": [
+    {
+     "type": "figure",
+     "loc": [
+      -4,
+      121.6
+     ],
+     "pose": "bend",
+     "rot": 160,
+     "noshift": true
+    },
+    {
+     "type": "figure",
+     "loc": [
+      2.5,
+      123.4
+     ],
+     "pose": "bend",
+     "rot": 200,
+     "noshift": true,
+     "phase": 0.3
+    },
+    {
+     "type": "figure",
+     "loc": [
+      -10,
+      125.5
+     ],
+     "pose": "stand",
+     "rot": 170,
+     "noshift": true
+    }
+   ]
+  },
+  {
+   "id": "213",
+   "title": "いかだで浅瀬に出る人と、浜の人（R1-4・2,000年）",
+   "kind": "coast",
+   "seed": 44,
+   "preset": "volcanic_old",
+   "climate": "subtropical",
+   "ground": "temperate",
+   "forest": 0.97,
+   "palm_density": 0.35,
+   "sky": {
+    "time": "day",
+    "azimuth": -140,
+    "elevation": null,
+    "cloud": 0.5
+   },
+   "camera": {
+    "loc": [
+     16,
+     128,
+     1.6
+    ],
+    "target": [
+     2,
+     118,
+     0.6
+    ],
+    "lens": 35,
+    "loc2": [
+     15.4,
+     127.6,
+     1.6
+    ],
+    "target2": [
+     1.6,
+     118,
+     0.6
+    ]
+   },
+   "anim": true,
+   "seconds": 9,
+   "record": "R1-4・2000年（main）",
+   "techs": [],
+   "pop": 511,
+   "settlement": {
+    "huts": 26,
+    "style": "shelter",
+    "racks": 0,
+    "pots": 0,
+    "gardens": 0,
+    "storehouse": false,
+    "fires": 3,
+    "smoke": 2,
+    "people": 16
+   },
+   "boats": [
+    {
+     "type": "raft",
+     "count": 5
+    }
+   ],
+   "extras": [
+    {
+     "type": "raft",
+     "loc": [
+      6,
+      116.5
+     ],
+     "rot": 20,
+     "float": true,
+     "move": [
+      -2.0,
+      -1.0,
+      0
+     ]
+    },
+    {
+     "type": "figure",
+     "loc": [
+      6,
+      116.5,
+      0.27
+     ],
+     "pose": "stand",
+     "rot": 200,
+     "boat": 0
+    },
+    {
+     "type": "figure",
+     "loc": [
+      -2,
+      124
+     ],
+     "pose": "look",
+     "rot": 190,
+     "noshift": true
+    }
+   ]
+  },
+  {
    "id": "112",
    "title": "小さな火山島の浜の夕暮れ。火を囲む人影（R1-4・2,990年）",
    "kind": "coast",

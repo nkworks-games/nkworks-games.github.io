@@ -1,6 +1,6 @@
 """並行地球 第1回：粗いつなぎ（通し確認用の動画）を作る
 
-カット表（out/script/cuts_v2.csv）の順と秒数で、手元にある素材をつなぐ。
+カット表（out/script/cuts_v3.csv、なければ cuts_v2.csv）の順と秒数で、手元にある素材をつなぐ。
   図・地図・文字：out/video/cutNNN.mp4（make_graphics.py で作ったもの）
   3D           ：out/renders/final/cutNNN.mp4（frames_to_mp4.py で作る）か cutNNN.png。なければ動きの確かめ用の小さい動画（motion）、
                  それもなければ確認用の静止画
@@ -33,6 +33,16 @@ OUT = os.path.join(HERE, 'out', 'roughcut')
 SEG = os.path.join(OUT, 'seg')
 FPS = 24
 ENC = ['-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-preset', 'veryfast', '-r', str(FPS)]
+
+
+
+def cut_table():
+    """いまのカット表（第3版があればそれ）"""
+    for name in ('cuts_v3.csv', 'cuts_v2.csv'):
+        p = os.path.join(HERE, 'out', 'script', name)
+        if os.path.exists(p):
+            return p
+    raise FileNotFoundError('カット表がない')
 
 
 def ff(args):
@@ -178,7 +188,7 @@ def voice_track(rows, path):
 def main():
     clean = '--clean' in sys.argv
     os.makedirs(SEG, exist_ok=True)
-    rows = list(csv.DictReader(open(os.path.join(HERE, 'out', 'script', 'cuts_v2.csv'), encoding='utf-8')))
+    rows = list(csv.DictReader(open(cut_table(), encoding='utf-8')))
     segs = []
     for r in rows:
         segs.append(segment(r, clean))
