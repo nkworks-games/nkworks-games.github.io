@@ -54,6 +54,7 @@ html,body{height:100%;overflow:hidden;background:#2a1a12;color:#3a2618;font-fami
 .follow .fs{font-size:10px;font-weight:500;opacity:.75;line-height:1.3}
 .fbtn{flex-shrink:0;display:inline-block;padding:8px 12px;border-radius:999px;background:#000;color:#fff;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #555;white-space:nowrap}
 .fbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #555}
+#muteBtn{position:fixed;top:calc(env(safe-area-inset-top) + 74px);right:10px;width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(40,18,8,.62);color:#fff;font-size:18px;line-height:1;cursor:pointer;z-index:11;padding:0}
 .toplink{display:inline-block;margin-top:10px;font-size:12px;color:#8a5a2b}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
@@ -67,6 +68,7 @@ html,body{height:100%;overflow:hidden;background:#2a1a12;color:#3a2618;font-fami
   <div class="box r"><b id="lives">❤❤❤</b><br>🧧 <b id="otoN">0</b></div>
 </div>
 <div id="bigmsg" class="bigmsg hidden"></div>
+<button id="muteBtn" aria-label="音のオン・オフ">🔊</button>
 <div id="hint" class="hint hidden">👆 画面のどこをドラッグしても動けます</div>
 
 <div id="title" class="overlay bottom">
@@ -119,6 +121,7 @@ const CONFIG = {
   WAVE_FIRST: 45, WAVE_EVERY: 45, WAVE_LULL: 2.5, WAVE_LEN: 9, // おばちゃんの「ところで…」の波（はじめ・間隔・静かな時間・波の長さ）
   RING_INTERVAL: 1.9, RING_N: 5, RING_SPREAD: 1.7,
   REPLY_TIME: 1.0, ENDING_TIME: 2.0,
+  SE_VOLUME: 0.6,                     // 効果音の大きさ（0〜1）
   FIREBASE: {"apiKey": "AIzaSyDgzaEzIltyI-UkB_i1LKrcq0fLPtXqel0", "authDomain": "nkworks-games.firebaseapp.com", "projectId": "nkworks-games", "storageBucket": "nkworks-games.firebasestorage.app", "messagingSenderId": "996468697479", "appId": "1:996468697479:web:ccea287b2ddeb1ff234b22"}, // 全ゲーム共通の Firebase（nkworks-games）。無料プランなので上限に来たら止まるだけ
   FB_COLLECTION: 'shinseki-danmaku', FB_SHARDS: 5, FB_MIN_PLAYS: 30, FB_TIMEOUT: 6000,
   URL: 'https://nkworks-games.com/shinseki-danmaku/',
@@ -152,6 +155,54 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const $ = id => document.getElementById(id);
 const HW = CONFIG.ROOM_W / 2, HD = CONFIG.ROOM_D / 2;
+
+// ===== [SEC:SOUND] =====
+// 効果音は音のファイルを使わず、その場で作って鳴らす（BGMはなし）
+const SE = (() => {
+  let ac = null, master = null, noiseBuf = null, lastShoot = 0;
+  let muted = false; try { muted = localStorage.getItem('shinseki-danmaku-mute') === '1'; } catch (e) {}
+  function unlock() { // 最初のタップ・キー入力で音を出せるようにする（スマホのきまり）
+    try {
+      if (!ac) {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        master = ac.createGain(); master.gain.value = CONFIG.SE_VOLUME; master.connect(ac.destination);
+        noiseBuf = ac.createBuffer(1, ac.sampleRate * 0.5, ac.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (ac.state === 'suspended') ac.resume();
+    } catch (e) { ac = null; }
+  }
+  const ready = () => ac && !muted && ac.state === 'running';
+  function tone(f, dur, { type = 'sine', vol = 0.3, to = null, at = 0, attack = 0.005 } = {}) {
+    const t = ac.currentTime + at, o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(dur, { vol = 0.3, freq = 1000, q = 1, kind = 'bandpass', at = 0 } = {}) {
+    const t = ac.currentTime + at, n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    n.buffer = noiseBuf; f.type = kind; f.frequency.value = freq; f.Q.value = q;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    n.connect(f); f.connect(g); g.connect(master); n.start(t); n.stop(t + dur + 0.02);
+  }
+  const play = fn => { if (ready()) try { fn(); } catch (e) {} };
+  return {
+    unlock,
+    get muted() { return muted; },
+    toggle() { muted = !muted; try { localStorage.setItem('shinseki-danmaku-mute', muted ? '1' : '0'); } catch (e) {} return muted; },
+    start: () => play(() => { for (const at of [0, 0.2]) { noise(0.07, { vol: 0.9, freq: 2600, q: 6, at }); tone(1900, 0.06, { vol: 0.25, at }); } }), // 拍子木「カン、カン」
+    shoot: (type) => play(() => { // 質問が飛んでくる「ぽっ」（同時にたくさん鳴りすぎないように間をあける）
+      if (ac.currentTime - lastShoot < 0.05) return; lastShoot = ac.currentTime;
+      const f = type === 'slow' ? 330 : type === 'fan' ? 620 : 480; tone(f, 0.09, { vol: 0.14, to: f * 0.7 });
+    }),
+    ring: () => play(() => { tone(260, 0.18, { type: 'triangle', vol: 0.22, to: 190 }); noise(0.1, { vol: 0.15, freq: 900, q: 2 }); }), // おばちゃんのまとめ撃ち
+    hit: () => play(() => { tone(170, 0.28, { vol: 0.7, to: 55 }); noise(0.14, { vol: 0.45, freq: 700, kind: 'lowpass' }); }), // 当たった「ドン」
+    oto: () => play(() => { tone(1568, 0.16, { type: 'triangle', vol: 0.22 }); tone(2093, 0.4, { type: 'triangle', vol: 0.22, at: 0.07 }); }), // お年玉「チャリン」
+    otoAppear: () => play(() => tone(2637, 0.14, { vol: 0.07 })), // お年玉が出た「きらっ」
+    tokorode: () => play(() => { tone(196, 0.4, { type: 'triangle', vol: 0.35 }); tone(185, 0.7, { type: 'triangle', vol: 0.35, at: 0.38 }); }), // 「ところで…」の合図
+    ending: () => play(() => { [523, 440, 349].forEach((f, i) => tone(f, i === 2 ? 0.7 : 0.22, { type: 'triangle', vol: 0.28, at: i * 0.2 })); }), // ライフ0「ちょっとトイレに…」
+  };
+})();
+addEventListener('pointerdown', SE.unlock, true); addEventListener('keydown', SE.unlock, true);
 
 // ===== [SEC:RENDERER] =====
 const canvas = $('c');
@@ -304,7 +355,7 @@ const XL = HW - PLAYER_R, ZL = HD - PLAYER_R;
 
 // ===== [SEC:STATE] =====
 let state = 'title';
-let gameT = 0, hits = 0, dodged = 0, lives = 3, invulnT = 0, otoN = 0, lastQ = null, hitsByQ = {}, nextOto = 0, replyT = 0, flashT = 0, endT = 0, demoT = 0, ringT = 0;
+let gameT = 0, hits = 0, dodged = 0, lives = 3, invulnT = 0, otoN = 0, lastQ = null, hitsByQ = {}, nextOto = 0, replyT = 0, flashT = 0, endT = 0, demoT = 0, ringT = 0, wasLull = false;
 const P = { x: 0, z: 3, vx: 0, vz: 0 }; const target = { x: 0, z: 3 };
 let bullets = [], otos = [], floats = [];
 let snapshot = null, lastResult = null, resultCanvas = null, lastCheckT = 0;
@@ -339,12 +390,12 @@ function relFire(r) {
   if (r.type === 'slow') spawnBullet(r.x, r.z, ang, sp * CONFIG.SLOW_SPEED, chooseQ(), CONFIG.SLOW_SIZE);
   else if (r.type === 'fan') for (const d of [-1, 0, 1]) spawnBullet(r.x, r.z, ang + d * CONFIG.FAN_ANGLE, sp, chooseQ());
   else spawnBullet(r.x, r.z, ang, sp, chooseQ());
-  r.anim = 0.3;
+  r.anim = 0.3; SE.shoot(r.type);
 }
 function bossRing() {
   const r = boss, base = Math.atan2(0 - r.z, 0 - r.x), n = CONFIG.RING_N;
   for (let i = 0; i < n; i++) spawnBullet(r.x, r.z, base + (i / (n - 1) - 0.5) * CONFIG.RING_SPREAD, curSpeed() * 0.9, pick(QUESTIONS.filter(q => q.lv === 2)));
-  r.anim = 0.3;
+  r.anim = 0.3; SE.ring();
 }
 
 // ===== [SEC:OTOSHIDAMA] =====
@@ -359,7 +410,7 @@ function spawnOto() {
   const band = new THREE.Mesh(otoBand, otoBandMat); band.position.z = -0.08; g.add(band);
   const ring = new THREE.Mesh(ringGeo, ringMat); ring.position.y = -0.1; g.add(ring);
   g.position.set(x, 0.12, z); g.rotation.y = rand(-0.6, 0.6); scene.add(g);
-  otos.push({ x, z, life: CONFIG.OTO_LIFE, g, ring });
+  otos.push({ x, z, life: CONFIG.OTO_LIFE, g, ring }); SE.otoAppear();
 }
 function clearOtos() { for (const o of otos) scene.remove(o.g); otos = []; for (const f of floats) { scene.remove(f.s); f.s.material.dispose(); } floats = []; }
 function floatText(text, x, z) {
@@ -376,12 +427,14 @@ function startGame(seed) {
   for (const r of rels) { r.next = r.from + rand(0.3, 1.4); r.anim = 0; r.lean = 0; }
   nextOto = CONFIG.OTO_FIRST;
   snapshot = null; lastResult = null; dragId = null;
+  wasLull = false; SE.start();
   $('title').classList.add('hidden'); $('result').classList.add('hidden'); $('bigmsg').classList.add('hidden'); $('hud').classList.remove('hidden');
 }
 function onHit(b) {
   b.hit = true; hits++; hitsByQ[b.q.id] = (hitsByQ[b.q.id] || 0) + 1; lastQ = b.q;
   lives = Math.max(0, lives - 1); invulnT = CONFIG.INVULN; flashT = 0.25;
   replySprite.material = bubble(pick(REPLIES), 0, 54).mat; replyT = CONFIG.REPLY_TIME;
+  if (lives > 0) SE.hit();
   if (lives <= 0) toEnding();
 }
 function tickPlayer(dt) {
@@ -425,6 +478,7 @@ function tick(dt) {
   gameT += dt; invulnT = Math.max(0, invulnT - dt);
   tickPlayer(dt);
   const w = waveInfo();
+  if (w.lull && !wasLull) SE.tokorode(); wasLull = w.lull;
   boss.lean = clamp(boss.lean + (w.lull || w.wave ? dt : -dt) * 2.5, 0, 1);
   if (!w.lull) {
     for (const r of rels) {
@@ -441,7 +495,7 @@ function tick(dt) {
   for (let i = otos.length - 1; i >= 0; i--) {
     const o = otos[i]; o.life -= dt;
     if (Math.hypot(o.x - P.x, o.z - P.z) < CONFIG.OTO_R + PLAYER_R) {
-      const was = lives; lives = Math.min(CONFIG.LIVES, lives + 1); otoN++; floatText(lives > was ? '❤ +1' : '満タン！', o.x, o.z);
+      const was = lives; lives = Math.min(CONFIG.LIVES, lives + 1); otoN++; floatText(lives > was ? '❤ +1' : '満タン！', o.x, o.z); SE.oto();
       scene.remove(o.g); otos.splice(i, 1); continue;
     }
     if (o.life <= 0) { scene.remove(o.g); otos.splice(i, 1); }
@@ -449,6 +503,7 @@ function tick(dt) {
 }
 function toEnding() {
   state = 'ending'; endT = 0; dragId = null; $('hint').classList.add('hidden');
+  SE.hit(); SE.ending();
   const m = $('bigmsg'); m.textContent = 'ちょっとトイレに…'; m.classList.remove('hidden');
   render(); try { snapshot = renderer.domElement.toDataURL('image/jpeg', 0.85); } catch (e) { snapshot = null; }
 }
@@ -563,6 +618,8 @@ $('postBtn').addEventListener('click', () => {
   const u = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText(lastResult)) + '&url=' + encodeURIComponent(CONFIG.URL);
   window.open(u, '_blank', 'noopener');
 });
+const muteIcon = () => { $('muteBtn').textContent = SE.muted ? '🔇' : '🔊'; }; muteIcon();
+$('muteBtn').addEventListener('click', () => { SE.toggle(); muteIcon(); });
 $('followBtn').href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; $('followBtn').textContent = `𝕏 @${CONFIG.FOLLOW_X}`;
 $('saveBtn').addEventListener('click', async () => {
   if (!resultCanvas || !lastResult) return;
