@@ -231,14 +231,6 @@ function shojiTexture(w, h) {
   g.fillStyle = '#6b4a2c'; g.fillRect(0, c.height - 40, c.width, 40); g.fillRect(0, 0, c.width, 22);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
-function scrollTexture() {
-  const c = document.createElement('canvas'); c.width = 160; c.height = 420; const g = c.getContext('2d');
-  g.fillStyle = '#5b3a2a'; g.fillRect(0, 0, 160, 420); g.fillStyle = '#f7f0dc'; g.fillRect(16, 40, 128, 340);
-  g.fillStyle = '#1e140c'; g.font = `900 92px ${SERIF}`; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText('迎', 80, 150); g.fillText('春', 80, 270);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-}
-
 // ===== [SEC:ROOM] =====
 {
   const base = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), lam(0x9c8a52)); base.rotation.x = -Math.PI / 2; base.receiveShadow = true; scene.add(base);
@@ -251,16 +243,6 @@ function scrollTexture() {
     const side = new THREE.Mesh(new THREE.PlaneGeometry(CONFIG.ROOM_D + 6, 3.2), new THREE.MeshLambertMaterial({ map: shojiTexture(CONFIG.ROOM_D + 6, 3.2) }));
     side.position.set(s * (HW + CONFIG.REL_OUT + 1.3), 1.6, 0.5); side.rotation.y = -s * Math.PI / 2; scene.add(side);
   }
-  const scroll = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 1.84), new THREE.MeshLambertMaterial({ map: scrollTexture() }));
-  scroll.position.set(-(HW + 0.3), 1.75, backZ + 0.02); scene.add(scroll);
-  // 鏡餅
-  const kg = new THREE.Group();
-  const stand = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.32, 0.62), lam(0xd9b46a)); stand.position.y = 0.16; kg.add(stand);
-  const m1 = new THREE.Mesh(new THREE.SphereGeometry(0.28, 20, 12), lam(0xfffaf0)); m1.scale.y = 0.55; m1.position.y = 0.45; kg.add(m1);
-  const m2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 12), lam(0xfffaf0)); m2.scale.y = 0.6; m2.position.y = 0.6; kg.add(m2);
-  const mk = new THREE.Mesh(new THREE.SphereGeometry(0.1, 14, 10), lam(0xf08a1a)); mk.position.y = 0.76; kg.add(mk);
-  kg.traverse(o => { if (o.isMesh) o.castShadow = true; });
-  kg.position.set(HW + 0.6, 0, backZ + 0.5); scene.add(kg);
 }
 
 // ===== [SEC:PEOPLE] =====
