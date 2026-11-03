@@ -49,6 +49,11 @@ html,body{height:100%;overflow:hidden;background:#2a1a12;color:#3a2618;font-fami
 .btns{display:flex;gap:8px;margin-bottom:10px}
 .btns .btn{flex:1;font-size:15px;padding:11px 8px}
 .hint{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 22px);text-align:center;color:#fff;font-weight:800;font-size:15px;text-shadow:0 2px 4px rgba(0,0,0,.7);pointer-events:none;z-index:5}
+.follow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px auto 0;background:#fff;border:2px solid #e5cf9a;border-radius:14px;padding:6px 8px 6px 12px;text-align:left}
+.follow .fl{font-size:14px;font-weight:800;line-height:1.3}
+.follow .fs{font-size:10px;font-weight:500;opacity:.75;line-height:1.3}
+.fbtn{flex-shrink:0;display:inline-block;padding:8px 12px;border-radius:999px;background:#000;color:#fff;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #555;white-space:nowrap}
+.fbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #555}
 .toplink{display:inline-block;margin-top:10px;font-size:12px;color:#8a5a2b}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
@@ -81,6 +86,7 @@ html,body{height:100%;overflow:hidden;background:#2a1a12;color:#3a2618;font-fami
     <div id="national" class="national hidden"></div>
     <div class="btns"><button id="postBtn" class="btn x">結果をポスト</button><button id="saveBtn" class="btn">画像を保存</button></div>
     <button id="againBtn" class="btn main">もう一回 帰省する</button>
+    <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" id="followBtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
     <a class="toplink" href="https://nkworks-games.com/">ほかのゲーム（N.K. Works）</a>
   </div>
 </div>
@@ -116,6 +122,7 @@ const CONFIG = {
   FIREBASE: {"apiKey": "AIzaSyDgzaEzIltyI-UkB_i1LKrcq0fLPtXqel0", "authDomain": "nkworks-games.firebaseapp.com", "projectId": "nkworks-games", "storageBucket": "nkworks-games.firebasestorage.app", "messagingSenderId": "996468697479", "appId": "1:996468697479:web:ccea287b2ddeb1ff234b22"}, // 全ゲーム共通の Firebase（nkworks-games）。無料プランなので上限に来たら止まるだけ
   FB_COLLECTION: 'shinseki-danmaku', FB_SHARDS: 5, FB_MIN_PLAYS: 30, FB_TIMEOUT: 6000,
   URL: 'https://nkworks-games.com/shinseki-danmaku/',
+  FOLLOW_X: 'vyaPudzd1E54661',        // 結果画面の「作者をフォロー」のXアカウント
 };
 
 // ===== [SEC:DATA] =====
@@ -556,6 +563,7 @@ $('postBtn').addEventListener('click', () => {
   const u = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText(lastResult)) + '&url=' + encodeURIComponent(CONFIG.URL);
   window.open(u, '_blank', 'noopener');
 });
+$('followBtn').href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; $('followBtn').textContent = `𝕏 @${CONFIG.FOLLOW_X}`;
 $('saveBtn').addEventListener('click', async () => {
   if (!resultCanvas || !lastResult) return;
   const blob = await new Promise(r => resultCanvas.toBlob(r, 'image/png')); if (!blob) return;
