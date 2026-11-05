@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>つかめない棒</title>
+<meta name="description" content="ぬるぬる滑る棒を、手で追いかけてつかみ、地面に落とさず何秒たえられるかを競う3Dゲーム。押している間だけ握れて、手のまん中でつかむほど長く持てます。スマホ・パソコン対応。">
+<meta name="theme-color" content="#14122b">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/tsukamenai-bou/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="つかめない棒">
+<meta property="og:description" content="絶対につかめない棒を、地面に落とさず何秒たえられる？">
+<meta property="og:url" content="https://nkworks-games.com/tsukamenai-bou/">
+<meta property="og:image" content="https://nkworks-games.com/tsukamenai-bou/card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nkworks-games.com/tsukamenai-bou/card.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314122b'/%3E%3Crect x='6' y='27' width='52' height='10' rx='5' fill='%23c6ff2e' transform='rotate(-35 32 32)'/%3E%3Crect x='36' y='27' width='9' height='10' fill='%23ff6b9a' transform='rotate(-35 32 32)'/%3E%3C/svg%3E">
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#14122b;color:#fff;
+    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;overscroll-behavior:none}
+  canvas{display:block;width:100%;height:100%;touch-action:none}
+  #hud{position:fixed;left:0;right:0;top:max(10px,env(safe-area-inset-top));text-align:center;pointer-events:none;display:none}
+  body[data-state=play] #hud,body[data-state=over] #hud{display:block}
+  #time{font-size:clamp(40px,9vmin,72px);font-weight:900;letter-spacing:.02em;text-shadow:0 3px 0 rgba(0,0,0,.35);font-variant-numeric:tabular-nums}
+  #time small{font-size:.4em;margin-left:.2em}
+  #best{font-size:clamp(13px,2.6vmin,18px);opacity:.8}
+  #slip{position:fixed;width:84px;height:10px;margin-left:-42px;margin-top:-5px;border-radius:6px;background:rgba(0,0,0,.45);
+    border:2px solid rgba(255,255,255,.85);pointer-events:none;display:none;box-sizing:content-box}
+  #slip i{display:block;height:100%;width:100%;border-radius:4px;background:#8cff3b;transform-origin:left center}
+  #gripBtn{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(26px,calc(env(safe-area-inset-bottom) + 12px));
+    width:112px;height:112px;border-radius:50%;border:4px solid rgba(255,255,255,.9);background:rgba(255,80,130,.55);
+    color:#fff;font-weight:900;font-size:22px;font-family:inherit;display:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+  #gripBtn.on{background:rgba(255,80,130,.95);transform:scale(.94)}
+  body.touch[data-state=play] #gripBtn{display:block}
+  .panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(88vw,420px);box-sizing:border-box;
+    padding:22px 22px 24px;border-radius:22px;background:rgba(20,18,43,.82);border:2px solid rgba(255,255,255,.25);
+    text-align:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  .panel{max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);overflow-y:auto}   /* 低い画面ではパネルの中だけスクロール */
+  .hidden{display:none}
+  /* 作者をフォロー（タイトルと結果画面だけ。サイトのほかのゲームと同じ形） */
+  .follow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:6px 8px 6px 14px;text-align:left}
+  .follow>div{min-width:0}.follow p{margin:0}
+  .follow .fl{font-size:14px;font-weight:800;line-height:1.3;white-space:nowrap}
+  .follow .fs{font-size:10px;color:rgba(255,255,255,.72);line-height:1.3;white-space:nowrap}
+  .fbtn{flex-shrink:0;display:inline-block;padding:8px 12px;border-radius:999px;background:#000;color:#fff;border:1px solid #4a4f66;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #333;white-space:nowrap}
+  .fbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #333}
+  .credit{text-align:center;font-size:11px;color:rgba(255,255,255,.55);margin-top:10px}
+  .credit a{color:rgba(255,255,255,.8)}
+  @media (max-width:420px){.follow{gap:8px;padding:6px 6px 6px 12px}.follow .fs{display:none}.follow .fl{font-size:13px}.fbtn{font-size:12px;padding:8px 10px}}
+  h1{margin:0 0 6px;font-size:clamp(34px,8vmin,52px);line-height:1.1;color:#c6ff2e;text-shadow:0 4px 0 rgba(0,0,0,.4)}
+  h2{margin:0 0 4px;font-size:30px;color:#ff6b9a}
+  .lead{margin:6px 0 12px;font-size:16px;line-height:1.5}
+  #how{list-style:none;margin:0 0 16px;padding:10px 12px;font-size:14px;line-height:1.6;text-align:left;background:rgba(255,255,255,.08);border-radius:12px}
+  button.big,#toTitleBtn{font-weight:800;font-size:20px;font-family:inherit;color:#14122b;background:#c6ff2e;border:0;border-radius:14px;
+    padding:14px 26px;box-shadow:0 5px 0 #7da81a;cursor:pointer;touch-action:manipulation}
+  button.big:active{transform:translateY(3px);box-shadow:0 2px 0 #7da81a}
+  #toTitleBtn{background:#fff;color:#14122b;box-shadow:0 5px 0 #aaa;font-size:16px;padding:12px 18px}
+  .row{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:14px}
+  .score{font-size:64px;font-weight:900;font-variant-numeric:tabular-nums}.score small{font-size:24px;margin-left:4px}
+  #rBest{font-size:15px;min-height:22px}
+  #rBest b{color:#ffe14d}
+  #bestT{margin-top:12px;font-size:14px;opacity:.85}
+  #danger{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 55%,rgba(255,40,70,0) 45%,rgba(255,40,70,.55) 100%)}
+  #banner{position:fixed;left:0;right:0;top:22%;text-align:center;pointer-events:none;opacity:0}
+  #banner b{display:block;font-size:clamp(30px,7vmin,56px);font-weight:900;color:#ffe14d;text-shadow:0 4px 0 rgba(0,0,0,.45)}
+  #banner span{display:block;font-size:clamp(14px,2.8vmin,20px);margin-top:4px;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+  #banner.show{animation:bn 2.2s ease-out}
+  @keyframes bn{0%{opacity:0;transform:scale(.6)}12%{opacity:1;transform:scale(1.12)}22%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+  #combo{position:fixed;left:0;right:0;top:calc(max(10px,env(safe-area-inset-top)) + clamp(78px,14vmin,118px));text-align:center;pointer-events:none;font-weight:900;font-size:clamp(18px,4vmin,28px);color:#ff9ac0;text-shadow:0 3px 0 rgba(0,0,0,.45);opacity:0}
+  #combo.show{opacity:1;animation:cp .25s ease-out}
+  @keyframes cp{0%{transform:scale(1.5)}100%{transform:scale(1)}}
+  #talk{position:fixed;max-width:46vw;padding:6px 12px;border-radius:14px;background:#fff;color:#14122b;font-weight:800;font-size:clamp(14px,2.8vmin,18px);pointer-events:none;display:none;transform:translate(-50%,-100%);white-space:nowrap}
+  #talk:after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+  .pop{position:fixed;pointer-events:none;font-weight:900;font-size:clamp(18px,3.6vmin,26px);text-shadow:0 3px 0 rgba(0,0,0,.5);animation:pp 1s ease-out forwards;white-space:nowrap}
+  @keyframes pp{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-190%) scale(1)}}
+  #hint{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);max-width:58vw;text-align:center;font-size:clamp(12px,2.4vmin,16px);line-height:1.5;color:#fff;background:rgba(0,0,0,.45);padding:8px 14px;border-radius:12px;pointer-events:none;display:none}
+  #hint b{color:#c6ff2e}
+  body.touch #hint{left:14px;transform:none;max-width:calc(100vw - 170px);text-align:left}
+  #muteBtn{position:fixed;right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:rgba(0,0,0,.35);color:#fff;font-size:20px;z-index:5;touch-action:manipulation}
+  #rRank{font-size:20px;font-weight:900;color:#c6ff2e;margin:2px 0 6px}
+  #rStats{font-size:14px;opacity:.9;min-height:20px;margin-top:4px}
+  @media (max-height:680px){   /* 低めの画面：余白をつめて、パネルを画面に収める */
+    .panel{padding:16px 20px 18px}
+    #how{margin-bottom:10px}
+    .follow{margin-top:10px}
+    .credit{margin-top:6px}
+    .lead{margin:4px 0 8px}
+  }
+  @media (max-height:560px){   /* 横向きスマホなど、短い画面：タイトルを2列に */
+    .panel{padding:12px 18px 14px}
+    #title:not(.hidden){display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);column-gap:16px;align-items:center;width:min(94vw,680px)}
+    #title h1{grid-column:1;grid-row:1;font-size:clamp(26px,9vh,38px);margin:0 0 2px}
+    #title h1 br{display:none}
+    #title .lead{grid-column:1;grid-row:2;margin:2px 0 8px;font-size:14px}
+    #title #startBtn{grid-column:1;grid-row:3;justify-self:center}
+    #title #bestT{grid-column:1;grid-row:4;margin-top:8px}
+    #title #how{grid-column:2;grid-row:1 / span 3;margin:0;font-size:12.5px;line-height:1.5}
+    #title .follow{grid-column:2;grid-row:4;margin-top:8px}
+    #title .credit{grid-column:1 / span 2;grid-row:5;margin-top:6px}
+    #result:not(.hidden){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px;align-items:center;width:min(94vw,600px)}
+    #result h2{grid-column:1;grid-row:1;font-size:24px;margin:0}
+    #result .score{grid-column:1;grid-row:2;font-size:46px;line-height:1.1}
+    #rRank{grid-column:1;grid-row:3;font-size:17px;margin:0 0 2px}
+    #rBest{grid-column:1;grid-row:4}
+    #rStats{grid-column:1;grid-row:5}
+    #rBtns{grid-column:2;grid-row:1 / span 2;margin-top:0}
+    #rShareRow{grid-column:2;grid-row:3;margin-top:8px}
+    #result .follow{grid-column:2;grid-row:4 / span 2;margin-top:8px}
+  }
+  @media (max-height:360px){   /* さらに短い画面（小さいスマホの横向き） */
+    .follow .fs{display:none}
+    #result button.big{padding:10px 16px;font-size:16px}
+    #toTitleBtn,#shareBtn{padding:8px 12px;font-size:14px}
+    #rBtns{gap:8px}
+  }
+  #shareBtn{display:inline-block;text-decoration:none;font-weight:800;font-size:16px;color:#fff;background:#111;border:2px solid #fff;border-radius:14px;padding:11px 18px}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+}}
+</script>
+</head>
+<body data-state="title">
+<canvas id="c"></canvas>
+<div id="hud"><div id="time">0.00<small>秒</small></div><div id="best">ベスト 0.00 秒</div></div>
+<div id="slip"><i></i></div>
+<div id="danger"></div><div id="banner"><b></b><span></span></div><div id="combo"></div><div id="talk"></div>
+<div id="hint">手の<b>リングのまん中</b>に棒を重ねて<b>押す</b>！ずれると弾かれる</div>
+<button id="muteBtn" aria-label="音">🔊</button>
+<button id="gripBtn">にぎる</button>
+<div id="title" class="panel">
+  <h1>つかめない<br>棒</h1>
+  <p class="lead">ぬるぬるの棒を地面に落とさず、<br>何秒たえられる？</p>
+  <ul id="how"></ul>
+  <button id="startBtn" class="big">スタート</button>
+  <div id="bestT"></div>
+  <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
+  <div class="credit">© N.K. Works　<a href="/games/tsukamenai-bou/" target="_blank" rel="noopener" data-google-vignette="false">遊び方・ほかのゲーム ›</a></div>
+</div>
+<div id="result" class="panel hidden">
+  <h2>落ちた！</h2>
+  <div class="score"><span id="rScore">0.00</span><small>秒</small></div>
+  <div id="rRank"></div>
+  <div id="rBest"></div>
+  <div id="rStats"></div>
+  <div class="row" id="rBtns"><button id="retryBtn" class="big">もういちど</button><button id="toTitleBtn">タイトルへ</button></div>
+  <div class="row" id="rShareRow"><a id="shareBtn" target="_blank" rel="noopener">Xでシェア</a></div>
+  <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+// ===== [SEC:CONFIG] =====
+const CONFIG = {
+  FOLLOW_X: 'vyaPudzd1E54661',            // 「作者をフォロー」ボタンのXアカウント
+  FIXED: 1/240, MAX_FRAME: 0.1,          // 物理の刻みと、1フレームで進められる最大時間
+  GRAVITY: 14,
+  STICK_HALF: 1.4, STICK_R: 0.13,         // 棒の半分の長さ・太さ
+  STICK_MAX_SPEED: 30, STICK_MAX_SPIN: 16,
+  AIR_DRAG: 0.05, SPIN_DRAG: 0.15,
+  WALL_BOUNCE: 0.75, CEIL_BOUNCE: 0.6, FLOOR_BOUNCE: 0.3, WALL_FRICTION: 0.2, FLOOR_FRICTION: 0.6,
+  HAND_REACH: 0.8,                      // 手がこの距離まで近づくと棒をつかめる
+  HAND_FOLLOW: 22, HAND_MAX_SPEED: 28,   // 手がポインタに追いつく速さ・手の最高速度
+  HAND_MIN_Y: 0.55, HAND_WALL_GAP: 0.4,
+  HAND_ACC_SMOOTH: 30, HAND_ACC_MAX: 160,
+  TOUCH_OFFSET: 1.6,                     // スマホは指で手が隠れないよう、手を指より上に出す
+  GRIP_PULL: 18, GRIP_SWING_DAMP: 1.8, GRIP_CD: 0.12,
+  SLIP_BASE: 1.15, SLIP_GAIN: 0.05, SLIP_MAX: 4.2,   // 棒が手の中をすべる速さ（毎秒の距離）
+  SLIP_MUL_MIN: 0.75, SLIP_MUL_MAX: 1.25,
+  KICK_BASE: 2.5, KICK_GAIN: 0.05, KICK_MAX: 8, KICK_SPIN: 5, // すっぽ抜けた時のはじけ具合
+  OVER_SIM: 1.8, RESULT_DELAY: 1.1,
+  FOV: 38,
+  ROOM_HT: 8, ROOM_WX_MIN: 3.2, ROOM_WX_MAX: 5.5,
+  // --- 面白さの工夫 ---
+  NICE_RANGE: 0.22, GOOD_RANGE: 0.55, EDGE_RANGE: 0.8,   // つかんだ位置（中心からの割合）：ナイス／グッド／ふち
+  NICE_SLIP: 0.55, GOOD_SLIP: 0.8, EDGE_SLIP: 1.25,      // つかみ方によるすべりやすさ（小さいほど長く持てる）
+  COMBO_SLIP: 0.05, COMBO_SLIP_MIN: 0.6,                 // コンボ1つごとにすべりにくくなる割合・下限
+  SQUIRM_MIN: 0.5, SQUIRM_RANGE: 0.7, SQUIRM_JUMP_MIN: 0.1, SQUIRM_JUMP_RANGE: 0.18, SQUIRM_K: 14, // 握り中の「ぬるっ」発作
+  SAVE_HEIGHT: 0.9, SLOWMO_SCALE: 0.35, SLOWMO_TIME: 0.45, // 床ギリギリのスローモーション
+  EVENT_FIRST: 12, EVENT_GAP_MIN: 13, EVENT_GAP_RANGE: 6, EVENT_DUR: 6, // ハプニングの間隔と長さ（秒）
+  WIND_ACC: 9, OIL_SLIP: 1.5, MOON_GRAVITY: 0.45,
+  MILESTONES: [10, 20, 30, 45, 60, 90],
+  // --- 手のまん中でつかむ ---
+  SWEET_R: 0.35, FLICK_R: 0.7,        // リングの大きさ（手の届く距離に対する割合）：内側=まん中／これより外=はじかれる
+  PREC_SLIP_MAX: 2.5,                  // まん中からずれた時の、すべりやすさの最大倍率
+  PRESS_WINDOW: 0.15, FLICK_SPEED: 7,  // ふちは「押した瞬間」だけ反応する時間／はじかれる強さ
+  // --- 壁での跳ね返り ---
+  WALL_REST: 0.4,                      // 壁に当たって跳ね返り始める最小の速さ
+  HAND_BOUNCE: 0.55, HAND_BOUNCE_MAX: 6, HAND_BOUNCE_CD: 0.35, HAND_KICK_DECAY: 7, // 棒をにぎったまま壁に当たった時の跳ね
+};
+
+// ===== [SEC:STATE] =====
+let state = 'title';            // 'title' | 'play' | 'over'
+let t = 0, titleT = 0, overT = 0, best = 0, lastT = 0, cooldown = 0, settled = false, resultShown = false, isNew = false;
+let manual = false, paused = false;
+let grip = false, gripLock = false, gripMouse = false, gripTouch = false, gripKey = false;
+let moveId = null;
+let combo = 0, bestCombo = 0, catches = 0, saves = 0, squirmT = 0.8, squirmV = 0, slowReal = 0, saveCd = 0, lastWarn = -1, lastBounce = -1;
+let pressAge = 9, gripPrev = false, hbCd = 0, catchPrec = 9;
+let evt = null, nextEvt = 12, lastEvtType = '', mileIdx = 0, talkT = 0, talkCd = 0, faceT = 0, pulse = 0, shakeAmt = 0, face = 'normal', dangerV = 0;
+let rng = mulberry32(1);
+const room = { Wx: 6.9, Ht: CONFIG.ROOM_HT };
+const stick = { x: 0, y: 5, th: 0, vx: 0, vy: 0, w: 0, held: false, s: 0, sdir: 1, smul: 1, qmul: 1, pmul: 1, offx: 0, offy: 0 };
+const hand = { x: 0, y: 2.5, vx: 0, vy: 0, ax: 0, ay: 0, kx: 0, ky: 0, curl: 0, rot: 0 };
+const target = { x: 0, y: 2.5 };
+try { best = parseFloat(localStorage.getItem('tsukamenai-best')) || 0; } catch (e) {}
+
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let x = Math.imul(a ^ a >>> 15, 1 | a); x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296; }; }
+const clamp = (v, lo, hi) => lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v));
+const wrapAngle = a => a - 2 * Math.PI * Math.round(a / (2 * Math.PI));
+
+// ===== [SEC:SCENE] =====
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x14122b);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.55;
+const camera = new THREE.PerspectiveCamera(CONFIG.FOV, 1, 0.1, 200);
+
+const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.position.set(-5, 14, 9);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.bias = -0.0004;
+scene.add(sun, sun.target);
+scene.add(new THREE.AmbientLight(0x8a86c8, 0.7));
+
+function gradTex(top, bottom) {
+  const c = document.createElement('canvas'); c.width = 4; c.height = 256;
+  const g = c.getContext('2d'); const gr = g.createLinearGradient(0, 0, 0, 256);
+  gr.addColorStop(0, top); gr.addColorStop(1, bottom); g.fillStyle = gr; g.fillRect(0, 0, 4, 256);
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; return tx;
+}
+const backWall = new THREE.Mesh(new THREE.PlaneGeometry(80, 60), new THREE.MeshStandardMaterial({ map: gradTex('#2a2563', '#4a3a86'), roughness: 1 }));
+backWall.position.set(0, 20, -3); backWall.receiveShadow = true; scene.add(backWall);
+const floor = new THREE.Mesh(new THREE.BoxGeometry(1, 0.6, 9), new THREE.MeshStandardMaterial({ color: 0x6b4a3a, roughness: 0.6 }));
+floor.position.set(0, -0.3, 1.5); floor.receiveShadow = true; scene.add(floor);
+const sideMat = new THREE.MeshStandardMaterial({ color: 0x1f1b48, roughness: 0.9 });
+const wallL = new THREE.Mesh(new THREE.BoxGeometry(6, 40, 6), sideMat);
+const wallR = new THREE.Mesh(new THREE.BoxGeometry(6, 40, 6), sideMat);
+wallL.receiveShadow = wallR.receiveShadow = true; scene.add(wallL, wallR);
+const ceil = new THREE.Mesh(new THREE.BoxGeometry(1, 0.3, 6), sideMat); scene.add(ceil);
+
+function computeRoom() {
+  const a = innerWidth / innerHeight;
+  const Ht = a >= 1 ? CONFIG.ROOM_HT : Math.min(13, CONFIG.ROOM_HT + (1 - a) * 7);
+  let Wx = ((Ht + 2.2) * a) / 2 - 0.4;
+  Wx = clamp(Wx, CONFIG.ROOM_WX_MIN, CONFIG.ROOM_WX_MAX);
+  room.Ht = Ht; room.Wx = Wx;
+}
+function applyRoom() {
+  const { Wx, Ht } = room;
+  floor.scale.x = 2 * Wx + 12; wallL.position.set(-Wx - 3, 14, 0); wallR.position.set(Wx + 3, 14, 0);
+  ceil.scale.x = 2 * Wx + 0.01; ceil.position.set(0, Ht + 0.15, 0);
+  const sc = sun.shadow.camera; const ext = Wx + 3;
+  sc.left = -ext; sc.right = ext; sc.top = Ht + 3; sc.bottom = -2; sc.near = 1; sc.far = 50; sc.updateProjectionMatrix();
+  sun.target.position.set(0, Ht / 2, 0);
+}
+function fitCamera() {
+  const a = innerWidth / innerHeight; camera.aspect = a;
+  const tanH = Math.tan(THREE.MathUtils.degToRad(CONFIG.FOV / 2));
+  const needH = room.Ht + 2.2, needW = room.Wx * 2 + 0.8;
+  const d = Math.max(needH / 2 / tanH, needW / 2 / (tanH * a));
+  const yc = room.Ht / 2 - 0.1;
+  camera.position.set(0, yc + d * 0.12, d); camera.lookAt(0, yc, 0);
+  camera.updateProjectionMatrix();
+}
+function resize() {
+  renderer.setSize(innerWidth, innerHeight, false);
+  if (state !== 'play') { computeRoom(); applyRoom(); }
+  fitCamera();
+}
+addEventListener('resize', resize);
+
+// ===== [SEC:STICK_MODEL] =====
+const stickMesh = new THREE.Group();
+(function () {
+  const h = CONFIG.STICK_HALF, R = CONFIG.STICK_R;
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(R, 2 * h, 8, 20).rotateZ(Math.PI / 2),
+    new THREE.MeshPhysicalMaterial({ color: 0xc6ff2e, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05, metalness: 0 }));
+  body.castShadow = true; stickMesh.add(body);
+  const mk = (col, x) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(R + 0.012, R + 0.012, 0.22, 20).rotateZ(Math.PI / 2),
+    new THREE.MeshPhysicalMaterial({ color: col, roughness: 0.2, clearcoat: 1 })); m.position.x = x; m.castShadow = true; stickMesh.add(m); };
+  mk(0xff3d7f, h - 0.3); mk(0x35d0ff, -h + 0.3);
+})();
+const eyes = [];
+(function () { // 棒の目（手を目で追う）
+  const wm = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }), pm = new THREE.MeshBasicMaterial({ color: 0x111111 });
+  [-0.2, 0.2].forEach(x => {
+    const g = new THREE.Group(); g.position.set(x, 0, CONFIG.STICK_R * 0.55);
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 12), wm));
+    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 8), pm); pu.position.z = 0.075; g.add(pu);
+    stickMesh.add(g); eyes.push({ g, pu });
+  });
+})();
+scene.add(stickMesh);
+
+// ===== [SEC:HAND_MODEL] =====
+const handGroup = new THREE.Group();
+const fingers = []; let thumb;
+(function () {
+  const glove = new THREE.MeshStandardMaterial({ color: 0xfff6ea, roughness: 0.5 });
+  const sleeveMat = new THREE.MeshStandardMaterial({ color: 0xff8a2b, roughness: 0.6 });
+  const add = (m) => { m.castShadow = true; return m; };
+  const palm = add(new THREE.Mesh(new RoundedBoxGeometry(0.9, 0.72, 0.26, 4, 0.08), glove)); palm.position.set(0, -0.16, -0.2); handGroup.add(palm);
+  const sleeve = add(new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.31, 1.8, 24), sleeveMat)); sleeve.position.set(0, -1.5, -0.2); handGroup.add(sleeve);
+  const cuff = add(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.16, 24), glove)); cuff.position.set(0, -0.58, -0.2); handGroup.add(cuff);
+  const seg = (len, r) => { const m = add(new THREE.Mesh(new THREE.CapsuleGeometry(r, Math.max(0.01, len - 2 * r), 6, 12), glove)); m.position.y = len / 2; return m; };
+  const xs = [-0.33, -0.11, 0.11, 0.33], lens = [0.4, 0.44, 0.4, 0.33];
+  xs.forEach((x, i) => {
+    const p1 = new THREE.Group(); p1.position.set(x, 0.2, -0.2); p1.add(seg(lens[i], 0.095));
+    const p2 = new THREE.Group(); p2.position.y = lens[i]; p2.add(seg(lens[i], 0.09)); p1.add(p2);
+    handGroup.add(p1); fingers.push([p1, p2]);
+  });
+  const t1 = new THREE.Group(); t1.position.set(-0.46, -0.32, -0.2); t1.add(seg(0.36, 0.105));
+  const t2 = new THREE.Group(); t2.position.y = 0.36; t2.add(seg(0.3, 0.095)); t1.add(t2);
+  handGroup.add(t1); thumb = [t1, t2];
+})();
+scene.add(handGroup);
+const reticle = new THREE.Group();   // 手のまん中の目印リング
+const mkRing = (r0, r1, col, op) => { const m = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 48), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: op, depthTest: false, side: THREE.DoubleSide })); m.renderOrder = 10; reticle.add(m); return m; };
+mkRing(CONFIG.HAND_REACH - 0.02, CONFIG.HAND_REACH, 0xffffff, 0.3);
+mkRing(CONFIG.HAND_REACH * CONFIG.FLICK_R - 0.02, CONFIG.HAND_REACH * CONFIG.FLICK_R, 0xffffff, 0.45);
+const ringBack = mkRing(CONFIG.HAND_REACH * CONFIG.SWEET_R - 0.06, CONFIG.HAND_REACH * CONFIG.SWEET_R + 0.02, 0x0b1a00, 0.5); ringBack.renderOrder = 9;   // 白い手の上でも見えるよう、暗い縁をつける
+const ringSweet = mkRing(CONFIG.HAND_REACH * CONFIG.SWEET_R - 0.04, CONFIG.HAND_REACH * CONFIG.SWEET_R, 0xc6ff2e, 0.95);
+const dot = new THREE.Mesh(new THREE.CircleGeometry(0.035, 16), new THREE.MeshBasicMaterial({ color: 0xc6ff2e, depthTest: false, transparent: true })); dot.renderOrder = 10; reticle.add(dot);
+scene.add(reticle);
+function poseHand(c) {
+  const k = Math.PI / 2;
+  fingers.forEach(([a, b]) => { a.rotation.x = c * k; b.rotation.x = c * k; });
+  thumb[0].rotation.set(0.2 + c * 1.0, 0, 0.9 - c * 1.4); thumb[1].rotation.x = c * 0.6;
+}
+
+// ===== [SEC:FX] =====
+// --- 音（効果音はWebAudioで作る。ファイル不要） ---
+let ac = null, muted = false, noiseBuf = null, colorDirty = false;
+try { muted = localStorage.getItem('tsukamenai-mute') === '1'; } catch (e) {}
+function audioInit() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+  if (ac && ac.state === 'suspended') ac.resume();
+}
+function tone(f0, f1, dur, type = 'sine', vol = 0.18, delay = 0) {
+  if (!ac || muted) return;
+  const t0 = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(ac.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+function noise(dur, vol = 0.12, freq = 1200, delay = 0) {
+  if (!ac || muted) return;
+  if (!noiseBuf) { noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.5), ac.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const t0 = ac.currentTime + delay, s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  s.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.8;
+  g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  s.connect(f); f.connect(g); g.connect(ac.destination); s.start(t0); s.stop(t0 + dur);
+}
+const SFX = {
+  grab(q) { tone(260, 110, 0.14, 'sine', 0.2); noise(0.08, 0.1, 900); if (q === 'nice') { tone(660, 660, 0.1, 'triangle', 0.12, 0.05); tone(990, 990, 0.18, 'triangle', 0.12, 0.12); } else if (q === 'good') tone(660, 660, 0.12, 'triangle', 0.1, 0.05); },
+  squirm() { tone(340, 150, 0.16, 'sine', 0.14); noise(0.1, 0.08, 2000); },
+  pop() { tone(520, 200, 0.18, 'triangle', 0.2); },
+  warn() { tone(880, 880, 0.05, 'square', 0.05); },
+  bounce() { tone(180, 90, 0.09, 'sine', 0.14); },
+  thud() { tone(130, 45, 0.28, 'sine', 0.35); noise(0.18, 0.2, 300); tone(420, 90, 0.7, 'triangle', 0.12, 0.15); },
+  save() { [523, 659, 784, 1047].forEach((f, i) => tone(f, f, 0.14, 'triangle', 0.14, i * 0.05)); },
+  level() { [392, 523, 659, 784].forEach((f, i) => tone(f, f, 0.16, 'square', 0.07, i * 0.07)); },
+  event() { noise(0.5, 0.12, 700); tone(200, 500, 0.4, 'sine', 0.08); },
+};
+// --- パーティクル（ぬるぬるの飛沫・ほこり・星） ---
+const PN = 160;
+const pMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }), PN);
+pMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); pMesh.frustumCulled = false;
+const parts = Array.from({ length: PN }, () => ({ on: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, life: 0, max: 1, size: 0.1, g: 1 }));
+let pHead = 0;
+const _c = new THREE.Color(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _pj = new THREE.Vector3();
+pMesh.setColorAt(0, _c.setHex(0xffffff)); scene.add(pMesh);
+function emit(o) {
+  const n = o.n || 1;
+  for (let i = 0; i < n; i++) {
+    const idx = pHead, p = parts[idx]; pHead = (pHead + 1) % PN;
+    const a = Math.random() * Math.PI * 2, sp = (o.speed || 0) * (0.4 + Math.random() * 0.8);
+    p.on = true; p.x = o.x; p.y = o.y; p.z = (o.z === undefined ? 0.25 : o.z) + (Math.random() - 0.5) * 0.3;
+    p.vx = o.vx !== undefined ? o.vx : Math.cos(a) * sp; p.vy = o.vy !== undefined ? o.vy : Math.sin(a) * sp + (o.up || 0) * (o.speed || 0);
+    p.vz = (Math.random() - 0.5) * sp * 0.6;
+    p.max = p.life = (o.life || 0.6) * (0.7 + Math.random() * 0.6); p.size = (o.size || 0.08) * (0.6 + Math.random() * 0.8); p.g = o.g === undefined ? 1 : o.g;
+    pMesh.setColorAt(idx, _c.setHex(o.color || 0xffffff)); colorDirty = true;
+  }
+}
+// --- 文字演出（バナー・ポップ・コンボ・棒のセリフ） ---
+const elBanner = document.getElementById('banner'), elCombo = document.getElementById('combo'), elTalk = document.getElementById('talk');
+const elDanger = document.getElementById('danger'), elHint = document.getElementById('hint');
+const TEXT = {
+  start: ['つかめるかな〜？', 'つかんでみな〜', 'ぬるぬるだよ〜'],
+  squirm: ['ぬるっ♪', 'えへへ', 'にげちゃう〜', 'くすぐったい'],
+  slip: ['ばいば〜い！', 'つかめな〜い', 'ぽ〜ん！', 'あばよ〜'],
+  nice: ['むっ…やるね', 'いい握り…', 'くっ、つかまった'],
+  low: ['おちる〜！', 'たすけて〜！', 'ひぃぃ'],
+  save: ['あぶな〜！', 'ひやっとした…', 'ナイス握力…'],
+  ground: ['いてっ', 'ごつん…', 'ぐえ'],
+  wind: ['かぜ〜！', 'とばされる〜'], oil: ['あぶらだ〜！', 'ぬるぬる増量中'], moon: ['ふわふわ〜', 'おつきさま〜'],
+  mile: ['まだやるの！？', 'しぶといね…', 'すごい…'],
+};
+const EVENTS = { wind: ['強風！', '横から風がふいてくる'], oil: ['ごま油！', 'いつもよりぬるぬる'], moon: ['月の重力！', 'ふわふわ浮く'] };
+const EVT_TINT = { wind: 0xcfd8e6, oil: 0xffe9a8, moon: 0x9ec5ff };
+const RANKS = [[0, 'ぬるぬる初心者'], [5, 'つかみ見習い'], [10, '手汗のホープ'], [15, '握力の民'], [25, '棒の達人'], [40, 'ぬるぬるハンター'], [60, 'つかめる人（伝説）']];
+const rankOf = v => { let r = RANKS[0][1]; for (const [m, n] of RANKS) if (v >= m) r = n; return r; };
+const FACES = { normal: { sx: 1, sy: 1, pr: 1 }, smug: { sx: 1, sy: 0.5, pr: 1 }, panic: { sx: 1.25, sy: 1.25, pr: 0.6 }, closed: { sx: 1, sy: 0.12, pr: 1 } };
+const wallTint = new THREE.Color();
+function say(key, force) {
+  if (!force && talkCd > 0) return;
+  const a = TEXT[key]; elTalk.textContent = a[(Math.random() * a.length) | 0];
+  talkT = 1.4; talkCd = force ? 0.5 : 1.6;
+}
+function retrigger(el) { el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
+function banner(main, sub) { elBanner.firstChild.textContent = main; elBanner.lastChild.textContent = sub || ''; retrigger(elBanner); }
+function setCombo(n) {
+  combo = n; bestCombo = Math.max(bestCombo, n);
+  if (n >= 2) { elCombo.textContent = 'COMBO ×' + n; retrigger(elCombo); } else { elCombo.textContent = ''; elCombo.classList.remove('show'); }
+}
+function worldToScreen(x, y, z = 0) { _pj.set(x, y, z).project(camera); return [(_pj.x + 1) / 2 * innerWidth, (1 - _pj.y) / 2 * innerHeight]; }
+function popText(text, color) {
+  if (document.querySelectorAll('.pop').length > 5) return;
+  const [sx, sy] = worldToScreen(hand.x, hand.y + 1.2);
+  const d = document.createElement('div'); d.className = 'pop'; d.textContent = text; d.style.left = sx + 'px'; d.style.top = sy + 'px'; d.style.color = color;
+  document.body.appendChild(d); setTimeout(() => d.remove(), 1100);
+}
+// --- ゲームの出来事に合わせた演出 ---
+function onCatch(q, nearFloor, prec) {
+  catches++;
+  const sloppy = prec > CONFIG.SWEET_R;   // 手のまん中からずれてつかんだ
+  const kind = sloppy ? 'sloppy' : q < CONFIG.NICE_RANGE ? 'nice' : q < CONFIG.GOOD_RANGE ? 'good' : q > CONFIG.EDGE_RANGE ? 'edge' : 'ok';
+  stick.qmul = { nice: CONFIG.NICE_SLIP, good: CONFIG.GOOD_SLIP, ok: 1, edge: CONFIG.EDGE_SLIP, sloppy: 1 }[kind];
+  if (kind === 'nice' || kind === 'good') setCombo(combo + 1); else if (kind === 'edge' || kind === 'sloppy') setCombo(0);
+  pulse = 1; emit({ x: hand.x, y: hand.y, n: 8, color: 0xc6ff2e, speed: 2.2, size: 0.06, life: 0.5 });
+  if (nearFloor) {
+    saves++; if (!sloppy) setCombo(combo + 1); popText('ギリギリ救出！', '#ffe14d'); SFX.save(); say('save', true); shakeAmt = Math.max(shakeAmt, 0.08);
+    emit({ x: hand.x, y: hand.y, n: 18, color: 0xffe14d, speed: 4, size: 0.07, life: 0.8, g: 0.2 });
+  } else if (kind === 'sloppy') { popText('ずれた…', '#ffb36b'); SFX.grab();
+  } else if (kind === 'nice') {
+    popText('ナイスキャッチ！', '#8cff3b'); SFX.grab('nice'); say('nice');
+    emit({ x: hand.x, y: hand.y, n: 10, color: 0xffffff, speed: 3, size: 0.05, life: 0.6, g: 0.2 });
+  } else if (kind === 'good') { popText('グッド', '#7fe3ff'); SFX.grab('good'); }
+  else if (kind === 'edge') { popText('ふちギリ…', '#ff9a9a'); SFX.grab(); }
+  else SFX.grab();
+}
+function slipFx() { SFX.pop(); emit({ x: hand.x, y: hand.y, n: 14, color: 0xc6ff2e, speed: 3.5, size: 0.07, life: 0.6 }); say('slip'); faceT = 1.3; shakeAmt = Math.max(shakeAmt, 0.05); }
+function squirmFx() { SFX.squirm(); emit({ x: hand.x, y: hand.y, n: 6, color: 0xc6ff2e, speed: 2, size: 0.06, life: 0.5 }); say('squirm'); shakeAmt = Math.max(shakeAmt, 0.03); }
+function bounceFx(imp) { const clk = t + overT; if (clk - lastBounce > 0.12) { lastBounce = clk; SFX.bounce(); pulse = Math.max(pulse, Math.min(0.6, imp / 20)); } }
+function overFx() {
+  const sg = Math.sin(stick.th) >= 0 ? -1 : 1, lx = stick.x + sg * CONFIG.STICK_HALF * Math.cos(stick.th);
+  SFX.thud(); emit({ x: lx, y: 0.1, n: 18, color: 0xd9c7a3, speed: 3, size: 0.09, life: 0.7 }); say('ground', true);
+  shakeAmt = 0.18; slowReal = 0.5; evt = null; elBanner.classList.remove('show');
+}
+function flickStick(px, py) { // ふちすぎてつかめず、はじかれる
+  let fx = px - hand.x, fy = py - hand.y; const l = Math.hypot(fx, fy);
+  if (l < 1e-6) { fx = 0; fy = 1; } else { fx /= l; fy /= l; }
+  stick.vx += fx * CONFIG.FLICK_SPEED + hand.vx * 0.3; stick.vy += fy * CONFIG.FLICK_SPEED + hand.vy * 0.3 + 2;
+  stick.w += (rng() * 2 - 1) * CONFIG.KICK_SPIN; limitStick();
+  setCombo(0); gripLock = true; cooldown = CONFIG.GRIP_CD;
+  popText('はじかれた！', '#ff6b9a'); SFX.pop(); say('slip', true); faceT = 1.2; shakeAmt = Math.max(shakeAmt, 0.06);
+  emit({ x: px, y: py, n: 10, color: 0xffffff, speed: 3, size: 0.06, life: 0.5, g: 0.3 });
+}
+function wallBounce(tx, ty, px, py, dt) { // 棒をにぎったまま壁・床・天井に当たったら、少しはね返る
+  const cx = hand.x - tx, cy = hand.y - ty;
+  const inX = cx !== 0 ? (tx - px) / dt * -Math.sign(cx) : 0, inY = cy !== 0 ? (ty - py) / dt * -Math.sign(cy) : 0;
+  let hit = false;
+  if (Math.abs(cx) > 1e-5 && inX > 3) { hand.kx += Math.sign(cx) * Math.min(CONFIG.HAND_BOUNCE_MAX, inX * CONFIG.HAND_BOUNCE); hit = true; }
+  if (Math.abs(cy) > 1e-5 && inY > 3) { hand.ky += Math.sign(cy) * Math.min(CONFIG.HAND_BOUNCE_MAX, inY * CONFIG.HAND_BOUNCE); hit = true; }
+  if (hit) { hbCd = CONFIG.HAND_BOUNCE_CD; SFX.bounce(); pulse = Math.max(pulse, 0.5); shakeAmt = Math.max(shakeAmt, 0.03); }
+}
+function floorWatch() { // 床に近づいたらスローモーション
+  if (saveCd <= 0 && slowReal <= 0 && stick.vy < -2 && lowestY() - CONFIG.STICK_R < CONFIG.SAVE_HEIGHT) { slowReal = CONFIG.SLOWMO_TIME; saveCd = 1.2; say('low', true); }
+}
+function warnTick() { // 落ちそう・すべりきりそうな時の警告音
+  if (state !== 'play') return;
+  const lowFall = !stick.held && stick.vy < -1 && lowestY() - CONFIG.STICK_R < 1.3;
+  const lowGrip = stick.held && (CONFIG.STICK_HALF - stick.sdir * stick.s) / (2 * CONFIG.STICK_HALF) < 0.28;
+  if ((lowFall || lowGrip) && t - lastWarn > 0.14) { SFX.warn(); lastWarn = t; }
+}
+function startEvent(type) {
+  if (!type) { const ks = Object.keys(EVENTS).filter(k => k !== lastEvtType); type = ks[(rng() * ks.length) | 0]; }
+  lastEvtType = type; evt = { type, t: 0, dir: rng() < 0.5 ? -1 : 1 };
+  banner(EVENTS[type][0], EVENTS[type][1] + (type === 'wind' ? (evt.dir > 0 ? '（→）' : '（←）') : ''));
+  SFX.event(); say(type, true);
+}
+function updateEvents(dt) {
+  while (mileIdx < CONFIG.MILESTONES.length && t >= CONFIG.MILESTONES[mileIdx]) {
+    const m = CONFIG.MILESTONES[mileIdx++];
+    banner(m + '秒！', 'いいぞ、その調子'); SFX.level(); say('mile', true);
+    emit({ x: 0, y: room.Ht - 1.5, n: 24, color: 0xffe14d, speed: 5, size: 0.09, life: 1, up: 0.3, g: 0.5 });
+  }
+  if (evt) {
+    evt.t += dt;
+    if (evt.type === 'wind' && Math.random() < dt * 90) emit({ x: evt.dir > 0 ? -room.Wx : room.Wx, y: Math.random() * room.Ht, n: 1, color: 0xffffff, vx: evt.dir * 14, vy: 0, size: 0.03, life: 0.9, g: 0, z: -0.5 });
+    if (evt.type === 'oil' && Math.random() < dt * 25) emit({ x: stick.x + (Math.random() - 0.5) * 2.2 * Math.cos(stick.th), y: stick.y + (Math.random() - 0.5) * 2.2 * Math.sin(stick.th), n: 1, color: 0xc6ff2e, vx: 0, vy: 0, size: 0.05, life: 0.7, g: 0.6 });
+    if (evt.t >= CONFIG.EVENT_DUR) { evt = null; nextEvt = t + CONFIG.EVENT_GAP_MIN + rng() * CONFIG.EVENT_GAP_RANGE; }
+  } else if (t >= nextEvt) startEvent();
+}
+function resetFx() {
+  setCombo(0); bestCombo = 0; catches = 0; saves = 0; squirmT = 0.8; squirmV = 0; slowReal = 0; saveCd = 0; lastWarn = -1; lastBounce = -1;
+  evt = null; nextEvt = CONFIG.EVENT_FIRST; lastEvtType = ''; mileIdx = 0; talkT = 0; talkCd = 0; faceT = 0; pulse = 0; shakeAmt = 0; dangerV = 0; stick.qmul = 1; stick.pmul = 1; pressAge = 9; gripPrev = false; hbCd = 0; hand.kx = hand.ky = 0;
+  parts.forEach(p => { p.on = false; }); elBanner.classList.remove('show'); say('start', true);
+}
+function fxTick(dt) {
+  for (const p of parts) {
+    if (!p.on) continue;
+    p.life -= dt; if (p.life <= 0) { p.on = false; continue; }
+    p.vy -= 14 * p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
+  }
+  talkT = Math.max(0, talkT - dt); talkCd = Math.max(0, talkCd - dt); faceT = Math.max(0, faceT - dt);
+  pulse = Math.max(0, pulse - dt * 5); shakeAmt = Math.max(0, shakeAmt - dt * 0.5);
+  catchPrec = (state === 'play' || state === 'title') && !stick.held ? catchInfo().prec : 9;
+  face = state === 'over' ? 'closed' : stick.held ? 'smug' : (stick.vy < -1 && lowestY() < 2.4) ? 'panic' : faceT > 0 ? 'smug' : 'normal';
+  const F = FACES[face], k = 1 - Math.exp(-18 * dt);
+  const dx = hand.x - stick.x, dy = hand.y - stick.y, c = Math.cos(stick.th), s = Math.sin(stick.th);
+  let lx = dx * c + dy * s, ly = -dx * s + dy * c; const l = Math.hypot(lx, ly) || 1; lx = lx / l * 0.04; ly = ly / l * 0.04;
+  eyes.forEach(e => {
+    e.g.scale.x += (F.sx - e.g.scale.x) * k; e.g.scale.y += (F.sy - e.g.scale.y) * k;
+    e.pu.position.x += (lx - e.pu.position.x) * k; e.pu.position.y += (ly - e.pu.position.y) * k;
+    const ps = e.pu.scale.x + (F.pr - e.pu.scale.x) * k; e.pu.scale.set(ps, ps, ps);
+  });
+}
+function renderFx() {
+  for (let i = 0; i < PN; i++) {
+    const p = parts[i];
+    if (p.on) { const sz = p.size * Math.min(1, p.life / p.max * 2); _p.set(p.x, p.y, p.z); _s.set(sz, sz, sz); } else { _p.set(0, -50, 0); _s.set(0, 0, 0); }
+    _m.compose(_p, _q, _s); pMesh.setMatrixAt(i, _m);
+  }
+  pMesh.instanceMatrix.needsUpdate = true;
+  if (colorDirty && pMesh.instanceColor) { pMesh.instanceColor.needsUpdate = true; colorDirty = false; }
+  if (talkT > 0) {
+    const [sx, sy] = worldToScreen(stick.x, stick.y + 0.6), hw = elTalk.offsetWidth / 2 + 8;
+    elTalk.style.display = 'block'; elTalk.style.left = clamp(sx, hw, innerWidth - hw) + 'px'; elTalk.style.top = Math.max(48, sy) + 'px';
+  } else elTalk.style.display = 'none';
+  const low = state === 'play' && !stick.held ? clamp((2.0 - (lowestY() - CONFIG.STICK_R)) / 2.0, 0, 1) * (stick.vy < 0 ? 1 : 0.3) : 0;
+  dangerV += (low - dangerV) * 0.2; elDanger.style.opacity = dangerV.toFixed(2);
+  elHint.style.display = (state === 'play' && t < 6 && best < 20) ? 'block' : 'none';
+  reticle.visible = (state === 'play' || state === 'title') && !stick.held; reticle.position.set(hand.x, hand.y, 0.45);
+  const inSweet = catchPrec <= CONFIG.SWEET_R;
+  ringSweet.material.color.setHex(inSweet ? 0xffffff : 0xc6ff2e); ringSweet.material.opacity = inSweet ? 1 : 0.8; ringSweet.scale.setScalar(inSweet ? 1.12 : 1); ringBack.scale.setScalar(inSweet ? 1.12 : 1);
+  wallTint.setHex(evt ? EVT_TINT[evt.type] : 0xffffff); backWall.material.color.lerp(wallTint, 0.06);
+}
+
+// ===== [SEC:PHYSICS] =====
+const rodI = () => { const L = 2 * CONFIG.STICK_HALF; return L * L / 12; };
+const slipSpeed = () => Math.min(CONFIG.SLIP_MAX, CONFIG.SLIP_BASE + CONFIG.SLIP_GAIN * t);
+const lowestY = () => stick.y - CONFIG.STICK_HALF * Math.abs(Math.sin(stick.th));
+
+function collidePlane(nx, ny, d0, e, mu, rest = 1.2) {
+  const h = CONFIG.STICK_HALF, R = CONFIG.STICK_R, I = rodI();
+  let imp = 0;
+  for (let k = 0; k < 2; k++) {
+    const sg = k ? -1 : 1, rx = sg * h * Math.cos(stick.th), ry = sg * h * Math.sin(stick.th);
+    const dist = (stick.x + rx) * nx + (stick.y + ry) * ny - R - d0;
+    if (dist >= 0) continue;
+    stick.x -= nx * dist; stick.y -= ny * dist;
+    const vn = (stick.vx - stick.w * ry) * nx + (stick.vy + stick.w * rx) * ny;
+    if (vn >= 0) continue;
+    imp = Math.max(imp, -vn);
+    const rn = rx * ny - ry * nx;
+    const j = -(1 + (vn < -rest ? e : 0)) * vn / (1 + rn * rn / I);
+    stick.vx += nx * j; stick.vy += ny * j; stick.w += rn * j / I;
+    const tx = -ny, ty = nx, rt = rx * ty - ry * tx;
+    const vt = (stick.vx - stick.w * ry) * tx + (stick.vy + stick.w * rx) * ty;
+    const lim = mu * j, jt = clamp(-vt / (1 + rt * rt / I), -lim, lim);
+    stick.vx += tx * jt; stick.vy += ty * jt; stick.w += rt * jt / I;
+  }
+  return imp;
+}
+function limitStick() {
+  const sp = Math.hypot(stick.vx, stick.vy);
+  if (sp > CONFIG.STICK_MAX_SPEED) { const k = CONFIG.STICK_MAX_SPEED / sp; stick.vx *= k; stick.vy *= k; }
+  stick.w = clamp(stick.w, -CONFIG.STICK_MAX_SPIN, CONFIG.STICK_MAX_SPIN);
+}
+function stepFree(dt0) {
+  const h = CONFIG.STICK_HALF, R = CONFIG.STICK_R;
+  const speed = Math.hypot(stick.vx, stick.vy) + Math.abs(stick.w) * h;
+  const n = Math.max(1, Math.min(10, Math.ceil(speed * dt0 / (R * 0.5)))), dt = dt0 / n;
+  for (let i = 0; i < n; i++) {
+    stick.vy -= CONFIG.GRAVITY * (evt && evt.type === 'moon' ? CONFIG.MOON_GRAVITY : 1) * dt;
+    if (evt && evt.type === 'wind' && state === 'play') stick.vx += evt.dir * CONFIG.WIND_ACC * dt;
+    const dl = Math.exp(-CONFIG.AIR_DRAG * dt), da = Math.exp(-CONFIG.SPIN_DRAG * dt);
+    stick.vx *= dl; stick.vy *= dl; stick.w *= da; limitStick();
+    stick.x += stick.vx * dt; stick.y += stick.vy * dt; stick.th = wrapAngle(stick.th + stick.w * dt);
+    const imp = Math.max(collidePlane(1, 0, -room.Wx, CONFIG.WALL_BOUNCE, CONFIG.WALL_FRICTION, CONFIG.WALL_REST),
+      collidePlane(-1, 0, -room.Wx, CONFIG.WALL_BOUNCE, CONFIG.WALL_FRICTION, CONFIG.WALL_REST),
+      collidePlane(0, -1, -room.Ht, CONFIG.CEIL_BOUNCE, CONFIG.WALL_FRICTION, CONFIG.WALL_REST));
+    if (imp > 3) bounceFx(imp);
+    if (state === 'play' && lowestY() - R <= 0) gameOver();
+    if (state === 'over') collidePlane(0, 1, 0, CONFIG.FLOOR_BOUNCE, CONFIG.FLOOR_FRICTION);
+    limitStick();   // 衝突のあとにも回転・速度の上限をかける
+  }
+}
+function clampHand(x, y) {
+  const R = CONFIG.STICK_R, h = CONFIG.STICK_HALF;
+  let xmin = -room.Wx + CONFIG.HAND_WALL_GAP, xmax = room.Wx - CONFIG.HAND_WALL_GAP, ymin = CONFIG.HAND_MIN_Y, ymax = room.Ht - 0.4;
+  if (stick.held) { // 棒の先が壁・床・天井に当たったら、手もそこで止まる
+    const c = Math.cos(stick.th), sn = Math.sin(stick.th), a1 = h - stick.s, a2 = -h - stick.s;
+    xmin = Math.max(xmin, -room.Wx + R - stick.offx - Math.min(a1 * c, a2 * c));
+    xmax = Math.min(xmax, room.Wx - R - stick.offx - Math.max(a1 * c, a2 * c));
+    ymin = Math.max(ymin, R + 0.005 - stick.offy - Math.min(a1 * sn, a2 * sn));
+    ymax = Math.min(ymax, room.Ht - R - stick.offy - Math.max(a1 * sn, a2 * sn));
+  }
+  return [clamp(x, xmin, xmax), clamp(y, ymin, ymax)];
+}
+function setHeldPose() {
+  const c = Math.cos(stick.th), sn = Math.sin(stick.th);
+  stick.x = hand.x + stick.offx - stick.s * c; stick.y = hand.y + stick.offy - stick.s * sn;
+}
+function catchInfo() { // 手のまん中から棒までの距離（prec：0=ど真ん中、1=手の届くぎりぎり）
+  const h = CONFIG.STICK_HALF, dx = Math.cos(stick.th), dy = Math.sin(stick.th);
+  const s = clamp((hand.x - stick.x) * dx + (hand.y - stick.y) * dy, -h, h);
+  const px = stick.x + s * dx, py = stick.y + s * dy, dist = Math.hypot(hand.x - px, hand.y - py);
+  return { s, px, py, dist, prec: dist / CONFIG.HAND_REACH };
+}
+function tryGrab() {
+  const h = CONFIG.STICK_HALF, { s, px, py, dist, prec } = catchInfo();
+  if (dist > CONFIG.HAND_REACH) return false;
+  if (prec > CONFIG.SWEET_R && pressAge > CONFIG.PRESS_WINDOW) return false;  // ふちは「押した瞬間」だけ反応する
+  if (prec > CONFIG.FLICK_R) { flickStick(px, py); return 'flick'; }           // ふちすぎると、はじかれる
+  const nearFloor = lowestY() - CONFIG.STICK_R < CONFIG.SAVE_HEIGHT * 1.3 && stick.vy < 0;
+  stick.held = true; stick.s = s; stick.offx = px - hand.x; stick.offy = py - hand.y;
+  stick.w *= 0.4;
+  stick.pmul = prec <= CONFIG.SWEET_R ? 1 : 1 + (prec - CONFIG.SWEET_R) / (CONFIG.FLICK_R - CONFIG.SWEET_R) * (CONFIG.PREC_SLIP_MAX - 1);
+  onCatch(Math.abs(s) / h, nearFloor, prec);
+  const r = rng() < 0.5 ? -1 : 1;
+  const b = 0.7 * Math.sin(stick.th) + 0.5 * r - 0.6 * (s / h);   // 重力・ランダム・端に近いほど中央へ
+  stick.sdir = b >= 0 ? 1 : -1;
+  stick.smul = CONFIG.SLIP_MUL_MIN + rng() * (CONFIG.SLIP_MUL_MAX - CONFIG.SLIP_MUL_MIN);
+  squirmT = 0.45 + rng() * 0.5; squirmV = 0;
+  return true;
+}
+const slipMul = () => stick.qmul * stick.pmul * Math.max(CONFIG.COMBO_SLIP_MIN, 1 - CONFIG.COMBO_SLIP * combo) * (evt && evt.type === 'oil' ? CONFIG.OIL_SLIP : 1);
+const sdot = () => stick.sdir * (slipSpeed() * stick.smul * slipMul() * Math.max(0.5, 1 + 0.35 * stick.sdir * Math.sin(stick.th)) + squirmV);
+function releaseStick(slipOut) {
+  const c = Math.cos(stick.th), sn = Math.sin(stick.th), sd = sdot();
+  stick.vx = hand.vx - sd * c + stick.s * stick.w * sn;
+  stick.vy = hand.vy - sd * sn - stick.s * stick.w * c;
+  stick.held = false; stick.offx = stick.offy = 0;
+  if (slipOut) {
+    slipFx();
+    const K = Math.min(CONFIG.KICK_MAX, CONFIG.KICK_BASE + CONFIG.KICK_GAIN * t);
+    stick.vx += (rng() * 2 - 1) * K; stick.vy += (0.3 + rng() * 0.7) * K * 0.8; stick.w += (rng() * 2 - 1) * CONFIG.KICK_SPIN;
+    gripLock = true; cooldown = CONFIG.GRIP_CD;
+  }
+  limitStick();
+}
+function stepHeld(dt) {
+  const h = CONFIG.STICK_HALF, c = Math.cos(stick.th), sn = Math.sin(stick.th);
+  const Ip = rodI() + stick.s * stick.s;
+  stick.w += (stick.s * CONFIG.GRAVITY * c + stick.s * (c * hand.ay - sn * hand.ax)) / Ip * dt;
+  stick.w *= Math.exp(-CONFIG.GRIP_SWING_DAMP * dt);
+  stick.w = clamp(stick.w, -CONFIG.STICK_MAX_SPIN, CONFIG.STICK_MAX_SPIN);
+  stick.th = wrapAngle(stick.th + stick.w * dt);
+  squirmT -= dt;
+  if (squirmT <= 0) { // 握っていても「ぬるっ」と不意にすべる
+    squirmT = (CONFIG.SQUIRM_MIN + rng() * CONFIG.SQUIRM_RANGE) * Math.max(0.5, 1 - t / 90);
+    squirmV += (CONFIG.SQUIRM_JUMP_MIN + rng() * CONFIG.SQUIRM_JUMP_RANGE) * CONFIG.SQUIRM_K;
+    squirmFx();
+  }
+  squirmV *= Math.exp(-CONFIG.SQUIRM_K * dt);
+  stick.s += sdot() * dt;
+  const k = Math.exp(-CONFIG.GRIP_PULL * dt); stick.offx *= k; stick.offy *= k;
+  if (Math.abs(stick.s) >= h) { stick.s = clamp(stick.s, -h, h); return true; }
+  return false;
+}
+function updateHand(dt, clampNow) {
+  const px = hand.x, py = hand.y;
+  const a = 1 - Math.exp(-CONFIG.HAND_FOLLOW * dt);
+  let dx = (target.x - hand.x) * a, dy = (target.y - hand.y) * a;
+  const sp = Math.hypot(dx, dy) / dt;
+  if (sp > CONFIG.HAND_MAX_SPEED) { const k = CONFIG.HAND_MAX_SPEED / sp; dx *= k; dy *= k; }
+  const km = 1 + 2 * Math.hypot(hand.kx, hand.ky); dx /= km; dy /= km;   // 跳ねている間は、ポインタへの追従を弱める
+  dx += hand.kx * dt; dy += hand.ky * dt;   // 壁ではね返った分
+  const dk = Math.exp(-CONFIG.HAND_KICK_DECAY * dt); hand.kx *= dk; hand.ky *= dk;
+  const tx = px + dx, ty = py + dy;
+  [hand.x, hand.y] = clampHand(tx, ty);
+  hbCd = Math.max(0, hbCd - dt);
+  if (stick.held && hbCd <= 0) wallBounce(tx, ty, px, py, dt);
+  const nvx = (hand.x - px) / dt, nvy = (hand.y - py) / dt;
+  const m = CONFIG.HAND_ACC_MAX, sm = 1 - Math.exp(-CONFIG.HAND_ACC_SMOOTH * dt);
+  hand.ax += (clamp((nvx - hand.vx) / dt, -m, m) - hand.ax) * sm;
+  hand.ay += (clamp((nvy - hand.vy) / dt, -m, m) - hand.ay) * sm;
+  hand.vx = nvx; hand.vy = nvy;
+}
+function gameOver() {
+  state = 'over'; overT = 0; settled = false; resultShown = false;
+  stick.held = false;
+  isNew = t > best + 1e-9;
+  if (isNew) { best = t; try { localStorage.setItem('tsukamenai-best', String(best)); } catch (e) {} }
+  document.body.dataset.state = 'over';
+  overFx();
+}
+function playTick(dt) {
+  t += dt; cooldown = Math.max(0, cooldown - dt); saveCd = Math.max(0, saveCd - dt);
+  updateEvents(dt);
+  pressAge += dt; if (grip && !gripPrev) pressAge = 0; gripPrev = grip;
+  if (!grip) gripLock = false;
+  updateHand(dt);
+  if (stick.held) {
+    if (!grip) releaseStick(false);
+    else if (stepHeld(dt)) { setHeldPose(); releaseStick(true); }
+    else {
+      const px = hand.x, py = hand.y;
+      [hand.x, hand.y] = clampHand(hand.x, hand.y);
+      hand.vx = (hand.x - (px - hand.vx * dt)) / dt; hand.vy = (hand.y - (py - hand.vy * dt)) / dt;
+      setHeldPose();
+    }
+  }
+  if (!stick.held) {
+    const g = grip && !gripLock && cooldown <= 0 ? tryGrab() : false;
+    if (g === true) setHeldPose();
+    else { floorWatch(); stepFree(dt); }
+  }
+  warnTick();
+}
+function overTick(dt) {
+  overT += dt;
+  if (!settled) {
+    stepFree(dt);
+    if (overT >= CONFIG.OVER_SIM) { settled = true; stick.vx = stick.vy = stick.w = 0; }
+  }
+  if (!resultShown && overT >= CONFIG.RESULT_DELAY) showResult();
+}
+
+// ===== [SEC:INPUT] =====
+const isTouchDevice = (matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window);
+if (isTouchDevice) document.body.classList.add('touch');
+const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), tmp = new THREE.Vector3(), ndc = new THREE.Vector2();
+function pointerToWorld(cx, cy) {
+  const r = canvas.getBoundingClientRect();
+  ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  return ray.ray.intersectPlane(plane, tmp) ? tmp : null;
+}
+function aimAt(cx, cy, offsetY) {
+  const p = pointerToWorld(cx, cy); if (!p) return;
+  target.x = p.x; target.y = p.y + offsetY;
+}
+const syncGrip = () => { grip = gripMouse || gripTouch || gripKey; };
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch') {
+    document.body.classList.add('touch');
+    if (moveId === null) { moveId = e.pointerId; aimAt(e.clientX, e.clientY, CONFIG.TOUCH_OFFSET); }
+  } else { aimAt(e.clientX, e.clientY, 0); if (e.button === 0) { gripMouse = true; syncGrip(); } }
+  e.preventDefault();
+});
+addEventListener('pointermove', e => {
+  if (e.pointerType === 'touch') { if (e.pointerId === moveId) aimAt(e.clientX, e.clientY, CONFIG.TOUCH_OFFSET); }
+  else aimAt(e.clientX, e.clientY, 0);
+});
+function pointerEnd(e) {
+  if (e.pointerType === 'touch') { if (e.pointerId === moveId) moveId = null; }
+  else if (e.button === 0 || e.type === 'pointercancel') { gripMouse = false; syncGrip(); }
+}
+addEventListener('pointerup', pointerEnd); addEventListener('pointercancel', pointerEnd);
+const gb = document.getElementById('gripBtn');
+gb.addEventListener('pointerdown', e => { gripTouch = true; gb.classList.add('on'); syncGrip(); try { gb.setPointerCapture(e.pointerId); } catch (_) {} e.preventDefault(); e.stopPropagation(); });
+const gbUp = e => { gripTouch = false; gb.classList.remove('on'); syncGrip(); e.stopPropagation(); };
+gb.addEventListener('pointerup', gbUp); gb.addEventListener('pointercancel', gbUp); gb.addEventListener('lostpointercapture', gbUp);
+addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'KeyZ') { gripKey = true; syncGrip(); if (e.code === 'Space') e.preventDefault(); }
+});
+addEventListener('keyup', e => { if (e.code === 'Space' || e.code === 'KeyZ') { gripKey = false; syncGrip(); } });
+function releaseAllInput() { gripMouse = gripTouch = gripKey = false; moveId = null; gb.classList.remove('on'); syncGrip(); }
+addEventListener('blur', releaseAllInput);
+document.addEventListener('visibilitychange', () => { paused = document.hidden; if (paused) releaseAllInput(); else last = performance.now(); });
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// ===== [SEC:UI] =====
+const $ = id => document.getElementById(id);
+const elTime = $('time'), elBest = $('best'), elSlip = $('slip'), elSlipI = elSlip.querySelector('i');
+$('how').innerHTML = isTouchDevice
+  ? '<li>🖐 画面をドラッグ：手を動かす</li><li>🔘 右下の「にぎる」を押している間：にぎる</li><li>🟢 棒は手の中でするする逃げる。まん中をにぎると長く持てる</li>'
+  : '<li>🖱 マウス：手を動かす</li><li>🔘 クリック（またはスペース）を押している間：にぎる</li><li>🟢 棒は手の中でするする逃げる。まん中をにぎると長く持てる</li>';
+$('how').innerHTML += '<li>💡 手のリングのまん中に棒を重ねて押す。ふちだと弾かれる／すべりが速い</li><li>💡 すべりきる前に離して投げ上げ → 棒のまん中でキャッチ！</li>';
+document.querySelectorAll('.fbtn').forEach(a => { a.href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; a.textContent = '𝕏 @' + CONFIG.FOLLOW_X; });
+const fmt = v => v.toFixed(2);
+function refreshBest() { $('bestT').textContent = best > 0 ? 'ベスト ' + fmt(best) + ' 秒' : ''; elBest.textContent = 'ベスト ' + fmt(best) + ' 秒'; }
+function setState(s) { state = s; document.body.dataset.state = s; }
+function showResult() {
+  resultShown = true;
+  $('rScore').textContent = fmt(t);
+  $('rBest').innerHTML = isNew ? '<b>🎉 ベスト記録を更新！</b>' : 'ベスト ' + fmt(best) + ' 秒';
+  const rk = rankOf(t);
+  $('rRank').textContent = '称号：' + rk;
+  $('rStats').textContent = 'キャッチ ' + catches + '回　最高コンボ ×' + bestCombo + (saves ? '　ギリギリ救出 ' + saves + '回' : '');
+  $('shareBtn').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent('「つかめない棒」で ' + fmt(t) + '秒 耐えた！\n称号：' + rk + '\n#つかめない棒') + '&url=' + encodeURIComponent(location.href);
+  $('result').classList.remove('hidden');
+}
+function startRound(seed) {
+  rng = mulberry32(seed | 0);
+  computeRoom(); applyRoom(); fitCamera();
+  t = 0; lastT = 0; cooldown = 0; overT = 0; settled = false; resultShown = false; isNew = false;
+  resetFx();
+  stick.held = false; stick.s = 0; stick.offx = stick.offy = 0;
+  stick.x = (rng() - 0.5) * 2; stick.y = Math.min(room.Ht - 1.5, 6.5); stick.th = (rng() - 0.5) * 1.2;
+  stick.vx = (rng() - 0.5) * 2; stick.vy = 0; stick.w = (rng() - 0.5) * 2;
+  [hand.x, hand.y] = [clamp(target.x, -room.Wx + CONFIG.HAND_WALL_GAP, room.Wx - CONFIG.HAND_WALL_GAP), clamp(target.y, CONFIG.HAND_MIN_Y, room.Ht - 0.4)];
+  hand.vx = hand.vy = hand.ax = hand.ay = 0; hand.rot = 0;
+  gripLock = grip;
+  $('title').classList.add('hidden'); $('result').classList.add('hidden');
+  setState('play');
+}
+$('startBtn').addEventListener('click', () => startRound(Math.random() * 1e9));
+$('retryBtn').addEventListener('click', () => startRound(Math.random() * 1e9));
+$('toTitleBtn').addEventListener('click', () => { $('result').classList.add('hidden'); $('title').classList.remove('hidden'); titleT = 0; setState('title'); refreshBest(); });
+addEventListener('keydown', e => { if (e.code === 'Enter' && state === 'title') startRound(Math.random() * 1e9); });
+refreshBest();
+
+const muteBtn = $('muteBtn'), syncMute = () => { muteBtn.textContent = muted ? '🔇' : '🔊'; };
+syncMute();
+muteBtn.addEventListener('click', () => { audioInit(); muted = !muted; try { localStorage.setItem('tsukamenai-mute', muted ? '1' : '0'); } catch (e) {} syncMute(); });
+['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach(ev => addEventListener(ev, audioInit, { passive: true }));
+
+// ===== [SEC:LOOP] =====
+let acc = 0, last = performance.now(), dirty = true;
+function tick(dt) {
+  if (state === 'title') {
+    titleT += dt;
+    updateHand(dt);
+    stick.held = false; stick.x = 0; stick.y = 5 + 0.25 * Math.sin(titleT * 1.6); stick.th = 0.4 * Math.sin(titleT * 0.9);
+  } else if (state === 'play') playTick(dt);
+  else overTick(dt);
+  if (state === 'over') updateHand(dt);
+  // 手の見た目（にぎり具合・向き）
+  const want = (grip && state !== 'over') ? 1 : 0;
+  hand.curl += (want - hand.curl) * (1 - Math.exp(-30 * dt));
+  const rotTarget = stick.held ? stick.th + Math.PI * Math.round((hand.rot - stick.th) / Math.PI) : 0;
+  hand.rot += (rotTarget - hand.rot) * (1 - Math.exp(-16 * dt));
+  fxTick(dt);
+}
+function update(frameDt) {
+  const fd = Math.min(frameDt, CONFIG.MAX_FRAME);
+  const ts = slowReal > 0 ? CONFIG.SLOWMO_SCALE : 1; slowReal = Math.max(0, slowReal - fd);
+  acc += fd * ts;
+  while (acc >= CONFIG.FIXED) { tick(CONFIG.FIXED); acc -= CONFIG.FIXED; }
+}
+const proj = new THREE.Vector3();
+function render() {
+  const jit = Math.min(0.1, squirmV * 0.02), jx = jit * Math.sin(performance.now() * 0.09), jy = jit * Math.cos(performance.now() * 0.11), pz = 1 + pulse * 0.25;
+  stickMesh.position.set(stick.x + jx, stick.y + jy, 0); stickMesh.rotation.z = stick.th; stickMesh.scale.set(1, pz, pz);
+  handGroup.position.set(hand.x + jx, hand.y + jy, 0); handGroup.rotation.z = hand.rot; poseHand(hand.curl);
+  renderFx();
+  if (state === 'play' || state === 'over') {
+    elTime.firstChild.nodeValue = fmt(t); elBest.textContent = 'ベスト ' + fmt(best);
+  }
+  if (state === 'play' && stick.held) {
+    const f = clamp((CONFIG.STICK_HALF - stick.sdir * stick.s) / (2 * CONFIG.STICK_HALF), 0, 1);
+    proj.set(hand.x, hand.y + 1.3, 0).project(camera);
+    elSlip.style.display = 'block';
+    elSlip.style.left = ((proj.x + 1) / 2 * innerWidth) + 'px'; elSlip.style.top = ((1 - proj.y) / 2 * innerHeight) + 'px';
+    elSlipI.style.transform = 'scaleX(' + f.toFixed(3) + ')'; elSlipI.style.background = f < 0.28 ? '#ff4d6d' : '#8cff3b';
+  } else elSlip.style.display = 'none';
+  const shake = (state === 'over' && overT < 0.35 ? (0.35 - overT) * 0.35 : 0) + shakeAmt;
+  camera.position.x = shake * Math.sin(performance.now() * 0.13); camera.position.y += 0;
+  renderer.render(scene, camera);
+}
+function frame(now) {
+  if (!paused && !manual) update((now - last) / 1000);
+  last = now; if (!manual || dirty) { render(); dirty = false; } requestAnimationFrame(frame);
+}
+resize(); computeRoom(); applyRoom(); fitCamera();
+requestAnimationFrame(frame);
+
+// ===== [SEC:TEST] =====
+const VISUAL_LEN = (() => { stickMesh.updateMatrixWorld(true); stickMesh.rotation.z = 0; stickMesh.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(stickMesh); return b.max.x - b.min.x; })();
+window.__TEST__ = {
+  keys: [],
+  randomInput(r) {
+    const q = k => { const x = Math.sin(r * 12345.678 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+    if (q(1) < 0.65) { target.x = stick.x + (q(2) - 0.5) * 3; target.y = stick.y + (q(3) - 0.5) * 3; }
+    else { target.x = (q(2) * 2 - 1) * room.Wx; target.y = q(3) * room.Ht; }
+    gripMouse = q(4) < 0.65; syncGrip();
+  },
+  setPointer(x, y) { target.x = x; target.y = y; },
+  setGrip(b) { gripMouse = !!b; syncGrip(); },
+  forceEvent(ty) { startEvent(ty); },
+  setStick(o) { Object.assign(stick, o); },
+  setHandPos(x, y) { hand.x = target.x = x; hand.y = target.y = y; hand.vx = hand.vy = 0; },
+  hbox() { return { kx: +hand.kx.toFixed(2), ky: +hand.ky.toFixed(2), pmul: +stick.pmul.toFixed(2), combo }; },
+  reset(seed) { manual = true; gripMouse = false; syncGrip(); startRound(seed); },
+  startTitle() { manual = true; $('toTitleBtn').click(); },
+  step(sec, frameDt) { for (let tt = 0; tt < sec - 1e-9; tt += frameDt) update(frameDt); dirty = true; },
+  state() {
+    return { st: state, over: state === 'over', t: +t.toFixed(3), held: stick.held, s: +stick.s.toFixed(3),
+      stick: { x: +stick.x.toFixed(3), y: +stick.y.toFixed(3), th: +stick.th.toFixed(3), vx: +stick.vx.toFixed(2), vy: +stick.vy.toFixed(2), w: +stick.w.toFixed(2) },
+      hand: { x: +hand.x.toFixed(3), y: +hand.y.toFixed(3), curl: +hand.curl.toFixed(2) }, grip, combo, bestCombo, catches, saves, evt: evt ? evt.type : null, room: { ...room } };
+  },
+  check() {
+    const v = [], h = CONFIG.STICK_HALF, R = CONFIG.STICK_R;
+    const nums = [stick.x, stick.y, stick.th, stick.vx, stick.vy, stick.w, hand.x, hand.y, hand.vx, hand.vy, t, stick.s, stick.offx, stick.offy];
+    if (nums.some(n => !Number.isFinite(n))) { v.push('NaN/Infinity が出た'); return v; }
+    if (parts.some(p => p.on && !Number.isFinite(p.x + p.y + p.z))) { v.push('パーティクルがNaN'); return v; }
+    const ex = h * Math.cos(stick.th), ey = h * Math.sin(stick.th), tol = 0.03;
+    for (const sg of [1, -1]) {
+      const px = stick.x + sg * ex, py = stick.y + sg * ey;
+      if (px - R < -room.Wx - tol || px + R > room.Wx + tol) v.push('棒が左右の壁の外に出た x=' + px.toFixed(2));
+      if (py + R > room.Ht + tol) v.push('棒が天井の外に出た y=' + py.toFixed(2));
+      if (py - R < -tol) v.push('棒が床にめり込んだ y=' + (py - R).toFixed(3));
+    }
+    if (Math.hypot(stick.vx, stick.vy) > CONFIG.STICK_MAX_SPEED * 1.5) v.push('棒が速すぎる');
+    if (Math.abs(stick.w) > CONFIG.STICK_MAX_SPIN * 1.5) v.push('棒の回転が速すぎる');
+    if (hand.x < -room.Wx - tol || hand.x > room.Wx + tol || hand.y < -tol || hand.y > room.Ht + tol) v.push('手が部屋の外に出た');
+    if (state === 'play' && t < lastT - 1e-9) v.push('時間が戻った');
+    if (state === 'play') lastT = t;
+    if (t < 0) v.push('スコアがマイナス');
+    if (stick.held) {
+      const c = Math.cos(stick.th), sn = Math.sin(stick.th);
+      const d = Math.hypot(hand.x - (stick.x + stick.s * c), hand.y - (stick.y + stick.s * sn));
+      if (d > CONFIG.HAND_REACH + 0.02) v.push('にぎっているのに手と棒が離れている d=' + d.toFixed(2));
+      if (Math.abs(stick.s) > h + 1e-6) v.push('にぎり位置が棒の外');
+      if (state !== 'play') v.push('プレイ中でないのに棒を持っている');
+    }
+    if (Math.abs(VISUAL_LEN - (2 * h + 2 * R)) / (2 * h + 2 * R) > 0.1) v.push('見た目の棒の長さと当たり判定がちがう');
+    return v;
+  },
+  ready: true,
+};
+</script>
+</body>
+</html>
