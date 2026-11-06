@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>死語 VS 若者言葉</title>
-<meta name="description" content="死語と若者言葉を立体の文字にして投げ合う3D対戦ゲーム。当たったら意味を4択で答えろ！CPUとの勝ち抜き戦と、ランダム・合言葉のオンライン対戦。">
+<meta name="description" content="死語と若者言葉を立体の文字にして投げ合う3D対戦ゲーム。当たったら意味を4択で答えろ！CPUとの勝ち抜き戦で、何人たおせるか挑戦しよう。">
 <meta name="theme-color" content="#2a2140">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
 <script>(function(){if(/(^|\.)nkworks-games\.com$/.test(location.hostname)){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350';document.head.appendChild(s);}})();</script>
@@ -187,7 +187,7 @@ input.pass{width:100%;font:inherit;font-size:20px;font-weight:800;text-align:cen
   <div class="best" id="best"></div>
   </div><div class="colB">
   <button class="btn s" id="bCpu">CPUと勝ち抜き戦</button>
-  <div class="row"><button class="btn y sm" id="bRandom">オンライン<br>ランダムマッチ</button><button class="btn y sm" id="bPass">オンライン<br>合言葉で対戦</button></div>
+  <div class="row" id="onRow"><button class="btn y sm" id="bRandom">オンライン<br>ランダムマッチ</button><button class="btn y sm" id="bPass">オンライン<br>合言葉で対戦</button></div>
   <div class="foot"><button class="chip" id="bHelp">あそびかた</button><button class="chip" id="bSnd"></button><button class="chip" id="bVoice"></button></div>
   <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
   <div class="adwrap" id="adT"></div>
@@ -283,6 +283,7 @@ const CONFIG = {
   net: { matchWait: 20, gone: 12, posHz: 10, beat: 3, lobby: 20, startDelay: 3.2, speed: 9.5, cool: 0.45 },
   shareUrl: 'https://nkworks-games.com/shigo-vs-wakamono/',
   ad: { client: 'ca-pub-2073267239630350', slot: '6261635446', host: /(^|\.)nkworks-games\.com$/ },   // 広告（公開サイトでだけ出す。タイトルと結果画面の320x50だけ）
+  online: false,   // オンライン対戦のボタンを出すか。Firebaseのルール（swvLobby・swvRoom）を入れたら true にする（head.html の description にもオンラインの説明を戻す）
   followX: 'vyaPudzd1E54661',   // 「作者をフォロー」ボタンのXアカウント
   tag: '死語VS若者言葉',
 };
@@ -1602,6 +1603,7 @@ function netStop() { for (const u of ONL.unsub) { try { u(); } catch (e) { } } O
 function netSend(k, d) { const N = G.net; if (!N || N.gone || G.mode !== 'net') return; Promise.resolve(N.net.send(k, d)).catch(e => console.warn('送れませんでした', e)); }
 // --- 待合の画面
 function openOnline(kind) {
+  if (!CONFIG.online) return;
   netLeave(); hideScreens(); clearField(); hideCall(); $('hud').classList.add('hide'); G.state = 'menu'; G.mode = 'cpu'; ONL.kind = kind;
   $('online').classList.remove('hide'); $('onErr').textContent = ''; $('onTitle').textContent = kind === 'random' ? 'ランダムマッチ' : '合言葉で対戦';
   $('onPass').classList.toggle('hide', kind !== 'pass'); $('onWait').classList.add('hide'); $('bOnBack').textContent = 'もどる';
@@ -1791,6 +1793,7 @@ function openPause() {
 }
 function closePause() { paused = false; last = performance.now(); $('pause').classList.add('hide'); }
 function bindUI() {
+  if (!CONFIG.online) $('onRow').classList.add('hide');   // オンライン対戦は今はお休み（CONFIG.online）
   document.querySelectorAll('.fbtn').forEach(a => { a.href = 'https://x.com/intent/follow?screen_name=' + CONFIG.followX; a.textContent = '𝕏 @' + CONFIG.followX; });
   for (const b of document.querySelectorAll('.side')) b.onclick = () => { AU.resume(); AU.ui(); if (G.side === b.dataset.side) return; G.side = b.dataset.side; store.set('side', G.side); setupFighters(); titleUI(); };
   const go = f => () => { AU.resume(); VOICE.unlock(); AU.ui(); f(); };
