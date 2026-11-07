@@ -751,11 +751,13 @@ function aimAt(cx, cy, offsetY) {
   const p = pointerToWorld(cx, cy); if (!p) return;
   target.x = p.x; target.y = p.y + offsetY;
 }
-const syncGrip = () => { grip = gripMouse || gripTouch || gripKey; };
+const gripIds = new Set();   // 手を動かす指とは別の指：画面のどこを押しても「にぎる」になる
+const syncGrip = () => { grip = gripMouse || gripTouch || gripIds.size > 0 || gripKey; };
 canvas.addEventListener('pointerdown', e => {
   if (e.pointerType === 'touch') {
     document.body.classList.add('touch');
     if (moveId === null) { moveId = e.pointerId; aimAt(e.clientX, e.clientY, CONFIG.TOUCH_OFFSET); }
+    else { gripIds.add(e.pointerId); syncGrip(); }
   } else { aimAt(e.clientX, e.clientY, 0); if (e.button === 0) { gripMouse = true; syncGrip(); } }
   e.preventDefault();
 });
@@ -764,7 +766,7 @@ addEventListener('pointermove', e => {
   else aimAt(e.clientX, e.clientY, 0);
 });
 function pointerEnd(e) {
-  if (e.pointerType === 'touch') { if (e.pointerId === moveId) moveId = null; }
+  if (e.pointerType === 'touch') { if (e.pointerId === moveId) moveId = null; if (gripIds.delete(e.pointerId)) syncGrip(); }
   else if (e.button === 0 || e.type === 'pointercancel') { gripMouse = false; syncGrip(); }
 }
 addEventListener('pointerup', pointerEnd); addEventListener('pointercancel', pointerEnd);
@@ -776,7 +778,7 @@ addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'KeyZ') { gripKey = true; syncGrip(); if (e.code === 'Space') e.preventDefault(); }
 });
 addEventListener('keyup', e => { if (e.code === 'Space' || e.code === 'KeyZ') { gripKey = false; syncGrip(); } });
-function releaseAllInput() { gripMouse = gripTouch = gripKey = false; moveId = null; gb.classList.remove('on'); syncGrip(); }
+function releaseAllInput() { gripMouse = gripTouch = gripKey = false; gripIds.clear(); moveId = null; gb.classList.remove('on'); syncGrip(); }
 addEventListener('blur', releaseAllInput);
 document.addEventListener('visibilitychange', () => { paused = document.hidden; if (paused) releaseAllInput(); else last = performance.now(); });
 document.addEventListener('contextmenu', e => e.preventDefault());
@@ -785,8 +787,9 @@ document.addEventListener('contextmenu', e => e.preventDefault());
 const $ = id => document.getElementById(id);
 const elTime = $('time'), elBest = $('best'), elSlip = $('slip'), elSlipI = elSlip.querySelector('i');
 $('how').innerHTML = isTouchDevice
-  ? '<li>🖐 画面をドラッグ：手を動かす</li><li>🔘 右下の「にぎる」を押している間：にぎる</li><li>🟢 棒は手の中でするする逃げる。まん中をにぎると長く持てる</li>'
+  ? '<li>🖐 画面をドラッグ：手を動かす</li><li>🔘 もう片方の指で画面のどこかを押している間：にぎる（右下の「にぎる」でもOK）</li><li>🟢 棒は手の中でするする逃げる。まん中をにぎると長く持てる</li>'
   : '<li>🖱 マウス：手を動かす</li><li>🔘 クリック（またはスペース）を押している間：にぎる</li><li>🟢 棒は手の中でするする逃げる。まん中をにぎると長く持てる</li>';
+if (isTouchDevice) elHint.innerHTML = '手の<b>リングのまん中</b>に棒を重ねて、もう片方の指で<b>画面を押す</b>！';
 $('how').innerHTML += '<li>💡 手のリングのまん中に棒を重ねて押す。ふちだと弾かれる／すべりが速い</li><li>💡 すべりきる前に離して投げ上げ → 棒のまん中でキャッチ！</li>';
 document.querySelectorAll('.fbtn').forEach(a => { a.href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; a.textContent = '𝕏 @' + CONFIG.FOLLOW_X; });
 const fmt = v => v.toFixed(2);
