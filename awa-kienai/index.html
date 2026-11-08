@@ -52,11 +52,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#cfe0e6;font-family:
 #phaseFill{height:100%;width:0;background:#fff}
 #hint{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 72px);transform:translateX(-50%);width:max-content;max-width:90%;background:rgba(255,253,248,.96);border-radius:14px;padding:10px 16px;font-size:14px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.18);opacity:0;transition:opacity .3s;text-align:center;line-height:1.5;pointer-events:none}
 #hint.show{opacity:1}
-#bubble{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:#fff;border:3px solid var(--ink);border-radius:18px;padding:5px 14px;font-size:18px;font-weight:900;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s}
+#bubble{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:#fff;border:3px solid var(--ink);border-radius:18px;padding:5px 14px;font-size:18px;font-weight:900;white-space:normal;width:max-content;max-width:86vw;text-align:center;line-height:1.35;pointer-events:none;opacity:0;transition:opacity .12s}
 #bubble::after{content:"";position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);border:8px solid transparent;border-top-color:var(--ink)}
 #bubble.show{opacity:1}
 #bubble.angry{background:#ffe3e3;border-color:#c62828;color:#c62828}
 #bubble.angry::after{border-top-color:#c62828}
+#stage{position:absolute;left:0;right:0;top:24%;text-align:center;pointer-events:none;opacity:0}
+#stage b{display:block;font-size:clamp(30px,8vw,48px);font-weight:900;color:#fff;text-shadow:0 3px 0 #2b9bb5,0 0 12px rgba(0,0,0,.25)}
+#stage span{display:block;margin-top:4px;font-size:15px;font-weight:800;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+#stage.show{animation:stg 2.4s ease-out}
+@keyframes stg{0%{opacity:0;transform:scale(.6)}12%{opacity:1;transform:scale(1.08)}20%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
 #flash{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,0,0,0) 35%,rgba(255,40,40,.6));opacity:0}
 .pop{position:absolute;transform:translate(-50%,-50%);font-size:22px;font-weight:900;color:#fff;text-shadow:0 2px 0 #2b9bb5,0 0 8px rgba(0,0,0,.3);pointer-events:none;animation:popup 1.1s forwards;white-space:nowrap}
 @keyframes popup{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}20%{opacity:1;transform:translate(-50%,-60%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-170%)}}
@@ -124,6 +129,7 @@ button.x{background:#111;color:#fff}
     <div id="hint"></div>
   </div>
   <div id="bubble"></div>
+  <div id="stage"><b></b><span></span></div>
   <div id="flash"></div>
   <div id="title" class="screen">
     <div class="card">
@@ -185,6 +191,12 @@ const CONFIG = {
   LOOK_RATE: 0.16, LOOK_UP: 0.025, LOOK_MAX: 0.65, LOOK_RINSE_MUL: 0.9, LOOK_SUS_MUL: 1.0,
   WARN_TIME: 0.8, WARN_DOWN: 0.04, WARN_MIN: 0.3, TURN_TIME: 0.28, HOLD_TIME: [0.8, 1.3], BACK_TIME: 0.4,
   FAKE_RATE: 0.3, LOOK_CD: 1.6, FIRST_LOOK: 3.5, LOOK_YAW: 1.6, LOOK_TWIST: 0.6,
+  // 回数で増えるお父さんの行動（洗い直しの回数から）
+  MIRROR_FROM: 5, BOTTLE_FROM: 10, MOM_FROM: 15, SPECIAL_CHANCE: 0.45,
+  MIRROR_CLEAR: 2.0, MIRROR_REFOG: 2.5, MIRROR_SEE: 0.6, SUS_MIRROR: 150, SUS_PEEK: 90,
+  MOM_TIME: 6.0, MOM_LOOK_MUL: 3.0, MOM_WARN_MUL: 0.7,
+  // 頭の泡が育つ（洗い直しの回数）
+  CROWN_AFRO: 5, CROWN_SOFT: 10, CROWN_TOWER: 15, CROWN_MAX_H: 0.42,
   // 終わりの演出（秒）
   END_TIME: 2.4,
   SHARE_URL: 'https://nkworks-games.com/awa-kienai/',
@@ -310,8 +322,7 @@ function addMesh(geo, mat, pos, zone, parent = scene) {
   const lw = addMesh(new THREE.PlaneGeometry(3, 3), wm, [-1.0, 1.5, 0.5], 'wall'); lw.rotation.y = Math.PI / 2; lw.castShadow = false;
   const rw = addMesh(new THREE.PlaneGeometry(3, 3), wm, [1.18, 1.5, 0.5], 'wall'); rw.rotation.y = -Math.PI / 2; rw.castShadow = false;
   // 鏡（くもっている）
-  addMesh(new THREE.BoxGeometry(0.6, 0.46, 0.02), new THREE.MeshStandardMaterial({ color: '#b9c3c7', roughness: 0.3, metalness: 0.6 }), [0, 1.2, -0.77], 'wall');
-  addMesh(new THREE.PlaneGeometry(0.56, 0.42), new THREE.MeshStandardMaterial({ color: '#dfe9ec', roughness: 0.15, metalness: 0.5 }), [0, 1.2, -0.758], 'wall');
+  addMesh(new THREE.BoxGeometry(0.6, 0.44, 0.02), new THREE.MeshStandardMaterial({ color: '#b9c3c7', roughness: 0.3, metalness: 0.6 }), [0, 0.98, -0.77], 'wall');
   const chrome = new THREE.MeshStandardMaterial({ color: '#d9dde0', roughness: 0.2, metalness: 0.9 });
   addMesh(new THREE.BoxGeometry(0.34, 0.06, 0.07), chrome, [0, 0.62, -0.74], 'wall');
   for (const x of [-0.13, 0.13]) { const k = addMesh(new THREE.CylinderGeometry(0.028, 0.028, 0.05, 20), chrome, [x, 0.62, -0.69], 'wall'); k.rotation.x = Math.PI / 2; }
@@ -335,6 +346,25 @@ function addMesh(geo, mat, pos, zone, parent = scene) {
   const water = addMesh(new THREE.PlaneGeometry(0.7, 1.44), new THREE.MeshStandardMaterial({ color: '#8fd0de', roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.88 }), [0.81, 0.47, -0.03], 'floor');
   water.rotation.x = -Math.PI / 2; water.castShadow = false;
 }
+// 鏡（ふだんは湯気でくもっている。晴れると映る）
+// 見下ろす目線でも映りが見えるように、鏡の位置から見た景色（お父さんの顔と頭の上）を左右反転して映す
+const mirrorRT = new THREE.WebGLRenderTarget(320, 228);
+const mirrorCam = new THREE.PerspectiveCamera(52, 0.56 / 0.4, 0.05, 6);
+mirrorCam.position.set(0, 1.08, -0.74); mirrorCam.lookAt(0, 1.15, 0.05);
+const mirrorGeo = new THREE.PlaneGeometry(0.56, 0.4);
+{ const uv = mirrorGeo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i)); }
+const mirror = new THREE.Mesh(mirrorGeo, new THREE.MeshBasicMaterial({ map: mirrorRT.texture, color: '#dfe8ea' }));
+mirror.position.set(0, 0.98, -0.757); scene.add(mirror);
+const mirrorFog = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.4), new THREE.MeshBasicMaterial({ color: '#e3ecef', transparent: true, opacity: 0.95, depthWrite: false }));
+mirrorFog.position.set(0, 0.98, -0.755); scene.add(mirrorFog);
+// お父さんのシャンプー（浴そうのふち）
+const dadBottle = new THREE.Group(); scene.add(dadBottle);
+{
+  const b = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.13, 18), new THREE.MeshStandardMaterial({ color: '#5fb3d4', roughness: 0.35 })); b.position.y = 0.065; b.castShadow = true; dadBottle.add(b);
+  const c = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.025, 14), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.4 })); c.position.y = 0.142; dadBottle.add(c);
+}
+const DAD_BOTTLE_REST = new V3(0.45, 0.56, -0.24), DAD_BOTTLE_GRAB = new V3(0.45, 0.66, -0.24);
+dadBottle.position.copy(DAD_BOTTLE_REST);
 // 湯気
 const steam = [];
 {
@@ -486,6 +516,7 @@ function keepOnHair(d, dt) {
 }
 function rinseMul() { return 1 + Math.min(CONFIG.RINSE_UP * G.n, CONFIG.RINSE_UP_MAX); }
 function updateFoam(dt) {
+  crownScale += ((0.55 + 0.45 * clamp(totalFoam() / CONFIG.FOAM_MAX, 0, 1)) - crownScale) * damp(3, dt);
   if (poseMode === 'scrub') {
     for (const p of patches) {
       const c = Math.min(p.gel, CONFIG.LATHER_RATE * dt); p.gel -= c; p.foam += c;
@@ -500,7 +531,7 @@ function updateFoam(dt) {
       }
     }
   }
-  if (state === 'play' && G.phase === 'rinse' && !G.look && !G.event) {
+  if (state === 'play' && G.phase === 'rinse' && !G.look && !G.event && mirrorSee() === 0) {
     const A = totalFoam();
     if (A > 0) {
       const f = Math.min(A, CONFIG.RINSE_RATE * rinseMul() * dt) / A;
@@ -540,6 +571,46 @@ function addBlob(worldP, obj) {
   parent.add(b.mesh); b.mesh.position.copy(parent.worldToLocal(_l.copy(worldP))); b.life = 4;
 }
 
+// ===== [SEC:CROWN] =====（回数に応じて育つ頭の泡。見た目だけ）
+const CROWN_N = 130;
+const crownMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 12, 9), foamMat, CROWN_N);
+crownMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); crownMesh.frustumCulled = false; crownMesh.count = 0; headG.add(crownMesh);
+let crownScale = 0.6;
+function crownStage(n) { return n >= CONFIG.CROWN_TOWER ? 3 : n >= CONFIG.CROWN_SOFT ? 2 : n >= CONFIG.CROWN_AFRO ? 1 : 0; }
+function crownHeight() {   // 頭のてっぺんから上の、うずまきの高さ（m）
+  const n = G.n, s = crownStage(n);
+  if (s < 2) return 0;
+  const h = s === 2 ? 0.16 + 0.02 * (n - CONFIG.CROWN_SOFT) : 0.27 + 0.025 * (n - CONFIG.CROWN_TOWER);
+  return Math.min(h, CONFIG.CROWN_MAX_H) * crownScale;
+}
+const _dir = new V3();
+function renderCrown() {
+  const n = G.n, s = crownStage(n);
+  if (!s || state === 'title') { crownMesh.count = 0; return; }
+  let i = 0;
+  const g = Math.min(1, (n - CONFIG.CROWN_AFRO) / 5 + 0.4);
+  const afroN = 54, afroR = (0.028 + 0.012 * g) * crownScale;
+  for (let k = 0; k < afroN; k++) {   // アフロ（頭のまわり）
+    const y = 1 - (k + 0.5) / afroN * 1.15, r = Math.sqrt(Math.max(0, 1 - y * y)), a = k * 2.39996;
+    _dir.set(Math.cos(a) * r, y, Math.sin(a) * r);
+    if (_dir.z < -0.4 && _dir.y < 0.55) continue;   // 顔の前は空ける
+    surf(_dir, _t).addScaledVector(_dir.normalize(), afroR * 0.55);
+    const sc = afroR * (0.85 + 0.3 * ((k * 0.618) % 1));
+    _m4.compose(_t, _q.identity(), _s.set(sc, sc, sc)); crownMesh.setMatrixAt(i++, _m4);
+  }
+  if (s >= 2) {   // ソフトクリーム・塔（うずまき）
+    const H = crownHeight(), M = s === 2 ? 46 : 70, R0 = (s === 2 ? 0.1 : 0.085) * crownScale;
+    const top = HB * 0.95, sway = s === 3 ? Math.sin(G.time * 2.2) * 0.04 : 0;
+    for (let k = 0; k < M; k++) {
+      const u = k / (M - 1), rr = R0 * Math.pow(1 - u, 0.75) + 0.006, a = u * (s === 2 ? 4 : 7) * Math.PI * 2;
+      _t.set(Math.cos(a) * rr + sway * u * u, top + u * H, Math.sin(a) * rr + 0.01);
+      const sc = (0.034 - 0.02 * u) * crownScale;
+      _m4.compose(_t, _q.identity(), _s.set(sc, sc, sc)); crownMesh.setMatrixAt(i++, _m4);
+    }
+  }
+  crownMesh.count = i; crownMesh.instanceMatrix.needsUpdate = true;
+}
+
 // ===== [SEC:WATER] =====
 const WN = 240, wPos = new Float32Array(WN * 3), wVel = new Float32Array(WN * 3), wLife = new Float32Array(WN);
 const wGeo = new THREE.BufferGeometry(); wGeo.setAttribute('position', new THREE.BufferAttribute(wPos, 3));
@@ -555,9 +626,10 @@ function updateWater(dt, emit) {
     wAcc += dt * 650;
     while (wAcc >= 1) {
       wAcc--; const i = wNext; wNext = (wNext + 1) % WN;
-      const r = Math.sqrt(fxr()) * 0.028, an = fxr() * 6.283;
-      wPos[i * 3] = nz.x + Math.cos(an) * r; wPos[i * 3 + 1] = nz.y; wPos[i * 3 + 2] = nz.z + Math.sin(an) * r;
-      wVel[i * 3] = Math.cos(an) * r * 6; wVel[i * 3 + 1] = -1.5 - fxr() * 0.6; wVel[i * 3 + 2] = Math.sin(an) * r * 6;
+      const r = Math.sqrt(fxr()) * 0.028, an = fxr() * 6.283, sp = 1.5 + fxr() * 0.6;
+      const off = _b.set(Math.cos(an) * r, 0, Math.sin(an) * r).applyQuaternion(shower.quaternion), dir = _a.set(0, -1, 0).applyQuaternion(shower.quaternion);
+      wPos[i * 3] = nz.x + off.x; wPos[i * 3 + 1] = nz.y + off.y; wPos[i * 3 + 2] = nz.z + off.z;
+      wVel[i * 3] = dir.x * sp + off.x * 6; wVel[i * 3 + 1] = dir.y * sp + off.y * 6; wVel[i * 3 + 2] = dir.z * sp + off.z * 6;
       wLife[i] = 1;
     }
   }
@@ -566,7 +638,7 @@ function updateWater(dt, emit) {
     wVel[i * 3 + 1] -= 9.8 * dt;
     wPos[i * 3] += wVel[i * 3] * dt; wPos[i * 3 + 1] += wVel[i * 3 + 1] * dt; wPos[i * 3 + 2] += wVel[i * 3 + 2] * dt;
     _l.set(wPos[i * 3], wPos[i * 3 + 1], wPos[i * 3 + 2]).applyMatrix4(headInv);
-    if (wPos[i * 3 + 1] < 0.7 || ellQ(_l, 0.004) < 1) { wLife[i] = 0; wPos[i * 3 + 1] = -10; }
+    if (wPos[i * 3 + 1] < 0.7 || wPos[i * 3 + 2] < -0.74 || ellQ(_l, 0.004) < 1) { wLife[i] = 0; wPos[i * 3 + 1] = -10; }
   }
 }
 
@@ -642,11 +714,13 @@ function resetCommon(seed) {
     look: null, lookCD: CONFIG.FIRST_LOOK, event: null, pending: null, evCD: 0, acc: { front: 0, side: 0, body: 0 },
     hand: 0, pouring: false, pourT: 0, streamLen: 0, endKind: null, endT: 0, endSide: 1, shake: 0, flash: 0,
     scrubSaid: false, checkSaid: false, bubble: { text: '', t: 0, angry: false },
+    mirrorT: 1e9, alertT: 0, lastSpecial: null, mirrorSaid: false, peekSaid: false,
   });
   patches.length = 0; seedFoam(CONFIG.START_FOAM);
   for (const b of blobs) { b.life = 0; b.mesh.removeFromParent(); }
   resetWater(); ptr.down = false; ptr.id = null; aim.valid = false;
   Object.assign(pose, { yaw: 0, pitch: -0.3, roll: 0, twist: 0, lean: -0.14, eyes: 1, angry: 0 });
+  crownScale = 0.6; dadBottle.position.copy(DAD_BOTTLE_REST); dadBottle.rotation.set(0, 0, 0);
   G.tip.copy(camNdcPoint(1.2, 1.9, 0.55, _t)); G.tipAim.copy(G.tip); G.showerP.copy(HOOK);
 }
 function say(text, dur, angry = false) { G.bubble.text = text; G.bubble.t = dur; G.bubble.angry = angry; }
@@ -681,14 +755,18 @@ function nextPhase() {
     const A = totalFoam();
     if (A < CONFIG.FOAM_MIN) { endGame('finished'); return; }
     G.n++; popScore();
+    const stageLine = STAGE_LINES[G.n];
     if (A > CONFIG.FOAM_MAX) { G.sus += CONFIG.SUS_TOO_MUCH; say('…泡、多すぎない？', 1.5); }
-    else say(rewashLine(G.n), 1.5);
+    else say(stageLine || rewashLine(G.n), 1.5);
+    if (stageLine) popStage(G.n);
     SFX.rewash();
     G.phase = 'scrub'; G.phaseDur = rand(CONFIG.SCRUB_TIME); G.scrubSaid = false;
+    planSpecial();
   }
 }
 function startLook(warnOverride) {
-  const warn = warnOverride ?? Math.max(CONFIG.WARN_MIN, CONFIG.WARN_TIME - CONFIG.WARN_DOWN * G.n);
+  let warn = warnOverride ?? Math.max(CONFIG.WARN_MIN, CONFIG.WARN_TIME - CONFIG.WARN_DOWN * G.n);
+  if (warnOverride == null && G.alertT > 0) warn = Math.max(0.25, warn * CONFIG.MOM_WARN_MUL);
   G.look = { stage: 'warn', t: 0, dur: warn, fake: warnOverride == null && rng() < CONFIG.FAKE_RATE, side: rng() < 0.5 ? -1 : 1, k: 0, saw: false, sawSaid: false };
   say(pick(['ん？', '…ん？', 'なんだ？']), warn + 0.15); SFX.warn(); showHint('warn');
 }
@@ -717,9 +795,14 @@ const EVENTS = {
   eye: { dur: 1.4, sus: 'SUS_FRONT', lines: ['うっ、目にしみる！', '目が…目がぁ！'] },
   ear: { dur: 0.9, sus: 'SUS_SIDE', lines: ['ん？耳に何か…', '首がヌルッとした…'] },
   cold: { dur: 0.7, sus: 'SUS_BODY', lines: ['ひゃっ、冷たっ！', 'つめたっ!?'] },
+  mirror: { dur: 1.6, lines: ['鏡がくもって見えないな…', 'よし、鏡を流すか'] },
+  bottle: { dur: 2.6, lines: ['…このシャンプー、減ってないよな？', 'なんか変だな、このシャンプー…'] },
+  mom: { dur: 1.4, lines: ['おーい、母さん！ このシャンプー変じゃないか？'] },
 };
 function startEvent(type) {
-  const e = EVENTS[type]; G.event = { type, t: 0, dur: e.dur }; G.sus += CONFIG[e.sus];
+  const e = EVENTS[type]; G.event = { type, t: 0, dur: e.dur }; if (e.sus) G.sus += CONFIG[e.sus];
+  if (type === 'bottle') G.peekSaid = false;
+  if (type === 'mirror' || type === 'bottle' || type === 'mom') showHint(type);
   say(pick(e.lines), e.dur + 0.2, type === 'cold'); SFX.event(); G.evCD = CONFIG.EV_COOLDOWN;
 }
 function deposit(a) {
@@ -734,12 +817,31 @@ function deposit(a) {
     else if (G.acc.side >= CONFIG.EV_SIDE) { G.acc.side = 0; G.pending = { type: 'ear', t: 0.3 }; }
   }
 }
+const STAGE_LINES = { [CONFIG.CROWN_AFRO]: '…なんか頭が重いな', [CONFIG.CROWN_SOFT]: '頭に何か乗ってる気がする…', [CONFIG.CROWN_TOWER]: '首が…首がもたない…' };
+function mirrorFogAmt() { const t = G.mirrorT; return t < CONFIG.MIRROR_CLEAR ? 0 : clamp((t - CONFIG.MIRROR_CLEAR) / CONFIG.MIRROR_REFOG, 0, 1); }
+function mirrorSee() { return clamp(1 - mirrorFogAmt() / CONFIG.MIRROR_SEE, 0, 1); }
+function planSpecial() {   // 洗い直しのあと、回数に応じてお父さんの特別な行動を予約する
+  const n = G.n, c = [];
+  if (n >= CONFIG.MIRROR_FROM && mirrorFogAmt() > 0.95) c.push('mirror');
+  if (n >= CONFIG.BOTTLE_FROM) c.push('bottle');
+  if (n >= CONFIG.MOM_FROM && G.alertT <= 0) c.push('mom');
+  if (!c.length || G.pending) return;
+  const intro = { [CONFIG.MIRROR_FROM]: 'mirror', [CONFIG.BOTTLE_FROM]: 'bottle', [CONFIG.MOM_FROM]: 'mom' }[n];
+  let type = intro && c.includes(intro) ? intro : null;
+  if (!type) {
+    if (rng() >= CONFIG.SPECIAL_CHANCE) return;
+    const pool = c.length > 1 ? c.filter(x => x !== G.lastSpecial) : c;
+    type = pool[Math.floor(rng() * pool.length) % pool.length];
+  }
+  G.lastSpecial = type; G.pending = { type, t: 1.3 };
+}
 function updatePlay(dt) {
   if (G.evCD > 0) G.evCD -= dt;
+  G.mirrorT = Math.min(G.mirrorT + dt, 1e9); if (G.alertT > 0) G.alertT = Math.max(0, G.alertT - dt);
   if (G.pending && !G.look && !G.event) { G.pending.t -= dt; if (G.pending.t <= 0) { startEvent(G.pending.type); G.pending = null; } }
   if (G.event) {
     G.event.t += dt;
-    if (G.event.t >= G.event.dur) { const ty = G.event.type; G.event = null; if (ty === 'cold' && rng() < CONFIG.BODY_LOOK_CHANCE && !G.look) startLook(0.45); }
+    if (G.event.t >= G.event.dur) { const ty = G.event.type; G.event = null; if (ty === 'mirror') { G.mirrorT = 0; G.mirrorSaid = false; } if (ty === 'mom') G.alertT = CONFIG.MOM_TIME; if (ty === 'cold' && rng() < CONFIG.BODY_LOOK_CHANCE && !G.look) startLook(0.45); }
   }
   if (G.look) updateLook(dt);
   else if (!G.event) {
@@ -747,11 +849,12 @@ function updatePlay(dt) {
     if (G.lookCD <= 0) {
       let rate = Math.min(CONFIG.LOOK_RATE + CONFIG.LOOK_UP * G.n, CONFIG.LOOK_MAX);
       if (G.phase === 'rinse') rate *= CONFIG.LOOK_RINSE_MUL;
+      if (G.alertT > 0) rate *= CONFIG.MOM_LOOK_MUL;
       rate *= 1 + G.sus / 100 * CONFIG.LOOK_SUS_MUL;
       if (rng() < rate * dt) startLook();
     }
   }
-  if (!G.look && !G.event) { G.phaseT += dt; if (G.phaseT >= G.phaseDur) nextPhase(); }
+  if (!G.look && !G.event && mirrorSee() === 0) { G.phaseT += dt; if (G.phaseT >= G.phaseDur) nextPhase(); }   // 鏡が晴れている間は、鏡を見ながらゴシゴシ（流れが止まる）
   if (state !== 'play') return;
   // シャンプーをかける
   if (G.pouring) {
@@ -764,7 +867,12 @@ function updatePlay(dt) {
     }
   } else G.pourT = 0;
   const seen = G.look && G.look.saw && (G.look.stage === 'turn' || G.look.stage === 'hold');
-  if (!G.pouring && !seen) G.sus -= CONFIG.SUS_DECAY * dt;
+  // 鏡に映る・ボトルを見ている間の気配
+  const see = mirrorSee(), mirrorSeen = see > 0 && G.hand > CONFIG.SEEN_HAND && !G.event;
+  if (mirrorSeen) { G.sus += CONFIG.SUS_MIRROR * G.hand * see * dt; if (!G.mirrorSaid) { say('…ん？ 鏡に何か映った？', 1.2, true); G.mirrorSaid = true; } }
+  const peek = !!G.event && G.event.type === 'bottle' && G.event.t > 0.6 && G.event.t < 2.2 && G.hand > CONFIG.SEEN_HAND;
+  if (peek) { G.sus += CONFIG.SUS_PEEK * G.hand * dt; if (!G.peekSaid) { say('…ん？ 後ろに誰かいる？', 1.0, true); G.peekSaid = true; } }
+  if (!G.pouring && !seen && !mirrorSeen && !peek) G.sus -= CONFIG.SUS_DECAY * dt;
   G.sus = clamp(G.sus, 0, 100);
   if (G.sus >= 100) endGame('caught');
 }
@@ -802,8 +910,9 @@ function headPt(x, y, z, extra = 0, out = new V3()) {
   return headG.localToWorld(out);
 }
 function torsoPt(x, y, z) { return torso.localToWorld(new V3(x, y, z)); }
-function showerHold() { return (state === 'play' || state === 'title') && G.phase === 'rinse'; }
-function rinseHandPt() { return headG.getWorldPosition(new V3()).add(_l.set(0.03, 0.31, -0.02)); }
+function showerHold() { return (state === 'play' || state === 'title') && (G.phase === 'rinse' || (!!G.event && G.event.type === 'mirror')); }
+function rinseHandPt() { return headG.getWorldPosition(new V3()).add(_l.set(G.n >= CONFIG.CROWN_SOFT ? 0.15 : 0.03, 0.31, -0.02)); }
+const _q2 = new THREE.Quaternion(), _e = new THREE.Euler();
 function updateDad(dt) {
   let m = 'scrub';
   if (state === 'end' || state === 'result') m = G.endKind || 'scrub';
@@ -830,11 +939,19 @@ function updateDad(dt) {
     }
     case 'eye': T.pitch = -0.15 + 0.06 * Math.sin(t * 14); T.eyes = 0; hL = headPt(-0.3, -0.05, -1); if (!hold) hR = headPt(0.3, -0.05, -1); break;
     case 'ear': T.roll = 0.25 * Math.sin(t * 16); T.pitch = -0.2; if (!hold) hR = headPt(1, -0.05, 0.05); else hL = headPt(-1, -0.05, 0.05); break;
+    case 'mirror': T.pitch = 0.08; T.lean = -0.1; hL = KNEE[0]; hR = torsoPt(0.12, 0.72, -0.26); break;
+    case 'bottle': {
+      const et = G.event.t; hL = KNEE[0];
+      if (et < 0.6 || et > 2.2) { hR = DAD_BOTTLE_GRAB; T.pitch = -0.2; T.yaw = -0.3; }
+      else { hR = torsoPt(0.24, 0.82, -0.18); T.yaw = -0.45 + 0.08 * Math.sin(t * 6); T.pitch = 0.12; T.roll = 0.1; }
+      break;
+    }
+    case 'mom': T.yaw = -0.6; T.pitch = 0.2; T.lean = -0.04; T.angry = 0.25; hL = KNEE[0]; hR = torsoPt(0.2, 0.75, -0.18); break;
     case 'cold': T.lean = 0.12; T.pitch = 0.1; hL = torsoPt(-0.3, 0.6, 0.0); if (!hold) hR = torsoPt(0.3, 0.6, 0.0); break;
     case 'caught': T.twist = G.endSide * 2.3; T.yaw = G.endSide * 0.75; T.pitch = 0.38; T.lean = 0.05; T.angry = 1; hL = torsoPt(-0.27, 0.6, -0.16); hR = torsoPt(0.27, 0.6, -0.16); break;
     case 'finished': T.pitch = 0.1; T.lean = -0.02; T.eyes = 0.3; hL = THIGH[0]; hR = THIGH[1]; break;
   }
-  if (hold && m !== 'caught' && m !== 'finished') hR = rinseHandPt();
+  if (hold && m !== 'caught' && m !== 'finished' && m !== 'mirror') hR = rinseHandPt();
   if (m === 'look-turn' || m === 'look-hold' || m === 'look-back') { if (hold) hR = rinseHandPt(); }
   const kk = damp(m.startsWith('look') || m === 'caught' || m === 'cold' ? 16 : 9, dt);
   for (const k in T) pose[k] += (T[k] - pose[k]) * kk;
@@ -859,11 +976,16 @@ function updateDad(dt) {
   for (const b of face.brows) b.rotation.z = b.userData.s * 0.4 * pose.angry;
   face.mouth.scale.y = 1 + 2.5 * pose.angry;
   // シャワー
-  const target = hold ? _t.copy(dadArm.R.tip).add(_l.set(0, -0.07, 0)) : HOOK;
+  const sq = _q2.setFromEuler(_e.set(hold ? (m === 'mirror' ? Math.PI / 2 - 0.12 : 0) : 0.7, 0, 0));
+  const target = hold ? _t.copy(dadArm.R.tip).sub(_l.set(0, 0.07, 0).applyQuaternion(sq)) : HOOK;
   G.showerP.lerp(target, damp(14, dt));
   pushOutOfHead(G.showerP, 0.03);
   shower.position.copy(G.showerP);
-  shower.rotation.set(hold ? 0 : 0.7, 0, 0);
+  shower.quaternion.slerp(sq, damp(14, dt));
+  // お父さんのシャンプー（手に持つ・ふちに戻す）
+  const holdB = m === 'bottle' && G.event.t > 0.5 && G.event.t < 2.35;
+  dadBottle.position.lerp(holdB ? new V3().copy(dadArm.R.tip).add(_l.set(0, -0.06, -0.01)) : DAD_BOTTLE_REST, damp(holdB ? 25 : 12, dt));
+  dadBottle.rotation.z = holdB ? 0.3 * Math.sin(t * 8) : 0;
   shower.updateMatrixWorld(true);
 }
 function pushOutOfHead(p, m) {
@@ -888,6 +1010,7 @@ function updatePlayer(dt) {
   G.hand = want ? Math.min(1, G.hand + CONFIG.HAND_SPEED * dt) : Math.max(0, G.hand - CONFIG.HAND_BACK_SPEED * dt);
   if (aim.valid) {
     _t.copy(aim.p); _t.y += CONFIG.BOTTLE_UP;
+    if (crownStage(G.n) && (aim.zone === 'safe' || aim.zone === 'side' || aim.zone === 'nape' || aim.zone === 'front')) _t.y += 0.035 + crownHeight() * clamp((aim.d.y - 0.3) / 0.5, 0, 1);
     _a.subVectors(camBase.pos, aim.p); _a.y = 0; if (_a.lengthSq() > 1e-8) _t.addScaledVector(_a.normalize(), CONFIG.BOTTLE_BACK);
     pushOutOfHead(_t, 0.03); pushOutTorso(_t, 0.03);
     G.tipAim.lerp(_t, G.hand > 0.05 ? damp(28, dt) : 1);
@@ -915,6 +1038,9 @@ const isTouch = matchMedia('(pointer:coarse)').matches;
 $('howPress').textContent = isTouch ? 'タップしている間' : 'クリックしている間';
 const HINTS = {
   start: (isTouch ? '頭をタップしている間' : '頭をクリックしている間') + '、そこにシャンプーをかけるよ',
+  mirror: '鏡がくもっていない間は、手が鏡に映る！ くもるまで待とう',
+  bottle: 'シャンプーを確かめている間に手を出すと、気配で気づかれる',
+  mom: '警戒中は、振り返りがすごく増える！',
   rinse: 'すすぎ中がチャンス！ 泡がなくならないように足そう',
   check: '手でさわって確認中。今かけると危ない！',
   warn: '「ん？」が出たら、すぐ指をはなす！',
@@ -923,6 +1049,12 @@ const hintShown = new Set(store.get('awa-kienai-tut', '').split(',').filter(Bool
 let hintT = 0;
 function showHint(k) { if (manual || hintShown.has(k)) return; hintShown.add(k); $('hint').textContent = HINTS[k]; hintT = 3.4; }
 function screenOf(p) { const v = _l.copy(p).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; }
+const STAGES = { [CONFIG.CROWN_AFRO]: ['アフロ到達！', '泡がアフロになった'], [CONFIG.CROWN_SOFT]: ['ソフトクリーム到達！', 'もう隠しきれない'], [CONFIG.CROWN_TOWER]: ['泡の塔 到達！', 'お父さん、まだ気づかない'] };
+function popStage(n) {
+  const el = $('stage'), t = STAGES[n]; if (!t) return;
+  el.firstChild.textContent = t[0]; el.lastChild.textContent = t[1];
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
 function popScore() {
   const el = $('score'); el.firstChild.textContent = G.n; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
   const s = screenOf(headG.getWorldPosition(_c));
@@ -939,10 +1071,12 @@ function renderHUD() {
     let txt = '', cls = '';
     if (state === 'end') { txt = G.endKind === 'caught' ? 'バレた！' : '洗い終わってしまった…'; cls = 'danger'; }
     else if (G.look) { txt = G.look.stage === 'warn' ? '「ん？」 手をはなせ！' : 'こっちを見てる！'; cls = 'danger'; }
-    else if (G.event) { txt = { eye: '目にしみてる！', ear: '気にしている…', cold: '冷たがってる！' }[G.event.type]; cls = 'danger'; }
+    else if (G.event) { txt = { eye: '目にしみてる！', ear: '気にしている…', cold: '冷たがってる！', mirror: '鏡のくもりを流している…', bottle: 'シャンプーを確かめている（手を出すな）', mom: 'お母さんを呼んでいる！' }[G.event.type]; cls = 'danger'; }
+    else if (state === 'play' && mirrorSee() > 0) { txt = '鏡に映る！ 手を出すな'; cls = 'danger'; }
     else if (G.phase === 'scrub') txt = 'ゴシゴシ中（かけると少しあやしい）';
     else if (G.phase === 'rinse') { txt = 'すすぎ中 ― チャンス！'; cls = 'chance'; }
     else { txt = 'さわって確認中 ― かけたら危険！'; cls = 'danger'; }
+    if (state === 'play' && G.alertT > 0 && !G.look && !G.event) txt = '警戒中！ ' + txt;
     const ph = $('phase'); if ($('phaseTxt').textContent !== txt) $('phaseTxt').textContent = txt;
     ph.className = cls; $('phaseFill').style.width = (state === 'play' ? clamp(G.phaseT / G.phaseDur, 0, 1) * 100 : 100) + '%';
   }
@@ -1029,9 +1163,15 @@ function renderSteamAndBlobs() {
   for (const b of blobs) { if (b.life <= 0) { b.mesh.visible = false; continue; } b.mesh.visible = true; const r = 0.012 * Math.min(1, b.life / 1.5); b.mesh.scale.set(r, r * 0.6, r); }
 }
 function render() {
-  renderFoam(); renderStream(); renderReticle(); renderHose(); renderSteamAndBlobs();
+  renderFoam(); renderCrown(); renderStream(); renderReticle(); renderHose(); renderSteamAndBlobs();
+  const fog = mirrorFogAmt(); mirrorFog.material.opacity = 0.1 + 0.85 * fog; mirror.visible = fog < 0.97;
+  if (mirror.visible) {   // 鏡に映る景色（晴れている間だけ描く）
+    mirror.visible = false; const rv = reticle.visible; reticle.visible = false;
+    renderer.setRenderTarget(mirrorRT); renderer.render(scene, mirrorCam); renderer.setRenderTarget(null);
+    mirror.visible = true; reticle.visible = rv;
+  }
   wGeo.attributes.position.needsUpdate = true;
-  audioUpdate(state === 'play' && G.phase === 'rinse' && !G.look && !G.event, poseMode === 'scrub' && state === 'play', G.time);
+  audioUpdate(waterOn(), poseMode === 'scrub' && state === 'play', G.time);
   renderHUD();
   renderer.render(scene, camera);
 }
@@ -1050,8 +1190,9 @@ function tick(dt) {
   updateDad(dt);
   updatePlayer(dt);
   updateFoam(dt);
-  updateWater(dt, state === 'play' && G.phase === 'rinse' && !G.look && !G.event);
+  updateWater(dt, waterOn());
 }
+function waterOn() { return state === 'play' && ((G.phase === 'rinse' && !G.look && !G.event && mirrorSee() === 0) || (!!G.event && G.event.type === 'mirror' && G.event.t > 0.3)); }
 function update(frameDt) {
   acc += Math.min(Math.max(frameDt, 0), CONFIG.MAX_FRAME);
   while (acc >= CONFIG.FIXED) { tick(CONFIG.FIXED); acc -= CONFIG.FIXED; }
@@ -1074,10 +1215,16 @@ window.__TEST__ = {
     else if (a < 0.85) ptr.down = false;
     else { ptr.x = -1 + 2 * q(); ptr.y = -1 + 2 * q(); ptr.down = q() < 0.5; ptr.inside = true; }
   },
-  reset(seed) { manual = true; acc = 0; startGame(seed); },
+  resets: 0,
+  reset(seed) {   // ?startN=16 のように付けると、その回数から始めて、特別な行動を順番に1つ予約する（確認用）
+    manual = true; acc = 0; startGame(seed);
+    const sn = +new URLSearchParams(location.search).get('startN') || 0;
+    if (sn) { G.n = sn; G.pending = { type: ['mirror', 'bottle', 'mom'][this.resets++ % 3], t: 0.5 }; }
+  },
+  setN(n) { G.n = n; },
   step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); render(); },
   state() {
-    return { state, n: G.n, sus: +G.sus.toFixed(1), foam: +totalFoam().toFixed(2), phase: G.phase, look: G.look && G.look.stage, event: G.event && G.event.type, hand: +G.hand.toFixed(2), patches: patches.length, over: state === 'result' };
+    return { state, n: G.n, mirror: +mirrorSee().toFixed(2), alert: G.alertT > 0, sus: +G.sus.toFixed(1), foam: +totalFoam().toFixed(2), phase: G.phase, look: G.look && G.look.stage, event: G.event && G.event.type, hand: +G.hand.toFixed(2), patches: patches.length, over: state === 'result' };
   },
   check() {
     const v = [];
@@ -1108,6 +1255,11 @@ window.__TEST__ = {
     if (!headSizeOK) v.push('頭の見た目と当たり判定の大きさが違う');
     for (let i = 0; i < WN; i++) if (wLife[i] > 0 && (wPos[i * 3 + 1] < 0 || !fin(wPos[i * 3]))) { v.push('水が床の下・NaN'); break; }
     for (const pr of [pose.yaw, pose.pitch, pose.twist, pose.lean]) if (!fin(pr)) { v.push('お父さんの姿勢がNaN'); break; }
+    const fg = mirrorFogAmt(); if (!(fg >= 0 && fg <= 1)) v.push('鏡のくもりが範囲外');
+    if (!finV(dadBottle.position)) v.push('お父さんのボトルがNaN'); else if (ellQ(headG.worldToLocal(_l.copy(dadBottle.position)), 0.01) < 1) v.push('お父さんのボトルが頭にめり込み');
+    for (let k = 0; k < crownMesh.count; k++) { crownMesh.getMatrixAt(k, _m4); if (!_m4.elements.every(fin)) { v.push('頭の泡（見た目）がNaN'); break; } }
+    for (let i = 0; i < WN; i++) if (wLife[i] > 0 && wPos[i * 3 + 2] < -0.8) { v.push('水が壁を抜けた'); break; }
+    if (G.alertT < 0) v.push('警戒の時間がマイナス');
     return v;
   },
   adv(sec) { for (let t = 0; t < sec - 1e-9; t += 1 / 60) update(1 / 60); },
