@@ -24,7 +24,7 @@ import time
 import bpy  # bpy を先に読み込む（Python のパッケージ版では bmesh・mathutils が bpy の後でないと使えない）
 import bmesh
 import numpy as np
-from mathutils import Matrix, Vector, noise
+from mathutils import Matrix, Quaternion, Vector, noise
 from mathutils.bvhtree import BVHTree
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -708,6 +708,49 @@ def seat_down(obj, tree, tol=0.006, max_deg=8.0):
         if (R @ cs).z < cs.z:
             break
     obj.matrix_world = R @ mw
+    settle(obj, tree)
+    _seat_three_points(obj, tree, tol)
+
+
+def _seat_three_points(obj, tree, tol, max_deg=15.0):
+    """まだお尻が浮いているとき（左右にも傾いた地面で、片足だけが地面につく）：
+    お尻・左足・右足の3か所が、それぞれの真下の地面にそろってつくように、体の向きを地面の傾きに合わせる"""
+    bpy.context.view_layer.update()
+    mw = obj.matrix_world.copy()
+    vs = obj.data.vertices
+
+    def low(ids, n=12):
+        P = sorted((mw @ vs[i].co for i in ids), key=lambda p: p.z)[:n]
+        return sum(P, Vector()) / len(P)
+
+    def ground(p):
+        h = tree.ray_cast(p + Vector((0, 0, 100.0)), Vector((0, 0, -1)), 400.0)
+        return None if h[0] is None else h[0].z
+    seat_pts = [mw @ vs[i].co for i in obj['seat']]
+    gs = [p.z - g for p in seat_pts for g in [ground(p)] if g is not None]
+    if not gs or min(gs) <= tol:
+        return
+    A, B, C = low(obj['seat']), low(obj['sole_L']), low(obj['sole_R'])
+    gA, gB, gC = ground(A), ground(B), ground(C)
+    if None in (gA, gB, gC):
+        return
+    n0 = (B - A).cross(C - A)
+    n1 = (Vector((B.x, B.y, gB)) - Vector((A.x, A.y, gA))).cross(Vector((C.x, C.y, gC)) - Vector((A.x, A.y, gA)))
+    if n0.length < 1e-6 or n1.length < 1e-6:
+        return
+    n0, n1 = n0.normalized(), n1.normalized()
+    if n0.z < 0:
+        n0 = -n0
+    if n1.z < 0:
+        n1 = -n1
+    q = n0.rotation_difference(n1)
+    ang = math.degrees(q.angle)
+    if ang < 0.05:
+        return
+    if ang > max_deg:
+        q = Quaternion(q.axis, math.radians(max_deg))
+    c = (A + B + C) / 3.0
+    obj.matrix_world = Matrix.Translation(c) @ q.to_matrix().to_4x4() @ Matrix.Translation(-c) @ mw
     settle(obj, tree)
 
 
