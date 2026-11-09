@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>日本を動かしても、大きさが変わらない地図にした - N.K. Works 開発日記</title>
+<meta name="description" content="『原寸大の旅』は、キリンから宇宙まで、本物の大きさを当てていくゲーム。ふつうの世界地図では日本の大きさが正しく比べられなかった問題を、地球儀の上で運ぶ方法で直した話と、答えが見えないように本物を消しておいた話。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/blog/genzundai-globe/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:title" content="日本を動かしても、大きさが変わらない地図にした - N.K. Works 開発日記">
+<meta property="og:description" content="『原寸大の旅』は、キリンから宇宙まで、本物の大きさを当てていくゲーム。ふつうの世界地図では日本の大きさが正しく比べられなかった問題を、地球儀の上で運ぶ方法で直した話と、答えが見えないように本物を消しておいた話。">
+<meta property="og:url" content="https://nkworks-games.com/blog/genzundai-globe/">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/assets/site.css">
+<script>
+(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous'; s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();
+</script>
+</head>
+<body>
+
+<header class="site-h"><div class="wrap">
+<a data-google-vignette="false" class="logo" href="/">N.K. Works</a>
+<nav class="nav"><a data-google-vignette="false" href="/games/">ゲーム</a><a data-google-vignette="false" href="/blog/" aria-current="page">開発日記</a><a data-google-vignette="false" href="/about.html">運営者情報</a></nav>
+</div></header>
+
+<main><div class="wrap"><article class="post">
+<p class="crumb"><a data-google-vignette="false" href="/">トップ</a> › <a data-google-vignette="false" href="/blog/">開発日記</a></p>
+<h1>日本を動かしても、大きさが変わらない地図にした</h1><p class="post-meta">2026年11月9日 ・ N.K. Works</p>
+<p>『原寸大の旅』は、キリンや東京タワー、琵琶湖、北海道、日本、月などを、比べる相手のとなりや上に置いて、本物の大きさだと思うサイズに合わせていくゲームです。いちばん最初は「日本をヨーロッパの上に重ねて、大きさを合わせる」だけのゲームとして作り始めました。ここでは、その地図の部分で考えたことを書きます。</p>
+<h2>ふつうの世界地図では、比べられない</h2>
+<p>よく見る世界地図（メルカトル図法）は、北や南に行くほど、国が実際より大きく描かれます。日本より北にあるヨーロッパは、日本よりも大きく引きのばされています。この地図のまま日本を重ねると、日本が実際より小さく見えてしまいます。「思っているより日本は大きい」を見せたいゲームなのに、地図のせいで答えがずれてしまうのでは意味がありません。</p>
+<h2>地球儀の上で、向きをそろえたまま運ぶ</h2>
+<p>そこで、平らな地図をやめて、3Dの地球儀の上に重ねることにしました。日本の形は、日本の真ん中から見て「どの方角に、何km」という形でおぼえておきます。そして、運んだ先でも、同じ方角・同じ距離に置き直します。こうすると、どこへ運んでも形と面積は本物のままで、北海道はちゃんと北東に来ます。ヨーロッパに置いた本物の日本は、スペインのあたりからスウェーデンのあたりまで届きました。</p>
+<p>作ってから、ほかの場所の面積も確かめました。地球儀の上に置いた日本の面積は、日本の真ん中に置いても、ヨーロッパに運んでも約37万km²で、本物とほぼ同じです。北海道も約8.3万km²で、本物とほぼ同じになっています。</p>
+<h2>答えが見えないように、本物を消しておく</h2>
+<p>北海道を東北に重ねる問題では、すぐ上に本物の北海道が見えてしまいます。日本を朝鮮半島に重ねる問題でも、となりに本物の日本があります。これでは、見比べれば答えがわかってしまいます。そこで、問題を出している間は、本物の日本や北海道を地図から消しておき、答え合わせのときに元の場所へ戻すようにしました。答え合わせでは、戻ってきた本物が地球の上を飛んできて、あなたの答えにピタッと重なります。</p>
+<h2>近くまで寄っても、海岸線をぼやけさせない</h2>
+<p>琵琶湖を東京に重ねる問題のように近くまで寄ると、地球全体の地図では海岸線がぼやけてしまいます。そこで、問題を出すたびに、その場所のまわりだけ細かい地図を描き直して、地球儀の上に貼るようにしました。北海道や琵琶湖の問題では、さらに細かい地図データを読み込んでいます。本物を地図から消しておく処理も、この貼る地図の中でしています。</p>
+<h2>2倍と半分を、同じ点にする</h2>
+<p>点数は「本物の何倍だったか」で決めています。本物の2倍と答えた人と、半分と答えた人は、ずれ方としては同じくらいなので、同じ点になるようにしました。大きさをそのまま引き算すると、大きく答えた人ばかりが損をしてしまうからです。ただ、地球と太陽の問題だけは、ほとんどの人が10倍以上大きく答えてしまうので、15倍ずれるまでは点が入るようにしています。</p>
+<h2>地上から宇宙まで</h2>
+<p>途中から、小さいものから順に大きくしていく流れに作り直しました。小さいほうは横から見る画面で、人の横にキリン、東京タワーの横に自由の女神、と並べます。大きいほうは宇宙の画面で、木星や太陽の前に地球を置きます。最後は、太陽よりはるかに大きい星まで、カメラが引いていって終わります。</p>
+<h2>この記事のゲーム</h2><ul class="grid"><li><a data-google-vignette="false" class="card" href="/games/genzundai/"><div class="th"><img src="/games/genzundai/thumb.jpg" alt="" loading="lazy" width="600" height="315"></div><div class="tx"><b>原寸大の旅</b><span>キリンから宇宙まで、本物の大きさを当てる。</span><em>2026年11月9日 公開</em></div></a></li></ul>
+<h2>ほかの日記</h2><ul class="list"><li><a data-google-vignette="false" href="/blog/sasarete-tamaruka-ma/"><em>2026年11月2日</em><b>ライトが消えた直後に手が来る、をなくした</b><span>『刺されてたまるか！』は、家具の裏のコンセントになって、プラグを持った手から逃げるゲーム。ライトが消えた瞬間に手が来て避けられなかった問題を、手が動き出すまでの間を作って直した話と、後半の手に先まわりをさせた話。</span></a></li><li><a data-google-vignette="false" href="/blog/butter-tear/"><em>2026年11月1日</em><b>強く押せばいい、をなくすためにパンを破った</b><span>『バターは端まで』は、トーストを焼いて20秒でバターやジャムを塗るゲーム。すくうと減るビン、押す強さのゲージ、塗る面を下に向けるナイフで本物の塗り方に近づけたあと、「強く押すほどいい」にならないよう、押しすぎるとパンが破れるしくみを焼き加減とつないだ話。</span></a></li><li><a data-google-vignette="false" href="/blog/oku-made-angle/"><em>2026年11月1日</em><b>綿棒は、上ではなく耳の方へ</b><span>『奥までいきます』は、リアルな患者の鼻の奥まで綿棒を入れて、菌を取るゲーム。なんとなく上向きだった綿棒の角度を、本物の検査のやり方を調べて直した話と、仕返しの場面の腕と手のひらを作り直した話。</span></a></li></ul>
+<div class="ad-box"><p class="lbl">広告</p>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) (window.adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</article></div></main>
+<footer class="site-f"><div class="wrap">
+<p><a data-google-vignette="false" href="/">トップ</a> ・ <a data-google-vignette="false" href="/games/">ゲーム一覧</a> ・ <a data-google-vignette="false" href="/blog/">開発日記</a> ・ <a data-google-vignette="false" href="/about.html">運営者情報・お問い合わせ</a> ・ <a data-google-vignette="false" href="/privacy-policy.html">プライバシーポリシー</a></p>
+<p>&copy; 2026 N.K. Works</p>
+</div></footer>
+</body>
+</html>
