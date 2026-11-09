@@ -21,6 +21,7 @@ window.CONFIG = {
   shareUrl: 'https://nkworks-games.com/genzundai/',
   hashtag: '原寸大の旅',
   followX: 'vyaPudzd1E54661',                   // 結果画面の「作者をフォロー」のXアカウント
+  sound: { volume: 1.0 },                        // 効果音の大きさ（0〜1）
   mapDataUrl: 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json',
   mapDataUrlHi: 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-10m.json', // 北海道モード用の細かい地図（約3.6MB）
   includeNorthernTerritories: true,              // 北方領土を日本にふくめる
@@ -335,6 +336,9 @@ input[type=range]::-moz-range-thumb { width:30px; height:30px; border:none; bord
 .fbtn { flex-shrink:0; display:inline-block; padding:8px 12px; border-radius:999px; background:#000; color:#fff; border:1px solid rgba(255,255,255,.3);
   font-size:13px; font-weight:800; text-decoration:none; white-space:nowrap; }
 .toplink { display:inline-block; margin-top:12px; font-size:12px; color:#9fc4ff; }
+.snd { flex-shrink:0; width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:rgba(255,255,255,.1); color:#fff; font-size:16px; line-height:1; cursor:pointer; padding:0; }
+@media (max-width: 420px) { #hud { gap:8px; padding:8px 10px; } .q-no { min-width:40px; font-size:22px; } .q-msg { font-size:11px; } }
+.snd-fixed { position:fixed; top:calc(env(safe-area-inset-top) + 12px); right:12px; width:40px; height:40px; font-size:18px; }
 #loading { flex-direction:column; gap:12px; font-weight:800; font-size:14px; background:#050b18; }
 .spin { width:36px; height:36px; border-radius:50%; border:4px solid rgba(255,255,255,.2); border-top-color:var(--red); animation:sp 1s linear infinite; }
 @keyframes sp { to { transform:rotate(360deg); } }
@@ -358,6 +362,7 @@ input[type=range]::-moz-range-thumb { width:30px; height:30px; border:none; bord
   <div class="q-no"><span id="qNo">1</span><small id="qTotal">/5</small></div>
   <div class="q-main"><div id="qPlace">ヨーロッパ</div><div class="q-msg" id="qMsg">日本を<b>本当の大きさ</b>にしてください</div></div>
   <div class="q-score"><small>SCORE</small><span id="scoreNow">0</span></div>
+  <button id="btnSoundHud" class="snd" aria-label="音のオン・オフ"></button>
 </div>
 <div id="legend" class="hidden"><span><i style="background:#ff3b4e"></i><span id="lgPlayer">あなたの日本</span></span><span><i style="background:#ffd23f"></i><span id="lgTruth">本物の日本</span></span></div>
 
@@ -389,6 +394,7 @@ input[type=range]::-moz-range-thumb { width:30px; height:30px; border:none; bord
     </div>
   </div>
   <div class="credit">N.K. Works ／ 地図データ：Natural Earth</div>
+  <button id="btnSoundTitle" class="snd snd-fixed" aria-label="音のオン・オフ"></button>
 </div>
 
 <div id="screenFinal" class="screen hidden">
@@ -1017,6 +1023,7 @@ async function revealSide(q) {
   side.grow = 0; setGroupOpacity(side.truth, 1);
   showTruthLabel('本物の' + subjectName(q), { upd: (v) => v.set(side.truthTop[0], side.truthTop[1] + 14 * side.wpp, 0), opacity: () => (side.grow > 0.05 ? 1 : 0) });
   await wait(0.3);
+  sfx.rise();
   await tween(1.2, (t) => { side.grow = easeOut(t); });
 }
 
@@ -1170,7 +1177,72 @@ async function revealSpace(q) {
   space.dot.material.opacity = 0; space.ring.material.opacity = 0;
   showTruthLabel('本物の' + subjectName(q), { upd: (v) => v.set(space.pos.x, space.pos.y + Math.max(r, 9 * space.wpp) * space.ringPulse + 4 * space.wpp, 600), opacity: () => space.truthOp });
   await tween(0.6, (t) => { sub.m.material.uniforms.opacity.value = 1 - 0.7 * t; sub.ring.material.opacity = 1 - 0.5 * t; space.dot.material.opacity = t; });
+  sfx.reveal();
   await tween(0.9, (t) => { const e = easeOut(t); space.ringPulse = 6 - 5 * e; space.ring.material.opacity = e; space.truthOp = e; });
+}
+
+// ===== [SEC:SOUND] =====
+// 効果音（音のファイルは使わず、その場で作る）
+const SND = { ctx: null, on: true, lastTick: 0, lastV: -1, count: 0 };
+try { SND.on = localStorage.getItem('genzundai-sound') !== 'off'; } catch (e) { /* 保存できない環境では毎回オン */ }
+function audio() {
+  if (!SND.ctx) { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; SND.ctx = new A(); }
+  if (SND.ctx.state === 'suspended') SND.ctx.resume();
+  return SND.ctx;
+}
+function tone(freq, dur, { type = 'sine', vol = 0.15, at = 0, slide = 0 } = {}) {
+  if (!SND.on) return;
+  const c = audio(); if (!c) return;
+  SND.count++;
+  const t = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(freq * slide, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol * C.sound.volume), t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.03);
+}
+function whooshSound(dur, { vol = 0.07, from = 300, to = 1800 } = {}) {
+  if (!SND.on) return;
+  const c = audio(); if (!c) return;
+  SND.count++;
+  const t = c.currentTime, n = Math.max(1, Math.floor(c.sampleRate * dur)), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+  const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  src.buffer = buf; f.type = 'bandpass'; f.Q.value = 1.2;
+  f.frequency.setValueAtTime(from, t); f.frequency.exponentialRampToValueAtTime(to, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol * C.sound.volume), t + dur * 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(f).connect(g).connect(c.destination); src.start(t); src.stop(t + dur);
+}
+const notes = (list, opt, gap) => list.forEach((f, i) => tone(f, opt.dur || 0.22, { ...opt, at: i * gap }));
+const sfx = {
+  click: () => tone(660, 0.07, { type: 'triangle', vol: 0.12 }),
+  tick: (v) => tone(300 + 500 * v, 0.035, { type: 'triangle', vol: 0.05 }),   // 大きさを変える時のカチカチ（大きいほど高い音）
+  decide: () => { tone(220, 0.2, { vol: 0.25, slide: 0.6 }); tone(440, 0.08, { type: 'triangle', vol: 0.08 }); },
+  whoosh: (dur) => whooshSound(dur),
+  rise: () => tone(330, 1.1, { type: 'triangle', vol: 0.08, slide: 2 }),
+  reveal: () => tone(880, 0.3, { vol: 0.12, slide: 1.5 }),
+  result: (pts) => {
+    if (pts >= 90) notes([523, 659, 784, 1047], { type: 'triangle', vol: 0.13 }, 0.08);
+    else if (pts >= 60) notes([523, 784], { type: 'triangle', vol: 0.12 }, 0.1);
+    else if (pts >= 30) notes([392, 440], { type: 'triangle', vol: 0.1 }, 0.12);
+    else tone(196, 0.35, { type: 'sawtooth', vol: 0.05, slide: 0.8 });
+  },
+  stage: () => notes([784, 1175], { vol: 0.1, dur: 0.35 }, 0.12),
+  epi: () => notes([130.8, 196, 261.6], { vol: 0.06, dur: 2.2 }, 0.5),
+  final: () => notes([523, 659, 784, 1047, 1319], { type: 'triangle', vol: 0.11, dur: 0.3 }, 0.1),
+};
+function scaleTick(q, s) {
+  if (G.state !== 'guess') return;
+  const v = scaleToSlider(s, q), now = performance.now();
+  if (Math.abs(v - SND.lastV) < 25 || now - SND.lastTick < 40) return;
+  SND.lastV = v; SND.lastTick = now; sfx.tick(v / 1000);
+}
+function updateSoundButtons() { ['btnSoundHud', 'btnSoundTitle'].forEach((id) => { $(id).textContent = SND.on ? '🔊' : '🔇'; }); }
+function toggleSound() {
+  SND.on = !SND.on;
+  try { localStorage.setItem('genzundai-sound', SND.on ? 'on' : 'off'); } catch (e) { /* 保存できなくても続ける */ }
+  updateSoundButtons(); sfx.click();
 }
 
 // ===== [SEC:GAME] =====
@@ -1288,6 +1360,7 @@ function setScale(s) {
   G.s = clamp(s, qMin(q), qMax(q));
   $('slider').value = scaleToSlider(G.s, q);
   applyScale(q, G.s);
+  scaleTick(q, G.s);
 }
 
 function toTitle() {
@@ -1340,7 +1413,7 @@ function startRun(key) {
 
 async function stageBanner(q) {
   $('sbNo').textContent = `STAGE ${q.stage + 1}`; $('sbTitle').textContent = q.stageTitle;
-  const el = $('stageBanner'); el.style.opacity = 0; show('stageBanner', true);
+  const el = $('stageBanner'); el.style.opacity = 0; show('stageBanner', true); sfx.stage();
   await tween(0.3, (t) => { el.style.opacity = t; });
   await wait(1.0);
   await tween(0.3, (t) => { el.style.opacity = 1 - t; });
@@ -1408,6 +1481,7 @@ async function decide() {
   if (G.state !== 'guess') return;
   G.state = 'reveal';
   show('controls', false);
+  sfx.decide();
   const q = G.qs[G.qi], s = G.s;
   if (q.type === 'side') await revealSide(q);
   else if (q.type === 'space') await revealSpace(q);
@@ -1427,6 +1501,7 @@ async function revealFly(q) {
   await tween(0.35, (t) => { S.truth.setOpacity(t); if (S.real) S.real.setOpacity(Math.max(S.real.op, t)); });
   await wait(R.pause);
   const A = new V3();
+  sfx.whoosh(R.fly);
   await tween(R.fly, (t) => {
     const e = easeInOut(t);
     slerpDir(J, T, e, A);
@@ -1441,6 +1516,7 @@ async function revealDrop(q) {
   S.truth.setAnchor(llToVec(q.lat, q.lon)); S.truth.update(2.2); S.truth.setOpacity(0);
   showTruthLabel('本物の' + S.name, { follow: S.truth });
   await wait(0.3);
+  sfx.whoosh(0.9);
   await tween(1.0, (t) => { const e = easeOut(t); S.truth.update(2.2 - 1.2 * e); S.truth.setOpacity(e); });
 }
 
@@ -1459,6 +1535,7 @@ async function showResult(q, s) {
   show('legend', true); show('resultCard', true);
   setPads(true); // 結果カードの高さに合わせて、見える範囲を上へずらす
   G.state = 'result';
+  sfx.result(pts);
   const before = G.total - pts;
   await tween(C.reveal.countUp, (t) => {
     $('rcPoints').textContent = Math.round(pts * easeOut(t));
@@ -1502,6 +1579,7 @@ function showFinal() {
     }).join('')
     : G.results.map((r, i) => `<li><span>${i + 1}. ${r.label}</span><span>${fmtRatio(r.s)}倍</span><b>${r.pts}点</b></li>`).join('');
   show('screenFinal', true);
+  sfx.final();
   if (sceneMode === 'globe') {
     fadeOut(allOverlays().filter((o) => o.op > 0), 0.8).then(() => { if (G.state === 'final') patch.mesh.visible = false; });
     moveCamTo(cam.dir, 3.2, 1.2);
@@ -1523,7 +1601,7 @@ function lerpView(a, b, t) {
 async function epilogue() {
   G.state = 'epilogue'; G.skip = false;
   ['hud', 'controls', 'resultCard', 'legend'].forEach((id) => show(id, false));
-  clearLabels(); setPads(false); show('btnSkip', true);
+  clearLabels(); setPads(false); show('btnSkip', true); sfx.epi();
   const L = C.journey.epilogue, pos = [];
   L.forEach(([, r], i) => {
     if (i === 0) pos.push([-1.3, -1 + r]);
@@ -1554,20 +1632,21 @@ async function epilogue() {
 
 // ===== [SEC:INPUT] =====
 $('followBtn').href = 'https://x.com/intent/follow?screen_name=' + C.followX; $('followBtn').textContent = `𝕏 @${C.followX}`;
-$('btnJourney').addEventListener('click', () => startRun('journey'));
-$('btnJapan').addEventListener('click', () => startRun('japan'));
-$('btnHokkaido').addEventListener('click', () => startRun('hokkaido'));
+$('btnJourney').addEventListener('click', () => { sfx.click(); startRun('journey'); });
+$('btnJapan').addEventListener('click', () => { sfx.click(); startRun('japan'); });
+$('btnHokkaido').addEventListener('click', () => { sfx.click(); startRun('hokkaido'); });
+$('btnSoundHud').addEventListener('click', toggleSound); $('btnSoundTitle').addEventListener('click', toggleSound); updateSoundButtons();
 $('btnDecide').addEventListener('click', decide);
-$('btnNext').addEventListener('click', next);
+$('btnNext').addEventListener('click', () => { if (G.state === 'result') sfx.click(); next(); });
 $('btnShare').addEventListener('click', share);
-$('btnRetry').addEventListener('click', () => { if (G.state === 'final') startRun(G.run.key); });
-$('btnModes').addEventListener('click', () => { if (G.state === 'final') toTitle(); });
+$('btnRetry').addEventListener('click', () => { if (G.state === 'final') { sfx.click(); startRun(G.run.key); } });
+$('btnModes').addEventListener('click', () => { if (G.state === 'final') { sfx.click(); toTitle(); } });
 $('btnLoadBack').addEventListener('click', () => toTitle());
 $('btnSkip').addEventListener('click', () => { if (G.state === 'epilogue') { G.skip = true; showFinal(); } });
 $('slider').addEventListener('input', (e) => {
   if (G.state !== 'guess') return;
   const q = G.qs[G.qi];
-  G.s = sliderToScale(+e.target.value, q); applyScale(q, G.s);
+  G.s = sliderToScale(+e.target.value, q); applyScale(q, G.s); scaleTick(q, G.s);
 });
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
@@ -1662,7 +1741,7 @@ async function boot() {
     $('loadingMsg').textContent = '地図の読み込みに失敗しました。ページを再読み込みしてください。';
   }
 }
-window.__game = { G, C, subj, setScale, decide, next, startRun, toTitle, get S() { return G.S; }, get playerJp() { return G.S ? G.S.player : subj.japan.player; } };
+window.__game = { G, C, subj, SND, setScale, decide, next, startRun, toTitle, get S() { return G.S; }, get playerJp() { return G.S ? G.S.player : subj.japan.player; } };
 boot();
 </script>
 </body>
