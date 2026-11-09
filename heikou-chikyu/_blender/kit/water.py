@@ -90,7 +90,7 @@ def open_sea_material(name='沖の海'):
     return m
 
 
-def ocean(size=400.0, wave_scale=1.0, choppy=1.0, wind=10.0, resolution=14, seed=1, repeat=3, time=0.0):
+def ocean(size=400.0, wave_scale=1.0, choppy=1.0, wind=10.0, resolution=14, seed=1, repeat=3, time=0.0, foam=-0.35):
     """沖の波のある海（Blender の Ocean。うねりと白波）。repeat 枚並べて広げる。遠くは平らな面でつなぐ"""
     me = bpy.data.meshes.new('沖の海')
     obj = bpy.data.objects.new('沖の海', me)
@@ -107,7 +107,7 @@ def ocean(size=400.0, wave_scale=1.0, choppy=1.0, wind=10.0, resolution=14, seed
     md.random_seed = seed
     md.use_foam = True
     md.foam_layer_name = 'foam'
-    md.foam_coverage = -0.35
+    md.foam_coverage = foam
     md.time = time
     obj.location = (-size * repeat / 2, -size * repeat / 2, 0)
     obj.data.materials.append(open_sea_material())

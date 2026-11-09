@@ -29,9 +29,11 @@ ENTITY_JA = {'R1-1': '大木の島の歴史', 'R1-4': '小さな火山島の歴�
 FAMILY = {'C': (201, 133, 0), 'A': (25, 158, 112), 'S': (144, 133, 233), 'R': (217, 89, 38)}
 TAGS = {'計算': '計算結果', '設定': '設定', '事実': '事実', '架空': '架空（設定）', '参考': '参考（本編の比較外）'}
 
-FONT_PATHS = [os.environ.get('HEIKOU_FONT', ''), '/System/Library/Fonts/ヒラギノ角ゴシック W4.ttc',
+# out/fonts/ に字体があれば、それを先に使う（クラウドで作った図・字幕と、Mac で重ねる解説の字体をそろえる）
+_PACK_FONT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out', 'fonts', 'ipag.ttf')
+FONT_PATHS = [os.environ.get('HEIKOU_FONT', ''), _PACK_FONT, '/System/Library/Fonts/ヒラギノ角ゴシック W4.ttc',
               '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc', '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf']
-FONT_BOLD = [os.environ.get('HEIKOU_FONT_BOLD', ''), '/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc',
+FONT_BOLD = [os.environ.get('HEIKOU_FONT_BOLD', ''), _PACK_FONT, '/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc',
              '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc', '/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf']
 _fonts = {}
 

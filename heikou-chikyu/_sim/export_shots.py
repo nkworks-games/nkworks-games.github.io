@@ -6,6 +6,7 @@
 家・舟・干し棚・土器・畑などを決める。時代に合わないもの（まだ作り出していない舟など）は置かない。
 人の顔の大写しはしない（遠景・後ろ姿・手元）。
 """
+import csv
 import gzip
 import json
 import math
@@ -132,8 +133,30 @@ def islands_shot(cid, title, tid, trial, camera, time='dusk', radius_km=150, boa
     w = world(tid)
     isl = int(w['reg']['island'][r['start_regions'][0]])
     return dict(id=cid, title=title, kind='islands', terrain=tid, center_island=isl, radius_km=radius_km, seed=5, relief=relief,
-                boats=boats or [], sky=dict(time=time, azimuth=-150 if time == 'dusk' else -140, elevation=5.0 if time == 'dusk' else None, cloud=0.45),
+                boats=boats or [], sky=dict(time=time, azimuth=-150 if time == 'dusk' else -140, elevation=5.0 if time == 'dusk' else 30.0, cloud=0.45),   # 昼の空撮は太陽を低めに（山のひだが見える）
                 camera=camera, anim=anim, seconds=seconds, record='%s-%d の島（計算の形）' % (tid, trial), exposure=0.3 if time == 'dusk' else 0.0)
+
+
+def fit_to_cuts(S):
+    """動くショットの長さを、それを使うカットのうちいちばん長いものに合わせる（短いと最後のコマで止まって見える）。
+    カット表（out/script/cuts_v4.csv、なければ v3）の列 shot も見る（'L|R' は左右の両方）"""
+    for name in ('cuts_v4.csv', 'cuts_v3.csv'):
+        p = os.path.join(HERE, 'out', 'script', name)
+        if os.path.exists(p):
+            break
+    else:
+        return
+    need = {}
+    with open(p, encoding='utf-8') as f:
+        for r in csv.DictReader(f):
+            if not r['kind'].startswith('3D'):
+                continue
+            for sid in (r.get('shot') or r['no']).split('|'):
+                need[sid] = max(need.get(sid, 0), int(r['sec']))
+    for s in S:
+        if s.get('anim', True) is not False and need.get(s['id'], 0) > s.get('seconds', 0):
+            print('長さを合わせる：%s %d秒 → %d秒' % (s['id'], s.get('seconds', 0), need[s['id']]))
+            s['seconds'] = need[s['id']]
 
 
 def main():
@@ -262,6 +285,7 @@ def main():
     S.append(coast('112', '小さな火山島の浜の夕暮れ。火を囲む人影（R1-4・2,990年）', 'R1', 4, 2990, dict(loc=[20, 112, 2.0], target=[0, 160, 3], lens=32, loc2=[16, 118, 2.0], target2=[-2, 162, 3]),
                    time='dusk', seconds=14, sky=dict(elevation=2.0)))
     S.append(planet('113', 'カメラが空へ上がり、惑星の全景へ', dict(loc=[0, -7.0, 0.9], target=[0, 0, 0.9], lens=35, loc2=[0, -26, 6], target2=[0, 0, 0]), seconds=16))
+    fit_to_cuts(S)
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(dict(episode='並行地球 第1回', note='export_shots.py が計算の記録から作る。手で直すときは export_shots.py を直す', shots=S),
                   f, ensure_ascii=False, indent=1, default=lambda o: sorted(o) if isinstance(o, set) else str(o))

@@ -71,7 +71,7 @@
     ]
    },
    "anim": true,
-   "seconds": 7
+   "seconds": 8
   },
   {
    "id": "002",
@@ -185,7 +185,7 @@
     ]
    },
    "anim": true,
-   "seconds": 8,
+   "seconds": 17,
    "record": "R1-4・2990年（main）",
    "techs": [
     "drying"
@@ -241,7 +241,7 @@
     ]
    },
    "anim": true,
-   "seconds": 9
+   "seconds": 11
   },
   {
    "id": "006",
@@ -503,7 +503,7 @@
     ]
    },
    "anim": true,
-   "seconds": 8,
+   "seconds": 9,
    "record": "A1-2・100年（main）",
    "techs": [],
    "pop": 263,
@@ -587,7 +587,7 @@
     ]
    },
    "anim": true,
-   "seconds": 6,
+   "seconds": 8,
    "record": "A1-2・100年（main）",
    "techs": [],
    "pop": 263,
@@ -670,7 +670,7 @@
     "ease": false
    },
    "anim": true,
-   "seconds": 6,
+   "seconds": 7,
    "record": "A1-2・100年（main）",
    "techs": [],
    "pop": 263,
@@ -898,7 +898,7 @@
     ]
    },
    "anim": true,
-   "seconds": 8,
+   "seconds": 14,
    "record": "A1-2・200年（main）",
    "techs": [
     "adze"
@@ -962,7 +962,7 @@
     ]
    },
    "anim": true,
-   "seconds": 8,
+   "seconds": 20,
    "record": "A1-2・300年（main）",
    "techs": [
     "adze",
@@ -1348,7 +1348,7 @@
     ]
    },
    "anim": true,
-   "seconds": 8,
+   "seconds": 11,
    "record": "A1-2・260年（main）",
    "techs": [
     "adze",
@@ -1845,7 +1845,7 @@
     ]
    },
    "anim": true,
-   "seconds": 10,
+   "seconds": 11,
    "record": "A1-2・800年（main）",
    "techs": [
     "adze",
@@ -2037,7 +2037,7 @@
    "sky": {
     "time": "day",
     "azimuth": -140,
-    "elevation": null,
+    "elevation": 30.0,
     "cloud": 0.45
    },
    "camera": {
@@ -2081,7 +2081,7 @@
    "sky": {
     "time": "day",
     "azimuth": -140,
-    "elevation": null,
+    "elevation": 30.0,
     "cloud": 0.45
    },
    "camera": {
@@ -2115,7 +2115,7 @@
    "sky": {
     "time": "day",
     "azimuth": 40,
-    "elevation": null,
+    "elevation": 30.0,
     "cloud": 0.45
    },
    "camera": {
@@ -2182,7 +2182,7 @@
    "sky": {
     "time": "day",
     "azimuth": -140,
-    "elevation": null,
+    "elevation": 30.0,
     "cloud": 0.45
    },
    "camera": {
@@ -2209,7 +2209,7 @@
     ]
    },
    "anim": true,
-   "seconds": 10,
+   "seconds": 20,
    "record": "A1-2 の島（計算の形）",
    "exposure": 0.0,
    "anchors": {
@@ -3145,7 +3145,7 @@
     ]
    },
    "anim": true,
-   "seconds": 8,
+   "seconds": 17,
    "record": "R1-4・50年（main）",
    "techs": [],
    "pop": 477,
@@ -3240,7 +3240,7 @@
     ]
    },
    "anim": true,
-   "seconds": 9,
+   "seconds": 16,
    "record": "R1-4・2000年（main）",
    "techs": [],
    "pop": 511,

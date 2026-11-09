@@ -148,6 +148,66 @@ def pots(name, seed, n=5, coll=None):
     return B.finish(name, [m['clay']], coll)
 
 
+def flicker(target, prop, base, w_scale=1.0):
+    """値を時間でちらつかせる（ドライバーの簡単な式：Python を使わないので、そのまま描ける）"""
+    fc = target.driver_add(prop)
+    fc.driver.type = 'SCRIPTED'
+    fc.driver.expression = '%.3f*(1+0.10*sin(frame*1.7)+0.07*sin(frame*3.1+1.0)+0.05*sin(frame*5.3+2.0))' % base
+    return fc
+
+
+def flame_material():
+    """炎の色と形（板の UV：v＝根元0→先1、u＝横0→1）"""
+    m = bpy.data.materials.get('炎')
+    if m:
+        return m
+    m, nt = new_material('炎')
+    uv = node(nt, 'ShaderNodeTexCoord', (-1200, 0))
+    sep = node(nt, 'ShaderNodeSeparateXYZ', (-1000, 0))
+    link(nt, uv.outputs['UV'], sep.inputs[0])
+    # 横の真ん中からの離れ（0＝真ん中、1＝ふち）
+    edge = math_op(nt, 'ABSOLUTE', math_op(nt, 'MULTIPLY', math_op(nt, 'SUBTRACT', sep.outputs['X'], 0.5), 2.0), None)
+    # 揺らぎ：上へ流れる4次元のむら（W を時間で動かす）
+    mp = node(nt, 'ShaderNodeMapping', (-1000, -300))
+    mp.inputs['Scale'].default_value = (6.0, 6.0, 3.0)
+    link(nt, uv.outputs['Object'], mp.inputs['Vector'])
+    nz = node(nt, 'ShaderNodeTexNoise', (-800, -300), Scale=1.6, Detail=4.0, Roughness=0.55)
+    nz.noise_dimensions = '4D'
+    link(nt, mp.outputs[0], nz.inputs['Vector'])
+    fc = nz.inputs['W'].driver_add('default_value')
+    fc.driver.type = 'SCRIPTED'
+    fc.driver.expression = 'frame/5.0'
+    # 形：真ん中・根元ほど濃く、ふちと先は揺らぎで欠ける
+    body = math_op(nt, 'MULTIPLY', math_op(nt, 'SUBTRACT', 1.0, math_op(nt, 'POWER', edge, 1.6)),
+                   math_op(nt, 'SUBTRACT', 1.0, math_op(nt, 'POWER', sep.outputs['Y'], 1.3)))
+    wob = math_op(nt, 'MULTIPLY', math_op(nt, 'SUBTRACT', nz.outputs['Fac'], 0.5), 0.9)
+    alpha = map_range(nt, math_op(nt, 'ADD', body, wob), 0.18, 0.42)
+    # 色：根元は黄白、上へ橙、先は赤
+    ramp = node(nt, 'ShaderNodeValToRGB', (-500, 250))
+    cr = ramp.color_ramp
+    cr.elements[0].position = 0.0
+    cr.elements[0].color = (1.0, 0.78, 0.36, 1)
+    cr.elements[1].position = 1.0
+    cr.elements[1].color = (0.70, 0.08, 0.01, 1)
+    e = cr.elements.new(0.25)
+    e.color = (1.0, 0.48, 0.08, 1)
+    e = cr.elements.new(0.60)
+    e.color = (0.95, 0.24, 0.03, 1)
+    link(nt, sep.outputs['Y'], ramp.inputs['Fac'])
+    em = node(nt, 'ShaderNodeEmission', (-200, 200))
+    link(nt, ramp.outputs['Color'], em.inputs['Color'])
+    # 明るすぎると白く飛ぶ（色が消える）ので、根元でも控えめに
+    link(nt, map_range(nt, sep.outputs['Y'], 0.0, 1.0, 2.6, 1.0), em.inputs['Strength'])
+    tr = node(nt, 'ShaderNodeBsdfTransparent', (-200, -50))
+    mix = node(nt, 'ShaderNodeMixShader', (50, 100))
+    link(nt, alpha, mix.inputs[0])
+    link(nt, tr.outputs[0], mix.inputs[1])
+    link(nt, em.outputs[0], mix.inputs[2])
+    out = node(nt, 'ShaderNodeOutputMaterial', (250, 100))
+    link(nt, mix.outputs[0], out.inputs['Surface'])
+    return m
+
+
 def fire(name, seed, smoke=True, coll=None, strength=60.0):
     """焚き火：石の輪、薪、炎の明かり（光）と、上がる煙（体積）"""
     rng = stream(seed, 'fire', name)
@@ -171,19 +231,18 @@ def fire(name, seed, smoke=True, coll=None, strength=60.0):
     lo.location = (0, 0, 0.4)
     lo.parent = obj
     link_object(lo, coll if coll is not False else None)
-    # 炎（光る小さな形）
-    fm, nt = new_material('炎')
-    em = node(nt, 'ShaderNodeEmission', (0, 0))
-    em.inputs['Color'].default_value = (1.0, 0.42, 0.10, 1)
-    em.inputs['Strength'].default_value = 25.0
-    out = node(nt, 'ShaderNodeOutputMaterial', (200, 0))
-    link(nt, em.outputs[0], out.inputs['Surface'])
+    flicker(light, 'energy', strength)
+    # 炎：向きをずらした細長い板を放射状に重ね、根元は黄白・先は橙から赤。ふちと先は揺らぐ透明（ちらつく）
     Bf = Builder()
-    for k in range(5):
+    nbl = 8
+    for k in range(nbl):
         a = rng.uniform(0, 2 * math.pi)
-        base = Vector((math.cos(a) * 0.08, math.sin(a) * 0.08, 0.15))
-        Bf.blade(base, Vector((rng.uniform(-.2, .2), rng.uniform(-.2, .2), 1)), rng.uniform(0.35, 0.55), 0.14, segs=3, bend=0.0, mat=0, taper=1.0)
-    fl = Bf.finish(name + '炎', [fm], coll)
+        base = Vector((math.cos(a) * 0.07, math.sin(a) * 0.07, 0.12))
+        d = Vector((rng.uniform(-.15, .15), rng.uniform(-.15, .15), 1))
+        b = math.pi * (k + rng.uniform(-0.2, 0.2)) / nbl
+        Bf.blade(base, d, rng.uniform(0.40, 0.75), rng.uniform(0.20, 0.28), segs=6, bend=0.0, mat=0, taper=0.85,
+                 side=Vector((math.cos(b), math.sin(b), 0)))
+    fl = Bf.finish(name + '炎', [flame_material()], coll)
     fl.parent = obj
     fl.visible_shadow = False
     if smoke:

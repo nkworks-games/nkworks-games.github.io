@@ -919,9 +919,18 @@ def island_material():
     nz2 = node(nt, 'ShaderNodeTexNoise', (-700, 500), Scale=0.05, Detail=6.0)
     link(nt, tc.outputs['Object'], nz2.inputs['Vector'])
     sand = (0.42, 0.37, 0.27, 1)
-    forest = M.mix_color(nt, nz2.outputs['Fac'], (0.012, 0.03, 0.008, 1), (0.03, 0.06, 0.015, 1), (-400, 300))
-    rock = M.mix_color(nt, nz.outputs['Fac'], (0.06, 0.055, 0.05, 1), (0.14, 0.12, 0.10, 1), (-400, 100))
+    # 森：空から見える緑（暗すぎると霞で灰色になる）。ところどころ草地・低木の明るい所
+    forest = M.mix_color(nt, nz2.outputs['Fac'], (0.030, 0.062, 0.020, 1), (0.055, 0.100, 0.032, 1), (-400, 300))
+    nz3 = node(nt, 'ShaderNodeTexNoise', (-700, 700), Scale=0.0006, Detail=5.0, Roughness=0.6)
+    link(nt, tc.outputs['Object'], nz3.inputs['Vector'])
+    forest = M.mix_color(nt, map_range(nt, nz3.outputs['Fac'], 0.58, 0.68), forest, (0.11, 0.105, 0.05, 1), (-250, 450))
+    rock = M.mix_color(nt, nz.outputs['Fac'], (0.07, 0.065, 0.058, 1), (0.15, 0.13, 0.11, 1), (-400, 100))
+    # 谷は濃い森、尾根は明るい（空から見て山のひだが分かる）
+    vat = node(nt, 'ShaderNodeAttribute', (-700, 900), attribute_name='valley')
+    forest = M.mix_color(nt, map_range(nt, vat.outputs['Fac'], 0.15, 0.9, 0.0, 0.6), forest, (0.016, 0.040, 0.013, 1), (-150, 600))
     col = M.mix_color(nt, map_range(nt, sep.outputs['Z'], 2.5, 6.0), sand, forest, (-200, 300))
+    # 高い所は木がまばら（岩と草）
+    col = M.mix_color(nt, map_range(nt, sep.outputs['Z'], 1800.0, 2800.0), col, (0.13, 0.12, 0.09, 1), (-100, 300))
     steep = map_range(nt, sn.outputs['Z'], 0.75, 0.55)
     col = M.mix_color(nt, steep, col, rock, (0, 300))
     bsdf = node(nt, 'ShaderNodeBsdfPrincipled', (200, 200))
@@ -954,32 +963,54 @@ def shallow_material():
 
 
 def island_from_world(name, rho_km, hmax, seed, loc, shelf_km=2.0):
-    """計算の島の形（方位ごとの半径 km）から、島の地形（m）を作る"""
-    rho = np.asarray(rho_km)[::2] * 1000.0
-    nth = len(rho)
-    rings = np.concatenate([np.linspace(0, 0.9, 30) ** 0.8, np.linspace(0.91, 1.0, 10), [1.03]])
+    """計算の島の形（方位ごとの半径 km）から、島の地形（m）を作る。
+    空から見て山の形が分かるように、方位を細かく、輪を多くし、海岸から山頂へ向かう谷（放射状のひだ）を刻む"""
+    rho0 = np.asarray(rho_km, float) * 1000.0
+    th0 = np.linspace(0, 2 * math.pi, len(rho0), endpoint=False)
+    nth = 720 if rho0.mean() > 8000 else 360
     th = np.linspace(0, 2 * math.pi, nth, endpoint=False)
-    verts = []
+    rho = np.interp(th, np.append(th0, 2 * math.pi), np.append(rho0, rho0[0]))
+    # 輪は中心から外へ必ず増える順に（前は 0.9**0.8=0.92 の次が 0.91 で逆戻りし、面が折れて点線の輪が見えていた）
+    rings = np.concatenate([0.012 + (0.86 - 0.012) * np.linspace(0, 1, 70) ** 0.9, np.linspace(0.87, 1.0, 40), [1.03]])
+    assert np.all(np.diff(rings) > 0)
+    rm = float(rho.mean())
+    C = rm / 6000.0                      # 谷の間隔（海岸で約6km）
+    Lr = max(3000.0, rm / 1.8)           # 谷の長さ
     off = Vector((seed * 1.3, seed * 0.7, 0))
+    off2 = Vector((seed * 0.37, seed * 1.9, 5.0))
+    verts = [(0.0, 0.0, hmax * 1.0)]
+    valley = [0.0]                       # 谷の深さ（0〜1）：色で谷を濃い緑に、尾根を明るく
     for f in rings:
         for k in range(nth):
             r = rho[k] * f
             x, y = r * math.sin(th[k]), r * math.cos(th[k])
-            n = noise.fractal(Vector((x / 4000, y / 4000, 0)) + off, 0.55, 2.0, 6)
             if f <= 1.0:
-                z = hmax * max(0.0, 1 - f) ** 1.25 * (0.8 + 0.4 * n) + 1.6 * min(1.0, (1 - f) / 0.02)
+                n = noise.fractal(Vector((x / 4000, y / 4000, 0)) + off, 0.55, 2.0, 6)
+                # 谷：方位に沿って細かく、半径に沿って長い むら の 0 付近を深く削る。
+                # 向きと長さを大きなむらでゆがめ、ところどころだけに刻む（そろった放射の線にしない）
+                wq = noise.fractal(Vector((x / 18000, y / 18000, 3.0)) + off2, 0.6, 2.0, 3)
+                ta = th[k] + 0.35 * wq
+                v = noise.noise(Vector((math.cos(ta) * C, math.sin(ta) * C, r * (1 + 0.3 * wq) / Lr)) + off2)
+                carve = 1.0 - math.exp(-(v / 0.16) ** 2)
+                patch = min(1.0, max(0.0, 0.5 + 1.6 * noise.noise(Vector((x / 14000, y / 14000, 7.0)) + off)))
+                cw = min(1.0, max(0.0, (f - 0.35) / 0.3)) * patch     # 山の上のほうと、むらの薄い所は削らない
+                z = hmax * max(0.0, 1 - f) ** 1.25 * (0.8 + 0.4 * n) * (1.0 - 0.38 * cw * (1.0 - carve)) + 1.6 * min(1.0, (1 - f) / 0.02)
+                valley.append(cw * (1.0 - carve))
             else:
                 z = -30.0
+                valley.append(0.0)
             verts.append((x, y, z))
-    faces = []
+    faces = [[0, 1 + (k + 1) % nth, 1 + k] for k in range(nth)]
     for i in range(len(rings) - 1):
         for k in range(nth):
-            a, b2 = i * nth + k, i * nth + (k + 1) % nth
-            faces.append([a, b2, b2 + nth, a + nth])
+            a_, b2 = 1 + i * nth + k, 1 + i * nth + (k + 1) % nth
+            faces.append([a_, b2, b2 + nth, a_ + nth])
     me = bpy.data.meshes.new(name)
     me.from_pydata(verts, [], faces)
     me.update()
     me.polygons.foreach_set('use_smooth', np.ones(len(me.polygons), bool))
+    va = me.attributes.new('valley', 'FLOAT', 'POINT')
+    va.data.foreach_set('value', np.array(valley, np.float32))
     me.materials.append(island_material())
     o = bpy.data.objects.new(name, me)
     link_object(o)
@@ -1021,7 +1052,8 @@ def build_islands(s):
         x, y = d[i] * math.sin(brg) * 1000, d[i] * math.cos(brg) * 1000
         island_from_world('島%d' % i, lay['rho'][i], float(props['hmax'][i]) * s.get('relief', 1.0), int(i),
                           (x, y, 0), shelf_km=float(props['shelf_w'][i]) * 0.5)
-    oc, md = water.ocean(size=600, wave_scale=s.get('wave', 0.6), seed=s.get('seed', 7), repeat=3)
+    # 泡は控えめに（高い所から広く見ると、くり返す泡が網の目に見える）
+    oc, md = water.ocean(size=600, wave_scale=s.get('wave', 0.6), seed=s.get('seed', 7), repeat=3, foam=-1.2)
     # 波のある海は、カメラの下に置く（島から遠い所から撮るカットがある）
     cx, cy = s['camera']['loc'][0], s['camera']['loc'][1]
     oc.location = (cx - 900 + 500, cy - 900 + 500 + 400, 0) if abs(cx) > 3000 or abs(cy) > 3000 else oc.location
@@ -1030,7 +1062,7 @@ def build_islands(s):
     if far is not None:
         far.scale = (2000.0, 2000.0, 1.0)   # 高い所からでも、海の果てが地平線のすぐ下まで届くように
     from kit.util import set_haze
-    set_haze(90000.0, 0.35)
+    set_haze(150000.0, 0.10)       # 海には霞がかからないので、陸も薄く（濃いと陸だけ灰色に浮く）
     s['camera'].setdefault('clip', 3.0e6)
     boats = []
     for k, b in enumerate(s.get('boats', [])):

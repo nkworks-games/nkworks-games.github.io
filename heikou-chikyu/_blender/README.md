@@ -56,6 +56,15 @@
 python3 heikou-chikyu/_sim/frames_to_mp4.py ~/heikou-renders
 ```
 
+**第1回の本番は `render_ep1.sh` でまとめて描ける**（第4版で使う35ショットだけ・1920×1080・GPU・1コマおき・止めても続きから。M5 で約26時間）。
+描いたものは `heikou-chikyu/_sim/out/renders/final/` に集まる。そのあと、クラウドで作った材料一式（heikou-ep1-pack.zip：図の動画・字幕・表示・字体）を
+`heikou-chikyu/_sim/` で展開して、`python3 heikou-chikyu/_sim/make_roughcut.py` でつなぐ（くわしくは zip の中の `out/組み立ての手順.md`）。
+
+```bash
+bash heikou-chikyu/_blender/render_ep1.sh              # 全部（止めても同じコマンドで続きから）
+bash heikou-chikyu/_blender/render_ep1.sh 013 070      # 一部だけ
+```
+
 | 引数 | 意味 | 既定 |
 |---|---|---|
 | `--only 003,013` | 一部のカットだけ | すべて |
