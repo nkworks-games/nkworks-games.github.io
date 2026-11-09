@@ -452,6 +452,7 @@ def build_coast(s):
                 # 斜面では、地面の傾きに合わせて少し傾けてから乗せる（人は 6°まで：両足が地面につく）
                 tilt_to_ground(ob, tree, 6.0 if 'sole_L' in ob.keys() else 15.0)
             settle(ob, tree)
+            seat_down(ob, tree)          # 地面に座る人：お尻も地面につける（空気椅子にしない）
     for k, isl in enumerate(s.get('islands', [])):
         island_silhouette('島影%d' % k, seed + k, isl['radius'], isl['height'], isl['loc'])
         if isl.get('cloud'):
@@ -671,6 +672,43 @@ def seat_on_lowest(obj, tree, band=0.3):
         return
     obj.location.z -= float(g.max())
     obj['embed_ok'] = round(float(g.max() - g.min()) + 0.02, 3)
+
+
+def seat_down(obj, tree, tol=0.006, max_deg=8.0):
+    """地面に座る人（頂点の印 seat がある人）：足の裏だけが地面について、お尻が浮いている（空気椅子）ときは、
+    足の裏の真ん中を通る横の軸のまわりに体を少し後ろへ傾けて、お尻を地面へ下ろす（足は地面についたまま）"""
+    if tree is None or obj.type != 'MESH' or not obj.get('seat') or not obj.get('sole_L'):
+        return
+    bpy.context.view_layer.update()
+    mw = obj.matrix_world.copy()
+    vs = obj.data.vertices
+    S = [mw @ vs[i].co for i in obj['seat']]
+    F = [mw @ vs[i].co for i in list(obj['sole_L']) + list(obj['sole_R'])]
+
+    def gaps(P):
+        out = []
+        for p in P:
+            h = tree.ray_cast(p + Vector((0, 0, 100.0)), Vector((0, 0, -1)), 400.0)
+            if h[0] is not None:
+                out.append(p.z - h[0].z)
+        return out
+    gs = gaps(S)
+    if not gs or min(gs) <= tol:
+        return
+    pivot = sum(F, Vector()) / len(F)
+    cs = sum(S, Vector()) / len(S)
+    dv = Vector((cs.x - pivot.x, cs.y - pivot.y, 0.0))
+    if dv.length < 0.1:
+        return
+    axis = Vector((0, 0, 1)).cross(dv).normalized()
+    ang = min(math.atan2(min(gs) - tol * 0.5, dv.length), math.radians(max_deg))
+    R = None
+    for sgn in (1, -1):
+        R = Matrix.Translation(pivot) @ Matrix.Rotation(sgn * ang, 4, axis) @ Matrix.Translation(-pivot)
+        if (R @ cs).z < cs.z:
+            break
+    obj.matrix_world = R @ mw
+    settle(obj, tree)
 
 
 def settle(obj, tree, gap=0.0, band=100.0, cap=4000):

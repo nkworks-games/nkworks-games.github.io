@@ -127,7 +127,7 @@ def joints(v):
     return np.array([v[jv[jo[k]:jo[k + 1]]].mean(0) for k in range(len(jo) - 1)])
 
 
-def pose_ops(pose, phase=0.0, side=1):
+def pose_ops(pose, phase=0.0, side=1, sit_shin=55.0):
     """姿勢ごとの骨の向き。('aim', 終わりの骨, 向き)＝骨の付け根から終わりの骨の付け根へ向かう向き（世界の向き）、
     ('rot', 軸, 角度)＝世界の軸まわりの回転。L は体の左（−x）、R は右（+x）"""
     ops = {}
@@ -195,8 +195,14 @@ def pose_ops(pose, phase=0.0, side=1):
         rot('spine05', (1, 0, 0), -lean)
         for sd, s in (('L', -1), ('R', 1)):
             if pose == 'sit':
-                aim('upperleg01.' + sd, 'lowerleg01.' + sd, s * 0.07, 0.84, 0.54)
-                aim('lowerleg01.' + sd, 'foot.' + sd, s * 0.02, 0.22, -0.97)
+                # 地面に座って膝を立てる：太ももは前へ 35° 上向き、すねは真下から前へ sit_shin 度。
+                # お尻と足の裏の両方が地面につく角度（figure() が体ごとに sit_shin を合わせる）。
+                # 前はすねがほぼ真下で、足の裏を地面に置くとお尻が 16〜26cm 浮いていた（空気椅子）
+                t, a_ = math.radians(35.0), math.radians(sit_shin)
+                aim('upperleg01.' + sd, 'lowerleg01.' + sd, s * 0.07, math.cos(t), math.sin(t))
+                aim('lowerleg01.' + sd, 'foot.' + sd, s * 0.02, math.sin(a_), -math.cos(a_))
+                # 足首を曲げて、足の裏を地面と平らに（立っているときの足の向きのまま。すねと一緒に傾くと、かかとだけで地面に立つ）
+                aim('foot.' + sd, 'toe1-1.' + sd, -s * 0.18, 0.94, -0.29)
                 aim('upperarm01.' + sd, 'lowerarm01.' + sd, s * 0.12, 0.5, -0.86)
                 aim('lowerarm01.' + sd, 'wrist.' + sd, -s * 0.15, 0.95, 0.1)
             else:
@@ -428,11 +434,29 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
     race = (rng.uniform(0.35, 0.65), rng.uniform(0.35, 0.65), rng.uniform(0.0, 0.1))
     v_rest = shape(sex, age, race, muscle=rng.uniform(0.5, 0.75), weight=rng.uniform(0.3, 0.5),
                    height=rng.uniform(0.3, 0.7) if height is None else height)
-    v, head_top = skin(v_rest, pose_ops(pose, phase))
-    # 足もと（いちばん低い所）を z=0 に、腰の真下を原点に
     bodyf, bodyuv = _faces(['body'])
     body_ids = np.unique(np.concatenate(bodyf))
     J = joints(v_rest)
+    seat_ids = None
+    if pose == 'sit':
+        # 腰まわり（腰の高さの少し下・左右の真ん中）と足の裏が、同じ高さで地面につくように、すねの角度を体ごとに合わせる
+        root = J[d['bone_head'][d['bones_l'].index('root')]]
+        sole = body_ids[v_rest[body_ids, 2] < v_rest[body_ids, 2].min() + 0.10]     # 足（足首より下）
+        # 腰まわり（お尻と股）。太ももを上げると股の下がいちばん低くなるので、前後とも入れる
+        m = (v_rest[body_ids, 2] > root[2] - 0.25) & (v_rest[body_ids, 2] < root[2] + 0.05) & \
+            (np.abs(v_rest[body_ids, 0]) < 0.16)
+        butt = body_ids[m]
+        best = None
+        for sa in np.arange(44.0, 68.1, 2.0):
+            vv, ht = skin(v_rest, pose_ops(pose, phase, sit_shin=float(sa)))
+            g = float(vv[butt, 2].min() - vv[sole, 2].min())
+            if best is None or abs(g - 0.004) < abs(best[0] - 0.004):
+                best = (g, vv, ht)
+        v, head_top = best[1], best[2]
+        seat_ids = butt[np.argsort(v[butt, 2])[:40]]       # 座っているお尻の、いちばん低い 40 点
+    else:
+        v, head_top = skin(v_rest, pose_ops(pose, phase))
+    # 足もと（いちばん低い所）を z=0 に、腰の真下を原点に
     ox, oy = J[d['bone_head'][d['bones_l'].index('root')]][:2]
     oz = v[body_ids, 2].min()
     shift = np.array([ox, oy, oz])
@@ -574,6 +598,9 @@ def figure(name, seed, pose='stand', coll=None, child=False, phase=0.0, sex=None
     for sd, m in (('L', v_rest[body_ids, 0] < 0), ('R', v_rest[body_ids, 0] > 0)):
         ids = body_ids[m]
         ob['sole_' + sd] = [int(i) for i in pos_in_body[ids[np.argsort(v_rest[ids, 2])[:40]]]]
+    if seat_ids is not None:
+        # 座っている人のお尻の頂点（体のメッシュの番号で）。お尻が地面から浮いていないか（空気椅子）の点検に使う
+        ob['seat'] = [int(pos_in_body[i]) for i in seat_ids if pos_in_body[i] >= 0]
     # 手の頂点（手首・指の骨に重みが大きい所。体のメッシュの番号で）。櫂（かい）を持たせるのに使う
     for sd in ('L', 'R'):
         hb = [i for i, b in enumerate(bones) if b.endswith('.' + sd) and b.startswith(('wrist', 'finger', 'metacarpal'))]

@@ -228,6 +228,16 @@ for f in frames:
                 gs = [v.z - h[0].z for v in low for ft in ftrees for h in [ft.ray_cast(v + Vector((0, 0, 0.5)), Vector((0, 0, -1)), 10)] if h[0] is not None]
                 if gs: g = max(0.0, min(gs))
             if g is not None and g > CONFIG["FLOAT_TOL"]: add(problems, f, "浮いている", f"{o.name}（{round(g*100,1)}cm）", lo)
+            # 並行地球：地面に座っている人は、足だけでなくお尻も地面についていること（空気椅子にしない）
+            if o.get("seat") and o.get("pose") == "sit" and not o.get("in_boat"):
+                gs = []
+                for i in list(o["seat"]):
+                    v = data[o]["vs"][i]
+                    for ft in ftrees:
+                        h = ft.ray_cast(v + Vector((0, 0, 0.5)), Vector((0, 0, -1)), 10)
+                        if h[0] is not None: gs.append(v.z - h[0].z)
+                if gs and min(gs) > CONFIG["FLOAT_TOL"]:
+                    add(problems, f, "空気椅子", f"{o.name}（座っているお尻が地面から{round(min(gs)*100,1)}cm浮いている）", data[o]["vs"][list(o["seat"])[0]])
     # 瞬間移動
     for o in objs:
         c = (data[o]["box"][0] + data[o]["box"][1]) / 2
