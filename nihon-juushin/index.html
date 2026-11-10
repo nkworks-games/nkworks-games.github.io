@@ -42,6 +42,12 @@ button:disabled{opacity:.4}
 #aimUi .z{width:48px;height:48px;padding:0;font-size:24px;background:#fff;color:#1f3a5f}
 #go{font-size:20px;padding:14px 26px;background:#e8452c}
 #help{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 76px);text-align:center;font-size:12px;font-weight:800;opacity:.7;z-index:10;pointer-events:none}
+#labels{position:fixed;inset:0;pointer-events:none;z-index:9;overflow:hidden}
+#labels .lb{position:absolute;left:0;top:0;background:rgba(255,255,255,.93);color:#1f3a5f;border-radius:8px;padding:2px 7px;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 1px 3px rgba(31,58,95,.3)}
+#labels .lb b{color:#d7263d}
+#labels .ln{position:absolute;inset:0;width:100%;height:100%}
+#labels .ln line{stroke:#1f3a5f;stroke-width:1.5;opacity:.75}
+#labels .dot{position:absolute;left:0;top:0;width:6px;height:6px;border-radius:50%;background:#1f3a5f;border:1px solid #fff}
 #pop{position:fixed;left:0;right:0;top:40%;text-align:center;font-weight:800;font-size:34px;color:#fff;-webkit-text-stroke:6px #1f3a5f;paint-order:stroke;z-index:20;pointer-events:none;opacity:0}
 #pop.on{animation:pop .7s ease-out forwards}
 @keyframes pop{0%{opacity:0;transform:scale(.5)}15%{opacity:1;transform:scale(1.15)}30%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-30px)}}
@@ -90,6 +96,7 @@ button:disabled{opacity:.4}
 </div>
 <div id="help" class="hidden">タップで棒の位置 ／ ドラッグで微調整 ／ 2本指・ホイールで拡大</div>
 <div id="aimUi" class="hidden"><button class="z" id="zOut">−</button><button id="go" disabled>ここで支える！</button><button class="z" id="zIn">＋</button></div>
+<div id="labels" style="display:none"></div>
 <div id="pop"></div>
 <div id="card" class="sheet hidden"></div>
 <div id="title" class="screen">
@@ -148,7 +155,8 @@ const CONFIG = {
   FLAT_H: 1.0, FLAT_COL: '#efe6cf',  // 置く間の地図（重さを隠す：全部同じ高さ・同じ色）
   GROW_T: 0.6,           // 重さが見えてから棒が伸び始めるまで
   SEE_LAND: .5, SEE_BOARD: .38,      // 判定中の透け具合（不透明度）
-  RING_FIT: .22,         // 判定中、今の棒の太さが画面の何割に見えるまで寄るか
+  RING_FIT: .22,
+  LABEL_N: 10,           // 数・量を出す県の数（重い順）         // 判定中、今の棒の太さが画面の何割に見えるまで寄るか
   PERFECT_T: 1.2, SETTLE_T: 0.8,
   RANKS: [[500, '日本の重心そのもの'], [400, '国土の支え手'], [300, '重心ハンター'], [200, 'バランス職人'], [100, 'ぐらぐら見習い'], [0, '重心ビギナー']],
   URL: 'https://nkworks-games.com/nihon-juushin/',
@@ -514,7 +522,7 @@ function beginQ() {
   marker.userData.cone.visible = true; marker.userData.fill.visible = false; showRings(0);
   $('card').classList.add('hidden'); showHud(true); $('aimUi').classList.remove('hidden'); $('help').classList.remove('hidden'); $('go').disabled = true;
   $('qno').textContent = `第${G.q + 1}問 / ${CONFIG.Q_COUNT}`; $('score').textContent = `${G.total}点`;
-  $('theme').textContent = `${G.theme.ic} ${G.theme.name}`; $('timer').classList.remove('hidden'); $('legend').classList.remove('hidden');
+  $('theme').textContent = `${G.theme.ic} ${G.theme.name}`; $('timer').classList.remove('hidden'); $('legend').classList.remove('hidden'); $('legend').textContent = 'どの県が重いかは 支えた後にわかる！'; G.labelsOn = false;
   drawStages(-1, -1); aimCam(true);
 }
 function showHud(on) { $('hud').classList.toggle('hidden', !on); }
@@ -527,14 +535,14 @@ function setMarker(x, y) {
 }
 function confirmAim() {
   if (G.state !== 'aim' || G.cut) return;
-  $('aimUi').classList.add('hidden'); $('help').classList.add('hidden'); $('timer').classList.add('hidden'); $('legend').classList.add('hidden');
+  $('aimUi').classList.add('hidden'); $('help').classList.add('hidden'); $('timer').classList.add('hidden');
   const c = com(G.theme.k); G.cm = c; G.stage = 0; G.dropK = -1; G.landed = false; G.state = 'judge'; G.ph = 'wait'; G.pt = 0;
-  if (!G.mk) { G.d = Infinity; G.qpts = 0; G.failAt = 0; sfx('drop'); setTheme(G.theme.k); cutTo(() => toReveal()); return; } // 時間切れ（置いていない）
+  if (!G.mk) { G.d = Infinity; G.qpts = 0; G.failAt = 0; sfx('drop'); setTheme(G.theme.k); $('legend').classList.add('hidden'); cutTo(() => toReveal()); return; } // 時間切れ（置いていない）
   const dx = c.x - G.mk.x, dy = c.y - G.mk.y; G.d = Math.hypot(dx, dy);
   if (G.d > 1e-6) { G.nx = dx / G.d; G.nz = dy / G.d; } else { G.nx = 0; G.nz = 1; }
   G.qpts = 0; G.failAt = -1; sfx('tap');
   // 置いた時と同じ画角のまま：重さを見せ（県がニョキッ）、地図を少し透かして下の棒が見えるように
-  setTheme(G.theme.k); setSee(1);
+  setTheme(G.theme.k); setSee(1); $('legend').classList.add('hidden');
   marker.userData.cone.visible = false; marker.userData.fill.visible = true; marker.position.y = PH + .03; showRings(0);
   stick.visible = true; hole.visible = false; stick.position.set(G.mk.x * U, 0, G.mk.y * U); hole.position.set(G.mk.x * U, .03, G.mk.y * U);
   G.jd = Math.max(20, fitDist() / G.zoom); G.jt = G.cam.look.clone(); G.ph = 'grow'; G.pt = 0;
@@ -578,15 +586,16 @@ function toReveal() {
     + `<div class="d">${G.mk ? `ずれ ${Math.round(G.d)}km` : '棒を置けなかった'}　<span style="color:#c99700">★</span>＝本当の重心</div>`
     + `<div class="tip">💡 ${G.theme.tip}</div><div class="src">出典：${G.theme.src}<br>ドラッグで移動 ／ 2本指・ホイールで拡大</div><button id="next">${last ? '結果を見る' : '次の問題へ'}</button>`;
   $('card').classList.remove('hidden'); $('next').onclick = nextQ;
+  setLabels(G.theme.k); G.labelsOn = true; $('legend').classList.remove('hidden'); // 数・量は答え合わせの画面だけ
 }
 function nextQ() {
   if (G.state !== 'reveal' || G.cut) return;
-  $('card').classList.add('hidden'); G.state = 'wait';
+  $('card').classList.add('hidden'); G.state = 'wait'; G.labelsOn = false;
   if (G.q < CONFIG.Q_COUNT - 1) { G.q++; cutTo(() => beginQ()); } else cutTo(() => showResult());
 }
 function rankOf(p) { return CONFIG.RANKS.find(r => p >= r[0])[1]; }
 function showResult() {
-  G.state = 'result'; showHud(false); $('card').classList.add('hidden'); pin.visible = false; setPlatePose(0); G.th = 0; resetStick();
+  G.state = 'result'; showHud(false); G.labelsOn = false; $('card').classList.add('hidden'); pin.visible = false; setPlatePose(0); G.th = 0; resetStick();
   if (gapLine) { plate.remove(gapLine); gapLine = null; }
   flatMap(); setSee(0, true); marker.visible = false;
   const nb = G.total > G.best; if (nb) { G.best = G.total; store.set('nj_best', G.best); }
@@ -653,6 +662,71 @@ function titleCam() {
 function setCam(p, l, snap) {
   if (snap) { G.cam.pos.copy(p); G.cam.look.copy(l); }
   else { G.cam.pos.lerp(p, .14); G.cam.look.lerp(l, .14); }
+}
+
+// ===== [SEC:LABELS] =====
+// 上位10都道府県の「数・量」を県の近くに出す（重さが見えてから）
+const UNIT = { // [単位, 何倍して表示するか]。書いていないお題は名前から決める（生産量・漁獲量＝t、〜の消費量＝1世帯あたりの年間支出の円）
+  pop: ['人'], area: ['km²'], jinja: ['社'], milk: ['頭'], sake: ['kL'], onsen: ['か所'], kokuho: ['件'], beefcow: ['頭'], tera: ['寺'], pig: ['頭'],
+  broiler: ['羽', 1000], island: ['島'], kofun: ['基'], michinoeki: ['駅'], stay_foreign: ['人泊'], student: ['人'], foreigner: ['人'], signal: ['基'],
+  sento: ['軒'], kissaten: ['店'], okonomi: ['店'], pearl: ['kg'], conveni: ['店'], sushi: ['店'], yakiniku: ['店'], chuka: ['店'], cinema: ['館'],
+  karaoke: ['店'], biyo: ['店'], dentist: ['院'], golf: ['か所'], hotel: ['軒'], zoo: ['か所'], post: ['局'], library: ['館'], lake: ['km²', .01],
+  npark: ['km²', .01], coast: ['km', .001], volcano: ['山'], tunnel: ['本'], car: ['台'], airport: ['港'], gyoko: ['港'], dam: ['基'], tameike: ['か所'],
+  shinkansen: ['駅'], age100: ['人'], villa: ['戸'], shobodan: ['人'], farmer: ['経営体'], fisher: ['人'], lawyer: ['人'], koshien: ['回'],
+  jleague: ['クラブ'], whs: ['件'], furusato: ['円', 1e6], kogei: ['品目'],
+};
+function unitOf(t) { return UNIT[t.k] || (t.k.startsWith('c_') ? ['円'] : /(生産量|漁獲量)$/.test(t.name) ? ['t'] : ['']); }
+function fmtVal(v) {
+  if (v >= 1e8) return (v / 1e8).toFixed(v >= 1e9 ? 0 : 1).replace(/\.0$/, '') + '億';
+  if (v >= 1e5) return Math.round(v / 1e4).toLocaleString('ja-JP') + '万';
+  if (v >= 1e4) return (v / 1e4).toFixed(1).replace(/\.0$/, '') + '万';
+  return Math.round(v).toLocaleString('ja-JP');
+}
+const labelBox = $('labels'), LABELS = [];
+function setLabels(k) { // 重い順（ゲームの重さ＝県全体の重さ）に上位10県
+  const t = THEMES.find(x => x.k === k), { w } = weights(k), pw = new Array(47).fill(0);
+  for (let i = 0; i < NC; i++) pw[CP[i]] += w[i];
+  const [u, m = 1] = unitOf(t), v = DATA.themes[k];
+  const top = [...pw.keys()].filter(i => pw[i] > 0 && v[i] > 0).sort((a, b) => pw[b] - pw[a]).slice(0, CONFIG.LABEL_N);
+  labelBox.innerHTML = `<svg class="ln">${top.map(() => '<line></line>').join('')}</svg>` + top.map(i => `<i class="dot"></i><span class="lb"><b>${DATA.names[i]}</b> ${fmtVal(v[i] * m)}${u}</span>`).join('');
+  LABELS.length = 0; const els = labelBox.children, lines = els[0].children;
+  top.forEach((i, n) => LABELS.push({ i, line: lines[n], dot: els[1 + n * 2], el: els[2 + n * 2], w: 0, h: 0 }));
+  labelBox.style.display = ''; LABELS.forEach(L => { L.w = L.el.offsetWidth || 80; L.h = L.el.offsetHeight || 20; }); // 大きさを測るため一度表示
+  $('legend').textContent = k.startsWith('c_') ? '数字は1世帯あたりの1年間の支出（重い10県）' : `数字は重い10県の「${t.name}」`;
+}
+const _lp = new THREE.Vector3();
+function drawLabels() {
+  const on = G.labelsOn && LABELS.length;
+  labelBox.style.display = on ? '' : 'none'; if (!on) return;
+  const W = innerWidth, H = innerHeight, gap = 3, placed = [];
+  // 上の表示（お題・段の丸）と下のカードには置かない
+  const hud = $('hud'), card = $('card');
+  if (!hud.classList.contains('hidden')) placed.push({ x: 0, y: 0, w: W, h: hud.getBoundingClientRect().bottom + 2 });
+  const cr = card.classList.contains('hidden') ? null : card.getBoundingClientRect();
+  if (cr) placed.push({ x: cr.left, y: cr.top, w: cr.width, h: cr.height });
+  const hit = (x, y, w, h) => x < 2 || y < 2 || x + w > W - 2 || y + h > H - 2 || placed.some(r => x < r.x + r.w + gap && x + w + gap > r.x && y < r.y + r.h + gap && y + h + gap > r.y);
+  for (const L of LABELS) {
+    const lab = DATA.lab[L.i];
+    _lp.set(lab[0] * U, BT + prefMesh[L.i].scale.y, lab[1] * U); plate.localToWorld(_lp); _lp.project(camera);
+    const x = (_lp.x + 1) / 2 * W, y = (1 - _lp.y) / 2 * H, w = L.w, h = L.h;
+    const out = _lp.z > 1 || x < 0 || x > W || y < 0 || y > H || (cr && x > cr.left && x < cr.right && y > cr.top);
+    if (out) { L.el.style.display = L.dot.style.display = L.line.style.display = 'none'; continue; }
+    L.el.style.display = L.dot.style.display = L.line.style.display = '';
+    L.dot.style.transform = `translate(${x - 3}px,${y - 3}px)`;
+    // 置く場所：まず点のすぐ上・下・左右、空いていなければ少しずつ遠くを探す（遠い時は線でつなぐ）
+    let best = null;
+    for (const [cx, cy] of [[x - w / 2, y - h - 5], [x - w / 2, y + 5], [x + 7, y - h / 2], [x - w - 7, y - h / 2]]) if (!hit(cx, cy, w, h)) { best = [cx, cy]; break; }
+    for (let r = 26; !best && r <= 200; r += 16) for (let a = 0; a < 16 && !best; a++) {
+      const t = -Math.PI / 2 + a / 16 * Math.PI * 2, cx = x + Math.cos(t) * r - w / 2, cy = y + Math.sin(t) * r * .8 - h / 2;
+      if (!hit(cx, cy, w, h)) best = [cx, cy];
+    }
+    if (!best) best = [clamp(x - w / 2, 2, W - w - 2), clamp(y - h - 5, 2, H - h - 2)];
+    const [bx, by] = best; placed.push({ x: bx, y: by, w, h });
+    L.el.style.transform = `translate(${Math.round(bx)}px,${Math.round(by)}px)`;
+    const nx = clamp(x, bx, bx + w), ny = clamp(y, by, by + h), far = Math.hypot(nx - x, ny - y) > 8;
+    L.line.style.display = far ? '' : 'none';
+    if (far) { L.line.setAttribute('x1', x); L.line.setAttribute('y1', y); L.line.setAttribute('x2', nx); L.line.setAttribute('y2', ny); }
+  }
 }
 
 // ===== [SEC:TICK] =====
@@ -731,6 +805,7 @@ function render() {
   $('fade').style.opacity = G.fade.toFixed(3);
   if (G.state === 'aim') $('tbar').style.width = (G.tl / CONFIG.Q_TIME * 100).toFixed(1) + '%';
   renderer.render(scene, camera);
+  drawLabels();
 }
 
 // ===== [SEC:INPUT] =====
@@ -849,10 +924,11 @@ window.__TEST__ = {
       else G.zoomT = clamp(1 + (r - .8) * 60, 1, CONFIG.ZOOM_MAX);
     } else if (G.state === 'reveal') { if (r < .45) { G.rvz = .3 + r * 40; G.rpx = ((r * 97.3) % 1 - .5) * 320; G.rpz = ((r * 61.7) % 1 - .5) * 320; } else if (G.pt > .5) nextQ(); }
   },
-  reset(seed) {
+  reset(seed, themeKey) { // themeKey：テストで1問目のお題を決めたい時だけ
     manual = true; rng = seeded(seed * 7919 + 1); store.set('nj_seen', []);
     $('title').classList.add('hidden'); $('result').classList.add('hidden'); $('card').classList.add('hidden');
-    G.qs = pickThemes(); G.q = 0; G.res = []; G.total = 0; G.cut = null; G.fade = 0; G.morph = null; beginQ();
+    G.qs = pickThemes(); if (themeKey) G.qs[0] = THEMES.find(t => t.k === themeKey) || G.qs[0];
+    G.q = 0; G.res = []; G.total = 0; G.cut = null; G.fade = 0; G.morph = null; beginQ();
   },
   step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); render(); },
   state() { return { s: G.state, ph: G.ph, q: G.q, total: G.total, th: +G.th.toFixed(3), d: isFinite(G.d) ? Math.round(G.d) : -1, over: G.state === 'result' }; },
