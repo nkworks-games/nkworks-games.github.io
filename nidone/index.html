@@ -984,7 +984,7 @@ function failStep(dt) {
 }
 function hitAt(x, z, r) {
   const g = groundAt(x, z);
-  if (state === 'play' && targetable() && Math.hypot(clock.x - x, clock.z - z) < r + clock.R && clock.y - g < 0.3 && clock.y > g - 0.35) fail();
+  if (state === 'play' && targetable() && Math.hypot(clock.x - x, clock.z - z) < r + clock.R && clock.y < g + 1.2 && clock.y > g - 0.35) fail(); // ジャンプしても、輪の中にいたら止められる
 }
 function segDist(px, pz, ax, az, bx, bz) {
   const dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz;
@@ -1138,7 +1138,7 @@ function pillowStep(dt) {
       p.t += dt;
       if (p.t >= CONFIG.PILLOW_FLIGHT) {
         p.landed = true; p.life = 2.0; SFX.boff();
-        if (state === 'play' && targetable() && Math.hypot(clock.x - p.ex, clock.z - p.ez) < CONFIG.PILLOW_R && Math.abs(clock.y - p.ey) < 0.35) {
+        if (state === 'play' && targetable() && Math.hypot(clock.x - p.ex, clock.z - p.ez) < CONFIG.PILLOW_R && clock.y < p.ey + 1.2 && clock.y > p.ey - 0.35) { // 跳んでも当たる
           clock.stun = Math.max(clock.stun, CONFIG.PILLOW_STUN); popup('ボフッ！', clock.x, clock.y + 0.5, clock.z, '#9fd3ff');
         }
       }
@@ -1255,7 +1255,7 @@ function boxStep(dt) {
       if (boxC.t >= CONFIG.BOX_DROP) {
         SFX.boff();
         const inside = Math.abs(clock.x - boxC.x) < CONFIG.BOX_HALF && Math.abs(clock.z - boxC.z) < CONFIG.BOX_HALF;
-        if (state === 'play' && inside && targetable() && Math.abs(clock.y - boxC.ground) < 0.3) {
+        if (state === 'play' && inside && targetable() && clock.y < boxC.ground + 1.2 && clock.y > boxC.ground - 0.3) { // 跳んでもかぶされる
           clock.boxed = true; clock.mash = 0; clock.stuck = 0; boxC.phase = 'on'; popup('かぶされた！', clock.x, clock.y + 0.7, clock.z);
         } else { boxC.phase = 'lying'; boxC.t = 0; }
       }
@@ -1374,7 +1374,7 @@ function introHTML() {
   <ul class="rules"><li>⏰ 鳴っている間、<b>目覚めゲージ</b>がずっとたまる。満タンでご主人が起きる</li>
   <li>🚶 寝ぼけたご主人が追いかけてくる。赤い輪に手が落ちてくる。<b>叩かれて止められたら負け</b></li>
   <li>🔔 <b>全力ベル</b>：押している間は動けないけど、3倍の速さでたまる（スマホは赤いボタン、PCは Shift か E を押しっぱなし）</li>
-  <li>🦘 ジャンプでベッドや棚に乗れる。手もジャンプでよけられる。ベッドとラグの上は、ふかふかで足が少し遅くなる</li></ul>${ctrlHTML()}${tap}</div>`;
+  <li>🦘 ジャンプでベッドや棚に乗れる。ネコや掃除機は飛びこえられるけど、赤い輪の中なら跳んでも止められる。ベッドとラグの上は、ふかふかで足が少し遅くなる</li></ul>${ctrlHTML()}${tap}</div>`;
   if (day <= 10) {
     const c = COUNTERS[ORDER[day - 2]];
     return `<div class="card" data-act="begin"><div class="dayBig">${day}日目</div><p class="newlabel">ご主人の新しい対策</p>
@@ -1678,6 +1678,7 @@ window.__TEST__ = {
   },
   cfg: CONFIG,
   place(x, z) { clock.x = x; clock.z = z; clock.y = groundAt(x, z); clock.vx = clock.vz = clock.vy = 0; clock.grounded = true; settleClock(); },
+  setActive(list) { active = new Set(list); },
   forceAbility() { if (hu.mode === 'walk') hu.abilityT = 0; },
   step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); render(); },
   state() { return { state, day, gauge: +gauge.toFixed(1), mode: hu.mode, clock: { x: +clock.x.toFixed(3), y: +clock.y.toFixed(3), z: +clock.z.toFixed(3) }, human: { x: +hu.x.toFixed(2), z: +hu.z.toFixed(2) }, cat: cats[0] ? { x: +cats[0].x.toFixed(2), y: +cats[0].y.toFixed(2), z: +cats[0].z.toFixed(2), mode: cats[0].mode } : { x: 0, y: 0, z: 0, mode: '' }, cats: cats.length, vacs: vacs.length, hit: { x: hu.px, z: hu.pz }, line: [hu.ax, hu.az, hu.ex, hu.ez], active: [...active], over: state === 'over' || state === 'clear' }; },
