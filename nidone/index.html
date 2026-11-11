@@ -122,7 +122,9 @@ const CONFIG = {
   BED_SPEED: 0.6, BED_COST: 2.0, LEAD: 0.35, FLOP_BED_WAIT: 0.4, // ベッドの上も歩く（遅くなる）・先回り・ベッドの時計にはすぐ飛び込む
   REACH: 0.8, HIT_R: 0.2, WINDUP: 0.62, WINDUP_MIN: 0.4, LOCK: 0.45, SLAM: 0.1, DOWN: 0.5, RECOVER: 0.45, TRACK: 1.4,
   // 日ごとの強さ
-  DAY_SCALE: 0.04, DAY_SCALE_AFTER10: 0.06, SCALE_MAX: 2.0, RANDOM_BASE: 5,
+  DAY_SCALE: 0.04, DAY_SCALE_AFTER10: 0.07, SCALE_MAX: 3.0, RANDOM_BASE: 5,
+  // 11日目からの本気モード（hardK は11日目で0→30日目で1）
+  WALK_MAX: 1.5, CAT_MAX: 1.5, VAC_MAX: 1.4, WINDUP_MIN_HARD: 0.32, DASH_WARN_MIN_HARD: 0.34, DASH_COUNT_MAX: 6, LONGER_DAY: 0.025,
   // 2日目 枕投げ
   PILLOW_INTERVAL: 6.5, PILLOW_FLIGHT: 1.0, PILLOW_R: 0.42, PILLOW_STUN: 1.6, PILLOW_RANGE: 3.6,
   // 3日目 耳栓（ゲージのたまり方の倍率）
@@ -630,7 +632,7 @@ function dayScale(d) {
 function activeFor(d) {
   if (d <= 1) return new Set();
   if (d <= 10) return new Set(ORDER.slice(0, d - 1));
-  const n = Math.min(ORDER.length, CONFIG.RANDOM_BASE + Math.floor((d - 11) / 2));
+  const n = Math.min(ORDER.length, CONFIG.RANDOM_BASE + (d - 11)); // 15日目から全部
   const a = ORDER.slice();
   for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
   const s = new Set(a.slice(0, n)); s.add('dash'); return s;
@@ -755,7 +757,9 @@ function surfSpeed() { // ベッドとラグの上は、ふかふかで少し遅
 const FLOOR_MODES = new Set(['walk', 'windup', 'slam', 'down', 'recover', 'toWall', 'cheer', 'flopAim']);
 const huSolid = () => FLOOR_MODES.has(hu.mode);
 const reachOf = () => hu.magonote ? CONFIG.MAGONOTE_REACH : CONFIG.REACH;
-const walkSpeed = () => CONFIG.WALK_SPEED * scale * (1 + CONFIG.WALK_AWAKE_BOOST * gauge / 100);
+const walkSpeed = () => Math.min(CONFIG.WALK_MAX, CONFIG.WALK_SPEED * scale * (1 + CONFIG.WALK_AWAKE_BOOST * gauge / 100)); // 時計(1.6)より少し遅いところで止める
+const hardK = () => clamp((day - 10) / 20, 0, 1);
+const dashCount = () => Math.min(CONFIG.DASH_COUNT_MAX, CONFIG.DASH_COUNT + Math.floor(Math.max(0, day - 11) / 5));
 // --- 経路さがし（床を0.2mのマス目に分ける） ---
 const GRID = 0.2, GX = Math.round((ROOM.maxX - ROOM.minX) / GRID), GZ = Math.round((ROOM.maxZ - ROOM.minZ) / GRID);
 const blocked = new Uint8Array(GX * GZ), cellCost = new Float32Array(GX * GZ);
@@ -951,7 +955,7 @@ function startDashAim(s) {
   const [t, wall] = pos[0] || [1, false];
   hu.ex = clamp(W.x + dx * t, bx0, bx1); hu.ez = clamp(W.z + dz * t, bz0, bz1); hu.eWall = wall;
   hu.es = wall ? wallS(hu.ex, hu.ez) : 0;
-  hu.warn = Math.max(CONFIG.DASH_WARN_MIN, CONFIG.DASH_WARN / Math.sqrt(scale));
+  hu.warn = Math.max(lerp(CONFIG.DASH_WARN_MIN, CONFIG.DASH_WARN_MIN_HARD, hardK()), CONFIG.DASH_WARN / Math.sqrt(scale));
   hu.mode = 'dashAim'; hu.t = 0; SFX.windup();
 }
 function startDrop() {
@@ -1025,7 +1029,7 @@ function humanStep(dt) {
       } else hu.stuckT = 0;
       if (dist <= reachOf() && clock.y < 1.3) {
         hu.mode = 'windup'; hu.t = 0; hu.px = clock.x; hu.pz = clock.z; hu.py = groundAt(clock.x, clock.z) + 0.3;
-        hu.windup = Math.max(CONFIG.WINDUP_MIN, CONFIG.WINDUP / scale / (1 + 0.25 * gauge / 100)); SFX.windup();
+        hu.windup = Math.max(lerp(CONFIG.WINDUP_MIN, CONFIG.WINDUP_MIN_HARD, hardK()), CONFIG.WINDUP / scale / (1 + 0.25 * gauge / 100)); SFX.windup();
       }
       break;
     }
@@ -1089,7 +1093,7 @@ function humanStep(dt) {
         segDist(clock.x, clock.z, lerp(hu.ax, hu.ex, k0), lerp(hu.az, hu.ez, k0), lerp(hu.ax, hu.ex, k1), lerp(hu.az, hu.ez, k1)) < CONFIG.DASH_HIT_R + clock.R) { fail(); break; }
       if (k1 >= 1) {
         hu.dashN++;
-        if (state === 'play' && hu.eWall && hu.dashN < CONFIG.DASH_COUNT && ok) startDashAim(hu.es);
+        if (state === 'play' && hu.eWall && hu.dashN < dashCount() && ok) startDashAim(hu.es);
         else { hu.s = hu.eWall ? hu.es : hu.s; hu.ax = hu.ex; hu.az = hu.ez; startDrop(); }
       }
       break;
@@ -1157,7 +1161,7 @@ function catStep(dt) {
   if (cat.rest > 0) { cat.rest -= dt; cat.mode = 'rest'; }
   else if (reachable && d < CONFIG.CAT_SIGHT && state === 'play') {
     if (cat.mode !== 'chase') SFX.meow();
-    cat.mode = 'chase'; cat.tx = clock.x; cat.tz = clock.z; speed = CONFIG.CAT_SPEED * scale;
+    cat.mode = 'chase'; cat.tx = clock.x; cat.tz = clock.z; speed = Math.min(CONFIG.CAT_MAX, CONFIG.CAT_SPEED * scale);
   } else {
     if (cat.mode !== 'wander' || cat.t > 3.5 || Math.hypot(cat.tx - cat.x, cat.tz - cat.z) < 0.15) { const p = randomFloorPoint(cat.R); cat.tx = p.x; cat.tz = p.z; cat.t = 0; }
     cat.mode = 'wander'; speed = CONFIG.CAT_WANDER;
@@ -1192,7 +1196,8 @@ function vacStep(dt) {
     if (d < 0.08 || vac.t > CONFIG.VAC_CARRY_MAX || state !== 'play') releaseFromVac();
     return;
   }
-  vac.x += vac.hx * CONFIG.VAC_SPEED * scale * dt; vac.z += vac.hz * CONFIG.VAC_SPEED * scale * dt;
+  const vs = Math.min(CONFIG.VAC_MAX, CONFIG.VAC_SPEED * scale);
+  vac.x += vac.hx * vs * dt; vac.z += vac.hz * vs * dt;
   const ox = vac.x, oz = vac.z;
   pushOut(vac, vac.R, FLOOR_BOXES);
   const wall = vac.x < ROOM.minX + vac.R + 1e-3 || vac.x > ROOM.maxX - vac.R - 1e-3 || vac.z < ROOM.minZ + vac.R + 1e-3 || vac.z > ROOM.maxZ - vac.R - 1e-3;
@@ -1265,7 +1270,8 @@ function gaugeStep(dt) {
   let mult = clock.bell ? CONFIG.BELL_MULT : 1;
   if (has('earplug')) mult *= clock.bell ? CONFIG.EARPLUG_BELL : CONFIG.EARPLUG_NORMAL;
   if (clock.boxed) mult = 0;
-  gauge = clamp(gauge + CONFIG.GAUGE_RATE * mult * dt, 0, 100);
+  const rate = CONFIG.GAUGE_RATE / (1 + CONFIG.LONGER_DAY * Math.max(0, day - 10)); // 11日目から1日が少しずつ長くなる
+  gauge = clamp(gauge + rate * mult * dt, 0, 100);
   if (gauge >= 100) clear();
 }
 
@@ -1372,10 +1378,10 @@ function introHTML() {
     const c = COUNTERS.dash;
     return `<div class="card" data-act="begin"><div class="dayBig">11日目</div><p class="newlabel">ご主人が本気を出してきた！</p>
     <div class="cicon">${c.icon}</div><h2>${c.name}</h2><p class="cdesc">${c.desc}</p>
-    <p class="cdesc">今日の対策</p><div class="chips">${chips}</div>${tap}</div>`;
+    <p class="cdesc">今日の対策</p><div class="chips">${chips}</div><p class="best">本気度 Lv.1</p>${tap}</div>`;
   }
   return `<div class="card" data-act="begin"><div class="dayBig">${day}日目</div><p class="newlabel">ご主人が本気を出してきた！</p>
-  <p class="cdesc">今日の対策</p><div class="chips">${chips}</div><p class="best">ご主人の動きもどんどん速くなる</p>${tap}</div>`;
+  <p class="cdesc">今日の対策</p><div class="chips">${chips}</div><p class="best">本気度 Lv.${day - 10}　ご主人はどんどん本気になる</p>${tap}</div>`;
 }
 function share() {
   const rec = day - 1, url = location.href.split('?')[0].split('#')[0];
@@ -1650,7 +1656,7 @@ toTitle();
 requestAnimationFrame(frame);
 
 // ===== [SEC:TEST] =====
-const TEST_DAYS = [11, 1, 8, 5, 12, 3, 9, 7, 15, 4, 6, 2, 10];
+const TEST_DAYS = [11, 1, 8, 5, 30, 12, 3, 9, 7, 15, 4, 6, 2, 10, 40];
 let testIdx = 0;
 window.__TEST__ = {
   keys: ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'ShiftLeft'],
