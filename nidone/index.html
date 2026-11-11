@@ -122,9 +122,10 @@ const CONFIG = {
   BED_SPEED: 0.6, BED_COST: 2.0, LEAD: 0.35, FLOP_BED_WAIT: 0.4, // ベッドの上も歩く（遅くなる）・先回り・ベッドの時計にはすぐ飛び込む
   REACH: 0.8, HIT_R: 0.2, WINDUP: 0.62, WINDUP_MIN: 0.4, LOCK: 0.45, SLAM: 0.1, DOWN: 0.5, RECOVER: 0.45, TRACK: 1.4,
   // 日ごとの強さ
-  DAY_SCALE: 0.04, DAY_SCALE_AFTER10: 0.07, SCALE_MAX: 3.0, RANDOM_BASE: 5,
-  // 11日目からの本気モード（hardK は11日目で0→30日目で1）
-  WALK_MAX: 1.5, CAT_MAX: 1.5, VAC_MAX: 1.4, WINDUP_MIN_HARD: 0.32, DASH_WARN_MIN_HARD: 0.34, DASH_COUNT_MAX: 6, LONGER_DAY: 0.025,
+  DAY_SCALE: 0.04, DAY_SCALE_AFTER10: 0.165, SCALE_MAX: 3.0, RANDOM_BASE: 5,
+  // 11日目からの本気モード：HARD_DAYS日かけて最大に（20日目で、どうがんばっても止められる強さ）
+  HARD_DAYS: 10, WALK_MAX: 1.5, WALK_MAX_HARD: 1.9, CAT_MAX: 1.5, CAT_MAX_HARD: 2.1, VAC_MAX: 1.4, VAC_MAX_HARD: 1.9,
+  CAT_MAX_COUNT: 4, VAC_MAX_COUNT: 3, WINDUP_MIN_HARD: 0.32, DASH_WARN_MIN_HARD: 0.34, DASH_COUNT_MAX: 6, LONGER_DAY: 0.05,
   // 2日目 枕投げ
   PILLOW_INTERVAL: 6.5, PILLOW_FLIGHT: 1.0, PILLOW_R: 0.42, PILLOW_STUN: 1.6, PILLOW_RANGE: 3.6,
   // 3日目 耳栓（ゲージのたまり方の倍率）
@@ -254,14 +255,14 @@ let vol = (() => { const v = parseInt(store('nidone_vol'), 10); return v >= 0 &&
 let lastDay = parseInt(store('nidone_day') || '1', 10) || 1; // 最後に始めた日（続きから用）
 let active = new Set();
 const has = k => active.has(k);
-const clock = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, R: 0.17, grounded: true, face: 0, stun: 0, stuck: 0, immune: 0, boxed: false, mash: 0, carried: false, bell: false };
+const clock = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, R: 0.17, grounded: true, face: 0, stun: 0, stuck: 0, immune: 0, boxed: false, mash: 0, carried: false, carrier: null, bell: false };
 // ご主人：床にいる時は x,z が足もと。壁・空中の時は humanPose() が体の位置を決める
 const hu = { x: 0, z: -1.25, vx: 0, vz: 0, R: 0.24, yaw: 0, mode: 'bed', t: 0, T: 1, px: 0, py: 0, pz: 0, windup: 0.6, slamFrom: 0,
   path: [], pathT: 0, wander: null, abilityT: 0, abilityN: 0, ability: 'crawl', foot: null, s: 0, sDir: 1,
   ax: 0, az: 0, ex: 0, ez: 0, es: 0, eWall: false, warn: 0.7, dashN: 0, lx: 0, lz: 0, magonote: false, walk: 0, failHand: false, from: null, to: null };
 const pillows = []; let pillowTimer = 0;
-const cat = { x: 0, y: 0, z: 0, vx: 0, vz: 0, R: 0.16, face: 0, mode: 'wander', tx: 0, tz: 0, t: 0, rest: 0 };
-const vac = { x: 0, z: 0, R: 0.19, hx: 1, hz: 0, mode: 'roam', t: 0, rest: 0, cx: 0, cz: 0 };
+const SIZE = { cat: 0.16, vac: 0.19 }; // 当たり判定の半径（見た目から測り直す）
+const cats = [], vacs = [];
 const stickies = [];
 const boxC = { phase: 'none', t: 0, timer: 0, x: 0, z: 0, y: 2.4, ground: 0 };
 const cam = { x: 0, z: -1, k: 1 };
@@ -454,9 +455,9 @@ function makeDashLine() {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xff2a2a, transparent: true, opacity: 0.4, depthTest: false, depthWrite: false }));
   m.rotation.x = -Math.PI / 2; m.position.z = 0.5; m.renderOrder = 6; g.add(m); return g;
 }
-function makeCat() {
+function makeCat(furColor = 0xf0a04b) {
   const g = new THREE.Group(); scene.add(g);
-  const fur = M(0xf0a04b), dark = M(0x2a2a2a);
+  const fur = M(furColor), dark = M(0x2a2a2a);
   const body = mesh(new THREE.SphereGeometry(1, 16, 12), fur, 0, 0.16, 0, g); body.scale.set(0.14, 0.11, 0.22);
   const head = new THREE.Group(); g.add(head); head.position.set(0, 0.27, 0.2);
   mesh(new THREE.SphereGeometry(0.1, 16, 12), fur, 0, 0, 0, head);
@@ -491,7 +492,9 @@ function makeRing(color) {
 }
 
 buildRoom();
-const V = { clock: makeClock(), human: makeHuman(), cat: makeCat(), vac: makeVac(), box: makeBox() };
+const V = { clock: makeClock(), human: makeHuman(), box: makeBox() };
+V.cats = [0xf0a04b, 0x3a3a3a, 0xf4f1ea, 0x9a9a9a].slice(0, CONFIG.CAT_MAX_COUNT).map(c => makeCat(c));
+V.vacs = Array.from({ length: CONFIG.VAC_MAX_COUNT }, () => makeVac());
 V.ring = makeRing(0xff2a2a);
 V.dashLine = makeDashLine();
 V.pillows = [0, 1, 2, 3].map(() => {
@@ -507,9 +510,9 @@ V.waves = Array.from({ length: 14 }, () => {
 // 見た目から当たり判定の大きさを測る（ルール9）
 function localSize(m) { m.geometry.computeBoundingBox(); const s = new THREE.Vector3(); m.geometry.boundingBox.getSize(s); return s.multiply(m.scale); }
 clock.R = localSize(V.clock.body).x / 2;
-vac.R = localSize(V.vac.b).x / 2;
+SIZE.vac = localSize(V.vacs[0].b).x / 2;
 hu.R = localSize(V.human.torsoM).x / 2 * 1.4;
-{ const s = localSize(V.cat.body); cat.R = Math.max(s.x / 2, s.z / 2 * 0.75); }
+{ const s = localSize(V.cats[0].body); SIZE.cat = Math.max(s.x / 2, s.z / 2 * 0.75); }
 
 // ===== [SEC:AUDIO] =====
 let actx = null, master = null, ringGain = null, ringFilter = null, ringLfo = null;
@@ -657,11 +660,11 @@ function setupDay(d) {
   settleClock();
   pillows.length = 0; pillowTimer = 3 + rnd() * 1.5;
   const away = { x: clock.x, z: clock.z };
-  Object.assign(cat, randomFloorPoint(cat.R, away, 2.0), { y: 0, vx: 0, vz: 0, mode: 'wander', t: 0, rest: 1.5 });
-  cat.tx = cat.x; cat.tz = cat.z;
-  Object.assign(vac, randomFloorPoint(vac.R, away, 1.8), { mode: 'roam', t: 0, rest: 1.0 });
-  const a = rnd() * Math.PI * 2; vac.hx = Math.cos(a); vac.hz = Math.sin(a);
-  if (has('cat') && has('vacuum')) separate();
+  cats.length = 0; vacs.length = 0;
+  const spawn = R => { let p; for (let i = 0; i < 30; i++) { p = randomFloorPoint(R, away, 1.8); if (![...cats, ...vacs].some(e => Math.hypot(e.x - p.x, e.z - p.z) < 0.7)) break; } return p; };
+  if (has('cat')) for (let i = 0; i < catCount(); i++) { const p = spawn(SIZE.cat); cats.push({ kind: 'cat', x: p.x, y: 0, z: p.z, vx: 0, vz: 0, R: SIZE.cat, face: rnd() * 6, mode: 'wander', tx: p.x, tz: p.z, t: 0, rest: 1.5 + i * 0.4 }); }
+  if (has('vacuum')) for (let i = 0; i < vacCount(); i++) { const p = spawn(SIZE.vac), a = rnd() * Math.PI * 2; vacs.push({ kind: 'vac', x: p.x, z: p.z, R: SIZE.vac, hx: Math.cos(a), hz: Math.sin(a), mode: 'roam', t: 0, rest: 1.0 + i * 0.5, cx: 0, cz: 0 }); }
+  separate();
   stickies.length = 0;
   if (has('sticky')) {
     const n = CONFIG.STICKY_COUNT + (scale > 1.5 ? 1 : 0), hs = CONFIG.STICKY_SIZE / 2;
@@ -757,9 +760,9 @@ function surfSpeed() { // ベッドとラグの上は、ふかふかで少し遅
 const FLOOR_MODES = new Set(['walk', 'windup', 'slam', 'down', 'recover', 'toWall', 'cheer', 'flopAim']);
 const huSolid = () => FLOOR_MODES.has(hu.mode);
 const reachOf = () => hu.magonote ? CONFIG.MAGONOTE_REACH : CONFIG.REACH;
-const walkSpeed = () => Math.min(CONFIG.WALK_MAX, CONFIG.WALK_SPEED * scale * (1 + CONFIG.WALK_AWAKE_BOOST * gauge / 100)); // 時計(1.6)より少し遅いところで止める
-const hardK = () => clamp((day - 10) / 20, 0, 1);
-const dashCount = () => Math.min(CONFIG.DASH_COUNT_MAX, CONFIG.DASH_COUNT + Math.floor(Math.max(0, day - 11) / 5));
+const walkSpeed = () => Math.min(lerp(CONFIG.WALK_MAX, CONFIG.WALK_MAX_HARD, hardK()), CONFIG.WALK_SPEED * scale * (1 + CONFIG.WALK_AWAKE_BOOST * gauge / 100)); // 時計(1.6)より少し遅いところで止める
+const hardK = () => clamp((day - 10) / CONFIG.HARD_DAYS, 0, 1);
+const dashCount = () => Math.min(CONFIG.DASH_COUNT_MAX, CONFIG.DASH_COUNT + Math.floor(Math.max(0, day - 11) / 3));
 // --- 経路さがし（床を0.2mのマス目に分ける） ---
 const GRID = 0.2, GX = Math.round((ROOM.maxX - ROOM.minX) / GRID), GZ = Math.round((ROOM.maxZ - ROOM.minZ) / GRID);
 const blocked = new Uint8Array(GX * GZ), cellCost = new Float32Array(GX * GZ);
@@ -993,10 +996,9 @@ function humanSeparate() {
     const dx = hu.x - clock.x, dz = hu.z - clock.z, d = Math.hypot(dx, dz), m = hu.R + clock.R;
     if (d < m) { const nx = d > 1e-6 ? dx / d : 1, nz = d > 1e-6 ? dz / d : 0; hu.x += nx * (m - d + 1e-3); hu.z += nz * (m - d + 1e-3); pushOut(hu, hu.R, HUMAN_BOXES); }
   }
-  for (const [e, on] of [[cat, has('cat')], [vac, has('vacuum')]]) {
-    if (!on) continue;
+  for (const e of [...cats, ...vacs]) {
     const dx = e.x - hu.x, dz = e.z - hu.z, d = Math.hypot(dx, dz), m = hu.R + e.R;
-    if (d < m) { const nx = d > 1e-6 ? dx / d : 1, nz = d > 1e-6 ? dz / d : 0; e.x += nx * (m - d + 1e-3); e.z += nz * (m - d + 1e-3); pushOut(e, e.R, e === cat ? CAT_BOXES : FLOOR_BOXES); }
+    if (d < m) { const nx = d > 1e-6 ? dx / d : 1, nz = d > 1e-6 ? dz / d : 0; e.x += nx * (m - d + 1e-3); e.z += nz * (m - d + 1e-3); pushOut(e, e.R, boxesOf(e)); }
   }
 }
 function humanStep(dt) {
@@ -1145,82 +1147,88 @@ function pillowStep(dt) {
 }
 
 // ===== [SEC:CAT] =====
+// ネコと掃除機は途中から数が増えるので、配列で持つ。床にいるものどうしは重ならない
+const boxesOf = e => e.kind === 'cat' ? CAT_BOXES : FLOOR_BOXES;
+const catCount = () => 1 + Math.floor(hardK() * (CONFIG.CAT_MAX_COUNT - 1) + 1e-6);
+const vacCount = () => 1 + Math.floor(hardK() * (CONFIG.VAC_MAX_COUNT - 1) + 1e-6);
+const countTag = k => k === 'cat' && cats.length > 1 ? '×' + cats.length : k === 'vacuum' && vacs.length > 1 ? '×' + vacs.length : '';
 function separate() {
-  const dx = cat.x - vac.x, dz = cat.z - vac.z, d = Math.hypot(dx, dz), m = cat.R + vac.R;
-  if (d >= m || cat.y > 0.1) return; // ネコがベッドの上なら重ならない
-  const nx = d > 1e-6 ? dx / d : 1, nz = d > 1e-6 ? dz / d : 0, p = (m - d) / 2 + 1e-4;
-  cat.x += nx * p; cat.z += nz * p; vac.x -= nx * p; vac.z -= nz * p;
-  pushOut(cat, cat.R, CAT_BOXES); pushOut(vac, vac.R, FLOOR_BOXES);
+  const ents = [...cats.filter(c => c.y < 0.1), ...vacs];
+  for (let it = 0; it < 2; it++) for (let i = 0; i < ents.length; i++) for (let j = i + 1; j < ents.length; j++) {
+    const a = ents[i], b = ents[j], dx = a.x - b.x, dz = a.z - b.z, d = Math.hypot(dx, dz), m = a.R + b.R;
+    if (d >= m) continue;
+    const nx = d > 1e-6 ? dx / d : 1, nz = d > 1e-6 ? dz / d : 0, p = (m - d) / 2 + 1e-4;
+    a.x += nx * p; a.z += nz * p; b.x -= nx * p; b.z -= nz * p;
+    pushOut(a, a.R, boxesOf(a)); pushOut(b, b.R, boxesOf(b));
+  }
 }
-function catStep(dt) {
-  if (!has('cat')) return;
-  cat.t += dt;
+function catStep(c, dt) {
+  c.t += dt;
   let speed = 0;
   const reachable = targetable() && (clock.y < 0.15 || (inBed(clock.x, clock.z) && clock.y < BED.top + 0.25)); // ベッドの上にも登る
-  const d = Math.hypot(clock.x - cat.x, clock.z - cat.z);
-  if (cat.rest > 0) { cat.rest -= dt; cat.mode = 'rest'; }
+  const d = Math.hypot(clock.x - c.x, clock.z - c.z);
+  if (c.rest > 0) { c.rest -= dt; c.mode = 'rest'; }
   else if (reachable && d < CONFIG.CAT_SIGHT && state === 'play') {
-    if (cat.mode !== 'chase') SFX.meow();
-    cat.mode = 'chase'; cat.tx = clock.x; cat.tz = clock.z; speed = Math.min(CONFIG.CAT_MAX, CONFIG.CAT_SPEED * scale);
+    if (c.mode !== 'chase') SFX.meow();
+    c.mode = 'chase'; c.tx = clock.x; c.tz = clock.z; speed = Math.min(lerp(CONFIG.CAT_MAX, CONFIG.CAT_MAX_HARD, hardK()), CONFIG.CAT_SPEED * scale);
   } else {
-    if (cat.mode !== 'wander' || cat.t > 3.5 || Math.hypot(cat.tx - cat.x, cat.tz - cat.z) < 0.15) { const p = randomFloorPoint(cat.R); cat.tx = p.x; cat.tz = p.z; cat.t = 0; }
-    cat.mode = 'wander'; speed = CONFIG.CAT_WANDER;
+    if (c.mode !== 'wander' || c.t > 3.5 || Math.hypot(c.tx - c.x, c.tz - c.z) < 0.15) { const p = randomFloorPoint(c.R); c.tx = p.x; c.tz = p.z; c.t = 0; }
+    c.mode = 'wander'; speed = CONFIG.CAT_WANDER;
   }
-  const dx = cat.tx - cat.x, dz = cat.tz - cat.z, l = Math.hypot(dx, dz);
+  const dx = c.tx - c.x, dz = c.tz - c.z, l = Math.hypot(dx, dz);
   const tvx = l > 0.05 ? dx / l * speed : 0, tvz = l > 0.05 ? dz / l * speed : 0;
   const k = Math.min(1, 8 * dt);
-  cat.vx += (tvx - cat.vx) * k; cat.vz += (tvz - cat.vz) * k;
-  cat.x += cat.vx * dt; cat.z += cat.vz * dt;
-  pushOut(cat, cat.R, CAT_BOXES);
-  cat.y = lerp(cat.y, inBed(cat.x, cat.z) ? BED.top : 0, 1 - Math.exp(-14 * dt)); // ベッドに飛び乗る・降りる
-  if (Math.hypot(cat.vx, cat.vz) > 0.05) cat.face = angLerp(cat.face, Math.atan2(cat.vx, cat.vz), Math.min(1, 10 * dt));
-  if (cat.mode === 'chase' && d < cat.R + clock.R && Math.abs(clock.y - cat.y) < 0.25 && state === 'play') {
-    const nx = d > 1e-6 ? (clock.x - cat.x) / d : 1, nz = d > 1e-6 ? (clock.z - cat.z) / d : 0;
+  c.vx += (tvx - c.vx) * k; c.vz += (tvz - c.vz) * k;
+  c.x += c.vx * dt; c.z += c.vz * dt;
+  pushOut(c, c.R, CAT_BOXES);
+  c.y = lerp(c.y, inBed(c.x, c.z) ? BED.top : 0, 1 - Math.exp(-14 * dt)); // ベッドに飛び乗る・降りる
+  if (Math.hypot(c.vx, c.vz) > 0.05) c.face = angLerp(c.face, Math.atan2(c.vx, c.vz), Math.min(1, 10 * dt));
+  if (c.mode === 'chase' && d < c.R + clock.R && Math.abs(clock.y - c.y) < 0.25 && state === 'play') {
+    const nx = d > 1e-6 ? (clock.x - c.x) / d : 1, nz = d > 1e-6 ? (clock.z - c.z) / d : 0;
     clock.vx = nx * CONFIG.CAT_KNOCK; clock.vz = nz * CONFIG.CAT_KNOCK; clock.vy = 2.6; clock.grounded = false;
     clock.stun = Math.max(clock.stun, CONFIG.CAT_STUN); clock.stuck = 0;
-    cat.rest = CONFIG.CAT_REST; cat.vx = cat.vz = 0; SFX.meow(); popup('ペシッ！', clock.x, clock.y + 0.5, clock.z, '#ffb36b');
+    c.rest = CONFIG.CAT_REST; c.vx = c.vz = 0; SFX.meow(); popup('ペシッ！', clock.x, clock.y + 0.5, clock.z, '#ffb36b');
   }
 }
 
 // ===== [SEC:VACUUM] =====
-function vacStep(dt) {
-  if (!has('vacuum')) return;
-  vac.t += dt; vac.rest = Math.max(0, vac.rest - dt);
-  if (vac.mode === 'carry') {
-    const dx = vac.cx - vac.x, dz = vac.cz - vac.z, d = Math.hypot(dx, dz);
-    if (d > 1e-6) { vac.hx = dx / d; vac.hz = dz / d; }
+function vacStep(v, dt) {
+  v.t += dt; v.rest = Math.max(0, v.rest - dt);
+  if (v.mode === 'carry') {
+    const dx = v.cx - v.x, dz = v.cz - v.z, d = Math.hypot(dx, dz);
+    if (d > 1e-6) { v.hx = dx / d; v.hz = dz / d; }
     const s = Math.min(d, CONFIG.VAC_CARRY_SPEED * dt);
-    vac.x += vac.hx * s; vac.z += vac.hz * s;
-    pushOut(vac, vac.R, FLOOR_BOXES);
-    clock.x = vac.x; clock.z = vac.z; clock.y = 0.095; clock.vx = clock.vz = clock.vy = 0;
-    if (d < 0.08 || vac.t > CONFIG.VAC_CARRY_MAX || state !== 'play') releaseFromVac();
+    v.x += v.hx * s; v.z += v.hz * s;
+    pushOut(v, v.R, FLOOR_BOXES);
+    clock.x = v.x; clock.z = v.z; clock.y = 0.095; clock.vx = clock.vz = clock.vy = 0;
+    if (d < 0.08 || v.t > CONFIG.VAC_CARRY_MAX || state !== 'play') releaseFromVac(v);
     return;
   }
-  const vs = Math.min(CONFIG.VAC_MAX, CONFIG.VAC_SPEED * scale);
-  vac.x += vac.hx * vs * dt; vac.z += vac.hz * vs * dt;
-  const ox = vac.x, oz = vac.z;
-  pushOut(vac, vac.R, FLOOR_BOXES);
-  const wall = vac.x < ROOM.minX + vac.R + 1e-3 || vac.x > ROOM.maxX - vac.R - 1e-3 || vac.z < ROOM.minZ + vac.R + 1e-3 || vac.z > ROOM.maxZ - vac.R - 1e-3;
-  if (Math.hypot(vac.x - ox, vac.z - oz) > 1e-5 || wall) {
-    const a = Math.atan2(vac.hz, vac.hx) + Math.PI + (rnd() - 0.5) * 2.2;
-    vac.hx = Math.cos(a); vac.hz = Math.sin(a);
-    vac.x += vac.hx * 0.01; vac.z += vac.hz * 0.01; pushOut(vac, vac.R, FLOOR_BOXES);
+  const vs = Math.min(lerp(CONFIG.VAC_MAX, CONFIG.VAC_MAX_HARD, hardK()), CONFIG.VAC_SPEED * scale);
+  v.x += v.hx * vs * dt; v.z += v.hz * vs * dt;
+  const ox = v.x, oz = v.z;
+  pushOut(v, v.R, FLOOR_BOXES);
+  const wall = v.x < ROOM.minX + v.R + 1e-3 || v.x > ROOM.maxX - v.R - 1e-3 || v.z < ROOM.minZ + v.R + 1e-3 || v.z > ROOM.maxZ - v.R - 1e-3;
+  if (Math.hypot(v.x - ox, v.z - oz) > 1e-5 || wall) {
+    const a = Math.atan2(v.hz, v.hx) + Math.PI + (rnd() - 0.5) * 2.2;
+    v.hx = Math.cos(a); v.hz = Math.sin(a);
+    v.x += v.hx * 0.01; v.z += v.hz * 0.01; pushOut(v, v.R, FLOOR_BOXES);
   }
-  if (state === 'play' && vac.rest <= 0 && targetable() && clock.y < 0.15 && Math.hypot(clock.x - vac.x, clock.z - vac.z) < vac.R + clock.R * 0.8) {
-    vac.mode = 'carry'; vac.t = 0; clock.carried = true; clock.stuck = 0; clock.boxed = false;
+  if (state === 'play' && v.rest <= 0 && targetable() && clock.y < 0.15 && Math.hypot(clock.x - v.x, clock.z - v.z) < v.R + clock.R * 0.8) {
+    v.mode = 'carry'; v.t = 0; clock.carried = true; clock.carrier = v; clock.stuck = 0; clock.boxed = false;
     const hp = { x: hu.x, z: hu.z }, corners = [[ROOM.minX + 0.35, ROOM.maxZ - 0.35], [ROOM.maxX - 0.35, ROOM.maxZ - 0.35]];
     const c = corners.sort((a, b) => Math.hypot(b[0] - hp.x, b[1] - hp.z) - Math.hypot(a[0] - hp.x, a[1] - hp.z))[rnd() < 0.5 ? 0 : 1];
-    vac.cx = c[0]; vac.cz = c[1]; SFX.vac(); popup('ウィーン…', clock.x, clock.y + 0.5, clock.z, '#9effc4');
+    v.cx = c[0]; v.cz = c[1]; SFX.vac(); popup('ウィーン…', clock.x, clock.y + 0.5, clock.z, '#9effc4');
   }
 }
-function releaseFromVac() {
-  vac.mode = 'roam'; vac.rest = CONFIG.VAC_REST; vac.t = 0;
-  clock.carried = false;
-  clock.x = vac.x + vac.hx * (vac.R + clock.R + 0.03); clock.z = vac.z + vac.hz * (vac.R + clock.R + 0.03); clock.y = 0;
+function releaseFromVac(v) {
+  v.mode = 'roam'; v.rest = CONFIG.VAC_REST; v.t = 0;
+  clock.carried = false; clock.carrier = null;
+  clock.x = v.x + v.hx * (v.R + clock.R + 0.03); clock.z = v.z + v.hz * (v.R + clock.R + 0.03); clock.y = 0;
   settleClock();
   const g = groundAt(clock.x, clock.z); if (clock.y < g) clock.y = g;
-  if (Math.hypot(clock.x - vac.x, clock.z - vac.z) < vac.R + clock.R) { clock.x = vac.x; clock.z = vac.z; clock.y = 0; }
-  vac.hx = -vac.hx; vac.hz = -vac.hz;
+  if (Math.hypot(clock.x - v.x, clock.z - v.z) < v.R + clock.R) { clock.x = v.x; clock.z = v.z; clock.y = 0; }
+  v.hx = -v.hx; v.hz = -v.hz;
 }
 
 // ===== [SEC:BOX] =====
@@ -1282,15 +1290,15 @@ function tick(dt) {
   if (state === 'play') {
     clockStep(dt);
     humanStep(dt);
-    if (state === 'play') { pillowStep(dt); catStep(dt); vacStep(dt); if (has('cat') && has('vacuum')) separate(); boxStep(dt); }
+    if (state === 'play') { pillowStep(dt); for (const c of cats) catStep(c, dt); for (const v of vacs) vacStep(v, dt); separate(); boxStep(dt); }
     if (state === 'play') gaugeStep(dt);
     waveT -= dt;
     if (state === 'play' && waveT <= 0) { waves.push({ x: clock.x, y: clock.y + 0.25, z: clock.z, t0: gtime, bell: clock.bell, muff: clock.boxed }); if (waves.length > 14) waves.shift(); waveT = clock.bell ? 0.12 : 0.38; }
   } else if (state === 'failAnim' || state === 'clearAnim') {
     animT += dt; hu.t += dt;
     if (state === 'failAnim') failStep(dt);
-    pillowStep(dt); catStep(dt); if (has('vacuum') && vac.mode !== 'carry') vacStep(dt);
-    if (has('cat') && has('vacuum')) separate();
+    pillowStep(dt); for (const c of cats) catStep(c, dt); for (const v of vacs) if (v.mode !== 'carry') vacStep(v, dt);
+    separate();
     if (!clock.carried) { clock.vx = clock.vz = 0; clockStepIdle(dt); }
     if (state === 'clearAnim' && animT >= CONFIG.CLEAR_ANIM) toClear();
   }
@@ -1321,7 +1329,7 @@ function fail() {
 }
 function clear() {
   state = 'clearAnim'; animT = 0; clock.bell = false;
-  if (clock.carried) releaseFromVac();
+  if (clock.carried && clock.carrier) releaseFromVac(clock.carrier);
   clock.boxed = false; clock.stun = 0; clock.stuck = 0;
   if (clock.grounded) clock.vy = 3.2;
   if (!huSolid()) { const p = humanPose(), c = nearestFree(toI(p.c.x), toJ(p.c.z)); if (c >= 0) { hu.x = cellX(c % GX); hu.z = cellZ((c / GX) | 0); hu.y = huGround(hu.x, hu.z); } }
@@ -1373,7 +1381,7 @@ function introHTML() {
     <div class="cicon">${c.icon}</div><h2>${c.name}</h2><p class="cdesc">${c.desc}</p>
     <p class="best">これまでの対策も続いている</p>${tap}</div>`;
   }
-  const chips = ICONS.filter(k => has(k)).map(k => `<span class="chip">${COUNTERS[k].icon} ${COUNTERS[k].name}</span>`).join('');
+  const chips = ICONS.filter(k => has(k)).map(k => `<span class="chip">${COUNTERS[k].icon} ${COUNTERS[k].name}${countTag(k)}</span>`).join('');
   if (day === 11) {
     const c = COUNTERS.dash;
     return `<div class="card" data-act="begin"><div class="dayBig">11日目</div><p class="newlabel">ご主人が本気を出してきた！</p>
@@ -1381,7 +1389,7 @@ function introHTML() {
     <p class="cdesc">今日の対策</p><div class="chips">${chips}</div><p class="best">本気度 Lv.1</p>${tap}</div>`;
   }
   return `<div class="card" data-act="begin"><div class="dayBig">${day}日目</div><p class="newlabel">ご主人が本気を出してきた！</p>
-  <p class="cdesc">今日の対策</p><div class="chips">${chips}</div><p class="best">本気度 Lv.${day - 10}　ご主人はどんどん本気になる</p>${tap}</div>`;
+  <p class="cdesc">今日の対策</p><div class="chips">${chips}</div><p class="best">本気度 ${day >= 10 + CONFIG.HARD_DAYS ? 'MAX' : 'Lv.' + (day - 10)}　ご主人はどんどん本気になる</p>${tap}</div>`;
 }
 function share() {
   const rec = day - 1, url = location.href.split('?')[0].split('#')[0];
@@ -1567,18 +1575,20 @@ function syncVisuals() {
     if (!p.landed) { v.ring.position.set(p.ex, p.ey + 0.012, p.ez); v.ring.scale.set(CONFIG.PILLOW_R, CONFIG.PILLOW_R, 1); }
   });
   // ネコ
-  V.cat.g.visible = has('cat');
-  if (has('cat')) {
-    V.cat.g.position.set(cat.x, cat.y, cat.z); V.cat.g.rotation.y = cat.face;
-    const spd = Math.hypot(cat.vx, cat.vz);
-    V.cat.legs.forEach((l, i) => { l.rotation.x = spd > 0.05 ? Math.sin(gtime * 16 + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI : 0)) * 0.6 : 0; });
-    V.cat.head.position.y = 0.27 + (cat.mode === 'rest' ? Math.sin(gtime * 8) * 0.02 : 0);
-    const sw = Math.sin(gtime * 4) * 0.12;
-    setCyl(V.cat.tail, { x: 0, y: 0.16, z: -0.2 }, { x: sw, y: 0.36, z: -0.3 }, 0.02);
-  }
+  V.cats.forEach((CV, n) => {
+    const c = cats[n]; CV.g.visible = !!c; if (!c) return;
+    CV.g.position.set(c.x, c.y, c.z); CV.g.rotation.y = c.face;
+    const spd = Math.hypot(c.vx, c.vz);
+    CV.legs.forEach((l, i) => { l.rotation.x = spd > 0.05 ? Math.sin(gtime * 16 + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI : 0)) * 0.6 : 0; });
+    CV.head.position.y = 0.27 + (c.mode === 'rest' ? Math.sin(gtime * 8 + n) * 0.02 : 0);
+    const sw = Math.sin(gtime * 4 + n) * 0.12;
+    setCyl(CV.tail, { x: 0, y: 0.16, z: -0.2 }, { x: sw, y: 0.36, z: -0.3 }, 0.02);
+  });
   // 掃除機
-  V.vac.g.visible = has('vacuum');
-  if (has('vacuum')) { V.vac.g.position.set(vac.x, 0, vac.z); V.vac.g.rotation.y = Math.atan2(vac.hx, vac.hz); V.vac.led.material.color.set(vac.mode === 'carry' ? 0xff4d4d : 0x4dff9c); }
+  V.vacs.forEach((VV, n) => {
+    const v = vacs[n]; VV.g.visible = !!v; if (!v) return;
+    VV.g.position.set(v.x, 0, v.z); VV.g.rotation.y = Math.atan2(v.hx, v.hz); VV.led.material.color.set(v.mode === 'carry' ? 0xff4d4d : 0x4dff9c);
+  });
   // 粘着シート
   V.stickies.forEach((s, i) => { const p = stickies[i]; s.visible = !!p && has('sticky'); if (p) s.position.set(p.x, 0.003, p.z); });
   // 箱
@@ -1626,7 +1636,7 @@ function updateHUD() {
   if (key === hudCache) return; hudCache = key;
   $('dayLabel').textContent = day + '日目';
   $('status').textContent = st; $('gaugeFace').textContent = face;
-  $('icons').textContent = ICONS.filter(k => has(k)).map(k => COUNTERS[k].icon).join('');
+  $('icons').textContent = ICONS.filter(k => has(k)).map(k => COUNTERS[k].icon + countTag(k)).join('');
 }
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
@@ -1670,7 +1680,7 @@ window.__TEST__ = {
   place(x, z) { clock.x = x; clock.z = z; clock.y = groundAt(x, z); clock.vx = clock.vz = clock.vy = 0; clock.grounded = true; settleClock(); },
   forceAbility() { if (hu.mode === 'walk') hu.abilityT = 0; },
   step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); render(); },
-  state() { return { state, day, gauge: +gauge.toFixed(1), mode: hu.mode, clock: { x: +clock.x.toFixed(3), y: +clock.y.toFixed(3), z: +clock.z.toFixed(3) }, human: { x: +hu.x.toFixed(2), z: +hu.z.toFixed(2) }, cat: { x: +cat.x.toFixed(2), y: +cat.y.toFixed(2), z: +cat.z.toFixed(2), mode: cat.mode }, hit: { x: hu.px, z: hu.pz }, line: [hu.ax, hu.az, hu.ex, hu.ez], active: [...active], over: state === 'over' || state === 'clear' }; },
+  state() { return { state, day, gauge: +gauge.toFixed(1), mode: hu.mode, clock: { x: +clock.x.toFixed(3), y: +clock.y.toFixed(3), z: +clock.z.toFixed(3) }, human: { x: +hu.x.toFixed(2), z: +hu.z.toFixed(2) }, cat: cats[0] ? { x: +cats[0].x.toFixed(2), y: +cats[0].y.toFixed(2), z: +cats[0].z.toFixed(2), mode: cats[0].mode } : { x: 0, y: 0, z: 0, mode: '' }, cats: cats.length, vacs: vacs.length, hit: { x: hu.px, z: hu.pz }, line: [hu.ax, hu.az, hu.ex, hu.ez], active: [...active], over: state === 'over' || state === 'clear' }; },
   check() {
     const v = [], c = clock;
     if (![c.x, c.y, c.z, c.vx, c.vy, c.vz, gauge].every(fin)) v.push('時計かゲージにNaN');
@@ -1690,15 +1700,16 @@ window.__TEST__ = {
       if (Math.hypot(hu.vx, hu.vz) > CONFIG.WALK_SPEED * CONFIG.SCALE_MAX * (1 + CONFIG.WALK_AWAKE_BOOST) * 1.5 * 1.5) v.push('ご主人の速さが異常');
     } else if (p.c.x < ROOM.minX - 0.05 || p.c.x > ROOM.maxX + 0.05 || p.c.z < ROOM.minZ - 0.05 || p.c.z > ROOM.maxZ + 0.05 || p.c.y < 0 || p.c.y > 2.6) v.push(`ご主人が部屋の外（${hu.mode}）`);
     if ((hu.mode === 'windup' || hu.mode === 'slam') && Math.hypot(hu.px - hu.x, hu.pz - hu.z) > reachOf() + 0.05) v.push('手が届く範囲を超えた');
-    for (const [e, nm, on] of [[cat, 'ネコ', has('cat')], [vac, '掃除機', has('vacuum')]]) {
-      if (!on) continue;
+    for (const e of [...cats, ...vacs]) {
+      const nm = e.kind === 'cat' ? 'ネコ' : '掃除機';
       if (![e.x, e.z].every(fin)) v.push(nm + 'にNaN');
       if (e.x < ROOM.minX + e.R - 0.01 || e.x > ROOM.maxX - e.R + 0.01 || e.z < ROOM.minZ + e.R - 0.01 || e.z > ROOM.maxZ - e.R + 0.01) v.push(nm + 'が部屋の外');
-      for (const b of (e === cat ? CAT_BOXES : FLOOR_BOXES)) if (overlapDepth(e, e.R, b) > 0.02) v.push(`${nm}が${b.name}にめり込み`);
+      for (const b of boxesOf(e)) if (overlapDepth(e, e.R, b) > 0.02) v.push(`${nm}が${b.name}にめり込み`);
     }
-    if (has('cat') && has('vacuum') && cat.y < 0.1 && Math.hypot(cat.x - vac.x, cat.z - vac.z) < (cat.R + vac.R) * 0.95) v.push('ネコと掃除機が重なっている');
+    const fl = [...cats.filter(e => e.y < 0.1), ...vacs];
+    for (let i = 0; i < fl.length; i++) for (let j = i + 1; j < fl.length; j++) if (Math.hypot(fl[i].x - fl[j].x, fl[i].z - fl[j].z) < (fl[i].R + fl[j].R) * 0.95) v.push('ネコ・掃除機どうしが重なっている');
     if (Math.abs(localSize(V.clock.body).x / 2 - c.R) > c.R * 0.1) v.push('時計の見た目と当たり判定の大きさがちがう');
-    if (Math.abs(localSize(V.vac.b).x / 2 - vac.R) > vac.R * 0.1) v.push('掃除機の見た目と当たり判定の大きさがちがう');
+    if (Math.abs(localSize(V.vacs[0].b).x / 2 - SIZE.vac) > SIZE.vac * 0.1) v.push('掃除機の見た目と当たり判定の大きさがちがう');
     if (state === 'play' && !V.clock.g.visible) v.push('プレイ中に時計がいない');
     return v;
   },
