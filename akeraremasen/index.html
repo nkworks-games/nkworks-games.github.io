@@ -36,9 +36,10 @@ button:active{transform:translateY(3px);box-shadow:0 2px 0 #a8580f}
 button.sub{font-size:15px;padding:10px 26px;background:linear-gradient(#f3eee6,#d8cfc2);box-shadow:0 4px 0 #8e8172}
 .best{font-size:14px;color:#ffcf8a;min-height:1em}
 #rTitle{font-size:clamp(34px,10vw,60px);margin:0;font-weight:900;text-shadow:0 4px 0 #6b2a0e}
-#rTime{font-size:clamp(20px,6vw,30px);margin:0;font-weight:bold}
-#rRank{font-size:clamp(60px,18vw,110px);font-weight:900;line-height:1;margin:0;color:#ffd66b;text-shadow:0 5px 0 #8a4b0a}
-#rMsg{margin:0;font-size:15px;line-height:1.6}
+#rimg{display:block;width:min(560px,94vw);max-height:40vh;object-fit:contain;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+#rimg:not([src]){visibility:hidden}
+button.xbtn{background:#000;color:#fff;box-shadow:0 5px 0 #444,0 8px 18px rgba(0,0,0,.35)}
+.row.share button{font-size:15px;padding:10px 20px}
 .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
 @media (max-height:560px){
   .scr{gap:6px;padding-top:calc(10px + var(--st));padding-bottom:10px}
@@ -46,7 +47,7 @@ button.sub{font-size:15px;padding:10px 26px;background:linear-gradient(#f3eee6,#
   .lead{font-size:13px}
   .how{grid-template-columns:repeat(4,1fr);width:min(760px,100%)} .how div{font-size:11px;padding:5px 4px} .how b{font-size:14px}
   button{font-size:17px;padding:10px 34px}
-  #rTitle{font-size:clamp(26px,9vh,44px)} #rTime{font-size:18px} #rRank{font-size:clamp(40px,15vh,72px)} #rMsg{font-size:13px}
+  #rTitle{font-size:clamp(24px,8vh,40px)} #rimg{max-height:33vh} .row{margin-top:0}
 }
 /* 作者をフォロー（タイトルと結果画面だけ。サイトのほかのゲームと同じ形） */
 .follow{display:flex;align-items:center;justify-content:space-between;gap:10px;width:min(400px,100%);box-sizing:border-box;margin-top:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:6px 8px 6px 14px;text-align:left}
@@ -78,8 +79,10 @@ button.sub{font-size:15px;padding:10px 26px;background:linear-gradient(#f3eee6,#
   <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
 </div>
 <div id="result" class="scr hidden">
-  <p id="rTitle"></p><p id="rTime"></p><p id="rRank"></p><p id="rMsg"></p>
+  <p id="rTitle"></p>
+  <img id="rimg" alt="結果の画像">
   <div class="best" id="bestR"></div>
+  <div class="row share"><button id="postBtn" class="xbtn">𝕏 結果をポスト</button><button id="saveBtn" class="sub">画像を保存</button></div>
   <div class="row"><button id="retryBtn">もう一回</button><button class="sub" id="titleBtn">タイトルへ</button></div>
   <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
 </div>
@@ -137,6 +140,7 @@ const CONFIG = {
   TAP_SEP: 0.26, MAX_TAPS: 3, MIN_GAP: 0.95,                                       // MIN_GAP:マークどうしの最小の距離                                                       // 押す攻撃どうしの最小の間（秒）・同時に出る数
   BGM_VOL: 0.5,
   FOLLOW_X: 'vyaPudzd1E54661',                    // 「作者をフォロー」ボタンのXアカウント
+  URL: 'https://nkworks-games.com/akeraremasen/', TAG: 'どこからでも開けられません', SNAP_T: 0.6, // シェア：ゲームのURL・ハッシュタグ・結果画像に使う場面（終わってから何秒後）
 };
 const P = CONFIG.PACK;
 
@@ -548,7 +552,7 @@ function reset(seed){
   clearAttacks(); for(const f of FX){f.m.removeFromParent();disposeObj(f.m)} FX.length=0;
   S.alive.fill(0); K.alive.fill(0); S.dirty=K.dirty=true;
   Object.assign(G,{state:'play',t:0,gauge:0,phase:-1,nextSpawn:CONFIG.FIRST_SPAWN,calm:0,hop:null,tears:[],shake:0,flash:0,pops:[],splats:[],endT:0,resultShown:false,finalDone:false,
-    stats:{perfect:0,dodge:0,hit:0},result:null,dent:null,wob:{x:0,y:0,vx:0,vy:0},banner:{title:'耐えろ！',sub:'120秒、開けられるな',t0:0}});
+    stats:{perfect:0,dodge:0,hit:0},result:null,snap:null,dent:null,wob:{x:0,y:0,vx:0,vy:0},banner:{title:'耐えろ！',sub:'120秒、開けられるな',t0:0}});
   setFace('normal'); G.labelDirty=true; pack.mesh.scale.set(1,1,1);
   ptrs.clear();
 }
@@ -978,7 +982,7 @@ function updateVisual(){
 // ===== [SEC:LOOP] =====
 let acc=0,last=performance.now(),manual=false,paused=false;
 function update(frameDt){ acc+=Math.min(frameDt,CONFIG.MAX_FRAME); while(acc>=CONFIG.FIXED){ tick(CONFIG.FIXED); acc-=CONFIG.FIXED; } }
-function render(){ updateVisual(); renderer.render(scene,cam); drawHUD(); bgmUpdate(); }
+function render(){ updateVisual(); renderer.render(scene,cam); drawHUD(); snapTick(); bgmUpdate(); }
 function frame(now){ if(!paused&&!manual) update((now-last)/1000); last=now; render(); requestAnimationFrame(frame); }
 function resize(){
   const W=innerWidth,H=innerHeight,dpr=Math.min(devicePixelRatio,2),asp=W/H,tanV=Math.tan(THREE.MathUtils.degToRad(cam.fov/2));
@@ -991,6 +995,49 @@ function resize(){
 addEventListener('resize',resize);
 document.addEventListener('visibilitychange',()=>{ if(document.hidden){ paused=true; for(const id of [...ptrs.keys()]) release(id); ptrs.clear(); if(actx) actx.suspend(); }
   else { paused=false; last=performance.now(); if(actx) actx.resume(); } });
+
+// ===== [SEC:SHARE] =====
+let resultCanvas=null;
+function snapTick(){ // 終わった少しあとの画面（3D＋上の表示）を結果画像用に撮っておく
+  if(G.snap||!((G.state==='burst'||G.state==='clear')&&G.endT>=CONFIG.SNAP_T)) return;
+  try{ const c=document.createElement('canvas'); c.width=glc.width; c.height=glc.height; const g=c.getContext('2d'); g.drawImage(glc,0,0); g.drawImage(hud,0,0,c.width,c.height); G.snap=c.toDataURL('image/jpeg',0.85); }catch(e){ G.snap='x'; }
+}
+function shareText(r){
+  return r.clear ? `しょうゆの袋になって、120秒 開けられなかった！ランク${r.rank} #${CONFIG.TAG}`
+                 : `しょうゆの袋になって ${r.t.toFixed(1)}秒 耐えたけど、${CONFIG.PHASES[r.phase].label}に開けられた… #${CONFIG.TAG}`;
+}
+function fitFont(g,t,w,size,maxW){ let s=size; do{ g.font=`${w} ${s}px ${F}`; s-=2; }while(g.measureText(t).width>maxW&&s>14); }
+function buildResultImage(r,snap){
+  return new Promise(resolve=>{
+    const W=1200,H=630,c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+    const grd=g.createLinearGradient(0,0,0,H); grd.addColorStop(0,'#4a2414'); grd.addColorStop(1,'#1c0c05'); g.fillStyle=grd; g.fillRect(0,0,W,H);
+    g.strokeStyle='#e9cfa6'; g.lineWidth=8; g.strokeRect(20,20,W-40,H-40);
+    g.setLineDash([14,10]); g.lineWidth=2; g.strokeRect(36,36,W-72,H-72); g.setLineDash([]);   // 切り取り線
+    g.fillStyle='#e9cfa6'; g.font=`900 26px ${F}`; g.textAlign='left'; g.textBaseline='middle'; g.fillText('✂',26,36);
+    const finish=img=>{
+      const px=64,py=64,pw=480,ph=502;
+      g.fillStyle='#fffaf0'; g.fillRect(px-8,py-8,pw+16,ph+16);
+      if(img){ const s=Math.max(pw/img.width,ph/img.height),sw=pw/s,sh=ph/s; g.drawImage(img,(img.width-sw)/2,(img.height-sh)/2,sw,sh,px,py,pw,ph); }
+      else { g.fillStyle='#2a0d04'; g.fillRect(px,py,pw,ph); }
+      const rx=590,mw=550; g.textAlign='left'; g.textBaseline='alphabetic';
+      g.fillStyle='#ffd66b'; fitFont(g,'どこからでも開けられません',900,44,mw); g.fillText('どこからでも開けられません',rx,118);
+      g.fillStyle='#fff'; g.font=`700 30px ${F}`; g.fillText('しょうゆの袋は',rx,180);
+      const num=r.clear?'120秒':`${r.t.toFixed(1)}秒`; g.font=`900 96px ${F}`; g.fillText(num,rx,280); const nw=g.measureText(num).width;
+      g.font=`800 38px ${F}`; g.fillText(r.clear?'耐えきった！':'で開いた…',rx+nw+12,276);
+      g.fillStyle='#ffe9c7'; g.font=`700 28px ${F}`;
+      g.fillText(r.clear?`ちぎれ度 ${Math.round(r.gauge)}%で守りきった`:`第${r.phase+1}段階「${CONFIG.PHASES[r.phase].label}」で開封`,rx,336);
+      g.fillText(`PERFECT ${r.perfect||0}回　よけた ${r.dodge||0}回`,rx,380);
+      g.fillStyle=r.clear?'#ffd66b':'#e9cfa6'; roundRectP(g,rx,412,mw,112,24); g.fill();
+      g.fillStyle='#3a1a08'; g.textAlign='center';
+      if(r.clear){ g.font=`900 64px ${F}`; g.fillText(`ランク ${r.rank}`,rx+mw/2,478); g.font=`700 20px ${F}`; fitFont(g,RANK_MSG[r.rank],700,22,mw-40); g.fillText(RANK_MSG[r.rank],rx+mw/2,510); }
+      else { const m=LOSE_MSG[r.phase]; fitFont(g,m,800,30,mw-40); g.fillText(m,rx+mw/2,478); }
+      g.fillStyle='rgba(255,255,255,.75)'; g.font=`500 21px ${F}`; g.textAlign='right'; g.fillText('nkworks-games.com/akeraremasen',W-56,H-52);
+      resolve(c);
+    };
+    if(snap&&snap!=='x'){ const im=new Image(); im.onload=()=>finish(im); im.onerror=()=>finish(null); im.src=snap; } else finish(null);
+  });
+}
+function roundRectP(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 
 // ===== [SEC:UI] =====
 const BEST_KEY='akeraremasen_best';
@@ -1005,16 +1052,22 @@ function bestText(){ const b=loadBest(); if(!b) return ''; return b.clear?`最�
 function showResult(){
   const r=G.result;
   $('rTitle').textContent=r.clear?'耐えきった！':'開いた…';
-  $('rTime').textContent=r.clear?'120秒、開けられなかった':`${r.t.toFixed(1)}秒 耐えた`;
-  $('rRank').textContent=r.clear?r.rank:''; $('rRank').classList.toggle('hidden',!r.clear);
-  $('rMsg').innerHTML=(r.clear?RANK_MSG[r.rank]:`第${r.phase+1}段階「${CONFIG.PHASES[r.phase].label}」で開封。<br>`+LOSE_MSG[r.phase])+`<br><small>PERFECT ${G.stats.perfect}回・よけた ${G.stats.dodge}回</small>`;
+  r.perfect=G.stats.perfect; r.dodge=G.stats.dodge;
   $('bestR').textContent=(r.newBest?'★ 最高記録 更新！　':'')+bestText();
+  $('rimg').removeAttribute('src'); resultCanvas=null;
+  buildResultImage(r,G.snap).then(c=>{ if(G.result!==r) return; resultCanvas=c; $('rimg').src=c.toDataURL('image/png'); });
   $('result').classList.remove('hidden');
 }
 function startGame(){ audioInit(); reset(); $('title').classList.add('hidden'); $('result').classList.add('hidden'); BGM.on=true; BGM.step=0; if(actx) BGM.next=actx.currentTime+0.05; }
 function toTitle(){ clearAttacks(); S.alive.fill(0); K.alive.fill(0); S.dirty=K.dirty=true; G.state='title'; G.tears=[]; G.splats=[]; setFace('normal'); G.labelDirty=true; pack.mesh.scale.set(1,1,1);
   $('result').classList.add('hidden'); $('title').classList.remove('hidden'); $('bestT').textContent=bestText(); }
 $('startBtn').onclick=startGame; $('retryBtn').onclick=startGame; $('titleBtn').onclick=toTitle;
+$('postBtn').onclick=()=>{ if(!G.result) return; window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText(G.result))+'&url='+encodeURIComponent(CONFIG.URL),'_blank','noopener'); };
+$('saveBtn').onclick=async()=>{ if(!resultCanvas||!G.result) return;
+  const blob=await new Promise(r=>resultCanvas.toBlob(r,'image/png')); if(!blob) return;
+  const file=new File([blob],'akeraremasen.png',{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],text:shareText(G.result)+' '+CONFIG.URL}); return; }catch(e){ if(e.name==='AbortError') return; } }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='akeraremasen.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000); };
 $('mute').onclick=()=>{ muted=!muted; if(master) master.gain.value=muted?0:0.8; $('mute').textContent=muted?'🔇':'🔊'; };
 $('bestT').textContent=bestText();
 document.querySelectorAll('.fbtn').forEach(a=>{ a.href='https://x.com/intent/follow?screen_name='+CONFIG.FOLLOW_X; a.textContent='𝕏 @'+CONFIG.FOLLOW_X; });
