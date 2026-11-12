@@ -1,0 +1,1299 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<title>飴細工やさん</title>
+<meta name="description" content="夜市の屋台で、ハサミ1本の飴細工。熱い飴が冷えて固まる前に、ハサミで切ってつまんで伸ばし、筆で色をぬって、お客さんの注文どおりの動物を作ろう。">
+<meta name="theme-color" content="#141228">
+<meta property="og:type" content="website">
+<meta property="og:title" content="飴細工やさん">
+<meta property="og:description" content="熱い飴が固まる前に、ハサミで切って、つまんで伸ばして、色をぬる。夜市の屋台で飴細工を作ろう。">
+<meta property="og:url" content="https://nkworks-games.com/ame-zaiku-yasan/">
+<meta property="og:image" content="https://nkworks-games.com/ame-zaiku-yasan/card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23221b44'/%3E%3Crect x='30' y='38' width='4' height='24' fill='%23d8b27a'/%3E%3Cellipse cx='25' cy='14' rx='4' ry='11' fill='%23ffd6e2'/%3E%3Cellipse cx='39' cy='14' rx='4' ry='11' fill='%23ffd6e2'/%3E%3Ccircle cx='32' cy='32' r='14' fill='%23fff6ec'/%3E%3Ccircle cx='27' cy='30' r='2' fill='%23222'/%3E%3Ccircle cx='37' cy='30' r='2' fill='%23222'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+<script>(function(){if(/(^|\.)nkworks-games\.com$/.test(location.hostname)){var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350';document.head.appendChild(s);}})();</script>
+<style>
+:root{
+  color-scheme:dark;
+  --pop:"Mochiy Pop One","Hiragino Maru Gothic ProN","M PLUS Rounded 1c","Yu Gothic",sans-serif;
+  --maru:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  --cream:#fff4e2; --ink:#2b1a12; --red:#e2483c; --gold:#ffc94d; --night:#141228;
+  --ad-h:50px;    /* 広告バナーの高さ */
+  --ad-gap:75px;  /* バナーとゲームの間（まちがって広告を押さないように、いつも75pxあける） */
+}
+html,body{margin:0;height:100%;background:#0b0918;color:#fff;overflow:hidden;overscroll-behavior:none;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;font-family:var(--maru)}
+#app{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);display:flex;align-items:center;justify-content:center}
+body.ad-on #app{bottom:calc(var(--ad-h) + var(--ad-gap) + env(safe-area-inset-bottom,0px))}
+#stage{position:relative;overflow:hidden;width:100%;height:100%;background:#141228;touch-action:none}
+#stage.dimmed:after{content:"";position:absolute;inset:0;background:rgba(10,8,24,.72);z-index:1}
+#c{position:absolute;left:0;top:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+#ui{position:absolute;left:0;top:0;width:360px;height:640px;transform-origin:0 0;pointer-events:none;z-index:2}
+#ui button,#ui input,#ui a,#ui .pe{pointer-events:auto}
+.hide{display:none!important}
+button{font-family:var(--maru);font-weight:800;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+/* 広告の帯：結果の画面の時だけ出す。帯の上ではゲームの操作は反応しない */
+#ad-zone{display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;height:var(--ad-h);padding-bottom:env(safe-area-inset-bottom,0px);background:#0a0816;box-shadow:0 -1px 0 rgba(255,255,255,.08);align-items:center;justify-content:center;touch-action:manipulation;-webkit-user-select:auto;user-select:auto}
+body.ad-on #ad-zone{display:flex}
+#ad-banner{width:320px;height:50px;max-height:50px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#ad-banner ins{display:inline-block;width:320px;height:50px}
+
+/* ---- HUD ---- */
+#hud{position:absolute;inset:0}
+.ib{position:absolute;left:8px;top:8px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:20px;line-height:36px;padding:0;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
+#chip{position:absolute;left:52px;top:9px;height:30px;padding:0 12px;border-radius:15px;background:rgba(255,244,226,.94);color:var(--ink);font-size:14px;font-weight:800;line-height:30px;white-space:nowrap}
+#gauge{position:absolute;left:52px;top:46px;width:200px;font-size:11px;color:#ffe9c9;text-shadow:0 1px 2px #000}
+#gauge .bar{height:10px;border-radius:5px;background:rgba(0,0,0,.5);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);overflow:hidden;margin-top:3px}
+#gFill{display:block;height:100%;width:100%;border-radius:5px;background:linear-gradient(90deg,#8fb7ff,#ffb24a 60%,#ff6a3d)}
+#gTemp{position:absolute;right:0;top:0;font-weight:800}
+#gauge.warn #gFill{animation:blink .5s infinite alternate}
+@keyframes blink{to{opacity:.35}}
+#mihon{position:absolute;right:8px;top:8px;width:92px;height:112px;border-radius:12px;box-shadow:inset 0 0 0 2px rgba(255,214,150,.75);font-size:11px;text-align:center;color:#ffe2b3}
+.pv{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:inherit;display:block}
+#mihon span{position:absolute;left:0;right:0;top:3px;font-weight:800}
+#mihon b{position:absolute;left:0;right:0;bottom:4px;font-size:12px;color:#fff}
+#hint{position:absolute;left:10px;right:10px;bottom:132px;text-align:center;font-size:12px;line-height:1.5;color:#fff;text-shadow:0 1px 3px #000,0 0 6px #000}
+#hint small{display:block;font-size:10.5px;color:#d9cbe9}
+#pal{position:absolute;left:8px;right:8px;bottom:84px;display:flex;justify-content:center;gap:5px}
+.sw{width:32px;height:32px;border-radius:50%;padding:0;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25),0 2px 0 rgba(0,0,0,.35);position:relative;font-size:10px;color:#333}
+.sw.on{transform:translateY(-4px);box-shadow:0 0 0 3px #fff,0 4px 0 rgba(0,0,0,.4)}
+.bar{display:flex}
+#bar1,#bar2{position:absolute;left:8px;right:8px;bottom:12px;height:64px;display:flex;gap:6px;align-items:stretch}
+.tb{flex:0 0 64px;border-radius:14px;background:rgba(255,244,226,.92);color:var(--ink);font-size:11.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.tb svg{width:28px;height:28px}
+.tb.on{background:#ffcf5a;box-shadow:0 0 0 3px #fff,0 4px 0 #9a5d10;transform:translateY(-2px)}
+.go{flex:1 1 auto;border-radius:32px;background:linear-gradient(#ff7a5a,#e2483c);color:#fff;font-size:17px;box-shadow:0 5px 0 #8f2717;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.go small{display:block;font-size:10.5px;font-weight:700;opacity:.92}
+#toast{position:absolute;left:0;right:0;top:170px;text-align:center;font-family:var(--pop);font-size:26px;color:#fff;text-shadow:0 3px 0 #b8362a,0 0 14px rgba(0,0,0,.6);opacity:0;transition:opacity .25s,transform .25s;transform:scale(.8)}
+#toast.on{opacity:1;transform:scale(1)}
+#toast small{display:block;font-family:var(--maru);font-size:13px;text-shadow:0 1px 3px #000}
+#snip{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;opacity:0;pointer-events:none}
+#snip.on{animation:snip .45s ease-out}
+@keyframes snip{0%{opacity:1;transform:scale(1.2) rotate(-20deg)}40%{opacity:1;transform:scale(1) rotate(10deg)}100%{opacity:0;transform:scale(.9) rotate(0)}}
+
+/* ---- 画面（タイトル・注文・結果など） ---- */
+.scr{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;pointer-events:auto;box-sizing:border-box}
+.scr.on{display:flex}
+.card{width:332px;margin-top:auto;margin-bottom:auto;background:linear-gradient(#fff8ec,#f6e6cc);color:var(--ink);border-radius:20px;padding:14px 14px 16px;box-sizing:border-box;box-shadow:0 10px 30px rgba(0,0,0,.5),inset 0 0 0 3px #e9c98f;text-align:center}
+.card h2{margin:0 0 6px;font-family:var(--pop);font-size:21px;font-weight:400;color:#b8362a}
+.btn{height:50px;padding:0 22px;border-radius:25px;font-size:17px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;white-space:nowrap}
+.b1{background:linear-gradient(#ff7a5a,#e2483c);color:#fff;box-shadow:0 5px 0 #8f2717}
+.b2{background:linear-gradient(#fffdf8,#efe2cc);color:var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.28)}
+.b3{background:#111;color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.4)}
+.sm{height:40px;font-size:14px;padding:0 16px}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+/* タイトル */
+#stage.tbg:after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(rgba(10,8,30,.75),rgba(10,8,30,0) 26%,rgba(10,8,30,0) 56%,rgba(10,8,30,.88) 70%)}
+#sTitle h1{margin:30px 0 0;font-family:var(--pop);font-weight:400;font-size:46px;line-height:1.1;color:var(--cream);text-shadow:0 4px 0 #b8362a,0 8px 20px rgba(0,0,0,.6);letter-spacing:1px}
+#sTitle .sub{margin:8px 0 0;font-size:13.5px;line-height:1.5;text-align:center;color:#ffe2b3;text-shadow:0 1px 3px #000}
+#sTitle .how{margin-top:auto;display:flex;gap:6px}
+#sTitle .how div{width:104px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:6px 4px;font-size:11px;line-height:1.4;text-align:center}
+#sTitle .how b{display:block;font-size:13.5px;color:#ffd66b;white-space:nowrap}
+#sTitle .btns{display:flex;flex-direction:column;gap:10px;margin-top:12px;width:280px}
+#sTitle .btns .btn{width:100%;flex-direction:column;gap:0;height:56px}
+#sTitle .btns .btn small{font-size:11px;font-weight:700;opacity:.9}
+#sTitle .foot{display:flex;gap:10px;align-items:center;margin:8px 0 0;font-size:12px}
+#best{font-size:12.5px;color:#ffd66b;margin-top:8px;min-height:1em;text-shadow:0 1px 2px #000}
+.tlink{color:#d9cbe9;font-size:12px}
+/* 注文 */
+.kidrow{display:flex;align-items:flex-end;gap:6px;margin-top:4px}
+.kid{width:96px;height:120px;flex:0 0 96px}
+.kid svg{width:100%;height:100%}
+.bub{position:relative;flex:1;background:#fff;border-radius:16px;padding:10px 10px;font-size:17px;font-weight:800;line-height:1.35;box-shadow:0 2px 0 rgba(0,0,0,.15);margin-bottom:46px;text-align:left}
+.bub:after{content:"";position:absolute;left:-10px;bottom:14px;border:8px solid transparent;border-right:12px solid #fff;border-left:0}
+.bub small{display:block;font-size:11.5px;color:#8a6a55;font-weight:700}
+#oPrev{width:200px;height:190px;margin:2px auto 0;border-radius:14px;position:relative;box-shadow:inset 0 0 0 2px #e0b878}
+#oPrev span{position:absolute;left:0;right:0;top:6px;font-size:12px;font-weight:800;color:#ffe2b3}
+#oTip{font-size:11.5px;line-height:1.55;color:#6b5040;margin:6px 0 8px;text-align:left;background:rgba(255,255,255,.6);border-radius:10px;padding:6px 8px}
+/* 結果 */
+#rHead{font-size:13px;font-weight:800;color:#8a6a55}
+.cmp{display:flex;gap:8px;justify-content:center;margin:6px 0}
+.cmp figure{margin:0;width:118px}
+.cmp img{width:118px;height:132px;object-fit:contain;border-radius:12px;background:radial-gradient(#3b2c5c,#1b1533)}
+.cmp figcaption{font-size:11.5px;font-weight:800;color:#8a6a55}
+.bk{margin:4px 8px 0;font-size:13px;text-align:left}
+.bk div{display:flex;align-items:center;gap:6px;margin:3px 0}
+.bk b{width:22px}
+.bk i{flex:1;height:10px;border-radius:5px;background:#e8d6b8;overflow:hidden;display:block}
+.bk i em{display:block;height:100%;background:linear-gradient(90deg,#ffb24a,#e2483c);border-radius:5px}
+.bk span{width:50px;text-align:right;font-weight:800}
+#rTotal{font-family:var(--pop);font-size:40px;color:#b8362a;line-height:1.1;margin:6px 0 2px}
+#rTotal small{font-size:16px}
+#rKid{display:flex;align-items:center;gap:6px}
+#rKid .kid{width:70px;height:88px;flex-basis:70px}
+#rKid .bub{margin-bottom:22px;font-size:15px}
+/* 最終・写真 */
+#fImg,#pImg{width:216px;height:270px;border-radius:12px;display:block;margin:6px auto;background:#1b1533;object-fit:contain}
+#fTotal{font-family:var(--pop);font-size:34px;color:#b8362a;line-height:1.15}
+#fRank{font-size:16px;font-weight:800;color:#6b3b1a}
+#fBest{font-size:12px;color:#8a6a55}
+#sName input{width:100%;box-sizing:border-box;height:46px;border-radius:12px;border:2px solid #d9b88a;font-size:17px;padding:0 12px;font-family:var(--maru);font-weight:800;color:var(--ink);background:#fff;margin:8px 0 12px;-webkit-user-select:text;user-select:text}
+.note{font-size:11.5px;color:#8a6a55;margin:6px 0 0}
+/* 作者をフォロー（タイトルと結果画面だけ。サイトのほかのゲームと同じ形） */
+.follow{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;box-sizing:border-box;margin-top:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:6px 8px 6px 14px;text-align:left;color:#fff}
+.follow>div{min-width:0}.follow p{margin:0}
+.follow .fl{font-size:13px;font-weight:800;line-height:1.3;white-space:nowrap}
+.follow .fs{display:none}
+.fbtn{flex-shrink:0;display:inline-block;padding:8px 10px;border-radius:999px;background:#000;color:#fff;border:1px solid #4a4f66;font-size:12.5px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #333;white-space:nowrap}
+.fbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #333}
+.card .follow{background:rgba(120,80,40,.07);border-color:#e3c897;color:var(--ink)}
+.card .follow .fs{color:#8a6a55}
+#sTitle .follow{width:300px;margin:8px 0 12px}
+</style>
+</head>
+<body>
+<div id="app"><div id="stage">
+<canvas id="c" tabindex="0"></canvas>
+<div id="ui">
+  <div id="hud" class="hide">
+    <button class="ib" id="bQuit" aria-label="やめる">×</button>
+    <div id="chip"></div>
+    <div id="gauge"><span>飴のやわらかさ</span><span id="gTemp">95℃</span><div class="bar"><i id="gFill"></i></div></div>
+    <div id="mihon"><canvas class="pv"></canvas><span>見本</span><b id="mName"></b></div>
+    <div id="hint"></div>
+    <div id="pal" class="hide"></div>
+    <div id="bar1">
+      <button class="tb" id="tCut"><svg viewBox="0 0 32 32"><circle cx="9" cy="24" r="4.5" fill="none" stroke="#c0392b" stroke-width="2.6"/><circle cx="23" cy="24" r="4.5" fill="none" stroke="#c0392b" stroke-width="2.6"/><path d="M12 20 L22 3 M20 20 L10 3" stroke="#555" stroke-width="2.6" stroke-linecap="round"/></svg>切る</button>
+      <button class="tb" id="tPull"><svg viewBox="0 0 32 32"><circle cx="11" cy="17" r="7" fill="#fff" stroke="#999" stroke-width="2"/><path d="M15 13 L27 5 M27 5 L21 5 M27 5 L26 11" stroke="#c0392b" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M5 27 Q9 22 13 25" stroke="#555" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>のばす</button>
+      <button class="go" id="bToPaint">色ぬりへ ▶<small>形はこれでOK</small></button>
+    </div>
+    <div id="bar2" class="hide">
+      <button class="tb" id="tBrush"><svg viewBox="0 0 32 32"><path d="M20 4 L28 12 L14 22 L10 18Z" fill="#c9a06a" stroke="#7a5530" stroke-width="1.6"/><path d="M10 18 L14 22 Q10 30 3 29 Q4 22 10 18Z" fill="#333"/></svg><span id="tBrushL">太い筆</span></button>
+      <button class="tb" id="tEye"><svg viewBox="0 0 32 32"><path d="M3 16 Q16 4 29 16 Q16 28 3 16Z" fill="#fff" stroke="#555" stroke-width="2"/><circle cx="16" cy="16" r="5" fill="#222"/><circle cx="18" cy="14" r="1.6" fill="#fff"/></svg>目</button>
+      <button class="tb" id="tUndo"><svg viewBox="0 0 32 32"><path d="M9 12 Q20 4 26 14 Q29 22 20 26" stroke="#555" stroke-width="2.8" fill="none" stroke-linecap="round"/><path d="M4 8 L10 15 L13 6Z" fill="#555"/></svg>もどす</button>
+      <button class="go" id="bDone">できた！<small id="bDoneS">お客さんにわたす</small></button>
+    </div>
+  </div>
+  <div id="toast"></div>
+  <svg id="snip" viewBox="0 0 32 32"><circle cx="9" cy="24" r="4.5" fill="#fff" stroke="#c0392b" stroke-width="2.6"/><circle cx="23" cy="24" r="4.5" fill="#fff" stroke="#c0392b" stroke-width="2.6"/><path d="M12 20 L22 3 M20 20 L10 3" stroke="#eee" stroke-width="3" stroke-linecap="round"/></svg>
+
+  <section class="scr on" id="sTitle">
+    <h1>飴細工やさん</h1>
+    <p class="sub">熱い飴が冷えて固まる前に、<br>切って・のばして・色をぬる</p>
+    <div class="how">
+      <div><b>✂ 切る</b>なぞると<br>出っぱりができる</div>
+      <div><b>のばす</b>つまんで<br>引っぱる</div>
+      <div><b>ぬる</b>筆で色と<br>目をつける</div>
+    </div>
+    <div class="btns">
+      <button class="btn b1" id="bQuest">屋台をひらく<small>お客さん5人の注文にこたえる</small></button>
+      <button class="btn b2" id="bFree">じゆうに作る<small>題名をつけて写真にできる</small></button>
+    </div>
+    <div id="best"></div>
+    <div class="foot"><button class="btn b3 sm" id="bMute">音：あり</button><a class="tlink" data-google-vignette="false" href="/games/ame-zaiku-yasan/">遊び方・ほかのゲーム ›</a></div>
+    <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
+  </section>
+
+  <section class="scr dim" id="sOrder">
+    <div class="card">
+      <div id="oNo" style="font-size:13px;font-weight:800;color:#8a6a55"></div>
+      <div class="kidrow"><div class="kid" id="oKid"></div><div class="bub"><span id="oLine"></span><small id="oName"></small></div></div>
+      <div id="oPrev" class="pe"><canvas class="pv"></canvas><span>見本</span></div>
+      <div id="oTip"></div>
+      <button class="btn b1" id="bMake">つくる！</button>
+    </div>
+  </section>
+
+  <section class="scr dim" id="sResult">
+    <div class="card">
+      <div id="rHead"></div>
+      <div id="rKid"><div class="kid" id="rKidF"></div><div class="bub" id="rLine"></div></div>
+      <div class="cmp"><figure><img id="rImgT" alt="見本"><figcaption>見本</figcaption></figure><figure><img id="rImgP" alt="あなたの飴細工"><figcaption>あなたの飴細工</figcaption></figure></div>
+      <div class="bk" id="rBk"></div>
+      <div id="rTotal"></div>
+      <button class="btn b1" id="bNext">つぎのお客さんへ ▶</button>
+    </div>
+  </section>
+
+  <section class="scr dim" id="sFinal">
+    <div class="card">
+      <h2>今夜の屋台、おしまい！</h2>
+      <div id="fTotal"></div>
+      <div id="fRank"></div>
+      <div id="fBest"></div>
+      <img id="fImg" alt="今夜作った飴細工">
+      <div class="row"><button class="btn b2 sm" id="fSave">画像を保存</button><button class="btn b3 sm" id="fX">Xでシェア</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn b1 sm" id="fAgain">もう一回</button><button class="btn b2 sm" id="fTitle">タイトルへ</button></div>
+      <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
+    </div>
+  </section>
+
+  <section class="scr dim" id="sName">
+    <div class="card">
+      <h2>題名をつけよう</h2>
+      <div class="note">屋台にかざって、写真にします</div>
+      <input id="nInput" class="pe" maxlength="16" placeholder="例：ぼくのりゅう" autocomplete="off">
+      <div class="row"><button class="btn b1" id="nGo">屋台にかざる</button></div>
+    </div>
+  </section>
+
+  <section class="scr dim" id="sPhoto">
+    <div class="card">
+      <h2 id="pTitle"></h2>
+      <img id="pImg" alt="作った飴細工の写真">
+      <div class="row"><button class="btn b2 sm" id="pSave">画像を保存</button><button class="btn b3 sm" id="pX">Xに投稿</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn b1 sm" id="pAgain">もう一つ作る</button><button class="btn b2 sm" id="pTitleB">タイトルへ</button></div>
+      <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
+    </div>
+  </section>
+
+  <section class="scr dim" id="sQuit">
+    <div class="card">
+      <h2>作るのをやめる？</h2>
+      <div class="note" style="margin-bottom:12px">タイトルにもどります</div>
+      <div class="row"><button class="btn b2" id="qNo">つづける</button><button class="btn b1" id="qYes">やめる</button></div>
+    </div>
+  </section>
+</div>
+</div></div>
+<!-- ▼広告バナーの場所（画面のいちばん下の帯）
+     ・結果の画面（お客さんごとの採点・最後の結果・自由モードの写真）の時だけ出ます。飴を作っている間は出しません
+     ・帯の高さは50px。ゲームとの間は いつも75pxあけてあります
+     ・ゲームの操作（ボタン・タップ）は、この帯の上では反応しません -->
+<div id="ad-zone"><div id="ad-banner"></div></div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// ===== [SEC:CONFIG] =====
+// 調整する数値はここにまとめています
+const CONFIG = {
+  COOL_TIME: 60,          // 飴が固まるまでの秒数（目安）
+  T_START: 95, T_SOLID: 55, T_AIR: 25,   // 飴の温度（℃）：はじめ・固まる温度・まわりの空気
+  SOFT_POW: 0.8,          // やわらかさの減り方（大きいほど早めに硬くなる）
+  BODY_DETAIL: 26,        // 飴の細かさ（大きいほどなめらか・重い）
+  PULL_RADIUS: 0.42,      // 体をつまんだ時に一緒に動く範囲
+  PULL_MAX_STEP: 0.16,    // 1回の動きで伸びる最大
+  PULL_LIMIT: 1.7,        // つまんだ所が元の位置から離れられる最大
+  CUT_LEN_MIN: 0.2, CUT_LEN_MAX: 0.48,  // 切った時にできる出っぱりの長さ
+  CUT_WIDTH: 0.23,        // 出っぱりの太さ
+  CUT_LIFT: 0.6,          // 出っぱりが表面から起き上がる角度（ラジアン）
+  CUT_DENT: 0.06,         // 切った所のへこみ
+  APP_MAX_LEN: 1.75,      // 出っぱりを伸ばせる最大の長さ
+  APP_MIN_W: 0.45,        // 伸ばした時に細くなる下限（元の太さに対する割合）
+  APP_THIN: 0.35,         // 伸ばした時の細くなりやすさ（0で細くならない）
+  APP_FLAT: 0.45,         // 出っぱりの平たさ（1で丸、小さいほど平ら）
+  APP_BEND: 0.42,         // 伸ばした時のしなり具合
+  MAX_APPS: 24,           // 切れる回数の上限
+  BRUSH_BIG: 0.3, BRUSH_SMALL: 0.085,  // 筆の太さ
+  PAINT_STR: 0.7,         // 1回なぞった時の色の濃さ
+  EYE_R: 0.058, MAX_EYES: 6,
+  ZOOM_MIN: 0.7, ZOOM_MAX: 1.7,
+  ROT_SPEED: 0.012,
+  // 採点（形60・色25・目15）
+  SHAPE_PTS: 60, COLOR_PTS: 25, EYE_PTS: 15,
+  SHAPE_FULL: 0.72,       // 形（輪郭）：見本とのずれがこの割合だけ小さくなったら満点
+  SIL_MARGIN: 0.015,      // 形（輪郭）のゆとり
+  PART_OK: 0.25, PART_ZERO: 1.2,  // 出っぱり（耳・ひれなど）の位置のずれ：これ以内は満点／これ以上は0
+  PART_EXTRA: 0.05,       // 見本より出っぱりが多い時、1つにつき引く割合
+  COLOR_TOL: 78,          // 色が「合っている」とみなす近さ（0〜441）
+  COLOR_WHITE_W: 0.06,    // 白い所の色の重み（白はぬらなくても合うので軽くする）
+  EYE_OK: 0.14, EYE_ZERO: 0.62,  // 目の位置のずれ：これ以内は満点／これ以上は0点
+  EYE_EXTRA: 3,           // 目が多すぎる時、1つにつき引く点
+  ORDERS: ['hiyoko', 'usagi', 'neko', 'kingyo', 'ryu'],
+  FOLLOW_X: 'vyaPudzd1E54661',   // 「作者をフォロー」ボタンのXアカウント
+};
+const PALETTE = [
+  { name: '赤', hex: 0xe33b3b }, { name: '桃', hex: 0xf58fb0 }, { name: '橙', hex: 0xf39223 },
+  { name: '黄', hex: 0xf6cf2e }, { name: '緑', hex: 0x3fae4f }, { name: '青', hex: 0x3b82d9 },
+  { name: '紫', hex: 0x8a55c9 }, { name: '黒', hex: 0x2a2a2a }, { name: 'けす', hex: 0xffffff },
+];
+const C = { red: 0xe33b3b, pink: 0xf58fb0, orange: 0xf39223, yellow: 0xf6cf2e, green: 0x3fae4f, black: 0x2a2a2a };
+
+// ===== [SEC:UTIL] =====
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const IS_SITE = /(^|\.)nkworks-games\.com$/.test(location.hostname);
+const GAME_URL = 'https://nkworks-games.com/ame-zaiku-yasan/';
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+};
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+// ===== [SEC:AUDIO] =====
+let AC = null, MUTE = LS.get('az_mute', false), NOISE = null;
+function au() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+  if (AC && AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function tone(f0, f1, dur, type = 'sine', vol = 0.15, delay = 0) {
+  if (MUTE || !AC) return;
+  const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur + 0.03);
+}
+function noise(dur, freq, q, vol, delay = 0) {
+  if (MUTE || !AC) return;
+  if (!NOISE) { const b = AC.createBuffer(1, AC.sampleRate * 0.5, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; NOISE = b; }
+  const t = AC.currentTime + delay, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = NOISE; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f).connect(g).connect(AC.destination); s.start(t); s.stop(t + dur + 0.03);
+}
+const SFX = {
+  snip() { noise(0.05, 5200, 3, 0.35); tone(2600, 1800, 0.06, 'triangle', 0.07); noise(0.04, 6400, 4, 0.25, 0.07); tone(3000, 2100, 0.05, 'triangle', 0.05, 0.07); },
+  pull() { tone(300 + Math.random() * 90, 520, 0.12, 'sine', 0.045); },
+  brush() { noise(0.08, 1800, 0.7, 0.05); },
+  eye() { tone(700, 1300, 0.08, 'sine', 0.13); },
+  crack() { noise(0.09, 3000, 1, 0.4); tone(180, 90, 0.12, 'square', 0.04); },
+  tap() { tone(880, 0, 0.05, 'sine', 0.07); },
+  give() { [784, 988, 1175].forEach((f, i) => tone(f, 0, 0.25, 'triangle', 0.11, i * 0.09)); },
+  great() { [659, 784, 988, 1319].forEach((f, i) => tone(f, 0, 0.3, 'triangle', 0.12, i * 0.1)); },
+  meh() { tone(330, 300, 0.3, 'sine', 0.09); tone(262, 247, 0.4, 'sine', 0.09, 0.25); },
+};
+
+// ===== [SEC:SCENE] =====
+const canvas = $('c'), stage = $('stage'), ui = $('ui');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+const ENV = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+
+function addLights(sc) {
+  sc.environment = ENV; sc.environmentIntensity = 0.55;
+  sc.add(new THREE.HemisphereLight(0x8f84ff, 0x40240f, 0.7));
+  const key = new THREE.DirectionalLight(0xffe0b5, 2.3); key.position.set(-3, 4, 5); sc.add(key);
+  const rim = new THREE.DirectionalLight(0xff8a66, 1.5); rim.position.set(3.5, 2, -4); sc.add(rim);
+  const fill = new THREE.DirectionalLight(0xb9a8ff, 0.6); fill.position.set(4, -1, 3); sc.add(fill);
+}
+function canvasTex(w, h, draw) { const cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d'), w, h); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; }
+const GLOW = canvasTex(64, 64, (x, w) => { const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, w); });
+
+const scene = new THREE.Scene();
+scene.background = canvasTex(8, 256, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#0a0820'); g.addColorStop(0.5, '#25163d'); g.addColorStop(0.8, '#3a1f2a'); g.addColorStop(1, '#2a160e'); x.fillStyle = g; x.fillRect(0, 0, w, h); });
+addLights(scene);
+
+const deco = new THREE.Group(); scene.add(deco);
+(() => {
+  const r = rng(7), cols = [0xffb347, 0xff6a4d, 0xffd27a, 0xff8fb0, 0xffe7a8];
+  for (let i = 0; i < 46; i++) {       // 遠くの屋台の明かり（ぼけた光）
+    const m = new THREE.SpriteMaterial({ map: GLOW, color: cols[i % cols.length], transparent: true, opacity: 0.25 + r() * 0.45, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+    const s = new THREE.Sprite(m); const sc = 0.6 + r() * 1.6; s.scale.set(sc, sc, 1);
+    s.position.set((r() - 0.5) * 16, -2.6 + r() * 7, -9 - r() * 8); deco.add(s);
+  }
+  const lanGeo = new THREE.SphereGeometry(0.42, 24, 16); lanGeo.scale(1, 1.22, 1);
+  const capGeo = new THREE.CylinderGeometry(0.2, 0.22, 0.12, 16);
+  const capMat = new THREE.MeshStandardMaterial({ color: 0x1a1210, roughness: 0.6 });
+  const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 9, 4), capMat); wire.rotation.z = Math.PI / 2; wire.position.set(0, 3.55, -3.6); deco.add(wire);
+  for (let i = 0; i < 6; i++) {        // ちょうちん
+    const g = new THREE.Group(), red = i % 2 ? 0xff5a2e : 0xff3d2e;
+    const body = new THREE.Mesh(lanGeo, new THREE.MeshStandardMaterial({ color: red, emissive: red, emissiveIntensity: 1.5, roughness: 0.7 }));
+    const t = new THREE.Mesh(capGeo, capMat); t.position.y = 0.52; const b = t.clone(); b.position.y = -0.52;
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0xff6a3a, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.scale.set(2.3, 2.3, 1);
+    g.add(body, t, b, glow); g.position.set(-3.75 + i * 1.5, 3.0 + (i % 2) * 0.12, -3.6); deco.add(g);
+  }
+  // 屋台の台と、飴を刺すわら束
+  const wood = new THREE.Mesh(new THREE.BoxGeometry(40, 0.3, 3.2), new THREE.MeshStandardMaterial({ color: 0x8a5a33, roughness: 0.75 }));
+  wood.position.set(0, -2.95, 0.2); deco.add(wood);
+  const strawTex = canvasTex(256, 64, (x, w, h) => { x.fillStyle = '#c9a04e'; x.fillRect(0, 0, w, h); const q = rng(3); for (let i = 0; i < 260; i++) { x.strokeStyle = `hsl(${40 + q() * 12},${55 + q() * 20}%,${45 + q() * 25}%)`; x.lineWidth = 1 + q() * 1.5; const xx = q() * w; x.beginPath(); x.moveTo(xx, 0); x.lineTo(xx + (q() - 0.5) * 6, h); x.stroke(); } });
+  strawTex.wrapS = THREE.RepeatWrapping; strawTex.repeat.set(3, 1);
+  const straw = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.7, 1.0, 28), new THREE.MeshStandardMaterial({ map: strawTex, roughness: 0.9 }));
+  straw.position.set(0, -2.3, 0); deco.add(straw);
+  const rope = new THREE.Mesh(new THREE.TorusGeometry(0.66, 0.05, 8, 32), new THREE.MeshStandardMaterial({ color: 0x6b3a1e, roughness: 0.8 }));
+  rope.rotation.x = Math.PI / 2; rope.position.set(0, -2.35, 0); deco.add(rope);
+})();
+
+const camera = new THREE.PerspectiveCamera(30, 360 / 640, 0.1, 80);
+const CAM = { yaw: 0, pitch: 0.12, zoom: 1, ty: -0.2 };
+const holder = new THREE.Group(); scene.add(holder);   // 棒ごと回す入れ物
+function updateCamera() {
+  const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const D = Math.max(1.95 / (t * Math.min(camera.aspect, 360 / LH)), 3.0 / t) / CAM.zoom;
+  camera.position.set(0, CAM.ty + Math.sin(CAM.pitch) * D, Math.cos(CAM.pitch) * D);
+  camera.lookAt(0, CAM.ty, 0);
+  holder.rotation.y = CAM.yaw;
+}
+
+// 見本を小さく見せるための別の場面
+const pScene = new THREE.Scene(); addLights(pScene);
+const pCam = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
+const pHolder = new THREE.Group(); pScene.add(pHolder);
+// 写真用の場面
+const photoScene = new THREE.Scene(); addLights(photoScene);
+const photoCam = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
+
+// 湯気
+const steam = [];
+(() => { for (let i = 0; i < 14; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0xffffff, transparent: true, opacity: 0, depthWrite: false })); s.userData.t = i / 14; holder.add(s); steam.push(s); } })();
+
+// ===== [SEC:CANDY] =====
+const BASE_GEO = (() => {
+  let g = new THREE.IcosahedronGeometry(1, CONFIG.BODY_DETAIL);
+  g.deleteAttribute('normal'); g.deleteAttribute('uv'); g = mergeVertices(g);
+  const p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, p.getY(i) * 1.04);
+  return g;
+})();
+const STICK_GEO = (() => { const g = new THREE.CylinderGeometry(0.04, 0.046, 2.1, 10); g.translate(0, -1.55, 0); return g; })();
+const STICK_MAT = new THREE.MeshStandardMaterial({ color: 0xdcb780, roughness: 0.65 });
+const EYE_GEO = (() => { const g = new THREE.SphereGeometry(1, 16, 12); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3).fill(0.01), 3)); return g; })();
+const EYE_MAT = new THREE.MeshPhysicalMaterial({ color: 0x161616, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.05 });
+const HOT = new THREE.Color(0xffe2bd), COLD = new THREE.Color(0xfff6ec), WARM = new THREE.Color(0xff9a3c);
+function candyMat() {
+  return new THREE.MeshPhysicalMaterial({ color: COLD.clone(), vertexColors: true, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.12, sheen: 0.4, sheenColor: new THREE.Color(0xffffff), sheenRoughness: 0.5 });
+}
+const AS = 14, AR = 12, APP_NV = (AS + 1) * AR + 1;
+const APP_INDEX = (() => {
+  const idx = [];
+  for (let s = 0; s < AS; s++) for (let j = 0; j < AR; j++) {
+    const a = s * AR + j, b = s * AR + (j + 1) % AR, c = (s + 1) * AR + j, d = (s + 1) * AR + (j + 1) % AR;
+    idx.push(a, b, c, b, d, c);
+  }
+  const tip = (AS + 1) * AR; for (let j = 0; j < AR; j++) idx.push(AS * AR + j, AS * AR + (j + 1) % AR, tip);
+  return idx;
+})();
+const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _e = new THREE.Vector3();
+
+// 切ってできた出っぱり（耳・ひれ・しっぽ など）
+class App {
+  constructor(c, idx, dir, L, w, wide, flat) {
+    this.c = c; this.idx = idx;
+    this.o1 = dir.clone().multiplyScalar(L * 0.5); this.o2 = dir.clone().multiplyScalar(L);
+    this.L0 = L; this.w0 = w; this.wide = wide.clone().normalize(); this.flat = flat;
+    const g = new THREE.BufferGeometry(); g.setIndex(APP_INDEX);
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(APP_NV * 3), 3));
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(APP_NV * 3).fill(1), 3));
+    this.mesh = new THREE.Mesh(g, c.mat); this.mesh.userData.app = this; c.group.add(this.mesh);
+  }
+  rebuild() {
+    const c = this.c, B = c.vpos(this.idx, new THREE.Vector3()), n = c.vnorm(this.idx, new THREE.Vector3());
+    B.addScaledVector(n, -0.07);
+    const L = this.o2.length();
+    const w = Math.max(this.w0 * Math.pow(this.L0 / Math.max(L, this.L0), CONFIG.APP_THIN), this.w0 * CONFIG.APP_MIN_W);
+    const p = this.mesh.geometry.attributes.position.array;
+    const P = _a, T = _b, side = _c, up = _d;
+    for (let s = 0; s <= AS; s++) {
+      const t = s / AS, u = 1 - t;
+      P.copy(B).addScaledVector(this.o1, 2 * u * t).addScaledVector(this.o2, t * t);
+      T.copy(this.o1).multiplyScalar(2 * u).addScaledVector(_e.copy(this.o2).sub(this.o1), 2 * t);
+      if (T.lengthSq() < 1e-9) T.copy(n); T.normalize();
+      side.copy(this.wide).addScaledVector(T, -this.wide.dot(T));
+      if (side.lengthSq() < 1e-5) { side.set(1, 0, 0).addScaledVector(T, -T.x); if (side.lengthSq() < 1e-5) side.set(0, 0, 1).addScaledVector(T, -T.z); }
+      side.normalize(); up.crossVectors(T, side);
+      let r = w * (1 - 0.45 * t) * Math.sqrt(Math.max(0, 1 - Math.pow(t, 4))) + w * 0.04; if (t < 0.16) r *= 1 + 0.55 * (1 - t / 0.16);
+      for (let j = 0; j < AR; j++) {
+        const an = j / AR * Math.PI * 2, cs = Math.cos(an) * r, sn = Math.sin(an) * r * this.flat, k = (s * AR + j) * 3;
+        p[k] = P.x + side.x * cs + up.x * sn; p[k + 1] = P.y + side.y * cs + up.y * sn; p[k + 2] = P.z + side.z * cs + up.z * sn;
+      }
+      if (s === AS) { const k = (AS + 1) * AR * 3, tp = w * 0.03; p[k] = P.x + T.x * tp; p[k + 1] = P.y + T.y * tp; p[k + 2] = P.z + T.z * tp; }
+    }
+    const g = this.mesh.geometry; g.attributes.position.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere();
+  }
+  dispose() { this.mesh.geometry.dispose(); }
+}
+
+const ray = new THREE.Raycaster();
+class Candy {
+  constructor() {
+    this.mat = candyMat();
+    this.group = new THREE.Group();
+    const g = BASE_GEO.clone(), n = g.attributes.position.count;
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
+    g.computeVertexNormals(); g.computeBoundingSphere();
+    this.body = new THREE.Mesh(g, this.mat); this.group.add(this.body);
+    this.stick = new THREE.Mesh(STICK_GEO, STICK_MAT); this.stick.userData.stick = true; this.group.add(this.stick);
+    this.apps = []; this.eyes = []; this.dirty = false; this.pw = null; this.pullAcc = new THREE.Vector3();
+  }
+  get P() { return this.body.geometry.attributes.position; }
+  vpos(i, o) { return o.fromBufferAttribute(this.P, i); }
+  vnorm(i, o) { return o.fromBufferAttribute(this.body.geometry.attributes.normal, i); }
+  nearestVert(face, pt) { let best = face.a, bd = 1e9; for (const k of [face.a, face.b, face.c]) { const d = this.vpos(k, _a).distanceToSquared(pt); if (d < bd) { bd = d; best = k; } } return best; }
+  beginPull(pt, R = CONFIG.PULL_RADIUS) {
+    const P = this.P, list = [], R2 = R * R;
+    for (let i = 0; i < P.count; i++) { const d2 = _a.fromBufferAttribute(P, i).distanceToSquared(pt); if (d2 < R2 * 4) { const w = Math.exp(-d2 / R2 * 2.2); if (w > 0.008) list.push(i, w); } }
+    this.pw = list; this.pullAcc.set(0, 0, 0);
+  }
+  pullBy(d) {
+    if (!this.pw) return 0;
+    const L = d.length(); if (L > CONFIG.PULL_MAX_STEP) d.multiplyScalar(CONFIG.PULL_MAX_STEP / L);
+    const acc = _e.copy(this.pullAcc).add(d);
+    if (acc.length() > CONFIG.PULL_LIMIT) { acc.setLength(CONFIG.PULL_LIMIT); d.copy(acc).sub(this.pullAcc); }
+    this.pullAcc.copy(acc);
+    const a = this.P.array, l = this.pw;
+    for (let k = 0; k < l.length; k += 2) { const i = l[k] * 3, w = l[k + 1]; a[i] += d.x * w; a[i + 1] += d.y * w; a[i + 2] += d.z * w; }
+    this.P.needsUpdate = true; this.dirty = true; return d.length();
+  }
+  endPull() { this.pw = null; }
+  dent(pt, n, amt = CONFIG.CUT_DENT, R = 0.16) {
+    const a = this.P.array, R2 = R * R;
+    for (let i = 0; i < a.length; i += 3) { const dx = a[i] - pt.x, dy = a[i + 1] - pt.y, dz = a[i + 2] - pt.z, d2 = dx * dx + dy * dy + dz * dz; if (d2 < R2 * 4) { const w = Math.exp(-d2 / R2 * 2) * amt; a[i] -= n.x * w; a[i + 1] -= n.y * w; a[i + 2] -= n.z * w; } }
+    this.P.needsUpdate = true; this.dirty = true;
+  }
+  addApp(idx, dir, L, w, wide, flat, o = {}) {
+    const ap = new App(this, idx, dir, L, w, wide, flat);
+    if (o.bend) { ap.o2.add(o.bend); ap.o1.addScaledVector(o.bend, 0.35); }
+    if (o.mid) ap.o1.add(o.mid);
+    ap.rebuild(); this.apps.push(ap); return ap;
+  }
+  update() {
+    if (!this.dirty) return;
+    const g = this.body.geometry; g.computeVertexNormals(); g.computeBoundingSphere();
+    for (const ap of this.apps) ap.rebuild();
+    this.dirty = false;
+  }
+  paint(pt, r, col, str) {
+    const r2 = r * r;
+    const run = (pa, ca) => {
+      const p = pa.array, c = ca.array; let ch = false;
+      for (let i = 0; i < p.length; i += 3) {
+        const dx = p[i] - pt.x, dy = p[i + 1] - pt.y, dz = p[i + 2] - pt.z, d2 = dx * dx + dy * dy + dz * dz;
+        if (d2 < r2) { const w = str * Math.min(1, 1.6 * (1 - d2 / r2)); c[i] += (col.r - c[i]) * w; c[i + 1] += (col.g - c[i + 1]) * w; c[i + 2] += (col.b - c[i + 2]) * w; ch = true; }
+      }
+      if (ch) ca.needsUpdate = true;
+    };
+    run(this.P, this.body.geometry.attributes.color);
+    for (const ap of this.apps) run(ap.mesh.geometry.attributes.position, ap.mesh.geometry.attributes.color);
+  }
+  addEye(pt, n) {
+    const m = new THREE.Mesh(EYE_GEO, EYE_MAT);
+    m.scale.set(CONFIG.EYE_R, CONFIG.EYE_R, CONFIG.EYE_R * 0.62);
+    m.quaternion.setFromUnitVectors(V(0, 0, 1), n.clone().normalize());
+    m.position.copy(pt).addScaledVector(n, 0.004);
+    this.group.add(m); this.eyes.push(m); return m;
+  }
+  colorSnap() { return { b: this.body.geometry.attributes.color.array.slice(), a: this.apps.map(ap => ap.mesh.geometry.attributes.color.array.slice()), e: this.eyes.length }; }
+  colorRestore(s) {
+    this.body.geometry.attributes.color.array.set(s.b); this.body.geometry.attributes.color.needsUpdate = true;
+    this.apps.forEach((ap, i) => { if (s.a[i]) { ap.mesh.geometry.attributes.color.array.set(s.a[i]); ap.mesh.geometry.attributes.color.needsUpdate = true; } });
+    while (this.eyes.length > s.e) this.group.remove(this.eyes.pop());
+  }
+  // --- 見本づくり用 ---
+  surf(dir) {
+    this.update(); this.group.updateMatrixWorld(true);
+    let h = null, d = null;
+    for (let k = 0; k < 6 && !h; k++) {   // 辺の上をちょうど通ると当たらないことがあるので、少しずらしてやり直す
+      d = dir.clone().normalize().add(V(0.0007 * k + 0.00013, -0.0005 * k, 0.0003 * k)).normalize();
+      const o = this.group.localToWorld(d.clone().multiplyScalar(8));
+      ray.set(o, d.clone().negate().transformDirection(this.group.matrixWorld));
+      h = ray.intersectObject(this.body, false)[0];
+    }
+    const pt = this.group.worldToLocal(h.point.clone());
+    return { pt, n: h.face.normal.clone(), idx: this.nearestVert(h.face, pt) };
+  }
+  pullDir(dir, delta, R) {
+    const s = this.surf(dir); this.beginPull(s.pt, R);
+    const steps = Math.ceil(delta.length() / 0.1), st = delta.clone().divideScalar(steps);
+    for (let i = 0; i < steps; i++) this.pullBy(st.clone());
+    this.endPull(); this.update();
+  }
+  cutDir(dir, d, L, w, o = {}) {
+    const s = this.surf(dir); d = d.clone().normalize();
+    let wide = o.wide ? o.wide.clone() : new THREE.Vector3().crossVectors(d, s.n);
+    if (wide.lengthSq() < 1e-4) wide = V(1, 0, 0);
+    return this.addApp(s.idx, d, L, w, wide, o.flat ?? CONFIG.APP_FLAT, o);
+  }
+  paintAll(hex) { const c = new THREE.Color(hex); const ca = this.body.geometry.attributes.color; for (let i = 0; i < ca.count; i++) ca.setXYZ(i, c.r, c.g, c.b); ca.needsUpdate = true; this.apps.forEach((_, i) => this.paintApp(i, hex)); }
+  paintApp(i, hex) { const c = new THREE.Color(hex), ca = this.apps[i].mesh.geometry.attributes.color; for (let k = 0; k < ca.count; k++) ca.setXYZ(k, c.r, c.g, c.b); ca.needsUpdate = true; }
+  eyeDir(dir) { const s = this.surf(dir); this.addEye(s.pt, s.n); }
+  dispose() { this.body.geometry.dispose(); this.apps.forEach(ap => ap.dispose()); this.mat.dispose(); }
+}
+
+// ===== [SEC:TARGETS] =====
+// お題の見本。前（顔）が +Z、上が +Y
+const TARGETS = {
+  hiyoko: { name: 'ひよこ', kid: 0, line: 'ひよこ ください！', full: 0.66, build(c) {
+    c.pullDir(V(0, 1, 0.3), V(0, 0.1, 0.05), 0.55);
+    c.cutDir(V(0, 0.12, 1), V(0, -0.05, 1), 0.3, 0.13, { wide: V(1, 0, 0), flat: 0.75 });
+    c.cutDir(V(1, -0.12, -0.15), V(0.5, 0.15, -0.85), 0.44, 0.2, { flat: 0.35 });
+    c.cutDir(V(-1, -0.12, -0.15), V(-0.5, 0.15, -0.85), 0.44, 0.2, { flat: 0.35 });
+    c.cutDir(V(0, 0.25, -1), V(0, 0.6, -0.8), 0.3, 0.15, { wide: V(1, 0, 0), flat: 0.4 });
+    c.paintAll(C.yellow); c.paintApp(0, C.orange);
+    c.eyeDir(V(0.33, 0.3, 0.89)); c.eyeDir(V(-0.33, 0.3, 0.89));
+  } },
+  usagi: { name: 'うさぎ', kid: 1, line: 'うさぎ つくって！', full: 0.7, build(c) {
+    c.pullDir(V(0, 1, 0), V(0, 0.22, 0), 0.95);
+    c.cutDir(V(0.2, 0.97, 0.06), V(0.12, 1, -0.2), 1.25, 0.25, { wide: V(1, 0, 0), flat: 0.3, bend: V(0.07, 0, -0.16) });
+    c.cutDir(V(-0.2, 0.97, 0.06), V(-0.12, 1, -0.2), 1.25, 0.25, { wide: V(1, 0, 0), flat: 0.3, bend: V(-0.07, 0, -0.16) });
+    c.cutDir(V(0, -0.35, -1), V(0, 0, -1), 0.16, 0.15, { flat: 0.9 });
+    c.paintApp(0, C.pink); c.paintApp(1, C.pink);
+    c.eyeDir(V(0.34, 0.42, 0.84)); c.eyeDir(V(-0.34, 0.42, 0.84));
+  } },
+  neko: { name: 'ねこ', kid: 2, line: 'ねこちゃんが いい！', full: 0.7, build(c) {
+    c.cutDir(V(0.55, 0.82, 0.1), V(0.5, 1, 0.05), 0.45, 0.25, { wide: V(1, -0.5, 0), flat: 0.4 });
+    c.cutDir(V(-0.55, 0.82, 0.1), V(-0.5, 1, 0.05), 0.45, 0.25, { wide: V(1, 0.5, 0), flat: 0.4 });
+    c.cutDir(V(0, -0.45, -0.9), V(0, 0.2, -1), 0.9, 0.12, { flat: 0.85, bend: V(0, 0.8, 0.15), mid: V(0, -0.05, -0.1) });
+    c.paintAll(C.orange);
+    c.eyeDir(V(0.34, 0.33, 0.88)); c.eyeDir(V(-0.34, 0.33, 0.88));
+  } },
+  kingyo: { name: '金魚', kid: 3, line: '金魚 ください！', full: 0.68, build(c) {
+    c.pullDir(V(0, 0, 1), V(0, 0, 0.32), 0.7);
+    c.pullDir(V(0, 0, -1), V(0, 0, -0.26), 0.6);
+    c.cutDir(V(0, 0.12, -1), V(0, 0.6, -0.8), 0.9, 0.33, { wide: V(0, 0.8, 0.6), flat: 0.22, bend: V(0, 0.08, -0.1) });
+    c.cutDir(V(0, -0.12, -1), V(0, -0.5, -0.86), 0.85, 0.33, { wide: V(0, 0.86, -0.5), flat: 0.22 });
+    c.cutDir(V(0, 1, -0.15), V(0, 0.75, -0.66), 0.5, 0.3, { wide: V(0, 0.66, 0.75), flat: 0.22 });
+    c.cutDir(V(0.85, -0.45, 0.3), V(0.7, -0.5, -0.5), 0.36, 0.17, { flat: 0.3 });
+    c.cutDir(V(-0.85, -0.45, 0.3), V(-0.7, -0.5, -0.5), 0.36, 0.17, { flat: 0.3 });
+    c.paintAll(C.red);
+    c.eyeDir(V(0.55, 0.28, 0.79)); c.eyeDir(V(-0.55, 0.28, 0.79));
+  } },
+  ryu: { name: 'りゅう', kid: 4, line: 'りゅう…できる？', full: 0.6, build(c) {
+    c.pullDir(V(0, 0.42, 1), V(0, 0.08, 0.6), 0.5);
+    c.cutDir(V(0.35, 1, -0.25), V(0.3, 0.6, -0.75), 0.7, 0.11, { flat: 0.8, bend: V(0, 0.2, 0) });
+    c.cutDir(V(-0.35, 1, -0.25), V(-0.3, 0.6, -0.75), 0.7, 0.11, { flat: 0.8, bend: V(0, 0.2, 0) });
+    c.cutDir(V(0.22, 0.38, 1), V(1, 0.05, 0.25), 0.75, 0.05, { flat: 1, bend: V(-0.05, -0.3, -0.2) });
+    c.cutDir(V(-0.22, 0.38, 1), V(-1, 0.05, 0.25), 0.75, 0.05, { flat: 1, bend: V(0.05, -0.3, -0.2) });
+    c.cutDir(V(0, 0.95, -0.4), V(0, 0.6, -0.8), 0.34, 0.15, { wide: V(0, 0.8, 0.6), flat: 0.3 });
+    c.cutDir(V(0, 0.45, -0.9), V(0, 0.45, -0.9), 0.36, 0.16, { wide: V(0, 0.9, 0.45), flat: 0.3 });
+    c.cutDir(V(0, -0.05, -1), V(0, 0.3, -0.95), 0.32, 0.15, { wide: V(0, 0.95, 0.3), flat: 0.3 });
+    c.cutDir(V(0, -0.6, -0.8), V(0.3, -0.15, -1), 1.05, 0.16, { flat: 0.8, bend: V(0.55, 0.4, 0) });
+    c.paintAll(C.green);
+    [0, 1, 2, 3].forEach(i => c.paintApp(i, C.yellow)); [4, 5, 6].forEach(i => c.paintApp(i, C.red));
+    c.eyeDir(V(0.42, 0.62, 0.66)); c.eyeDir(V(-0.42, 0.62, 0.66));
+  } },
+};
+const TARGET_CACHE = {};
+function targetCandy(key) {
+  if (!TARGET_CACHE[key]) { const c = new Candy(); TARGETS[key].build(c); c.update(); TARGET_CACHE[key] = c; }
+  return TARGET_CACHE[key];
+}
+
+// ===== [SEC:SCORE] =====
+const SN = 64;
+const scoreRT = new THREE.WebGLRenderTarget(SN, SN);
+const scoreScene = new THREE.Scene();
+scoreScene.overrideMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
+const scoreCam = new THREE.OrthographicCamera(-2.7, 2.7, 2.9, -2.5, 0.1, 30);
+function renderViews(cd, angles) {
+  const g = cd.group, parent = g.parent, rot = g.rotation.clone(), pos = g.position.clone();
+  scoreScene.add(g); g.rotation.set(0, 0, 0); g.position.set(0, 0, 0); cd.stick.visible = false; g.updateMatrixWorld(true);
+  const prevCC = renderer.getClearColor(new THREE.Color()), prevCA = renderer.getClearAlpha();
+  renderer.setRenderTarget(scoreRT); renderer.setClearColor(0x000000, 0);
+  const out = [];
+  for (const a of angles) {
+    scoreCam.position.set(Math.sin(a) * 10, 0.2, Math.cos(a) * 10); scoreCam.lookAt(0, 0.2, 0);
+    renderer.clear(); renderer.render(scoreScene, scoreCam);
+    const buf = new Uint8Array(SN * SN * 4); renderer.readRenderTargetPixels(scoreRT, 0, 0, SN, SN, buf); out.push(buf);
+  }
+  renderer.setRenderTarget(null); renderer.setClearColor(prevCC, prevCA);
+  cd.stick.visible = true; g.rotation.copy(rot); g.position.copy(pos);
+  if (parent) parent.add(g); else scoreScene.remove(g);
+  return out;
+}
+function blurMask(buf) {
+  let m = new Float32Array(SN * SN); for (let i = 0; i < SN * SN; i++) m[i] = buf[i * 4 + 3] > 127 ? 1 : 0;
+  const tmp = new Float32Array(SN * SN), R = 2;
+  for (let pass = 0; pass < 2; pass++) {
+    for (let y = 0; y < SN; y++) for (let x = 0; x < SN; x++) { let s = 0, n = 0; for (let k = -R; k <= R; k++) { const xx = x + k; if (xx >= 0 && xx < SN) { s += m[y * SN + xx]; n++; } } tmp[y * SN + x] = s / n; }
+    for (let y = 0; y < SN; y++) for (let x = 0; x < SN; x++) { let s = 0, n = 0; for (let k = -R; k <= R; k++) { const yy = y + k; if (yy >= 0 && yy < SN) { s += tmp[yy * SN + x]; n++; } } m[y * SN + x] = s / n; }
+  }
+  return m;
+}
+const maskDiff = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]); return s; };
+const S2 = (() => { const t = new Float32Array(256); for (let i = 0; i < 256; i++) { const l = i / 255; t[i] = 255 * (l <= 0.0031308 ? l * 12.92 : 1.055 * Math.pow(l, 1 / 2.4) - 0.055); } return t; })();
+const NA = 16, ANG = [...Array(NA)].map((_, k) => k * Math.PI * 2 / NA);
+let BASE_MASK = null;
+const TARGET_VIEWS = {};
+function targetViews(key) {
+  if (!TARGET_VIEWS[key]) { const tc = targetCandy(key), v = renderViews(tc, [0, Math.PI / 2]); TARGET_VIEWS[key] = { raw: v, mask: v.map(blurMask), eyes: tc.eyes.map(e => e.position.clone()), feats: appFeats(tc) }; }
+  return TARGET_VIEWS[key];
+}
+function colorFrac(pb, tb) {
+  let sw = 0, sm = 0;
+  for (let i = 0; i < SN * SN; i++) {
+    if (tb[i * 4 + 3] < 128) continue;
+    const tr = S2[tb[i * 4]], tg = S2[tb[i * 4 + 1]], tbl = S2[tb[i * 4 + 2]];
+    const w = (tr > 225 && tg > 225 && tbl > 225) ? CONFIG.COLOR_WHITE_W : 1; sw += w;
+    if (pb[i * 4 + 3] < 128) continue;
+    const dr = S2[pb[i * 4]] - tr, dg = S2[pb[i * 4 + 1]] - tg, db = S2[pb[i * 4 + 2]] - tbl;
+    if (Math.sqrt(dr * dr + dg * dg + db * db) < CONFIG.COLOR_TOL) sm += w;
+  }
+  return sw ? sm / sw : 0;
+}
+const rotY = (p, a) => { const cs = Math.cos(-a), sn = Math.sin(-a); return V(p.x * cs + p.z * sn, p.y, -p.x * sn + p.z * cs); };
+function appFeats(cd) { return cd.apps.map(ap => { const B = cd.vpos(ap.idx, new THREE.Vector3()); return { B, T: B.clone().add(ap.o2), L: ap.o2.length() }; }); }
+// 出っぱりの一致度：見本の出っぱりごとに、いちばん近い出っぱりの「根元」と「先」の位置をくらべる
+function partsFrac(pF, tF, a) {
+  if (!tF.length) return 1;
+  const P = pF.map(f => ({ B: rotY(f.B, a), T: rotY(f.T, a) })), pairs = [];
+  tF.forEach((t, i) => P.forEach((p, j) => pairs.push([p.T.distanceTo(t.T) + 0.5 * p.B.distanceTo(t.B), i, j])));
+  pairs.sort((x, y) => x[0] - y[0]);
+  const ut = new Set(), up = new Set(); let sc = 0, sw = 0;
+  tF.forEach(t => sw += 0.25 + t.L);
+  for (const [c, i, j] of pairs) {   // 近い組み合わせから順に決める
+    if (ut.has(i) || up.has(j)) continue; ut.add(i); up.add(j);
+    sc += (0.25 + tF[i].L) * clamp(1 - (c - CONFIG.PART_OK) / (CONFIG.PART_ZERO - CONFIG.PART_OK), 0, 1);
+  }
+  return Math.max(0, sc / sw - CONFIG.PART_EXTRA * Math.max(0, pF.length - tF.length));
+}
+function eyePts(pEyes, tEyes, a) {
+  const cs = Math.cos(-a), sn = Math.sin(-a);
+  const pts = pEyes.map(p => V(p.x * cs + p.z * sn, p.y, -p.x * sn + p.z * cs));
+  let pts2 = 0; const used = new Set();
+  for (const te of tEyes) {
+    let bi = -1, bd = 1e9; pts.forEach((p, i) => { if (used.has(i)) return; const d = p.distanceTo(te); if (d < bd) { bd = d; bi = i; } });
+    if (bi < 0) continue; used.add(bi);
+    pts2 += (CONFIG.EYE_PTS / tEyes.length) * clamp(1 - (bd - CONFIG.EYE_OK) / (CONFIG.EYE_ZERO - CONFIG.EYE_OK), 0, 1);
+  }
+  return Math.max(0, pts2 - Math.max(0, pEyes.length - tEyes.length) * CONFIG.EYE_EXTRA);
+}
+function scoreCandy(cd, key) {
+  cd.update();
+  const T = targetViews(key), full = TARGETS[key].full ?? CONFIG.SHAPE_FULL;
+  if (!BASE_MASK) { const b = new Candy(); BASE_MASK = blurMask(renderViews(b, [0])[0]); b.dispose(); }
+  const raw = renderViews(cd, ANG), masks = raw.map(blurMask);
+  const tArea = T.mask[0].reduce((s, v) => s + v, 0) + T.mask[1].reduce((s, v) => s + v, 0);
+  const E0raw = maskDiff(BASE_MASK, T.mask[0]) + maskDiff(BASE_MASK, T.mask[1]);
+  const E0 = E0raw + tArea * CONFIG.SIL_MARGIN;
+  const wS = clamp(E0raw / tArea / 0.25, 0.25, 0.6);   // 体の形が丸から大きく変わるお題ほど、輪郭を重く見る
+  const pEyes = cd.eyes.map(e => e.position.clone()), pF = appFeats(cd);
+  let best = null;
+  for (let k = 0; k < NA; k++) {
+    const k2 = (k + NA / 4) % NA;
+    const E = maskDiff(masks[k], T.mask[0]) + maskDiff(masks[k2], T.mask[1]);
+    const sil = clamp((1 - E / E0) / full, 0, 1), parts = partsFrac(pF, T.feats, ANG[k]);
+    const shape = CONFIG.SHAPE_PTS * Math.pow(wS * sil + (1 - wS) * parts, 0.8);
+    const color = CONFIG.COLOR_PTS * clamp(((colorFrac(raw[k], T.raw[0]) + colorFrac(raw[k2], T.raw[1])) / 2 - 0.2) / 0.6, 0, 1);
+    const eye = eyePts(pEyes, T.eyes, ANG[k]);
+    const tot = shape + color + eye;
+    if (!best || tot > best.tot) best = { tot, shape, color, eye, k, E, sil, parts };
+  }
+  const s = Math.round(best.shape), c2 = Math.round(best.color), e = Math.round(best.eye);
+  return { shape: s, color: c2, eye: e, total: s + c2 + e, k: best.k, dbg: { E: +(best.E / tArea).toFixed(3), E0: +(E0raw / tArea).toFixed(3), sil: +best.sil.toFixed(2), parts: +best.parts.toFixed(2) } };
+}
+
+// ===== [SEC:KIDS] =====
+const KIDS = [
+  { name: 'はるとくん', hair: '#2b1d14', st: 0, yu: '#3b6fd1', obi: '#f2c14e', pat: '#ffffff' },
+  { name: 'ゆいちゃん', hair: '#3a2418', st: 1, yu: '#f07aa0', obi: '#ffd65a', pat: '#ffe0ea' },
+  { name: 'そうたくん', hair: '#1a1a1a', st: 2, yu: '#2f8f6a', obi: '#e4573d', pat: '#c9f0dd' },
+  { name: 'めいちゃん', hair: '#5a3a22', st: 3, yu: '#8b5cc4', obi: '#ff9fc2', pat: '#efe0ff' },
+  { name: 'りくくん', hair: '#241810', st: 4, yu: '#e0623a', obi: '#334a8a', pat: '#ffe7c9' },
+];
+function kidSVG(i, mood) {
+  const k = KIDS[i]; let s = '<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg">';
+  if (k.st === 1) s += `<circle cx="20" cy="70" r="13" fill="${k.hair}"/><circle cx="100" cy="70" r="13" fill="${k.hair}"/>`;
+  if (k.st === 3) s += `<ellipse cx="94" cy="40" rx="14" ry="18" fill="${k.hair}"/>`;
+  s += `<path d="M20 150 Q22 104 60 100 Q98 104 100 150Z" fill="${k.yu}"/>`;
+  for (let j = 0; j < 7; j++) s += `<circle cx="${30 + (j * 37) % 62}" cy="${112 + (j * 23) % 34}" r="3" fill="${k.pat}" opacity=".8"/>`;
+  s += `<path d="M47 101 L60 124 L73 101" fill="none" stroke="#fff" stroke-width="5"/><rect x="28" y="128" width="64" height="10" rx="3" fill="${k.obi}"/>`;
+  s += `<circle cx="25" cy="64" r="6" fill="#f7cbb0"/><circle cx="95" cy="64" r="6" fill="#f7cbb0"/><circle cx="60" cy="62" r="36" fill="#ffdcc4"/>`;
+  const hp = [
+    'M24 58 Q20 22 60 21 Q100 22 96 58 Q90 38 60 38 Q32 38 24 58Z',
+    'M24 62 Q20 21 60 21 Q100 21 96 62 Q92 42 78 41 Q70 51 60 43 Q50 51 41 41 Q28 44 24 62Z',
+    'M24 58 L27 30 L38 38 L44 19 L54 31 L62 15 L70 31 L80 19 L84 37 L94 29 L96 58 Q84 41 60 41 Q36 41 24 58Z',
+    'M24 62 Q20 21 60 21 Q100 21 96 62 Q94 44 82 40 Q66 46 50 40 Q30 42 24 62Z',
+    'M24 56 Q22 24 60 22 Q98 24 96 56 Q86 40 60 40 Q34 40 24 56Z',
+  ][k.st];
+  s += `<path d="${hp}" fill="${k.hair}"/>`;
+  if (k.st === 3) s += `<circle cx="80" cy="36" r="5" fill="#ff7aa8"/>`;
+  if (k.st === 4) s += `<path d="M24 50 Q60 36 96 50 L96 56 Q60 43 24 56Z" fill="#e33b3b"/>`;
+  s += `<ellipse cx="40" cy="76" rx="6" ry="4" fill="#ff98a6" opacity=".6"/><ellipse cx="80" cy="76" rx="6" ry="4" fill="#ff98a6" opacity=".6"/>`;
+  const E = '#2a1a12';
+  if (mood === 'happy') s += `<path d="M39 66 Q45 57 51 66 M69 66 Q75 57 81 66" stroke="${E}" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M47 77 Q60 98 73 77Z" fill="#c43a44"/><path d="M53 86 Q60 92 67 86 Q60 82 53 86Z" fill="#ff8a8a"/>`;
+  else if (mood === 'ok') s += `<circle cx="45" cy="64" r="4" fill="${E}"/><circle cx="75" cy="64" r="4" fill="${E}"/><path d="M50 79 Q60 89 70 79" stroke="${E}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  else if (mood === 'meh') s += `<circle cx="45" cy="65" r="3.5" fill="${E}"/><circle cx="75" cy="65" r="3.5" fill="${E}"/><path d="M52 84 L68 83" stroke="${E}" stroke-width="3" stroke-linecap="round"/><path d="M94 40 Q99 48 94 52 Q89 48 94 40Z" fill="#7cc7ff"/>`;
+  else if (mood === 'sad') s += `<path d="M38 56 L50 60 M82 56 L70 60" stroke="${E}" stroke-width="2.5" stroke-linecap="round"/><circle cx="45" cy="66" r="3.5" fill="${E}"/><circle cx="75" cy="66" r="3.5" fill="${E}"/><path d="M43 72 Q40 80 44 82 Q48 80 45 72Z M77 72 Q74 80 78 82 Q82 80 79 72Z" fill="#7cc7ff"/><path d="M50 88 Q60 79 70 88" stroke="${E}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  else s += `<ellipse cx="45" cy="64" rx="4.2" ry="5.6" fill="${E}"/><ellipse cx="75" cy="64" rx="4.2" ry="5.6" fill="${E}"/><circle cx="46.5" cy="62" r="1.6" fill="#fff"/><circle cx="76.5" cy="62" r="1.6" fill="#fff"/><ellipse cx="60" cy="82" rx="4" ry="5" fill="#b8323a"/>`;
+  return s + '</svg>';
+}
+
+// ===== [SEC:LAYOUT] =====
+let SCALE = 1, LH = 640;
+function fit() {
+  const a = $('app'), W = a.clientWidth, H = a.clientHeight;
+  LH = Math.round(clamp(360 * H / Math.max(1, W), 640, 780));
+  SCALE = Math.max(0.1, Math.min(W / 360, H / LH));
+  // 3Dの画面は全体に広げ、ボタンなどは真ん中の縦長の枠にまとめる
+  ui.style.height = LH + 'px';
+  ui.style.transform = `translate(${Math.round((W - 360 * SCALE) / 2)}px,${Math.round((H - LH * SCALE) / 2)}px) scale(${SCALE})`;
+  renderer.setSize(W, H);
+  camera.aspect = W / Math.max(1, H); camera.updateProjectionMatrix();
+  if (state === 'title') camTitle();
+  updateCamera();
+}
+new ResizeObserver(fit).observe($('app'));
+window.addEventListener('resize', fit);
+
+// ===== [SEC:STATE] =====
+let state = 'title', mode = 'quest', orderIdx = 0, results = [];
+let player = null, shown = null, coolT = 0, soft = 1, temp = CONFIG.T_START;
+let tool = 'cut', paintCol = 0, brushBig = true, undoStack = [], previewKey = null, previewEl = null;
+const titleCandy = (() => { const c = new Candy(); TARGETS.usagi.build(c); c.update(); return c; })();
+function showCandy(c) { if (shown && shown !== c) holder.remove(shown.group); shown = c; if (c) holder.add(c.group); }
+function newPlayer() { if (player) { holder.remove(player.group); player.dispose(); } player = new Candy(); showCandy(player); undoStack = []; coolT = 0; soft = 1; temp = CONFIG.T_START; applyHeat(); }
+function applyHeat() {
+  if (!player) return;
+  const h = state === 'shape' || state === 'order' ? soft : 0;
+  player.mat.color.copy(COLD).lerp(HOT, h * 0.8);
+  player.mat.emissive.copy(WARM).multiplyScalar(0.09 * h);
+}
+
+// ===== [SEC:UI] =====
+function show(id) { let dim = false; document.querySelectorAll('.scr').forEach(s => { const on = s.id === id; s.classList.toggle('on', on); if (on && s.classList.contains('dim')) dim = true; }); stage.classList.toggle('dimmed', dim); stage.classList.toggle('tbg', id === 'sTitle'); }
+let adLoaded = false;
+function setAd(on) {
+  document.body.classList.toggle('ad-on', on);
+  if (on && !adLoaded && IS_SITE) {
+    adLoaded = true;
+    $('ad-banner').innerHTML = '<ins class="adsbygoogle" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446"></ins>';
+    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+  }
+  fit();
+}
+let toastTimer = 0;
+function toast(t, sub = '', ms = 1400) { const el = $('toast'); el.innerHTML = t + (sub ? `<small>${sub}</small>` : ''); el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), ms); }
+const HINTS = {
+  cut: '飴の上をシュッとなぞると、その向きに切れて<br>出っぱりができる（見ている方に平たく広がる）',
+  pull: '出っぱりや体をつまんで引っぱると伸びる<br>冷えるほど伸びにくくなる',
+  brush: 'なぞって色をぬる（下で色をえらぶ）',
+  eye: 'タップした所に目をつける',
+};
+function setTool(t) {
+  tool = t;
+  for (const [id, k] of [['tCut', 'cut'], ['tPull', 'pull'], ['tBrush', 'brush'], ['tEye', 'eye']]) $(id).classList.toggle('on', k === t);
+  $('hint').innerHTML = HINTS[t] + (matchMedia('(pointer:coarse)').matches ? '<small>飴の外をなぞる・2本指で回す／2本指を広げて大きく</small>' : '<small>飴の外をドラッグ・←→キーで回す／ホイールで大きさを変える</small>');
+}
+function buildPalette() {
+  const p = $('pal'); p.innerHTML = '';
+  PALETTE.forEach((c, i) => {
+    const b = document.createElement('button'); b.className = 'sw' + (i === paintCol ? ' on' : '');
+    b.style.background = '#' + c.hex.toString(16).padStart(6, '0'); if (c.name === 'けす') b.textContent = 'けす';
+    b.setAttribute('aria-label', c.name);
+    b.onclick = () => { paintCol = i; buildPalette(); if (tool !== 'brush') setTool('brush'); SFX.tap(); };
+    p.appendChild(b);
+  });
+}
+function setHud(on, phase) {
+  $('hud').classList.toggle('hide', !on);
+  if (!on) return;
+  const isPaint = phase === 'paint';
+  $('bar1').classList.toggle('hide', isPaint); $('bar2').classList.toggle('hide', !isPaint);
+  $('pal').classList.toggle('hide', !isPaint); $('gauge').classList.toggle('hide', isPaint);
+  $('mihon').classList.toggle('hide', mode !== 'quest');
+  $('bDoneS').textContent = mode === 'quest' ? 'お客さんにわたす' : '題名をつける';
+  $('hint').style.bottom = isPaint ? '128px' : '88px';
+}
+function updateGauge() {
+  $('gFill').style.width = (soft * 100).toFixed(1) + '%';
+  $('gTemp').textContent = Math.round(temp) + '℃';
+  $('gauge').classList.toggle('warn', soft < 0.22);
+}
+$('bMute').textContent = MUTE ? '音：なし' : '音：あり';
+document.querySelectorAll('.fbtn').forEach(a => { a.href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; a.textContent = '𝕏 @' + CONFIG.FOLLOW_X; });
+
+// ===== [SEC:FLOW] =====
+function toTitle() {
+  state = 'title'; setHud(false); setAd(false); show('sTitle');
+  if (player) { holder.remove(player.group); player.dispose(); player = null; }
+  showCandy(titleCandy); camTitle(); previewKey = null;
+  const b = LS.get('az_best', 0); $('best').textContent = b ? `屋台の自己ベスト：${b}点 / 500点` : '';
+}
+function startQuest() { mode = 'quest'; orderIdx = 0; results = []; showOrder(); }
+function camTitle() {   // タイトルの飴を、題名と説明カードの間にちょうど収める
+  const sub = document.querySelector('#sTitle .sub'), how = document.querySelector('#sTitle .how');
+  const top = sub.offsetTop + sub.offsetHeight + 8, bot = how.offsetTop - 6;
+  if (bot - top < 60) { CAM.zoom = 0.7; CAM.ty = -0.5; CAM.pitch = 0.12; return; }
+  const pxu = Math.min(76, (bot - top) / 3.5);   // 1単位あたりの大きさ（画面の幅360で、ズーム1の時は約92）
+  CAM.pitch = 0.12; CAM.zoom = pxu / 92.3; CAM.ty = 0.6 - (LH / 2 - (top + bot) / 2) / pxu;
+}
+function camGame() { CAM.yaw = 0; CAM.zoom = 1; CAM.pitch = 0.12; CAM.ty = -0.2; }
+function startFree() { mode = 'free'; newPlayer(); camGame(); startShape(); }
+function showOrder() {
+  state = 'order'; setAd(false); setHud(false);
+  const key = CONFIG.ORDERS[orderIdx], T = TARGETS[key], kid = KIDS[T.kid];
+  newPlayer(); camGame();
+  $('oNo').textContent = `${orderIdx + 1}人目のお客さん（全5人）`;
+  $('oKid').innerHTML = kidSVG(T.kid, 'wait');
+  $('oLine').textContent = T.line; $('oName').textContent = kid.name;
+  $('oTip').innerHTML = orderIdx === 0
+    ? '① <b>✂ 切る</b>：飴をなぞると出っぱりができる<br>② <b>のばす</b>：出っぱりや体をつまんで引っぱる<br>③ 飴が固まったら（または自分で）<b>色ぬり</b>へ<br>④ 色と目をつけて「できた！」でわたす'
+    : '見本を見ながら作ろう。飴は約1分で固まるよ';
+  previewKey = key; previewEl = $('oPrev');
+  show('sOrder');
+}
+function startShape() {
+  state = 'shape'; show(null); setAd(false); setHud(true, 'shape'); setTool('cut');
+  if (mode === 'quest') { const T = TARGETS[CONFIG.ORDERS[orderIdx]]; $('chip').textContent = `${orderIdx + 1}/5 ${T.name}`; $('mName').textContent = T.name; previewKey = CONFIG.ORDERS[orderIdx]; previewEl = $('mihon'); }
+  else { $('chip').textContent = 'じゆうに作る'; previewKey = null; }
+  coolT = 0; soft = 1; temp = CONFIG.T_START; updateGauge(); applyHeat();
+}
+function toPaint(auto) {
+  if (state !== 'shape') return;
+  endDrag(); state = 'paint'; player.update(); applyHeat();
+  setHud(true, 'paint'); buildPalette(); setTool('brush');
+  if (auto) { SFX.crack(); toast('固まった！', '色をぬって、目をつけよう', 1800); } else { SFX.tap(); toast('色ぬり', '色をぬって、目をつけよう'); }
+}
+function finishCandy() {
+  if (state !== 'paint') return;
+  endDrag();
+  if (mode === 'quest') handover(); else { state = 'name'; setHud(false); $('nInput').value = ''; show('sName'); }
+}
+function handover() {
+  state = 'result'; setHud(false);
+  const key = CONFIG.ORDERS[orderIdx], T = TARGETS[key];
+  const sc = scoreCandy(player, key);
+  const imgP = snapCandy(player, CAM.yaw), imgT = snapCandy(targetCandy(key), -0.45);
+  results.push({ key, ...sc, img: imgP });
+  const mood = sc.total >= 85 ? 'happy' : sc.total >= 65 ? 'ok' : sc.total >= 40 ? 'meh' : 'sad';
+  const lines = { happy: [`すごーい！ ${T.name}だ！`, '宝物にする！'], ok: ['わーい！ ありがとう！', ''], meh: ['…うん、ありがとう', ''], sad: ['これ…なに？', ''] }[mood];
+  $('rHead').textContent = `${orderIdx + 1}人目　${T.name}`;
+  $('rKidF').innerHTML = kidSVG(T.kid, mood);
+  $('rLine').innerHTML = lines[0] + (lines[1] ? `<small>${lines[1]}</small>` : '');
+  $('rImgT').src = imgT.toDataURL('image/png'); $('rImgP').src = imgP.toDataURL('image/png');
+  const bar = (lb, v, m) => `<div><b>${lb}</b><i><em style="width:${(v / m * 100).toFixed(0)}%"></em></i><span>${v}/${m}</span></div>`;
+  $('rBk').innerHTML = bar('形', sc.shape, CONFIG.SHAPE_PTS) + bar('色', sc.color, CONFIG.COLOR_PTS) + bar('目', sc.eye, CONFIG.EYE_PTS);
+  $('rTotal').innerHTML = `${sc.total}<small>点</small>`;
+  $('bNext').textContent = orderIdx < 4 ? 'つぎのお客さんへ ▶' : '今夜の結果を見る ▶';
+  if (mood === 'happy') SFX.great(); else if (mood === 'sad') SFX.meh(); else SFX.give();
+  show('sResult'); setAd(true);
+}
+function rankOf(t) { return t >= 450 ? '飴細工名人' : t >= 380 ? '一人前の飴細工師' : t >= 280 ? '屋台をまかせられる腕前' : t >= 180 ? '見習い飴細工師' : '弟子入りしたて'; }
+let finalImg = null, photoImg = null, photoTitle = '';
+function showFinal() {
+  state = 'final';
+  const total = results.reduce((s, r) => s + r.total, 0), rank = rankOf(total);
+  const best = LS.get('az_best', 0), nb = total > best; if (nb) LS.set('az_best', total);
+  $('fTotal').textContent = `${total} / 500点`; $('fRank').textContent = `称号：${rank}`;
+  $('fBest').textContent = nb ? '自己ベスト更新！' : `自己ベスト：${best}点`;
+  finalImg = composeFinal(results, total, rank); $('fImg').src = finalImg;
+  if (player) { holder.remove(player.group); player.dispose(); player = null; }
+  showCandy(titleCandy);
+  show('sFinal'); setAd(true);
+}
+function shareX(text) { window.open('https://x.com/intent/post?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(GAME_URL), '_blank', 'noopener'); }
+async function saveImg(dataUrl, name) {
+  try {
+    if (navigator.canShare && /iPhone|iPad|Android/i.test(navigator.userAgent)) {
+      const blob = await (await fetch(dataUrl)).blob(), file = new File([blob], name, { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
+    }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = dataUrl; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+}
+
+// ===== [SEC:PHOTO] =====
+function snapCandy(cd, yaw) {
+  cd.update();
+  const g = cd.group, parent = g.parent, rot = g.rotation.clone();
+  photoScene.add(g); g.rotation.set(0, yaw, 0); g.updateMatrixWorld(true);
+  const box = new THREE.Box3(); box.expandByObject(cd.body); cd.apps.forEach(ap => box.expandByObject(ap.mesh));
+  box.min.y = Math.min(box.min.y, -1.45);
+  const sph = box.getBoundingSphere(new THREE.Sphere());
+  const W = renderer.domElement.width, H = renderer.domElement.height;
+  photoCam.aspect = W / H; photoCam.updateProjectionMatrix();
+  const CA = 400 / 480, th = Math.tan(THREE.MathUtils.degToRad(photoCam.fov / 2)) * Math.min(photoCam.aspect, CA);
+  const D = Math.max(sph.radius, 2.0) * 1.08 / th;   // 小さい飴も大きい飴も、だいたい同じ大きさで写す
+  photoCam.position.set(sph.center.x, sph.center.y + D * 0.12, sph.center.z + D); photoCam.lookAt(sph.center);
+  const prevCC = renderer.getClearColor(new THREE.Color()), prevCA = renderer.getClearAlpha();
+  renderer.setClearColor(0x000000, 0); renderer.setRenderTarget(null); renderer.clear(); renderer.render(photoScene, photoCam);
+  const ow = 400, oh = 480, wide = W / H > CA, sw = wide ? H * CA : W, sh = wide ? H : W / CA, sx = (W - sw) / 2, sy = (H - sh) / 2;
+  const out = document.createElement('canvas'); out.width = ow; out.height = oh;
+  out.getContext('2d').drawImage(renderer.domElement, sx, sy, sw, sh, 0, 0, ow, oh);
+  renderer.setClearColor(prevCC, prevCA);
+  g.rotation.copy(rot); if (parent) parent.add(g); else photoScene.remove(g);
+  return out;
+}
+function drawNight(x, W, H) {
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0c0a24'); g.addColorStop(0.55, '#2b1842'); g.addColorStop(1, '#3d2216');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  const r = rng(11), cols = ['255,179,71', '255,106,77', '255,210,122', '255,143,176'];
+  for (let i = 0; i < 46; i++) { const cx = r() * W, cy = H * 0.15 + r() * H * 0.6, rr = 20 + r() * 70, gg = x.createRadialGradient(cx, cy, 0, cx, cy, rr); gg.addColorStop(0, `rgba(${cols[i % 4]},${0.25 + r() * 0.3})`); gg.addColorStop(1, `rgba(${cols[i % 4]},0)`); x.fillStyle = gg; x.fillRect(cx - rr, cy - rr, rr * 2, rr * 2); }
+  x.strokeStyle = '#1a1210'; x.lineWidth = 3; x.beginPath(); x.moveTo(0, 70); x.quadraticCurveTo(W / 2, 110, W, 70); x.stroke();
+  for (let i = 0; i < 6; i++) {
+    const cx = W * (i + 0.5) / 6, cy = 112 + Math.sin((i + 0.5) / 6 * Math.PI) * 18;
+    const gl = x.createRadialGradient(cx, cy, 0, cx, cy, 120); gl.addColorStop(0, 'rgba(255,110,60,.5)'); gl.addColorStop(1, 'rgba(255,110,60,0)'); x.fillStyle = gl; x.fillRect(cx - 120, cy - 120, 240, 240);
+    const lg = x.createRadialGradient(cx - 12, cy - 14, 6, cx, cy, 52); lg.addColorStop(0, '#ffcf8a'); lg.addColorStop(0.5, '#ff5a2e'); lg.addColorStop(1, '#b8261a');
+    x.fillStyle = lg; x.beginPath(); x.ellipse(cx, cy, 44, 54, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#1a1210'; x.fillRect(cx - 20, cy - 60, 40, 10); x.fillRect(cx - 20, cy + 50, 40, 10);
+  }
+}
+function drawStraw(x, cx, top, w, h) {
+  const g = x.createLinearGradient(cx - w / 2, 0, cx + w / 2, 0); g.addColorStop(0, '#8a6424'); g.addColorStop(0.5, '#e2bd62'); g.addColorStop(1, '#8a6424');
+  x.fillStyle = g; x.beginPath(); x.ellipse(cx, top, w / 2, 26, 0, Math.PI, 0); x.lineTo(cx + w / 2 + 14, top + h); x.lineTo(cx - w / 2 - 14, top + h); x.closePath(); x.fill();
+  const r = rng(5); x.lineWidth = 2;
+  for (let i = 0; i < 160; i++) { const xx = cx - w / 2 + r() * w; x.strokeStyle = `rgba(${90 + r() * 80},${60 + r() * 50},${10 + r() * 30},.55)`; x.beginPath(); x.moveTo(xx, top - 10 + r() * 20); x.lineTo(xx + (xx - cx) * 0.05, top + h); x.stroke(); }
+  x.fillStyle = '#6b3a1e'; x.fillRect(cx - w / 2 - 6, top + h * 0.35, w + 12, 18);
+  x.fillStyle = '#5a2f17'; x.fillRect(cx - w / 2 - 10, top + h * 0.75, w + 20, 16);
+}
+function footer(x, W, H, text) {
+  x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, H - 76, W, 76);
+  x.fillStyle = '#fff4e2'; x.font = '700 30px "M PLUS Rounded 1c", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText(text, W / 2, H - 38);
+}
+function composeFinal(res, total, rank) {
+  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d');
+  drawNight(x, W, H);
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = '#fff4e2'; x.font = '400 80px "Mochiy Pop One", sans-serif'; x.shadowColor = '#b8362a'; x.shadowOffsetY = 6; x.fillText('飴細工やさん', W / 2, 250); x.shadowOffsetY = 0; x.shadowColor = 'transparent';
+  x.font = '800 56px "M PLUS Rounded 1c", sans-serif'; x.fillStyle = '#ffd66b'; x.fillText(`今夜の合計 ${total}点`, W / 2, 360);
+  x.font = '800 40px "M PLUS Rounded 1c", sans-serif'; x.fillStyle = '#fff'; x.fillText(`称号：${rank}`, W / 2, 425);
+  drawStraw(x, W / 2, 1010, 940, 220);
+  res.forEach((r, i) => {
+    const cx = 130 + i * 205, w = 330, h = 396;
+    x.drawImage(r.img, cx - w / 2, 1010 - h + 40, w, h);
+    x.fillStyle = 'rgba(255,244,226,.94)'; x.beginPath(); x.roundRect(cx - 88, 1100, 176, 92, 18); x.fill();
+    x.fillStyle = '#2b1a12'; x.font = '800 30px "M PLUS Rounded 1c", sans-serif'; x.fillText(TARGETS[r.key].name, cx, 1130);
+    x.fillStyle = '#b8362a'; x.font = '800 34px "M PLUS Rounded 1c", sans-serif'; x.fillText(`${r.total}点`, cx, 1168);
+  });
+  footer(x, W, H, 'nkworks-games.com/ame-zaiku-yasan/');
+  return cv.toDataURL('image/png');
+}
+function composePhoto(img, title) {
+  const W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d');
+  drawNight(x, W, H);
+  x.drawImage(img, W / 2 - 450, 160, 900, 1080);
+  drawStraw(x, W / 2, 1060, 520, 220);
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = 'rgba(255,244,226,.95)'; x.beginPath(); x.roundRect(110, 175, W - 220, 120, 24); x.fill();
+  x.fillStyle = '#2b1a12'; x.font = '800 60px "M PLUS Rounded 1c", sans-serif';
+  let t = `「${title}」`; let fs = 60; while (x.measureText(t).width > W - 280 && fs > 30) { fs -= 4; x.font = `800 ${fs}px "M PLUS Rounded 1c", sans-serif`; }
+  x.fillText(t, W / 2, 236);
+  footer(x, W, H, '飴細工やさん｜nkworks-games.com/ame-zaiku-yasan/');
+  return cv.toDataURL('image/png');
+}
+function makePhoto() {
+  photoTitle = ($('nInput').value || '').trim() || 'なまえのない飴細工';
+  const img = snapCandy(player, CAM.yaw);
+  photoImg = composePhoto(img, photoTitle);
+  $('pTitle').textContent = `「${photoTitle}」`; $('pImg').src = photoImg;
+  state = 'photo'; SFX.give(); show('sPhoto'); setAd(true);
+}
+
+// ===== [SEC:INPUT] =====
+const ndc = new THREE.Vector2(), ptrs = new Map();
+let drag = null, lastSfx = 0;
+const cursor = new THREE.Mesh(new THREE.RingGeometry(0.82, 1, 40), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75, depthTest: false, side: THREE.DoubleSide }));
+cursor.renderOrder = 10; cursor.visible = false; scene.add(cursor);
+function setNdc(e) { const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); }
+function pick(e, margin = 0) {
+  if (!player) return null;
+  player.update();
+  const objs = [player.body, ...player.apps.map(a => a.mesh)];
+  setNdc(e); ray.setFromCamera(ndc, camera);
+  let h = ray.intersectObjects(objs, false)[0] || null;
+  if (!h && margin) {   // 飴のふちの少し外から筆をおろしても、ぬれるようにする
+    const r = canvas.getBoundingClientRect();
+    for (let k = 0; k < 8 && !h; k++) {
+      const a = k / 8 * Math.PI * 2;
+      ndc.set(((e.clientX + Math.cos(a) * margin - r.left) / r.width) * 2 - 1, -((e.clientY + Math.sin(a) * margin - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, camera); h = ray.intersectObjects(objs, false)[0] || null;
+    }
+  }
+  return h;
+}
+function toolRadius() { return tool === 'pull' ? CONFIG.PULL_RADIUS * 0.6 : tool === 'cut' ? 0.1 : tool === 'eye' ? CONFIG.EYE_R * 1.6 : brushBig ? CONFIG.BRUSH_BIG : CONFIG.BRUSH_SMALL; }
+function showCursor(h) {
+  if (!h) { cursor.visible = false; return; }
+  const n = h.face.normal.clone().transformDirection(h.object.matrixWorld);
+  cursor.position.copy(h.point).addScaledVector(n, 0.01); cursor.quaternion.setFromUnitVectors(V(0, 0, 1), n);
+  const r = toolRadius(); cursor.scale.set(r, r, r); cursor.visible = true;
+}
+function camPlane(pt) { const n = camera.getWorldDirection(new THREE.Vector3()); return new THREE.Plane().setFromNormalAndCoplanarPoint(n, pt); }
+function planeHit(e, plane) { setNdc(e); ray.setFromCamera(ndc, camera); return ray.ray.intersectPlane(plane, new THREE.Vector3()); }
+function toLocal(p) { return player.group.worldToLocal(p.clone()); }
+function endDrag() { if (drag && drag.type === 'body' && player) player.endPull(); drag = null; cursor.visible = false; }
+function snipFx(e) { const r = ui.getBoundingClientRect(), s = $('snip'); s.style.left = (e.clientX - r.left) / SCALE + 'px'; s.style.top = (e.clientY - r.top) / SCALE + 'px'; s.classList.remove('on'); void s.offsetWidth; s.classList.add('on'); }
+
+canvas.addEventListener('pointerdown', e => {
+  au(); try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptrs.size === 2) { if (drag && drag.type === 'body') player.endPull(); const [a, b] = [...ptrs.values()]; drag = { type: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y), z0: CAM.zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; cursor.visible = false; return; }
+  if (ptrs.size > 2) return;
+  const base = { sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY };
+  if ((state !== 'shape' && state !== 'paint') || e.button === 2 || e.button === 1) { drag = { type: 'rot', ...base }; return; }
+  const h = pick(e, state === 'paint' && tool === 'brush' ? 18 : 0);
+  if (!h) { drag = { type: 'rot', ...base }; return; }
+  const lp = toLocal(h.point), ln = h.face.normal.clone();
+  showCursor(h);
+  if (state === 'shape') {
+    if (soft <= 0) { drag = { type: 'rot', ...base }; return; }
+    if (tool === 'cut') {
+      if (h.object !== player.body) { toast('体の上を切ってね', '', 900); drag = { type: 'rot', ...base }; return; }
+      drag = { type: 'cut', ...base, pt: lp, n: ln, idx: player.nearestVert(h.face, lp), wpt: h.point.clone() };
+    } else if (h.object.userData.app) {
+      drag = { type: 'app', ...base, app: h.object.userData.app, plane: camPlane(h.point), last: h.point.clone() };
+    } else {
+      player.beginPull(lp); drag = { type: 'body', ...base, plane: camPlane(h.point), last: h.point.clone() };
+    }
+  } else {
+    if (tool === 'eye') drag = { type: 'eye', ...base, pt: lp, n: ln };
+    else { undoStack.push(player.colorSnap()); if (undoStack.length > 25) undoStack.shift(); drag = { type: 'paint', ...base, last: lp }; paintAt(lp); }
+  }
+});
+function paintAt(lp) {
+  const c = new THREE.Color(PALETTE[paintCol].hex), r = brushBig ? CONFIG.BRUSH_BIG : CONFIG.BRUSH_SMALL;
+  player.paint(lp, r, c, CONFIG.PAINT_STR);
+  const now = performance.now(); if (now - lastSfx > 110) { SFX.brush(); lastSfx = now; }
+}
+canvas.addEventListener('pointermove', e => {
+  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (!drag) { if (e.pointerType === 'mouse' && (state === 'shape' || state === 'paint')) showCursor(pick(e)); return; }
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
+  switch (drag.type) {
+    case 'pinch': {   // 2本指：広げる・縮めるで大きさ、横に動かすと回る
+      if (ptrs.size < 2) return; const [a, b] = [...ptrs.values()], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      CAM.zoom = clamp(drag.z0 * Math.hypot(a.x - b.x, a.y - b.y) / Math.max(10, drag.d0), CONFIG.ZOOM_MIN, CONFIG.ZOOM_MAX);
+      CAM.yaw += (mx - drag.mx) * CONFIG.ROT_SPEED; CAM.pitch = clamp(CAM.pitch + (my - drag.my) * 0.007, -0.35, 0.95); drag.mx = mx; drag.my = my;
+      updateCamera(); break; }
+    case 'rot': CAM.yaw += dx * CONFIG.ROT_SPEED; CAM.pitch = clamp(CAM.pitch + dy * 0.007, -0.35, 0.95); updateCamera(); break;
+    case 'body': case 'app': {
+      if (soft <= 0) break;
+      const p = planeHit(e, drag.plane); if (!p) break;
+      const dl = toLocal(p).sub(toLocal(drag.last)).multiplyScalar(soft); drag.last.copy(p);
+      if (drag.type === 'body') player.pullBy(dl);
+      else {
+        const ap = drag.app; ap.o2.add(dl); ap.o1.addScaledVector(dl, CONFIG.APP_BEND);
+        const L = ap.o2.length();
+        if (L > CONFIG.APP_MAX_LEN) { ap.o2.multiplyScalar(CONFIG.APP_MAX_LEN / L); }
+        if (ap.o2.length() < 0.1) ap.o2.setLength(0.1);
+        if (ap.o1.length() > ap.o2.length() * 0.85) ap.o1.setLength(ap.o2.length() * 0.85);
+        ap.rebuild();
+      }
+      const now = performance.now(); if (dl.length() > 0.004 && now - lastSfx > 140) { SFX.pull(); lastSfx = now; }
+      cursor.visible = false;
+      break;
+    }
+    case 'paint': {
+      const h = pick(e, 10); showCursor(h); if (!h) { drag.last = null; break; }
+      const lp = toLocal(h.point), r = (brushBig ? CONFIG.BRUSH_BIG : CONFIG.BRUSH_SMALL) * 0.35;
+      if (drag.last) { const d = lp.distanceTo(drag.last), n = Math.min(12, Math.floor(d / r)); for (let i = 1; i <= n; i++) paintAt(drag.last.clone().lerp(lp, i / (n + 1))); }
+      paintAt(lp); drag.last = lp; break;
+    }
+  }
+});
+function doCut(d, e) {
+  if (player.apps.length >= CONFIG.MAX_APPS) { toast('これ以上は切れない', '', 900); return; }
+  const g = player.group; g.updateMatrixWorld(true);
+  const wn = d.n.clone().transformDirection(g.matrixWorld);
+  const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(wn, d.wpt);
+  const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy);
+  let tdir = null, len = 0;
+  if (moved > 10) { const p = planeHit(e, plane); if (p) { tdir = toLocal(p).sub(d.pt); len = tdir.length(); } }
+  if (!tdir || len < 1e-3) { tdir = V(0, 1, 0); len = 0.3; }
+  tdir.addScaledVector(d.n, -tdir.dot(d.n));
+  if (tdir.lengthSq() < 1e-6) { tdir = V(0, 0, 1).addScaledVector(d.n, -d.n.z); if (tdir.lengthSq() < 1e-6) tdir = V(1, 0, 0); }
+  tdir.normalize();
+  const dir = tdir.multiplyScalar(Math.cos(CONFIG.CUT_LIFT)).addScaledVector(d.n, Math.sin(CONFIG.CUT_LIFT)).normalize();
+  const L = clamp(len * 0.7, CONFIG.CUT_LEN_MIN, CONFIG.CUT_LEN_MAX) * (0.6 + 0.4 * soft);
+  const view = toLocal(camera.position).sub(d.pt).normalize();
+  let wide = new THREE.Vector3().crossVectors(dir, view); if (wide.lengthSq() < 0.02) wide.crossVectors(dir, d.n);
+  player.dent(d.pt, d.n); player.update();
+  player.addApp(d.idx, dir, L, CONFIG.CUT_WIDTH, wide, CONFIG.APP_FLAT);
+  SFX.snip(); snipFx(e);
+}
+function upHandler(e) {
+  ptrs.delete(e.pointerId);
+  if (!drag) return;
+  if (drag.type === 'pinch') { if (ptrs.size === 0) drag = null; return; }
+  if (drag.type === 'cut' && state === 'shape') doCut(drag, e);
+  if (drag.type === 'eye' && state === 'paint' && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 12) {
+    if (player.eyes.length >= CONFIG.MAX_EYES) toast('目はもう十分！', '', 900);
+    else { undoStack.push(player.colorSnap()); player.addEye(drag.pt, drag.n); SFX.eye(); }
+  }
+  endDrag();
+}
+canvas.addEventListener('pointerup', upHandler);
+canvas.addEventListener('pointercancel', upHandler);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+canvas.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !drag) cursor.visible = false; });
+canvas.addEventListener('wheel', e => { e.preventDefault(); CAM.zoom = clamp(CAM.zoom * Math.exp(-e.deltaY * 0.0012), CONFIG.ZOOM_MIN, CONFIG.ZOOM_MAX); updateCamera(); }, { passive: false });
+window.addEventListener('keydown', e => {
+  if (e.target && e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowLeft') CAM.yaw -= 0.2; else if (e.key === 'ArrowRight') CAM.yaw += 0.2;
+  else if (e.key === 'ArrowUp') CAM.pitch = clamp(CAM.pitch + 0.1, -0.35, 0.95); else if (e.key === 'ArrowDown') CAM.pitch = clamp(CAM.pitch - 0.1, -0.35, 0.95);
+  else return;
+  updateCamera();
+});
+
+// ボタン
+const tapB = (id, f) => $(id).addEventListener('click', () => { au(); f(); });
+tapB('bQuest', () => { SFX.tap(); startQuest(); });
+tapB('bFree', () => { SFX.tap(); startFree(); });
+tapB('bMute', () => { MUTE = !MUTE; LS.set('az_mute', MUTE); $('bMute').textContent = MUTE ? '音：なし' : '音：あり'; SFX.tap(); });
+tapB('bMake', () => { SFX.tap(); startShape(); });
+tapB('tCut', () => { SFX.tap(); setTool('cut'); });
+tapB('tPull', () => { SFX.tap(); setTool('pull'); });
+tapB('tBrush', () => { SFX.tap(); if (tool === 'brush') { brushBig = !brushBig; $('tBrushL').textContent = brushBig ? '太い筆' : '細い筆'; } setTool('brush'); });
+tapB('tEye', () => { SFX.tap(); setTool('eye'); });
+tapB('tUndo', () => { const s = undoStack.pop(); if (s) { player.colorRestore(s); SFX.tap(); } else toast('もどせるものがない', '', 800); });
+tapB('bToPaint', () => toPaint(false));
+tapB('bDone', () => finishCandy());
+tapB('bNext', () => { SFX.tap(); if (orderIdx < 4) { orderIdx++; showOrder(); } else showFinal(); });
+tapB('fSave', () => saveImg(finalImg, 'ame-zaiku-yasan.png'));
+tapB('fX', () => { const t = results.reduce((s, r) => s + r.total, 0); shareX(`飴細工やさんで ${t}点（${rankOf(t)}）でした！\n#飴細工やさん #NKWorks`); });
+tapB('fAgain', () => { SFX.tap(); startQuest(); });
+tapB('fTitle', () => { SFX.tap(); toTitle(); });
+tapB('nGo', () => makePhoto());
+$('nInput').addEventListener('keydown', e => { if (e.key === 'Enter') makePhoto(); });
+tapB('pSave', () => saveImg(photoImg, 'ame-zaiku.png'));
+tapB('pX', () => shareX(`飴細工「${photoTitle}」を作りました\n#飴細工やさん #NKWorks`));
+tapB('pAgain', () => { SFX.tap(); startFree(); });
+tapB('pTitleB', () => { SFX.tap(); toTitle(); });
+let quitFrom = null;
+tapB('bQuit', () => { quitFrom = state; endDrag(); state = 'quit'; show('sQuit'); });
+tapB('qNo', () => { state = quitFrom; show(null); });
+tapB('qYes', () => { SFX.tap(); toTitle(); });
+
+// ===== [SEC:LOOP] =====
+let lastT = performance.now();
+function renderPreview() {
+  if (!previewKey || !previewEl || previewEl.offsetParent === null) return;
+  // 見本は画面の左下に一度かいてから、小さいキャンバスへ写す（このあと本番の画面で上書きされる）
+  const tc = targetCandy(previewKey);
+  if (tc.group.parent !== pHolder) { pHolder.clear(); pHolder.add(tc.group); }
+  const cv = previewEl.querySelector('canvas'), r = cv.getBoundingClientRect(), pr = renderer.getPixelRatio();
+  const w = Math.min(Math.round(r.width), canvas.clientWidth), h = Math.min(Math.round(r.height), canvas.clientHeight);
+  if (w < 4 || h < 4) return;
+  if (cv.width !== Math.round(w * pr) || cv.height !== Math.round(h * pr)) { cv.width = Math.round(w * pr); cv.height = Math.round(h * pr); }
+  renderer.setScissorTest(true); renderer.setViewport(0, 0, w, h); renderer.setScissor(0, 0, w, h);
+  renderer.setClearColor(0x221a40, 1); renderer.clear();
+  pCam.aspect = w / h; pCam.updateProjectionMatrix();
+  const t = Math.tan(THREE.MathUtils.degToRad(pCam.fov / 2));
+  const D = Math.max(2.25 / (t * pCam.aspect), 2.45 / t);
+  pCam.position.set(0, 0.35 + D * 0.15, D); pCam.lookAt(0, 0.3, 0);
+  pHolder.rotation.y = performance.now() * 0.0006;
+  renderer.render(pScene, pCam);
+  const H = renderer.domElement.height;
+  cv.getContext('2d').drawImage(renderer.domElement, 0, H - cv.height, cv.width, cv.height, 0, 0, cv.width, cv.height);
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, canvas.clientWidth, canvas.clientHeight); renderer.setClearColor(0x000000, 0);
+}
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+  if (state === 'shape') {
+    coolT += dt;
+    const tau = CONFIG.COOL_TIME / Math.log((CONFIG.T_START - CONFIG.T_AIR) / (CONFIG.T_SOLID - CONFIG.T_AIR));
+    temp = CONFIG.T_AIR + (CONFIG.T_START - CONFIG.T_AIR) * Math.exp(-coolT / tau);
+    soft = Math.pow(clamp((temp - CONFIG.T_SOLID) / (CONFIG.T_START - CONFIG.T_SOLID), 0, 1), CONFIG.SOFT_POW);
+    if (temp <= CONFIG.T_SOLID + 0.01) { soft = 0; temp = CONFIG.T_SOLID; }
+    updateGauge(); applyHeat();
+    if (soft <= 0) toPaint(true);
+  }
+  if (state === 'title' || state === 'final') CAM.yaw += dt * 0.35;
+  if (player) player.update();
+  // 湯気
+  const hot = (state === 'shape' || state === 'order') && player ? soft : 0;
+  let top = 1.1; if (player && hot > 0) top = player.body.geometry.boundingSphere.center.y + player.body.geometry.boundingSphere.radius * 0.8;
+  for (const s of steam) {
+    s.userData.t = (s.userData.t + dt * 0.35) % 1; const t = s.userData.t;
+    s.position.set(Math.sin(t * 9 + s.id) * 0.18 * t, top + t * 1.4, Math.cos(t * 7 + s.id) * 0.18 * t);
+    const sc = 0.25 + t * 0.7; s.scale.set(sc, sc, 1); s.material.opacity = hot * 0.22 * Math.sin(t * Math.PI);
+  }
+  updateCamera();
+  renderer.setRenderTarget(null);
+  if (state === 'order' || state === 'shape' || state === 'paint') renderPreview();
+  renderer.render(scene, camera);
+}
+
+// テスト用（ゲームの動きには関係しません）
+window.__AZ = { get state() { return state; }, proj(x, y, z) { const p = player.group.localToWorld(V(x, y, z)).project(camera), r = canvas.getBoundingClientRect(); return [r.left + (p.x + 1) / 2 * r.width, r.top + (1 - p.y) / 2 * r.height]; }, get results() { return results; }, kidSVG, snapCandy, targetCandy, renderViews, get LH() { return LH; }, get player() { return player; }, CAM, CONFIG, TARGETS, Candy, scoreCandy, toPaint, finishCandy, startQuest, startFree, showOrder, startShape, setTool, updateCamera, V,
+  get coolT() { return coolT; }, set coolT(v) { coolT = v; } };
+
+fit(); toTitle(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
