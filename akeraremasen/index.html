@@ -98,7 +98,7 @@ const CONFIG = {
   HOLD_GRACE: 0.15, HOLD_OK_SLIP: 0.12,           // 長押しの猶予／成功とみなす離していた時間
   HOP_DUR: 0.55, HOP_X: 1.35, HOP_Y: 1.15, HOP_COOL: 0.1, DODGE_WIN: [0.08, 0.93],
   SWIPE_MIN: 28, SWIPE_TIME: 0.4,                 // なぞり判定（px・秒）
-  DENT: 0.55, KEY_COMBO: 0.07,                    // へこむ深さ／矢印キー2つで斜めにする時の待ち（秒）
+  DENT: 0.55, DENT_TOL: 50, KEY_COMBO: 0.07,     // DENT_TOL: マシンガンでなぞる向きのずれをどこまで許すか（度）                    // へこむ深さ／矢印キー2つで斜めにする時の待ち（秒）
   MARKER_R: 0.07, HIT_MUL: 1.7,                   // マークの大きさ（画面の短い辺に対する割合）と当たりの広さ
   FIRST_SPAWN: 1.4, PHASE_CALM: 1.0, DRIP_RATE: 3,
   RANK: [[8,'S'],[30,'A'],[60,'B'],[101,'C']],    // クリア時のちぎれ度でランク
@@ -114,8 +114,8 @@ const CONFIG = {
     chainsaw: { name:'チェンソー',   input:'mash',  tool:'chainsaw', dmg:13, dur:2.0, rise:1.2, push:0.2, side:['l','r','t'] },
     chainJab: { name:'チェンソー突き', input:'tap', tool:'chainsaw', dmg:16, side:['l','r'] },
     pistol:   { name:'拳銃',         input:'swipe', tool:'gun',      dmg:18, dir:'any', shots:1, interval:0 },
-    mgun:     { name:'マシンガン',   input:'swipe', tool:'mgun',     dmg:12, dent:true, shots:3, interval:0.72 }, // dent: ねらわれた所を反対へなぞってへこませる
-    mgun5:    { name:'マシンガン連射', input:'swipe', tool:'mgun',   dmg:12, dent:true, shots:5, interval:0.68 },
+    mgun:     { name:'マシンガン',   input:'swipe', tool:'mgun',     dmg:12, dent:true, shots:3, interval:0.85 }, // dent: ねらわれた所を反対へなぞってへこませる
+    mgun5:    { name:'マシンガン連射', input:'swipe', tool:'mgun',   dmg:12, dent:true, shots:5, interval:0.8 },
     shovel:   { name:'ショベルカー', input:'hold',  tool:'shovel',   dmg:22, dur:2.0, side:['t'] },
     sweep:    { name:'ショベルなぎ払い', input:'swipe', tool:'sweep', dmg:22, dir:'u', shots:1, interval:0 },
     tank:     { name:'戦車',         input:'swipe', tool:'tank',     dmg:24, dir:'u', shots:1, interval:0 },
@@ -128,10 +128,10 @@ const CONFIG = {
     { t:15,  label:'ハサミ',          lead:0.85, gap:[0.65,1.0],  dbl:0.3,  tri:0,    dm:1,    rm:1.05, pool:{scissors:4,twist:2,pull:1,scratch:1} },
     { t:30,  label:'包丁',            lead:0.8,  gap:[0.55,0.9],  dbl:0.35, tri:0.1,  dm:1.05, rm:1.1,  pool:{knife:3,knifeSaw:2,scissors:2,pull:1,twist:1} },
     { t:45,  label:'チェンソー',      lead:0.75, gap:[0.5,0.8],   dbl:0.4,  tri:0.15, dm:1.1,  rm:1.15, pool:{chainsaw:3,chainJab:2,knife:1,scissors:1,twist:1} },
-    { t:60,  label:'拳銃・マシンガン', lead:0.62, gap:[0.35,0.6],  dbl:0.5,  tri:0.25, dm:1.2,  rm:1.2,  mix:true, pool:{pistol:3,mgun:2,scissors:2,chainJab:2,chainsaw:1,twist:1} },
-    { t:75,  label:'ショベルカー',    lead:0.55, gap:[0.3,0.5],   dbl:0.6,  tri:0.3,  dm:1.3,  rm:1.25, mix:true, pool:{shovel:2,sweep:2,pistol:2,mgun:1,chainsaw:1,twist:1,scissors:1} },
-    { t:90,  label:'戦車・ミサイル',  lead:0.5,  gap:[0.25,0.45], dbl:0.7,  tri:0.4,  dm:1.45, rm:1.3,  mix:true, pool:{tank:2,missile:3,mgun5:2,chainsaw:1,shovel:1,knife:1,chainJab:1} },
-    { t:105, label:'宇宙レーザー',    lead:0.45, gap:[0.2,0.4],   dbl:0.8,  tri:0.5,  dm:1.6,  rm:1.35, mix:true, pool:{laser:3,missile:2,tank:1,mgun5:1,chainJab:2,scissors:2,knife:1} },
+    { t:60,  label:'拳銃・マシンガン', lead:0.75, gap:[0.5,0.8],   dbl:0.35, tri:0.1,  dm:1.1,  rm:1.15, pool:{pistol:3,mgun:2,scissors:2,chainJab:2,chainsaw:1,twist:1} },
+    { t:75,  label:'ショベルカー',    lead:0.7,  gap:[0.45,0.7],  dbl:0.4,  tri:0.15, dm:1.15, rm:1.15, mix:true, pool:{shovel:2,sweep:2,pistol:2,mgun:1,chainsaw:1,twist:1,scissors:1} },
+    { t:90,  label:'戦車・ミサイル',  lead:0.65, gap:[0.4,0.65],  dbl:0.45, tri:0.2,  dm:1.25, rm:1.2,  mix:true, pool:{tank:2,missile:3,mgun5:2,chainsaw:1,shovel:1,knife:1,chainJab:1} },
+    { t:105, label:'宇宙レーザー',    lead:0.6,  gap:[0.35,0.6],  dbl:0.5,  tri:0.25, dm:1.35, rm:1.25, mix:true, pool:{laser:3,missile:2,tank:1,mgun5:1,chainJab:2,scissors:2,knife:1} },
   ],
   FINAL_SPAWN: 116.4, FINALS: [[117.7,'laser'],[118.4,'laser'],[119.1,'final']], // 最後は宇宙レーザー3連発
   TAP_SEP: 0.26, MAX_TAPS: 3, MIN_GAP: 0.95,                                       // MIN_GAP:マークどうしの最小の距離                                                       // 押す攻撃どうしの最小の間（秒）・同時に出る数
@@ -556,6 +556,7 @@ function spanOf(d){ return (d.dur||0)+((d.shots||1)-1)*(d.interval||0); }
 function canSpawn(d,ph){ // マウス1つ＋矢印キーでも遊べる組み合わせだけ重ねる
   const live=G.attacks.filter(a=>a.state!=='done'),ptr=live.filter(a=>a.input!=='swipe'),sw=live.length-ptr.length;
   if(!ph.mix) return d.input==='tap'?live.every(a=>a.input==='tap'):live.length===0;
+  if(d.dent) return live.length===0; if(live.some(a=>a.def.dent)) return false; // マシンガンの間はほかの攻撃を重ねない
   if(d.input==='swipe') return sw===0;
   if(d.input==='tap') return ptr.every(a=>a.input==='tap')&&ptr.length<CONFIG.MAX_TAPS;
   return ptr.length===0;
@@ -654,7 +655,8 @@ function resolve(a,ok,text,grade){
 const TGT={ul:[-P.W/2+0.06,P.H/2-0.06],u:[0,P.H/2-0.02],ur:[P.W/2-0.06,P.H/2-0.06],r:[P.W/2-0.02,0.05],l:[-P.W/2+0.02,0.05],dr:[P.W/2-0.06,-P.H/2+0.2],dl:[-P.W/2+0.06,-P.H/2+0.2]}; // マシンガンがねらう所（袋のふち）
 const OPP={ul:'dr',u:'d',ur:'dl',r:'l',l:'r',dr:'ul',dl:'ur',d:'u'};                       // ねらわれた所 → なぞる向き（反対）
 const DIR_ANG={r:0,ur:-45,u:-90,ul:-135,l:180,dl:135,d:90,dr:45};                          // 画面での向き（度）
-function denting(dir){ const h=G.dent; if(!h) return false; const p=(G.t-h.t0)/CONFIG.HOP_DUR; return p>=CONFIG.DODGE_WIN[0]&&p<=CONFIG.DODGE_WIN[1]&&h.dir===dir; }
+function angOk(a,b){ const d=Math.abs(((DIR_ANG[a]-DIR_ANG[b])%360+540)%360-180); return d<=CONFIG.DENT_TOL; }
+function denting(dir){ const h=G.dent; if(!h) return false; const p=(G.t-h.t0)/CONFIG.HOP_DUR; return p>=CONFIG.DODGE_WIN[0]&&p<=CONFIG.DODGE_WIN[1]&&angOk(h.dir,dir); }
 function tgWorld(k){ pack.root.updateMatrixWorld(true); const [x,y]=TGT[k]; return pack.mesh.localToWorld(new THREE.Vector3(x,y,0.02)); }
 function nextSwipe(){ let ns=null,best=1e9; for(const a of G.attacks){ if(a.input!=='swipe'||a.state==='done'||a.shot>=a.shots) continue; const st=a.T+a.shot*a.def.interval; if(st<best){best=st;ns=a;} } return ns; }
 function dodging(dir){ const h=G.hop; if(!h) return false; const p=(G.t-h.t0)/CONFIG.HOP_DUR; if(p<CONFIG.DODGE_WIN[0]||p>CONFIG.DODGE_WIN[1]) return false; return dir==='any'||h.dir===dir; }
@@ -764,7 +766,7 @@ function doSwipe(dir,d4){ // dir：8方向（u,ur,r,…） d4：上下左右だ�
   const cool=CONFIG.HOP_DUR+CONFIG.HOP_COOL;
   if((G.hop&&G.t-G.hop.t0<cool)||(G.dent&&G.t-G.dent.t0<cool)) return;
   const sw=nextSwipe();
-  if(sw&&sw.def.dent){ G.dent={dir,t0:G.t}; SFX.whoosh(); setFace('strain',CONFIG.HOP_DUR); return; } // マシンガン：袋は動かず、反対側をへこませる
+  if(sw&&sw.def.dent){ const req=sw.dirs[sw.shot]; G.dent={dir,t0:G.t,tg:angOk(dir,req)?sw.tg[sw.shot]:OPP[dir]}; SFX.whoosh(); setFace('strain',CONFIG.HOP_DUR); return; } // マシンガン：袋は動かず、反対側をへこませる
   G.hop={dir:d4||(dir.length===1?dir:dir[0]),t0:G.t}; SFX.hop(); SFX.whoosh(); setFace('hop',CONFIG.HOP_DUR);
 }
 function swipeDir(dx,dy){ const a=Math.atan2(-dy,dx)*180/Math.PI,k=['r','ur','u','ul','l','dl','d','dr'][((Math.round(a/45)%8)+8)%8]; return [k,Math.abs(dy)>Math.abs(dx)?(dy<0?'u':'d'):(dx<0?'l':'r')]; }
@@ -958,7 +960,7 @@ function updateVisual(){
   const low=lowestPacketY(); if(low<TABLE_Y) pack.root.position.y+=TABLE_Y-low; // 傾いても机にめり込まないよう押し戻す
   const ns=nextSwipe(); G.nextSw=ns&&ns.id; // 次によける攻撃
   const defs=[];
-  if(G.dent&&G.state==='play'){ const p=(G.t-G.dent.t0)/CONFIG.HOP_DUR; if(p>=0&&p<1){ const [x,y]=TGT[OPP[G.dent.dir]]||[0,-P.H/2+0.15]; defs.push({px:x,py:y,nx:1,ny:0,tw:0,pl:0,lift:0,dent:CONFIG.DENT*Math.pow(Math.sin(Math.PI*p),0.6)}); } } // なぞった向きの反対側がへこむ
+  if(G.dent&&G.state==='play'){ const p=(G.t-G.dent.t0)/CONFIG.HOP_DUR; if(p>=0&&p<1){ const [x,y]=TGT[G.dent.tg]||[0,-P.H/2+0.15]; defs.push({px:x,py:y,nx:1,ny:0,tw:0,pl:0,lift:0,dent:CONFIG.DENT*Math.pow(Math.sin(Math.PI*p),0.6)}); } } // なぞった向きの反対側がへこむ
   for(const a of G.attacks){ if(!a.box) continue; if(a.input==='swipe') animSwipe(a); else { animMount(a); if(a.dm) defs.push(a.dm); if(a.dm2) defs.push(a.dm2); } }
   applyDeform(defs);
   if(G.attacks.some(a=>a.def.tool==='chainsaw'&&a.state!=='done')) sawTex.offset.x=(G.vt*6)%1;
