@@ -369,7 +369,8 @@ const HP={ // c:4本の指の曲げ(0〜1) ta:親指の開き tf:親指の曲げ
   slip:   {c:[0.62,1.0,1.05,1.1],ta:-0.05,tf:1.05,tr:0},
   fist:   {c:[1.05,1.08,1.1,1.1],ta:1.5,tf:1.8,tr:-0.75},
   trigger:{c:[0.42,1.08,1.1,1.1],ta:1.5,tf:1.8,tr:-0.75},
-  sciss:  {c:[0.62,0.72,0.8,0.85],ta:1.2,tf:1.3,tr:-0.6},
+  scissO: {c:[0.187,0.388,0.908,0.821],ta:0.715,tf:0.744,tr:-0.306}, // ハサミを開いた時（親指＝上の輪、中指＝下の輪）
+  scissC: {c:[0.267,0.573,0.791,0.834],ta:0.498,tf:0.943,tr:-0.38},  // ハサミを閉じた時
 };
 function buildHand(sleeve){
   const root=new THREE.Group(),fingers=[],thumb=[];
@@ -426,12 +427,12 @@ function makeScissors(sleeve){
     const h=new THREE.Group(); pv.add(h);
     h.add(BX(0.9,0.085,0.02,M.metal,0.45,-0.012*s,s*0.03));
     h.add(BX(0.32,0.06,0.04,M.red,-0.2,-0.07*s,s*0.03));
-    h.add(mk(new THREE.TorusGeometry(0.15,0.045,10,24),M.red,-0.47,-0.16*s,s*0.03));
+    h.add(mk(new THREE.TorusGeometry(0.17,0.042,10,24),M.red,-0.47,-0.16*s,s*0.03));
     halves.push(h);
   }
   const sc=CY(0.04,0.04,0.12,M.grey,0,0,0); sc.rotation.x=Math.PI/2; pv.add(sc);
-  const H=buildHand(sleeve); H.root.rotation.x=Math.PI/2; H.root.position.set(-0.78,0,0.2); pv.add(H.root); // 指を輪に入れて持つ
-  g.userData.setOpen=a=>{halves[0].rotation.z=a;halves[1].rotation.z=-a;const k=clamp(1-a/0.42,0,1);poseHand(H,HP.sciss,{...HP.sciss,c:[0.75,0.85,0.9,0.92],tf:1.6},k)};
+  const H=buildHand(sleeve); H.root.position.set(-0.617,-0.176,0.528); H.root.rotation.set(1.471,-0.566,-0.401); pv.add(H.root); // 親指を上の輪、中指を下の輪に通して持つ（輪に通るよう計算した位置）
+  g.userData.setOpen=a=>{halves[0].rotation.z=a;halves[1].rotation.z=-a;poseHand(H,HP.scissO,HP.scissC,clamp(1-a/0.42,0,1))};
   g.userData.setOpen(0.42); return g;
 }
 function makeKnife(sleeve){
@@ -645,7 +646,7 @@ function hurt(a,dmg,small){
 }
 function resolve(a,ok,text,grade){
   if(a.result) return; a.result=ok?'ok':'fail'; a.resT=G.t;
-  const xy=a.input==='swipe'?G.homeS:{x:a.sx,y:a.sy};
+  const xy=a.input==='swipe'?G.homeS:{x:a.hx,y:a.hy};
   pop(xy.x,xy.y-10,text,ok?(grade==='perfect'?'#ffe14a':'#7dff9a'):'#ff6b5a',ok&&grade==='perfect'?30:24);
   if(!ok) return;
   if(grade==='perfect'){ SFX.perfect(); G.stats.perfect++; G.gauge=Math.max(0,G.gauge-CONFIG.PERFECT_HEAL); } else SFX.good();
@@ -761,13 +762,13 @@ function press(id,x,y,defer){ if(G.state!=='play') return null; const a=hitAttac
   else if(a.input==='hold') a.holders.add(id); else mashAttack(a); return a; }
 function earlyFail(p){ const a=p.early; p.early=null; if(a&&!a.result&&a.state!=='done') resolve(a,false,'はやい!'); }
 function release(id){ for(const a of G.attacks) a.holders.delete(id); }
-function doSwipe(dir,d4){ // dir：8方向（u,ur,r,…） d4：上下左右だけの向き
-  if(G.state!=='play') return;
+function doSwipe(dir,d4){ // dir：8方向（u,ur,r,…） d4：上下左右だけの向き。動けた時は true
+  if(G.state!=='play') return false;
   const cool=CONFIG.HOP_DUR+CONFIG.HOP_COOL;
-  if((G.hop&&G.t-G.hop.t0<cool)||(G.dent&&G.t-G.dent.t0<cool)) return;
+  if((G.hop&&G.t-G.hop.t0<cool)||(G.dent&&G.t-G.dent.t0<cool)) return false;
   const sw=nextSwipe();
-  if(sw&&sw.def.dent){ const req=sw.dirs[sw.shot]; G.dent={dir,t0:G.t,tg:angOk(dir,req)?sw.tg[sw.shot]:OPP[dir]}; SFX.whoosh(); setFace('strain',CONFIG.HOP_DUR); return; } // マシンガン：袋は動かず、反対側をへこませる
-  G.hop={dir:d4||(dir.length===1?dir:dir[0]),t0:G.t}; SFX.hop(); SFX.whoosh(); setFace('hop',CONFIG.HOP_DUR);
+  if(sw&&sw.def.dent){ const req=sw.dirs[sw.shot]; G.dent={dir,t0:G.t,tg:angOk(dir,req)?sw.tg[sw.shot]:OPP[dir]}; SFX.whoosh(); setFace('strain',CONFIG.HOP_DUR); return true; } // マシンガン：袋は動かず、反対側をへこませる
+  G.hop={dir:d4||(dir.length===1?dir:dir[0]),t0:G.t}; SFX.hop(); SFX.whoosh(); setFace('hop',CONFIG.HOP_DUR); return true;
 }
 function swipeDir(dx,dy){ const a=Math.atan2(-dy,dx)*180/Math.PI,k=['r','ur','u','ul','l','dl','d','dr'][((Math.round(a/45)%8)+8)%8]; return [k,Math.abs(dy)>Math.abs(dx)?(dy<0?'u':'d'):(dx<0?'l':'r')]; }
 const kb={keys:[],t0:0};
@@ -775,8 +776,8 @@ function keyTick(){ if(!kb.keys.length) return; if(kb.keys.length<2&&performance
   const v=kb.keys.find(k=>k==='u'||k==='d'),h=kb.keys.find(k=>k==='l'||k==='r'); doSwipe(v&&h?v+h:kb.keys[0],kb.keys[0]); kb.keys=[]; }
 hud.addEventListener('pointerdown',e=>{ e.preventDefault(); audioInit(); try{hud.setPointerCapture(e.pointerId)}catch(_){}
   const a=press(e.pointerId,e.clientX,e.clientY,true); ptrs.set(e.pointerId,{x0:e.clientX,y0:e.clientY,t0:performance.now(),done:false,hold:!!(a&&a.input==='hold'),early:a&&a.early||null}); });
-hud.addEventListener('pointermove',e=>{ const p=ptrs.get(e.pointerId); if(!p||p.done||p.hold) return; const dx=e.clientX-p.x0,dy=e.clientY-p.y0;
-  if(Math.hypot(dx,dy)>=CONFIG.SWIPE_MIN){ p.done=true; if(performance.now()-p.t0<=CONFIG.SWIPE_TIME*1000){ p.early=null; doSwipe(...swipeDir(dx,dy)); } else earlyFail(p); } });
+hud.addEventListener('pointermove',e=>{ const p=ptrs.get(e.pointerId); if(!p||p.done||(p.hold&&!nextSwipe())) return; const dx=e.clientX-p.x0,dy=e.clientY-p.y0; // 長押しの印の上から始めても、よける攻撃が来ている時はシュッになる
+  if(Math.hypot(dx,dy)>=CONFIG.SWIPE_MIN){ p.done=true; if(performance.now()-p.t0<=CONFIG.SWIPE_TIME*1000){ p.early=null; if(doSwipe(...swipeDir(dx,dy))&&p.hold){ release(e.pointerId); p.hold=false; } } else earlyFail(p); } });
 const ptrUp=e=>{ const p=ptrs.get(e.pointerId); if(p&&p.early) earlyFail(p); release(e.pointerId); ptrs.delete(e.pointerId); };
 hud.addEventListener('pointerup',ptrUp); hud.addEventListener('pointercancel',ptrUp); hud.addEventListener('lostpointercapture',ptrUp);
 hud.addEventListener('contextmenu',e=>e.preventDefault());
@@ -792,7 +793,7 @@ function arrow(x,y,ang,len,col){ hx.save(); hx.translate(x,y); hx.rotate(ang); h
   hx.beginPath(); hx.moveTo(0,-len*0.16); hx.lineTo(len*0.55,-len*0.16); hx.lineTo(len*0.55,-len*0.38); hx.lineTo(len,0); hx.lineTo(len*0.55,len*0.38); hx.lineTo(len*0.55,len*0.16); hx.lineTo(0,len*0.16); hx.closePath();
   hx.lineWidth=6; hx.strokeStyle='rgba(30,10,0,.85)'; hx.stroke(); hx.fillStyle=col; hx.fill(); hx.restore(); }
 function drawMarker(a){
-  const R=G.ui.R,col=TOOLCOL[a.def.tool]||'#fff',t=G.t,x=a.sx,y=a.sy;
+  const R=G.ui.R,col=TOOLCOL[a.def.tool]||'#fff',t=G.t,x=a.hx,y=a.hy; // 袋がよけて動いても、印は元の場所から動かさない
   if(a.result) return;
   hx.fillStyle='rgba(0,0,0,.35)'; circ(x,y,R); hx.fill(); hx.lineWidth=5; hx.strokeStyle=col; hx.stroke();
   if(t<a.T){
@@ -970,7 +971,7 @@ function updateVisual(){
   drawPS(S,true); drawPS(K,false);
   scene.updateMatrixWorld();
   for(const a of G.attacks){ if(a.input==='swipe') continue; const ix=a.side==='l'?0.13:a.side==='r'?-0.13:0,iy=a.side==='t'?-0.13:0;
-    const w=pack.mesh.localToWorld(_v.set(a.lx+ix,a.ly+iy,0.03)),home=w.clone(); home.x-=pack.root.position.x; home.y-=pack.root.position.y-TABLE_Y; const h=toScreen(home); a.hx=h.x; a.hy=h.y; const s=toScreen(w); a.sx=s.x; a.sy=s.y; }
+    const w=pack.mesh.localToWorld(_v.set(a.lx+ix,a.ly+iy,0.03)),home=w.clone(); home.x-=pack.root.position.x; home.y-=pack.root.position.y-TABLE_Y; const h=toScreen(home),m=G.ui.R+4; a.hx=clamp(h.x,m,G.ui.W-m); a.hy=clamp(h.y,G.ui.top+m,G.ui.H-m); const s=toScreen(w); a.sx=s.x; a.sy=s.y; } // hx,hy：印を描く場所（画面からはみ出さない）
   G.homeS=toScreen(_v.copy(G.home));
 }
 
@@ -1045,7 +1046,8 @@ window.__TEST__={
   spawnAt(key,lead,side,y){ G.nextSpawn=Infinity; G.calm=1e9; const a=spawnAttack(key,G.t+lead,side); if(a&&y!=null&&a.box){ if(side==='t'){a.lx=y;a.box.position.x=y;} else {a.ly=y;a.box.position.y=y+P.H/2;} } return a&&a.id; },
   cfg(k,v){ CONFIG[k]=v; },
   dirs(id){ const a=G.attacks.find(o=>o.id===id); return a&&a.dirs; },
-  atk(id){ const a=G.attacks.find(o=>o.id===id); return a&&{result:a.result,sx:a.sx,sy:a.sy,T:a.T,t:G.t,state:a.state,shot:a.shot,shotRes:a.shotRes}; },
+  atk(id){ const a=G.attacks.find(o=>o.id===id); return a&&{result:a.result,sx:a.sx,sy:a.sy,hx:a.hx,hy:a.hy,T:a.T,t:G.t,state:a.state,shot:a.shot,shotRes:a.shotRes,holders:[...a.holders]}; },
+  ui(){ return {home:G.homeS,R:G.ui.R,W:G.ui.W,H:G.ui.H}; },
   spawn(key,lead,side){ G.nextSpawn=Infinity; G.calm=1e9; return spawnAttack(key,G.t+lead,side).id; },
   view(x,y,z,dist,az,el){ const tg=new THREE.Vector3(x,y,z); cam.position.set(x+dist*Math.sin(az)*Math.cos(el),y+dist*Math.sin(el),z+dist*Math.cos(az)*Math.cos(el)); cam.lookAt(tg); G.camBase.copy(cam.position); hud.style.display='none'; },
   low(){ const r=[]; const b3=new THREE.Box3(); for(const a of G.attacks) for(const o of [a.tool,a.tool2]){ if(!o) continue; b3.setFromObject(o); if(b3.min.y<0){ let worst=null; o.traverse(n=>{ if(n.isMesh){ const bb=new THREE.Box3().setFromObject(n); if(!worst||bb.min.y<worst.y) worst={y:+bb.min.y.toFixed(3),geo:n.geometry.type,par:n.parent&&n.parent.type}; } });
