@@ -59,6 +59,31 @@ button.xbtn{background:#000;color:#fff;box-shadow:0 5px 0 #444,0 8px 18px rgba(0
 @media (max-width:420px){.follow{gap:8px;padding:6px 6px 6px 12px}.follow .fs{display:none}.follow .fl{font-size:13px}.fbtn{font-size:12px;padding:8px 10px}}
 @media (max-height:560px){.follow{padding:4px 6px 4px 12px}.follow .fs{display:none}}
 #mute{position:fixed;z-index:6;right:10px;top:calc(10px + var(--st));width:42px;height:42px;padding:0;border-radius:50%;font-size:18px;background:rgba(0,0,0,.35);color:#fff;box-shadow:none}
+/* Sorotta のお知らせ（ページを開いた時に1回だけ。×ですぐ閉じられる） */
+#promo{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:calc(14px + var(--st)) 14px 14px;box-sizing:border-box;background:rgba(10,6,3,.6);animation:pmFade .2s ease-out}
+#promo .pcard{position:relative;display:grid;grid-template-areas:"pr" "shot" "body";justify-items:center;width:min(330px,100%);max-height:100%;overflow-y:auto;box-sizing:border-box;background:#fbf8f3;color:#2a2622;border-radius:22px;padding:18px 20px 14px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.45);animation:pmPop .28s cubic-bezier(.2,1.3,.4,1)}
+#promo p{margin:0}
+#promo .pr{grid-area:pr;font-size:11px;font-weight:700;color:#7a7065;margin-bottom:10px}
+#promo .pr b{margin-right:6px;padding:1px 6px;border:1px solid #b9ae9f;border-radius:4px;font-size:10px}
+#promo .pshot{grid-area:shot;display:block;width:min(230px,100%);height:auto;margin-bottom:12px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.28))}
+#promo .pbody{grid-area:body;width:100%}
+#promo .phead{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;text-align:left}
+#promo .picon{display:block;width:46px;height:46px;border-radius:11px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+#promo .pname{font-size:22px;font-weight:900;line-height:1.15}
+#promo .psub{font-size:12px;color:#6b6258}
+#promo .ptext{margin-bottom:14px;font-size:14px;line-height:1.6}
+#promo .pbtn{display:block;padding:13px 10px;border-radius:999px;background:#111;color:#fff;font-size:16px;font-weight:800;text-align:center;text-decoration:none}
+#promo .pbtn:active{transform:translateY(2px)}
+#promo .pnote{margin-top:8px;font-size:11px;color:#8a8076;text-align:center}
+#promoX{position:absolute;z-index:1;right:8px;top:8px;width:40px;height:40px;padding:0;border-radius:50%;background:rgba(0,0,0,.08);color:#4a443e;font-size:22px;line-height:40px;box-shadow:none}
+#promoX:active{transform:none;box-shadow:none;background:rgba(0,0,0,.16)}
+@keyframes pmFade{from{opacity:0}} @keyframes pmPop{from{transform:scale(.88);opacity:0}}
+@media (orientation:portrait) and (max-height:680px){ #promo .pshot{width:180px;margin-bottom:8px} #promo .pr{margin-bottom:6px} }
+@media (orientation:landscape) and (max-height:560px){ /* 横向き：左に画面の写真、右に説明 */
+  #promo .pcard{grid-template-areas:"shot ." "shot pr" "shot body" "shot .";grid-template-columns:auto 1fr;grid-template-rows:1fr auto auto 1fr;column-gap:18px;justify-items:start;width:min(560px,100%);padding:12px 18px;text-align:left}
+  #promo .pshot{width:auto;height:230px;height:min(230px,calc(100dvh - 60px));margin:0}
+  #promo .pr{margin-bottom:6px} #promo .phead{justify-content:flex-start;margin-bottom:4px} #promo .picon{width:38px;height:38px;border-radius:9px}
+  #promo .pname{font-size:19px} #promo .ptext{font-size:12px;line-height:1.5;margin-bottom:8px} #promo .ptext br{display:none} #promo .pbtn{padding:9px 10px;font-size:14px} #promo .pnote{margin-top:4px} }
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 </head>
@@ -87,6 +112,19 @@ button.xbtn{background:#000;color:#fff;box-shadow:0 5px 0 #444,0 8px 18px rgba(0
   <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
 </div>
 <button id="mute" aria-label="音のオンオフ">🔊</button>
+<div id="promo" class="hidden" role="dialog" aria-modal="true" aria-label="アプリ Sorotta のお知らせ">
+  <div class="pcard">
+    <button id="promoX" aria-label="閉じる">×</button>
+    <p class="pr"><b>PR</b>N.K. Works のアプリ</p>
+    <img class="pshot" id="promoShot" alt="Sorotta のウィジェット画面" width="560" height="583">
+    <div class="pbody">
+      <div class="phead"><img class="picon" id="promoIcon" alt="" width="46" height="46"><div><p class="pname">Sorotta</p><p class="psub">持ち物チェック</p></div></div>
+      <p class="ptext">曜日ごとの持ち物を登録すると、<br>前の晩や朝に通知でお知らせ。<br>ウィジェットでそのままチェック。</p>
+      <a class="pbtn" id="promoGo" target="_blank" rel="noopener" data-google-vignette="false">App Store で見る</a>
+      <p class="pnote">基本無料 ・ iPhone / iPad</p>
+    </div>
+  </div>
+</div>
 <script type="module">
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -141,6 +179,7 @@ const CONFIG = {
   BGM_VOL: 0.5,
   FOLLOW_X: 'vyaPudzd1E54661',                    // 「作者をフォロー」ボタンのXアカウント
   URL: 'https://nkworks-games.com/akeraremasen/', TAG: 'どこからでも開けられません', SNAP_T: 0.6, // シェア：ゲームのURL・ハッシュタグ・結果画像に使う場面（終わってから何秒後）
+  SOROTTA: { URL: 'https://apps.apple.com/jp/app/sorotta-%E6%8C%81%E3%81%A1%E7%89%A9%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF/id6830588408', ICON: '', SHOT: '/assets/sorotta-widget.webp', ONLY_APPLE: true }, // Sorottaのお知らせ。URL：App Storeのリンク（空なら出さない）／ICON：アイコン画像（空なら仮の絵）／SHOT：アプリの画面の写真／ONLY_APPLE：iPhone・iPad・Macの人だけに出す
 };
 const P = CONFIG.PACK;
 
@@ -1070,6 +1109,15 @@ $('saveBtn').onclick=async()=>{ if(!resultCanvas||!G.result) return;
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='akeraremasen.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000); };
 $('mute').onclick=()=>{ muted=!muted; if(master) master.gain.value=muted?0:0.8; $('mute').textContent=muted?'🔇':'🔊'; };
 $('bestT').textContent=bestText();
+// Sorotta のお知らせ：ページを開いた時に1回だけ（「もう一回」「タイトルへ」では出ない）
+const PROMO_ICON="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#3d5a66"/><path d="M38 38q0-14 12-14t12 14" fill="none" stroke="#f4ead8" stroke-width="5" stroke-linecap="round"/><path d="M24 36h52l-5 44H29z" fill="#f4ead8"/><path d="M38 58l9 9 16-18" fill="none" stroke="#e2a33b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+function initPromo(){ const c=CONFIG.SOROTTA; if(!c.URL||(c.ONLY_APPLE&&!/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent))) return;
+  $('promoIcon').src=c.ICON||PROMO_ICON; $('promoShot').src=c.SHOT; $('promoGo').href=c.URL; $('promo').classList.remove('hidden'); }
+const closePromo=()=>$('promo').classList.add('hidden');
+$('promoX').onclick=closePromo; $('promoGo').addEventListener('click',()=>setTimeout(closePromo,300));
+$('promo').addEventListener('click',e=>{ if(e.target.id==='promo') closePromo(); }); // 外側の暗い所を押しても閉じる
+addEventListener('keydown',e=>{ if(e.key==='Escape') closePromo(); });
+initPromo();
 document.querySelectorAll('.fbtn').forEach(a=>{ a.href='https://x.com/intent/follow?screen_name='+CONFIG.FOLLOW_X; a.textContent='𝕏 @'+CONFIG.FOLLOW_X; });
 resize(); requestAnimationFrame(frame);
 
