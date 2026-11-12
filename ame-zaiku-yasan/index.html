@@ -272,7 +272,10 @@ const CONFIG = {
   BODY_DETAIL: 26,        // 飴の細かさ（大きいほどなめらか・重い）
   PULL_RADIUS: 0.42,      // 体をつまんだ時に一緒に動く範囲
   PULL_MAX_STEP: 0.16,    // 1回の動きで伸びる最大
-  PULL_LIMIT: 1.7,        // つまんだ所が元の位置から離れられる最大
+  PULL_LIMIT: 1.7,        // 1回つまんだ時に動かせる最大
+  BODY_MAX_DISP: 1.15,    // 体の各点が、はじめの位置から離れられる最大（何度引っぱっても、これ以上は伸びない）
+  BODY_MAX_DENT: 0.2,     // 体の各点が、内側へへこめる最大
+  SMOOTH_ITER: 6,         // 引っぱり終わった時に、折れやしわをならす回数
   CUT_LEN_MIN: 0.2, CUT_LEN_MAX: 0.48,  // 切った時にできる出っぱりの長さ
   CUT_WIDTH: 0.23,        // 出っぱりの太さ
   CUT_LIFT: 0.6,          // 出っぱりが表面から起き上がる角度（ラジアン）
@@ -438,13 +441,24 @@ const BASE_GEO = (() => {
   const p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, p.getY(i) * 1.04);
   return g;
 })();
+// 飴の表面で、となり合う点の一覧（引っぱる範囲を「表面にそった距離」で決めるために使う）
+const ADJ = (() => {
+  const idx = BASE_GEO.index.array, n = BASE_GEO.attributes.position.count, sets = Array.from({ length: n }, () => new Set());
+  for (let i = 0; i < idx.length; i += 3) { const a = idx[i], b = idx[i + 1], c = idx[i + 2]; sets[a].add(b).add(c); sets[b].add(a).add(c); sets[c].add(a).add(b); }
+  const start = new Int32Array(n + 1); let t = 0; for (let i = 0; i < n; i++) { start[i] = t; t += sets[i].size; } start[n] = t;
+  const list = new Int32Array(t); let k = 0; for (const st of sets) for (const v of st) list[k++] = v;
+  return { start, list };
+})();
+const REST = BASE_GEO.attributes.position.array;   // はじめの形（どの飴も同じ）
+function heapPush(h, it) { h.push(it); let i = h.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (h[p][0] <= h[i][0]) break; [h[p], h[i]] = [h[i], h[p]]; i = p; } }
+function heapPop(h) { const top = h[0], last = h.pop(); if (h.length) { h[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; [h[m], h[i]] = [h[i], h[m]]; i = m; } } return top; }
 const STICK_GEO = (() => { const g = new THREE.CylinderGeometry(0.04, 0.046, 2.1, 10); g.translate(0, -1.55, 0); return g; })();
 const STICK_MAT = new THREE.MeshStandardMaterial({ color: 0xdcb780, roughness: 0.65 });
 const EYE_GEO = (() => { const g = new THREE.SphereGeometry(1, 16, 12); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3).fill(0.01), 3)); return g; })();
 const EYE_MAT = new THREE.MeshPhysicalMaterial({ color: 0x161616, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.05 });
 const HOT = new THREE.Color(0xffe2bd), COLD = new THREE.Color(0xfff6ec), WARM = new THREE.Color(0xff9a3c);
 function candyMat() {
-  return new THREE.MeshPhysicalMaterial({ color: COLD.clone(), vertexColors: true, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.12, sheen: 0.4, sheenColor: new THREE.Color(0xffffff), sheenRoughness: 0.5 });
+  return new THREE.MeshPhysicalMaterial({ color: COLD.clone(), vertexColors: true, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.12, sheen: 0.4, sheenColor: new THREE.Color(0xffffff), sheenRoughness: 0.5, side: THREE.DoubleSide });   // 両面：引っぱって折れた所に穴が見えないように
 }
 const AS = 14, AR = 12, APP_NV = (AS + 1) * AR + 1;
 const APP_INDEX = (() => {
@@ -476,14 +490,18 @@ class App {
     const w = Math.max(this.w0 * Math.pow(this.L0 / Math.max(L, this.L0), CONFIG.APP_THIN), this.w0 * CONFIG.APP_MIN_W);
     const p = this.mesh.geometry.attributes.position.array;
     const P = _a, T = _b, side = _c, up = _d;
+    if (!this.side0) this.side0 = this.wide.clone();
+    side.copy(this.side0);
     for (let s = 0; s <= AS; s++) {
       const t = s / AS, u = 1 - t;
       P.copy(B).addScaledVector(this.o1, 2 * u * t).addScaledVector(this.o2, t * t);
       T.copy(this.o1).multiplyScalar(2 * u).addScaledVector(_e.copy(this.o2).sub(this.o1), 2 * t);
       if (T.lengthSq() < 1e-9) T.copy(n); T.normalize();
-      side.copy(this.wide).addScaledVector(T, -this.wide.dot(T));
-      if (side.lengthSq() < 1e-5) { side.set(1, 0, 0).addScaledVector(T, -T.x); if (side.lengthSq() < 1e-5) side.set(0, 0, 1).addScaledVector(T, -T.z); }
+      // 平たい向きは、根元から先へ少しずつ受けつぐ（横に引っぱっても、ねじれて裂けない）
+      side.addScaledVector(T, -side.dot(T));
+      if (side.lengthSq() < 1e-6) { side.copy(this.wide).addScaledVector(T, -this.wide.dot(T)); if (side.lengthSq() < 1e-6) { side.set(1, 0, 0).addScaledVector(T, -T.x); if (side.lengthSq() < 1e-6) side.set(0, 0, 1).addScaledVector(T, -T.z); } }
       side.normalize(); up.crossVectors(T, side);
+      if (s === 0) this.side0.copy(side);
       let r = w * (1 - 0.45 * t) * Math.sqrt(Math.max(0, 1 - Math.pow(t, 4))) + w * 0.04; if (t < 0.16) r *= 1 + 0.55 * (1 - t / 0.16);
       for (let j = 0; j < AR; j++) {
         const an = j / AR * Math.PI * 2, cs = Math.cos(an) * r, sn = Math.sin(an) * r * this.flat, k = (s * AR + j) * 3;
@@ -512,10 +530,39 @@ class Candy {
   vpos(i, o) { return o.fromBufferAttribute(this.P, i); }
   vnorm(i, o) { return o.fromBufferAttribute(this.body.geometry.attributes.normal, i); }
   nearestVert(face, pt) { let best = face.a, bd = 1e9; for (const k of [face.a, face.b, face.c]) { const d = this.vpos(k, _a).distanceToSquared(pt); if (d < bd) { bd = d; best = k; } } return best; }
-  beginPull(pt, R = CONFIG.PULL_RADIUS) {
-    const P = this.P, list = [], R2 = R * R;
-    for (let i = 0; i < P.count; i++) { const d2 = _a.fromBufferAttribute(P, i).distanceToSquared(pt); if (d2 < R2 * 4) { const w = Math.exp(-d2 / R2 * 2.2); if (w > 0.008) list.push(i, w); } }
+  beginPull(idx, R = CONFIG.PULL_RADIUS) {
+    // つまんだ点から「表面にそった距離」で動かす範囲を決める（折れて近くにある別の面までは動かさない）
+    const a = this.P.array, list = [], R2 = R * R, cut = R * 2, dist = new Map([[idx, 0]]), h = [[0, idx]];
+    while (h.length) {
+      const [d, i] = heapPop(h); if (d > dist.get(i)) continue;
+      const w = Math.exp(-d * d / R2 * 2.2); if (w > 0.008) list.push(i, w);
+      for (let k = ADJ.start[i]; k < ADJ.start[i + 1]; k++) {
+        const j = ADJ.list[k], nd = d + Math.hypot(a[i * 3] - a[j * 3], a[i * 3 + 1] - a[j * 3 + 1], a[i * 3 + 2] - a[j * 3 + 2]) * 0.92;
+        if (nd < cut && nd < (dist.get(j) ?? Infinity)) { dist.set(j, nd); heapPush(h, [nd, j]); }
+      }
+    }
     this.pw = list; this.pullAcc.set(0, 0, 0);
+  }
+  limitDisp(i) {   // はじめの位置から離れすぎた点・へこみすぎた点を引きもどす
+    const a = this.P.array, k = i * 3, rx = a[k] - REST[k], ry = a[k + 1] - REST[k + 1], rz = a[k + 2] - REST[k + 2];
+    const m = Math.hypot(rx, ry, rz);
+    if (m > CONFIG.BODY_MAX_DISP) { const f = CONFIG.BODY_MAX_DISP / m; a[k] = REST[k] + rx * f; a[k + 1] = REST[k + 1] + ry * f; a[k + 2] = REST[k + 2] + rz * f; }
+    const rl = Math.hypot(REST[k], REST[k + 1], REST[k + 2]), nx = REST[k] / rl, ny = REST[k + 1] / rl, nz = REST[k + 2] / rl;
+    const inn = (a[k] - REST[k]) * nx + (a[k + 1] - REST[k + 1]) * ny + (a[k + 2] - REST[k + 2]) * nz;
+    if (inn < -CONFIG.BODY_MAX_DENT) { const f = -CONFIG.BODY_MAX_DENT - inn; a[k] += nx * f; a[k + 1] += ny * f; a[k + 2] += nz * f; }
+  }
+  smoothRegion(list, iter = CONFIG.SMOOTH_ITER) {   // 引っぱった所の折れ・しわをならす（形は大きく変えない）
+    const a = this.P.array, tmp = new Float32Array(a.length);
+    for (let it = 0; it < iter * 2; it++) {
+      const lam = it % 2 ? -0.34 : 0.33;
+      for (let q = 0; q < list.length; q += 2) {
+        const i = list[q], f = lam * Math.min(1, list[q + 1] * 2), s0 = ADJ.start[i], s1 = ADJ.start[i + 1], n = s1 - s0;
+        let x = 0, y = 0, z = 0; for (let k = s0; k < s1; k++) { const j = ADJ.list[k] * 3; x += a[j]; y += a[j + 1]; z += a[j + 2]; }
+        tmp[i * 3] = a[i * 3] + (x / n - a[i * 3]) * f; tmp[i * 3 + 1] = a[i * 3 + 1] + (y / n - a[i * 3 + 1]) * f; tmp[i * 3 + 2] = a[i * 3 + 2] + (z / n - a[i * 3 + 2]) * f;
+      }
+      for (let q = 0; q < list.length; q += 2) { const i = list[q] * 3; a[i] = tmp[i]; a[i + 1] = tmp[i + 1]; a[i + 2] = tmp[i + 2]; }
+    }
+    this.P.needsUpdate = true; this.dirty = true;
   }
   pullBy(d) {
     if (!this.pw) return 0;
@@ -524,13 +571,14 @@ class Candy {
     if (acc.length() > CONFIG.PULL_LIMIT) { acc.setLength(CONFIG.PULL_LIMIT); d.copy(acc).sub(this.pullAcc); }
     this.pullAcc.copy(acc);
     const a = this.P.array, l = this.pw;
-    for (let k = 0; k < l.length; k += 2) { const i = l[k] * 3, w = l[k + 1]; a[i] += d.x * w; a[i + 1] += d.y * w; a[i + 2] += d.z * w; }
+    for (let k = 0; k < l.length; k += 2) { const i = l[k] * 3, w = l[k + 1]; a[i] += d.x * w; a[i + 1] += d.y * w; a[i + 2] += d.z * w; this.limitDisp(l[k]); }
+    this.smoothRegion(l, 1);   // 引っぱっている間も、少しずつならす
     this.P.needsUpdate = true; this.dirty = true; return d.length();
   }
-  endPull() { this.pw = null; }
+  endPull() { if (this.pw && this.pullAcc.lengthSq() > 1e-6) this.smoothRegion(this.pw); this.pw = null; }
   dent(pt, n, amt = CONFIG.CUT_DENT, R = 0.16) {
     const a = this.P.array, R2 = R * R;
-    for (let i = 0; i < a.length; i += 3) { const dx = a[i] - pt.x, dy = a[i + 1] - pt.y, dz = a[i + 2] - pt.z, d2 = dx * dx + dy * dy + dz * dz; if (d2 < R2 * 4) { const w = Math.exp(-d2 / R2 * 2) * amt; a[i] -= n.x * w; a[i + 1] -= n.y * w; a[i + 2] -= n.z * w; } }
+    for (let i = 0; i < a.length; i += 3) { const dx = a[i] - pt.x, dy = a[i + 1] - pt.y, dz = a[i + 2] - pt.z, d2 = dx * dx + dy * dy + dz * dz; if (d2 < R2 * 4) { const w = Math.exp(-d2 / R2 * 2) * amt; a[i] -= n.x * w; a[i + 1] -= n.y * w; a[i + 2] -= n.z * w; this.limitDisp(i / 3); } }
     this.P.needsUpdate = true; this.dirty = true;
   }
   addApp(idx, dir, L, w, wide, flat, o = {}) {
@@ -585,7 +633,7 @@ class Candy {
     return { pt, n: h.face.normal.clone(), idx: this.nearestVert(h.face, pt) };
   }
   pullDir(dir, delta, R) {
-    const s = this.surf(dir); this.beginPull(s.pt, R);
+    const s = this.surf(dir); this.beginPull(s.idx, R);
     const steps = Math.ceil(delta.length() / 0.1), st = delta.clone().divideScalar(steps);
     for (let i = 0; i < steps; i++) this.pullBy(st.clone());
     this.endPull(); this.update();
@@ -665,7 +713,7 @@ function targetCandy(key) {
 const SN = 64;
 const scoreRT = new THREE.WebGLRenderTarget(SN, SN);
 const scoreScene = new THREE.Scene();
-scoreScene.overrideMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
+scoreScene.overrideMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
 const scoreCam = new THREE.OrthographicCamera(-2.7, 2.7, 2.9, -2.5, 0.1, 30);
 function renderViews(cd, angles) {
   const g = cd.group, parent = g.parent, rot = g.rotation.clone(), pos = g.position.clone();
@@ -1117,7 +1165,7 @@ canvas.addEventListener('pointerdown', e => {
     } else if (h.object.userData.app) {
       drag = { type: 'app', ...base, app: h.object.userData.app, plane: camPlane(h.point), last: h.point.clone() };
     } else {
-      player.beginPull(lp); drag = { type: 'body', ...base, plane: camPlane(h.point), last: h.point.clone() };
+      player.beginPull(player.nearestVert(h.face, lp)); drag = { type: 'body', ...base, plane: camPlane(h.point), last: h.point.clone() };
     }
   } else {
     if (tool === 'eye') drag = { type: 'eye', ...base, pt: lp, n: ln };
