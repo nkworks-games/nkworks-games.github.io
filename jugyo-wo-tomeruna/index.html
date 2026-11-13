@@ -185,6 +185,52 @@ body.short #introScr .new{padding:5px 8px;margin:5px 0;font-size:13px}
 .sheet .follow{background:#0000000a;border-color:#0000002e;color:#222;margin:10px auto 0}
 .sheet .follow .fs{color:#555}
 body.short .follow{margin-top:6px;padding:4px 6px 4px 12px}
+/* Sorotta のお知らせ：開いた時に1回だけ出す画面（×ですぐ閉じられる。どこからでも開けられませんと同じ形） */
+#promo{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:calc(14px + var(--sat)) 14px calc(14px + var(--sab));background:rgba(10,6,3,.6);font-family:var(--maru);animation:pmFade .2s ease-out}
+#promo .pcard{position:relative;display:grid;grid-template-areas:"pr" "shot" "body";justify-items:center;width:min(330px,100%);max-height:100%;overflow-y:auto;background:#fbf8f3;color:#2a2622;border-radius:22px;padding:18px 20px 14px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.45);animation:pmPop .28s cubic-bezier(.2,1.3,.4,1)}
+#promo p,.soro-side p{margin:0}
+.pr{font-size:11px;font-weight:800;color:#7a7065;margin-bottom:10px}
+.pr b{margin-right:6px;padding:1px 6px;border:1px solid #b9ae9f;border-radius:4px;font-size:10px}
+#promo .pr{grid-area:pr}
+.pshot{display:block;width:min(230px,100%);height:auto;margin:0 auto 12px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.28))}
+#promo .pshot{grid-area:shot}
+#promo .pbody{grid-area:body;width:100%}
+.phead{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;text-align:left}
+.picon{display:block;width:46px;height:46px;border-radius:11px;box-shadow:0 2px 6px rgba(0,0,0,.18);flex:none}
+.pname{font-size:22px;font-weight:900;line-height:1.15}
+.psub{font-size:12px;color:#6b6258}
+.ptext{margin-bottom:14px;font-size:14px;line-height:1.6}
+.pbtn{display:block;padding:13px 10px;border-radius:999px;background:#111;color:#fff;font-size:16px;font-weight:800;text-align:center;text-decoration:none}
+.pbtn:active{transform:translateY(2px)}
+.pnote{margin-top:8px;font-size:11px;color:#8a8076;text-align:center}
+#promoX{position:absolute;z-index:1;right:8px;top:8px;width:40px;height:40px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.08);color:#4a443e;font-size:22px;line-height:40px}
+#promoX:active{background:rgba(0,0,0,.16)}
+@keyframes pmFade{from{opacity:0}} @keyframes pmPop{from{transform:scale(.88);opacity:0}}
+@media (orientation:portrait) and (max-height:680px){ #promo .pshot{width:180px;margin-bottom:8px} #promo .pr{margin-bottom:6px} }
+@media (orientation:landscape) and (max-height:560px){ /* 横向き：左に画面の写真、右に説明 */
+  #promo .pcard{grid-template-areas:"shot ." "shot pr" "shot body" "shot .";grid-template-columns:auto 1fr;grid-template-rows:1fr auto auto 1fr;column-gap:18px;justify-items:start;width:min(560px,100%);padding:12px 18px;text-align:left}
+  #promo .pshot{width:auto;height:min(230px,calc(100dvh - 60px));margin:0}
+  #promo .pr{margin-bottom:6px} #promo .phead{justify-content:flex-start;margin-bottom:4px} #promo .picon{width:38px;height:38px;border-radius:9px}
+  #promo .pname{font-size:19px} #promo .ptext{font-size:12px;line-height:1.5;margin-bottom:8px} #promo .ptext br{display:none} #promo .pbtn{padding:9px 10px;font-size:14px} #promo .pnote{margin-top:4px} }
+/* 結果画面のSorotta：スマホは結果の紙のいちばん下に細い帯、PCなど横に広い画面は右の空いている所にカード */
+.soro-strip,.soro-side{display:none}
+body.soro .soro-strip{display:flex;align-items:center;gap:10px;width:min(340px,100%);margin:8px auto 0;padding:7px 8px 7px 10px;border-radius:14px;background:#fbf8f3;border:1px solid #0000002e;color:#2a2622;text-decoration:none;text-align:left;font-family:var(--maru);position:relative}
+.soro-strip .picon{width:40px;height:40px;border-radius:9px}
+.soro-strip .st{flex:1;min-width:0;line-height:1.25}
+.soro-strip .st b{display:block;font-size:16px;font-weight:900}
+.soro-strip .st small{display:block;font-size:10px;color:#6b6258;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.soro-strip .sbtn{flex:none;padding:8px 12px;border-radius:999px;background:#111;color:#fff;font-size:12px;font-weight:800;white-space:nowrap}
+.soro-strip .spr{position:absolute;left:8px;top:-7px;padding:0 5px;border:1px solid #b9ae9f;border-radius:4px;background:#fbf8f3;color:#7a7065;font-size:9px;font-weight:800;font-style:normal;line-height:13px}
+.soro-strip:active .sbtn,.soro-side .pbtn:active{transform:translateY(2px)}
+body.short .soro-strip{margin-top:6px;padding:5px 8px}
+.soro-side{position:absolute;left:calc(50% + 244px);top:50%;transform:translateY(-50%);width:210px;max-height:calc(100% - 32px);overflow-y:auto;background:#fbf8f3;color:#2a2622;border-radius:18px;padding:14px 14px 12px;box-shadow:0 10px 40px #000a;font-family:var(--maru);text-align:center}
+.soro-side .pshot{width:150px;margin-bottom:10px}
+.soro-side .pname{font-size:19px} .soro-side .picon{width:38px;height:38px;border-radius:9px}
+.soro-side .ptext{font-size:12px;line-height:1.55;margin-bottom:10px}
+.soro-side .pbtn{padding:10px 8px;font-size:14px}
+@media (min-width:940px) and (min-height:560px){ body.soro .soro-side{display:block} body.soro .soro-strip{display:none} }
+#resScr .btn.sub{min-width:140px}
+#resScr #nextBtn,#resScr #shareBtn{display:table;margin:6px auto 10px} /* この2つは1段ずつ。下の2つは横にならべる */
 .btn.xbtn{display:inline-block;text-decoration:none;background:#111;color:#fff;box-shadow:0 5px 0 #000,0 8px 18px #0008}
 #loadScr{background:#0f1612;z-index:50}
 #loadScr .lb{width:200px;height:8px;border-radius:4px;background:#ffffff22;overflow:hidden;margin-top:14px}
@@ -224,6 +270,19 @@ body.short .follow{margin-top:6px;padding:4px 6px 4px 12px}
   <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
 </div>
 <button id="sndBtn" class="hide">🔊 音あり</button>
+<div id="promo" class="hide" role="dialog" aria-modal="true" aria-label="アプリ Sorotta のお知らせ">
+  <div class="pcard">
+    <button id="promoX" aria-label="閉じる">×</button>
+    <p class="pr"><b>PR</b>N.K. Works のアプリ</p>
+    <img class="pshot" alt="Sorotta のウィジェット画面" width="560" height="583">
+    <div class="pbody">
+      <div class="phead"><img class="picon" alt="" width="46" height="46"><div><p class="pname">Sorotta</p><p class="psub">持ち物チェック</p></div></div>
+      <p class="ptext">曜日ごとの持ち物を登録すると、<br>前の晩や朝に通知でお知らせ。<br>ウィジェットでそのままチェック。</p>
+      <a class="pbtn soroGo" id="promoGo" target="_blank" rel="noopener" data-google-vignette="false">App Store で見る</a>
+      <p class="pnote">基本無料 ・ iPhone / iPad</p>
+    </div>
+  </div>
+</div>
 
 <div id="selScr" class="scr dim hide">
   <div class="sheet">
@@ -279,7 +338,16 @@ body.short .follow{margin-top:6px;padding:4px 6px 4px 12px}
       <button class="btn sub" id="toSelBtn">時間割へ</button>
     </div>
     <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
+    <a class="soro-strip soroGo" target="_blank" rel="noopener" data-google-vignette="false"><i class="spr">PR</i><img class="picon" alt="" width="40" height="40"><span class="st"><b>Sorotta</b><small>持ち物チェック ・ 基本無料</small></span><span class="sbtn">App Store</span></a>
   </div>
+  <aside class="soro-side">
+    <p class="pr"><b>PR</b>N.K. Works のアプリ</p>
+    <img class="pshot" alt="Sorotta のウィジェット画面" width="560" height="583">
+    <div class="phead"><img class="picon" alt="" width="38" height="38"><div><p class="pname">Sorotta</p><p class="psub">持ち物チェック</p></div></div>
+    <p class="ptext">曜日ごとの持ち物を登録すると、前の晩や朝に通知でお知らせ。</p>
+    <a class="pbtn soroGo" target="_blank" rel="noopener" data-google-vignette="false">App Store で見る</a>
+    <p class="pnote">基本無料 ・ iPhone / iPad</p>
+  </aside>
 </div>
 
 <script>
@@ -309,6 +377,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 const CONFIG = {
   FOLLOW_X: 'vyaPudzd1E54661', // 「作者をフォロー」とシェア文の作者アカウント
   GAME_URL: 'https://nkworks-games.com/jugyo-wo-tomeruna/',
+  // Sorottaのお知らせ。URL：App Storeのリンク（空なら出さない）／ICON：アイコン画像（空なら仮の絵）／SHOT：アプリの画面の写真／ONLY_APPLE：iPhone・iPad・Macの時だけ出す
+  SOROTTA: { URL: 'https://apps.apple.com/jp/app/sorotta-%E6%8C%81%E3%81%A1%E7%89%A9%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF/id6830588408', ICON: '', SHOT: '/assets/sorotta-widget.webp', ONLY_APPLE: true },
   room: { x0: -4.5, x1: 4.5, z0: -4.2, z1: 4.4, h: 3.0 },
   seats: { colX: [-3.25, -1.95, -0.65, 0.65, 1.95, 3.25], rowZ: [-1.55, -0.47, 0.61, 1.69, 2.77] },
   kidScale: [0.79, 0.86],
@@ -2159,6 +2229,20 @@ $('againBtn').onclick = () => startPeriod(game.period);
 $('toSelBtn').onclick = () => openSelect();
 $('introScr').addEventListener('pointerdown', () => { SFX.init(); beginCeremony(); });
 document.querySelectorAll('.fbtn').forEach(a => { a.href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; a.textContent = '𝕏 @' + CONFIG.FOLLOW_X; });
+// Sorotta のお知らせ：ページを開いた時に1回だけ全画面に出す（「もう一度」「時間割へ」では出ない）＋結果画面にずっと出す
+const PROMO_ICON = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#3d5a66"/><path d="M38 38q0-14 12-14t12 14" fill="none" stroke="#f4ead8" stroke-width="5" stroke-linecap="round"/><path d="M24 36h52l-5 44H29z" fill="#f4ead8"/><path d="M38 58l9 9 16-18" fill="none" stroke="#e2a33b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+const closePromo = () => $('promo').classList.add('hide');
+(function initSorotta() {
+  const c = CONFIG.SOROTTA; if (!c.URL || (c.ONLY_APPLE && !/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent))) return;
+  document.querySelectorAll('.picon').forEach(i => { i.src = c.ICON || PROMO_ICON; });
+  document.querySelectorAll('.pshot').forEach(i => { i.src = c.SHOT; });
+  document.querySelectorAll('.soroGo').forEach(a => { a.href = c.URL; });
+  document.body.classList.add('soro'); $('promo').classList.remove('hide');
+  $('promoX').onclick = closePromo; $('promoGo').addEventListener('click', () => setTimeout(closePromo, 300));
+  $('promo').addEventListener('click', e => { if (e.target.id === 'promo') closePromo(); }); // 外側の暗い所を押しても閉じる
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !$('promo').classList.contains('hide')) { closePromo(); e.stopImmediatePropagation(); } }, true);
+  ['pointerdown', 'pointerup', 'touchstart', 'wheel'].forEach(ev => $('promo').addEventListener(ev, e => e.stopPropagation(), { passive: true })); // 下のゲームに操作がもれないように
+})();
 $('sndBtn').onclick = () => { SFX.init(); SFX.setOn(!SFX.on); $('sndBtn').textContent = SFX.on ? '🔊 音あり' : '🔇 音なし'; };
 function toTitle() { game.state = 'title'; show('titleScr'); showHUD(false); resetClass(); setSun(2); drawFrontBoard(true); }
 function openSelect() {
