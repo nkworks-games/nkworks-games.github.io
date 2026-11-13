@@ -1992,14 +1992,14 @@ function startPeriod(i) {
 function showHUD(on) { for (const id of ['hud', 'board', 'pad', 'zoomUI']) $(id).classList.toggle('hide', !on); layout(); }
 function show(id) { for (const s of ['titleScr', 'selScr', 'howScr', 'introScr', 'pauseScr', 'resScr', 'loadScr']) $(s).classList.toggle('hide', s !== id); $('sndBtn').classList.toggle('hide', !(id === 'titleScr' || id === 'pauseScr')); }
 function beginCeremony() {
-  show(null); showHUD(true); game.state = 'ceremony'; game.cerT = 0; game.cerStep = 0; SFX.init(); SFX.chime();
+  show(null); showHUD(true); game.state = 'ceremony'; game.cerT = 0; game.cerStep = 0; game.cerSkip = false; SFX.init(); SFX.chime();
   drawFrontBoard();
 }
 function updateCeremony(dt, ending) {
   game.cerT += dt; const t = game.cerT;
   const steps = [[0.6, () => { bubbleTeacher(ending ? 'では、今日はここまで' : 'はい、授業をはじめます'); }], [1.7, () => { bubbleAtClass('起立！'); students.forEach((s, i) => later((rand(0, 250)) / 1000, () => standUp(s))); }],
-    [3.3, () => { bubbleAtClass('礼！'); game.bowT = 0; }], [4.6, () => { bubbleAtClass(ending ? 'ありがとうございました！' : 'おねがいします！'); }], [5.2, () => { bubbleAtClass('着席！'); students.forEach((s) => later((rand(0, 300)) / 1000, () => sitDown(s))); }], [6.6, () => { if (ending) finishResult(); else { game.state = 'play'; hint(isTouch ? 'タップでチョーク・長押しで歩いて注意！' : 'クリックでチョーク・長押しで歩いて注意！', 3); } }]];
-  while (game.cerStep < steps.length && t >= steps[game.cerStep][0]) { steps[game.cerStep][1](); game.cerStep++; }
+    [3.3, () => { bubbleAtClass('礼！'); game.bowT = 0; }], [4.6, () => { bubbleAtClass(ending ? 'ありがとうございました！' : 'おねがいします！'); }], [5.2, () => { bubbleAtClass('着席！'); students.forEach((s) => later((rand(0, 300)) / 1000, () => sitDown(s))); }], [6.6, () => { if (ending) finishResult(); else { students.forEach(s => { if (s.standing && !(s.dis && s.dis.type === 'dance')) sitDown(s); }); /* 念のため：立ったままの子を座らせる */ game.state = 'play'; hint(isTouch ? 'タップでチョーク・長押しで歩いて注意！' : 'クリックでチョーク・長押しで歩いて注意！', 3); } }]];
+  while (game.cerStep < steps.length && t >= steps[game.cerStep][0]) { if (game.cerSkip && game.cerStep < steps.length - 1) { game.cerStep++; continue; } steps[game.cerStep][1](); game.cerStep++; } // 飛ばした時は最後だけ
   game.bow = (t > 3.3 && t < 4.9) ? Math.sin(clamp((t - 3.3) / 1.6, 0, 1) * Math.PI) : 0;
 }
 function bubbleAtClass(txt) { const st = students[2]; bubbleAt(st.head, txt); }
@@ -2081,7 +2081,7 @@ function endLesson(clear) {
   for (const st of students) if (st.dis || st.state === 'hiding') { endDis(st); st.state = 'good'; }
   if (T.mode !== 'home') { T.mode = 'returning'; T.path = homePath(); T.act = null; T.target = null; }
   game.result = { clear, reason: clear ? 'clear' : (game.chaos >= 100 ? 'kyoto' : 'time'), remain: Math.max(0, per.len - game.time) };
-  if (clear) { game.state = 'ceremonyEnd'; game.cerT = 0; game.cerStep = 0; SFX.init(); SFX.chime(); popAtScreen(VW / 2, VH * 0.4, '授業終了！', '#ffe27a', 'big'); }
+  if (clear) { game.state = 'ceremonyEnd'; game.cerT = 0; game.cerStep = 0; game.cerSkip = false; SFX.init(); SFX.chime(); popAtScreen(VW / 2, VH * 0.4, '授業終了！', '#ffe27a', 'big'); }
   else if (game.result.reason === 'kyoto') { game.state = 'kyoto'; game.kyT = 0; startKyoto(); }
   else { game.state = 'timeup'; game.kyT = 0; SFX.chime(); popAtScreen(VW / 2, VH * 0.4, 'キーンコーン…', '#fff', 'big'); bubbleAtClass('先生、チャイム鳴りましたー！'); }
 }
@@ -2180,7 +2180,7 @@ const ring = $('ring');
 canvas.addEventListener('pointerdown', (e) => {
   SFX.init();
   if (game.state === 'intro') { beginCeremony(); return; }
-  if (game.state === 'ceremony' && game.cerT < 6.4) { game.cerT = 6.4; timers.length = 0; students.forEach(s => { if (s.standing) sitDown(s); }); game.bow = 0; return; }
+  if (game.state === 'ceremony' && game.cerT < 6.4) { game.cerT = 6.4; game.cerSkip = true; timers.length = 0; students.forEach(s => { if (s.standing) sitDown(s); }); game.bow = 0; return; }
   if (game.state !== 'play') return;
   try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
   const p = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: performance.now(), moved: false, long: false };
