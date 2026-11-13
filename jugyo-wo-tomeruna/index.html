@@ -387,6 +387,7 @@ const CONFIG = {
   chalk: { speed: 17, gravity: 9.8, cooldown: 0.28, headR: 0.14, bodyR: 0.19, scareR: 0.8 },
   chaos: { decay: 1.2, decayBusy: 0.25, miss: 2, innocent: 6, dodge: 3, hitRelief: 5, wrong: 3, directRelief: 8, planeHit: 4 },
   progress: { chaosEffect: 0.5 },
+  sound: { murmur: 0.05 }, // 教室のざわざわの大きさ（いちばん荒れた時）
   input: { longPress: 0.36, dragPx: 12 },
   score: { correct: 100, hit: 80, head: 60, confiscate: 150, direct: 100, plane: 120, innocent: -120, comboStep: 0.1, comboMax: 2.0, timeBonus: 15 },
   rank: { S: 80, A: 62, B: 42 },
@@ -476,20 +477,22 @@ const SFX = {
     const n = c.sampleRate * 2, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     this.noiseBuf = b;
-    // 教室のざわざわ（荒れ度で大きくなる）
-    const src = c.createBufferSource(); src.buffer = b; src.loop = true;
-    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 700; bp.Q.value = 0.7;
-    const bp2 = c.createBiquadFilter(); bp2.type = 'peaking'; bp2.frequency.value = 1800; bp2.gain.value = 6;
-    this.murG = c.createGain(); this.murG.gain.value = 0;
-    src.connect(bp); bp.connect(bp2); bp2.connect(this.murG); this.murG.connect(this.bus); src.start();
-    // 声っぽいざわめき
+    this.buildAmb(c);
+  },
+  // 教室のざわざわ：声っぽい音を6人ぶん重ねる。白い雑音（砂嵐の音）は使わない。クラスが落ち着いている時は鳴らさない
+  buildAmb(c) {
+    this.voiceBus = c.createGain(); this.voiceBus.gain.value = 0;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1700; lp.Q.value = 0.5; // 高い「シャー」を切る
+    this.voiceBus.connect(lp); lp.connect(this.bus);
     this.babble = [];
-    for (let i = 0; i < 4; i++) {
-      const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 180 + i * 47;
-      const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 600 + i * 300; f.Q.value = 6;
+    for (let i = 0; i < 6; i++) {
+      const o = c.createOscillator(); o.type = 'sawtooth'; const base = rand(150, 270); o.frequency.value = base;
+      const f1 = c.createBiquadFilter(); f1.type = 'bandpass'; f1.Q.value = 5; f1.frequency.value = 600;
+      const f2 = c.createBiquadFilter(); f2.type = 'bandpass'; f2.Q.value = 7; f2.frequency.value = 1200;
       const g = c.createGain(); g.gain.value = 0;
-      o.connect(f); f.connect(g); g.connect(this.bus); o.start();
-      this.babble.push({ o, f, g, t: rand(0, 1) });
+      const pn = c.createStereoPanner ? c.createStereoPanner() : null; if (pn) pn.pan.value = rand(-0.8, 0.8);
+      o.connect(f1); o.connect(f2); f1.connect(g); f2.connect(g); if (pn) { g.connect(pn); pn.connect(this.voiceBus); } else g.connect(this.voiceBus); o.start();
+      this.babble.push({ o, f1, f2, g, base, next: rand(0, 0.5) });
     }
   },
   setOn(v) { this.on = v; save.sound = v; persist(); if (this.master) this.master.gain.value = v ? 0.9 : 0; },
@@ -545,10 +548,20 @@ const SFX = {
   whisper() { for (let i = 0; i < 6; i++) this.noise(0.25, 0.02, { f: rand(2500, 4500), q: 3, when: i * 0.12 + rand(0, 0.05), pan: rand(-0.7, 0.7) }); },
   giku() { this.tone(880, 0.08, 'square', 0.05); this.tone(660, 0.12, 'square', 0.05, { when: 0.08 }); this.noise(0.15, 0.08, { f: 1800, q: 1 }); },
   plane(p) { this.noise(0.5, 0.05, { f: 2500, to: 1200, q: 3, pan: p, a: 0.08 }); },
-  update(dt, chaos, active) {
-    if (!this.ctx) return; const t = this.ctx.currentTime; const k = clamp(chaos / 100, 0, 1);
-    this.murG.gain.setTargetAtTime(0.012 + k * k * 0.16 + Math.min(active, 6) * 0.006, t, 0.3);
-    for (const b of this.babble) { b.t += dt * rand(2, 6); const on = Math.sin(b.t * 3.1) > 0.2 ? 1 : 0; b.g.gain.setTargetAtTime(on * (0.002 + k * 0.03), t, 0.04); b.o.frequency.setTargetAtTime(160 + Math.sin(b.t * 1.7) * 60 + rand(0, 80), t, 0.08); b.f.frequency.setTargetAtTime(500 + rand(0, 1600), t, 0.05); }
+  update(dt, chaos, active, tNow) {
+    if (!this.ctx || !this.voiceBus) return; const t = tNow !== undefined ? tNow : this.ctx.currentTime; const k = clamp(chaos / 100, 0, 1);
+    const lvl = clamp((k - 0.15) * 1.3 + Math.min(active, 6) * 0.04, 0, 1); // 0＝しずか 1＝大さわぎ
+    this.voiceBus.gain.setTargetAtTime(lvl * CONFIG.sound.murmur, t, 0.4);
+    const VOW = [[730, 1090], [270, 2290], [300, 870], [530, 1840], [570, 840]]; // あ・い・う・え・お の声の山（だいたい）
+    for (const b of this.babble) {
+      b.next -= dt; if (b.next > 0) continue;
+      const talk = Math.random() < 0.3 + lvl * 0.6, dur = rand(0.09, 0.22); // 1音しゃべる→少し休む
+      b.next = dur + (talk ? rand(0.02, 0.08) : rand(0.2, 0.7));
+      if (!talk) continue;
+      const v = pick(VOW); b.f1.frequency.setTargetAtTime(v[0], t, 0.02); b.f2.frequency.setTargetAtTime(v[1], t, 0.02);
+      b.o.frequency.setTargetAtTime(b.base * rand(0.85, 1.25), t, 0.05);
+      b.g.gain.setTargetAtTime(1, t, 0.015); b.g.gain.setTargetAtTime(0, t + dur, 0.03);
+    }
   },
 };
 
