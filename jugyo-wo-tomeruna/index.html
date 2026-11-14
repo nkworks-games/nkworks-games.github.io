@@ -76,8 +76,8 @@ body.land #board.ng{animation:shake2 .32s}
 #board.away::after{content:"教卓から はなれています";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0c1510d9;font-family:var(--maru);font-weight:800;font-size:15px;color:#ffd27a;border-radius:2px}
 @keyframes shake{20%{transform:translateX(calc(-50% - 8px))}40%{transform:translateX(calc(-50% + 7px))}60%{transform:translateX(calc(-50% - 5px))}80%{transform:translateX(calc(-50% + 3px))}}
 /* Pad */
-#pad{position:fixed;z-index:11;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:8px;background:linear-gradient(#5b3a1d,#47290f);border-radius:14px 14px 0 0;box-shadow:0 -4px 18px #0008,inset 0 2px 0 #ffffff22}
-#pad button{border:0;border-radius:10px;font-family:var(--pop);font-size:24px;color:#2a1f14;background:linear-gradient(#fbf6ea,#e9dfc6);box-shadow:0 4px 0 #a88f63,0 5px 8px #0005;touch-action:manipulation;padding:0}
+#pad{position:fixed;z-index:11;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,minmax(0,1fr));gap:7px;padding:8px;background:linear-gradient(#5b3a1d,#47290f);border-radius:14px 14px 0 0;box-shadow:0 -4px 18px #0008,inset 0 2px 0 #ffffff22}
+#pad button{border:0;border-radius:10px;font-family:var(--pop);font-size:24px;color:#2a1f14;background:linear-gradient(#fbf6ea,#e9dfc6);box-shadow:0 4px 0 #a88f63,0 5px 8px #0005;touch-action:manipulation;padding:0;min-height:0;line-height:1}
 #pad button:active,#pad button.dn{transform:translateY(3px);box-shadow:0 1px 0 #a88f63}
 #pad button.fn{font-size:16px;background:linear-gradient(#e8d9b8,#d6c39a)}
 #pad.off button{opacity:.45}
@@ -1928,7 +1928,7 @@ function layout() {
     Object.assign(pad.style, { left: 'auto', right: `calc(8px + env(safe-area-inset-right,0px))`, bottom: `calc(8px + env(safe-area-inset-bottom,0px))`, width: bw + 'px', height: bh + 'px', borderRadius: '14px', paddingBottom: '8px' });
     freeRect = { x: 0, y: hudH, w: VW - (pad.classList.contains('hide') ? 0 : bw + 16), h: VH - hudH };
   } else {
-    const ph = Math.min(VH * 0.3, 250);
+    const ph = clamp(VH * 0.3, 172, 250); // 小さいスマホ（iPhone SEなど）でも1段33px以上
     Object.assign(pad.style, { left: '0', right: '0', bottom: '0', width: 'auto', height: `calc(${ph}px + env(safe-area-inset-bottom,0px))`, paddingBottom: `calc(8px + env(safe-area-inset-bottom,0px))`, borderRadius: '14px 14px 0 0' });
     Object.assign(board.style, { top: (hudH + 4) + 'px', left: '50%', right: 'auto', transform: '', width: 'auto', padding: '' });
     board.querySelector('.q').style.fontSize = Math.min(38, VW * 0.09) + 'px'; board.dataset.fs = Math.min(38, VW * 0.09); fitBoard();
