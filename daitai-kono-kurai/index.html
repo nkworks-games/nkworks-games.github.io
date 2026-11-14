@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>だいたいこのくらい</title>
+<meta name="description" content="身長170cmの人の横に、自販機・信号機・サッカーゴールなどを本物の大きさで描いて、ズレを採点するゲーム。全20種類から毎回3つ出題。スマホ・パソコン対応。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="だいたいこのくらい">
+<meta property="og:description" content="人の横に、本物の大きさで描けますか？ 自販機・信号機・ゴール…全20種類。">
+<meta property="og:url" content="https://nkworks-games.com/daitai-kono-kurai/">
+<meta property="og:image" content="https://nkworks-games.com/daitai-kono-kurai/card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nkworks-games.com/daitai-kono-kurai/card.png">
+<meta name="theme-color" content="#f6f3ec">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/daitai-kono-kurai/">
+<style>
+/* ===== [SEC:STYLE] ===== */
+:root{--bg:#f6f3ec;--ink:#222;--accent:#ff4f6d;--sub:#777;--line:#e2dccf}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#d9d1c1;color:var(--ink);overscroll-behavior:none;
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#app{max-width:480px;height:100vh;height:100dvh;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative}
+.screen{flex:1;display:flex;flex-direction:column;min-height:0}
+.hidden{display:none!important}
+button{font:inherit;cursor:pointer;color:inherit}
+.btn{border:none;border-radius:12px;padding:12px 14px;font-weight:700;font-size:15px}
+.btnMain{background:var(--accent);color:#fff}
+.btnMain:disabled{background:#cdbcc0;cursor:default}
+.btnSub{background:#fff;border:2px solid #ccc;color:#444}
+/* タイトル */
+#scrTitle{justify-content:center;align-items:center;text-align:center;padding:20px 16px}
+#scrTitle h1{font-size:clamp(24px,8.4vw,34px);margin:0 0 6px;letter-spacing:.04em;white-space:nowrap}
+#scrTitle .lead{font-size:15px;margin:0 0 22px;color:#444}
+#scrTitle ol{text-align:left;font-size:14px;line-height:1.7;margin:0 0 26px;padding-left:1.4em}
+#scrTitle .btnMain{font-size:18px;padding:14px 48px}
+#titleIcons{font-size:40px;margin-bottom:10px}
+/* ゲーム */
+#hud{padding:8px 12px 4px}
+#roundLabel{font-weight:800;font-size:15px}
+#instr{font-size:13px;color:#333}
+#note{font-size:11px;color:var(--sub)}
+#stageWrap{flex:1;position:relative;min-height:0}
+#stage{position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;display:block}
+#hint{position:absolute;left:8px;right:8px;top:6px;font-size:12px;background:rgba(255,255,255,.88);border-radius:8px;padding:4px 8px;pointer-events:none;text-align:center}
+#partBar{display:flex;gap:6px;overflow-x:auto;padding:6px 8px 4px;scrollbar-width:none}
+#partBar::-webkit-scrollbar{display:none}
+.partBtn{flex:0 0 auto;border:2px solid #ccc;background:#fff;border-radius:999px;padding:6px 10px;font-size:13px;display:flex;align-items:center;gap:5px}
+.partBtn.active{border-color:var(--accent);background:#fff0f3}
+.partBtn .dot{width:12px;height:12px;border-radius:50%;border:1px dashed #999;background:#fff}
+.partBtn .chk{color:#2e9d5b;font-weight:800;width:10px}
+#palette{display:flex;justify-content:space-between;padding:2px 8px 4px}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid rgba(0,0,0,.25);padding:0}
+.sw.sel{outline:3px solid var(--accent);outline-offset:1px}
+#actionBar{display:flex;gap:8px;padding:4px 8px calc(8px + env(safe-area-inset-bottom))}
+#actionBar .btnMain{flex:1}
+#resultUI{padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line);max-height:40%;overflow-y:auto}
+#resHead{display:flex;align-items:baseline;justify-content:space-between}
+#resScore{font-size:26px;font-weight:800}
+#resScore small{font-size:14px;color:var(--sub)}
+#resList{list-style:none;margin:4px 0;padding:0}
+#resList li{border-bottom:1px solid #eee;padding:5px 0;opacity:0;animation:pop .3s forwards}
+.rl{display:flex;justify-content:space-between;font-size:13px}
+.rl .pt{font-weight:800}
+.rl .pt.full{color:#2e9d5b}.rl .pt.zero{color:#c33}
+.rv{font-size:12px;color:#555}
+#resTrivia{font-size:12px;background:#fff7dd;border-radius:8px;padding:6px 8px;margin:6px 0}
+.resRow{display:flex;align-items:center;gap:8px}
+.resRow label{font-size:13px;flex:1}
+.resRow .btnMain{flex:1}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* 最終結果 */
+#scrFinal{overflow-y:auto;padding:12px 14px calc(14px + env(safe-area-inset-bottom));text-align:center}
+#finalTotal{font-size:40px;font-weight:800;margin:4px 0 0}
+#finalTotal small{font-size:18px;color:var(--sub)}
+#finalRank{font-size:18px;font-weight:800;color:var(--accent);margin-bottom:8px}
+#finalCanvas{width:100%;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.12);background:#fff}
+#finalBtns{display:flex;gap:8px;margin:10px 0}
+#finalBtns .btn{flex:1}
+#btnRetry{width:100%}
+/* 作者をフォロー（タイトルと結果画面だけ。サイトのほかのゲームと同じ形） */
+.follow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;background:#f3e9dc;border:1px solid #e4d6c4;border-radius:14px;padding:6px 8px 6px 12px;text-align:left;width:100%;max-width:400px;margin-left:auto;margin-right:auto}
+.follow>div{min-width:0;overflow:hidden}.follow p{margin:0;overflow:hidden;text-overflow:ellipsis}
+.follow .fl{font-size:14px;font-weight:800;line-height:1.3;white-space:nowrap}
+.follow .fs{font-size:10px;color:#7a6a64;line-height:1.3;white-space:nowrap}
+.fbtn{flex-shrink:0;display:inline-block;padding:8px 12px;border-radius:999px;background:#000;color:#fff;border:1px solid #4a4f66;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #333;white-space:nowrap}
+.fbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #333}
+.credit{font-size:11px;color:#888;margin:14px 0 0}.credit a{color:#888}
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="scrTitle" class="screen">
+    <div id="titleIcons">🥤🚦📮🏀🎯🛢️</div>
+    <h1>だいたいこのくらい</h1>
+    <p class="lead">自販機・信号機・ゴール…<br>本物の大きさ、描けますか？</p>
+    <ol>
+      <li>身長170cmの人の横に、本物と同じ大きさで描こう</li>
+      <li>パーツを選んで、四角や丸をドラッグで描いて色を塗る</li>
+      <li>描き終わったら答え合わせ。本物とのズレで採点！</li>
+      <li>毎回、20種類の中から3つ出題されます</li>
+    </ol>
+    <button id="btnStart" class="btn btnMain">はじめる</button>
+    <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false" href="#">𝕏 @</a></div>
+    <p class="credit">© N.K. Works　<a href="/games/daitai-kono-kurai/" target="_blank" rel="noopener" data-google-vignette="false">遊び方・ほかのゲーム ›</a></p>
+  </section>
+
+  <section id="scrGame" class="screen hidden">
+    <header id="hud"><div id="roundLabel"></div><div id="instr"></div><div id="note"></div></header>
+    <div id="stageWrap"><canvas id="stage"></canvas><div id="hint"></div></div>
+    <div id="editUI">
+      <div id="partBar"></div>
+      <div id="palette"></div>
+      <div id="actionBar">
+        <button id="btnDel" class="btn btnSub">消す</button>
+        <button id="btnCheck" class="btn btnMain">答え合わせ</button>
+      </div>
+    </div>
+    <div id="resultUI" class="hidden">
+      <div id="resHead"><div id="resScore"></div><div style="font-size:11px;color:#777">点線＝よくある本物の例</div></div>
+      <ul id="resList"></ul>
+      <p id="resTrivia"></p>
+      <div class="resRow">
+        <label><input type="checkbox" id="chkGhost" checked> 本物を重ねる</label>
+        <button id="btnNext" class="btn btnMain">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="scrFinal" class="screen hidden">
+    <div style="font-weight:800">けっか</div>
+    <div id="finalTotal"></div>
+    <div id="finalRank"></div>
+    <canvas id="finalCanvas" width="1080" height="1080"></canvas>
+    <div id="finalBtns">
+      <button id="btnSave" class="btn btnSub">画像を保存</button>
+      <button id="btnShare" class="btn btnSub">Xでシェア</button>
+    </div>
+    <button id="btnRetry" class="btn btnMain">もう一回</button>
+    <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false" href="#">𝕏 @</a></div>
+  </section>
+</div>
+
+<script>
+// ===== [SEC:CONFIG] =====
+// 長さの単位はすべて cm。y は地面からの高さ（上がプラス）。
+const CONFIG = {
+  personHeight: 170,   // 人の身長
+  personWidth: 46,     // 人の横幅
+  personX: 10,         // 人の左はしの位置
+  groundPx: 30,        // 画面下の地面の帯の高さ(px)
+  marginLeftPx: 6,     // 画面左のすき間(px)
+  topMarginPx: 8,      // 画面上のすき間(px)
+  handlePx: 16,        // 角のつまみの当たり判定(px)
+  movePadPx: 10,       // 移動の当たり判定の余白(px)
+  minDrawPx: 6,        // これより小さいドラッグは描かない(px)
+  minSizePx: 3,        // 大きさ変更の最小(px)
+  revealMs: 700,       // 本物の点線が出てくる時間(ms)
+  shareTag: '#だいたいこのくらい',
+  authorX: 'vyaPudzd1E54661',  // 作者のXアカウント（@なし）
+  pool: ['vend', 'signal', 'post', 'ped', 'tomare', 'basket', 'pingpong', 'soccer',
+         'volley', 'badminton', 'handball', 'rugby', 'beam', 'darts', 'pin',
+         'parking', 'rail', 'drum', 'itto', 'container'],
+  roundsPerPlay: 3,  // 1回に出る数
+  colors: [
+    {id:'red',    name:'赤',            short:'赤',     hex:'#e53935'},
+    {id:'orange', name:'オレンジ',      short:'オレンジ', hex:'#fb8c00'},
+    {id:'yellow', name:'黄',            short:'黄',     hex:'#fdd835'},
+    {id:'teal',   name:'信号の青（青緑）', short:'青緑',  hex:'#00a99d'},
+    {id:'green',  name:'緑',            short:'緑',     hex:'#43a047'},
+    {id:'blue',   name:'青',            short:'青',     hex:'#1e88e5'},
+    {id:'white',  name:'白',            short:'白',     hex:'#ffffff'},
+    {id:'silver', name:'銀',            short:'銀',     hex:'#c3c7cc'},
+    {id:'gray',   name:'灰',            short:'灰',     hex:'#7b7f84'},
+    {id:'black',  name:'黒',            short:'黒',     hex:'#222222'},
+    {id:'brown',  name:'茶',            short:'茶',     hex:'#8d6e63'},
+    {id:'pink',   name:'ピンク',        short:'ピンク', hex:'#f48fb1'},
+  ],
+  ranks: [
+    {min:270, name:'街の設計士'},
+    {min:220, name:'観察の達人'},
+    {min:160, name:'ふつうの通行人'},
+    {min:100, name:'サイズ感ふわふわ'},
+    {min:0,   name:'異世界からの旅人'},
+  ],
+  objects: {
+    vend: {
+      name:'自販機', short:'自販機', icon:'🥤', viewH:300, minW:270,
+      instr:'人の横に、飲み物の自販機を描こう',
+      note:'※自販機の色はメーカーでバラバラなので採点しません',
+      parts:[
+        {id:'body',   label:'本体',         shape:'rect', z:0},
+        {id:'window', label:'見本の窓',     shape:'rect', z:1},
+        {id:'outlet', label:'取り出し口',   shape:'rect', z:1},
+        {id:'coin',   label:'お金を入れる所', shape:'rect', z:1},
+      ],
+      score:{
+        height:{max:35, full:[178,188], zero:[120,250]},
+        width: {max:25, full:[103,134], zero:[60,190]},
+        ground:{max:10, fullTol:5, halfTol:15},
+        window:{max:10}, outlet:{max:10},
+        coin:  {max:10, rightRatio:0.6},
+        wrongPlaceRate:0.3,
+      },
+      // 本物の例（本体に対する割合。x,y は左下から）
+      ghost:{w:118.5, h:183,
+        window:{x:0.07, y:0.52, w:0.62, h:0.42},
+        outlet:{x:0.10, y:0.07, w:0.55, h:0.13},
+        coin:  {x:0.76, y:0.48, w:0.14, h:0.10}},
+      trivia:'飲み物の自販機は、高さがほとんど1.83m（1830mm）でそろっています。幅はボタンの数で変わり、だいたい1.0〜1.3m。',
+    },
+    signal: {
+      name:'信号機（車用）', short:'信号機', icon:'🚦', viewH:660, minW:300,
+      instr:'人の横に、車用の信号機（横向き）を描こう',
+      note:'※箱の色や幅は種類で違うので採点しません',
+      parts:[
+        {id:'pole',  label:'柱',      shape:'rect',   z:0},
+        {id:'box',   label:'箱',      shape:'rect',   z:1},
+        {id:'lamp1', label:'ランプ①', shape:'circle', z:2},
+        {id:'lamp2', label:'ランプ②', shape:'circle', z:2},
+        {id:'lamp3', label:'ランプ③', shape:'circle', z:2},
+      ],
+      score:{
+        height:{max:35, full:[450,600], zero:[250,800]}, // 地面から箱の下まで
+        lamp:  {max:15, full:[23,32], zero:[8,60]},      // ランプの直径
+        order: {max:25, expect:['blue','yellow','red']},
+        row:   {max:10, flatRate:0.5},
+        pole:  {max:15, tol:10},
+      },
+      lampColorOK:{blue:['teal','green','blue'], yellow:['yellow','orange'], red:['red']},
+      ghost:{boxBottom:520, boxW:118, boxH:46, lampD:30, lampGap:38, poleW:24, poleOver:40},
+      trivia:'車道の上の信号は、箱の下が地面から4.5m以上と決まっています（よくあるのは5.0〜5.6m）。ランプの直径は25cmか30cmが主流で、横向きは左から青・黄・赤。',
+    },
+    post: {
+      name:'ポスト', short:'ポスト', icon:'📮', viewH:300, minW:260,
+      instr:'人の横に、街でよく見る四角い郵便ポストを描こう',
+      note:'※差入口が2つある「13号」というポストが正解です',
+      parts:[
+        {id:'body',  label:'本体',    shape:'rect', z:1},
+        {id:'leg',   label:'脚',      shape:'rect', z:0},
+        {id:'slot1', label:'差入口①', shape:'rect', z:2},
+        {id:'slot2', label:'差入口②', shape:'rect', z:2},
+      ],
+      score:{
+        height:{max:25, full:[133,143], zero:[80,220]},  // 地面から本体の上まで
+        width: {max:20, full:[76,86], zero:[40,130]},
+        leg:   {max:10, full:[48,62], zero:[10,110]},    // 地面から本体の下まで
+        bodyColor:{max:15, ok:['red']},
+        legColor: {max:5,  ok:['black']},
+        slotPos:  {max:15, topRatio:0.4, sameTol:10, partRate:0.35},
+        slotSize: {maxW:6, fullW:[24,34], zeroW:[8,60], maxH:4, fullH:[3,6], zeroH:[0.5,16]},
+      },
+      ghost:{w:81, h:83, legH:55, legW:36, slotW:29, slotH:4, slotFromTop:18, panelH:26},
+      trivia:'街でよく見る四角いポスト「郵便差出箱13号」は、本体が高さ83cm・幅81cm、脚が55cm。差入口は2つで、どちらも縦4cm×横29cm。',
+    },
+    ped: {
+      name:'信号機（歩行者用）', short:'歩行者信号', icon:'🚶', viewH:420, minW:260,
+      instr:'人の横に、横断歩道の歩行者用信号機を描こう',
+      note:'※箱の色は採点しません',
+      parts:[
+        {id:'pole',   label:'柱',       shape:'rect', z:0},
+        {id:'box',    label:'箱',       shape:'rect', z:1},
+        {id:'panelA', label:'表示面①', shape:'rect', z:2},
+        {id:'panelB', label:'表示面②', shape:'rect', z:2},
+      ],
+      score:{
+        height:{max:35, full:[250,320], zero:[150,450]}, // 地面から箱の下まで
+        panel: {max:15, full:[20,26], zero:[8,50]},      // 表示面の一辺
+        order: {max:25},                                  // 上が赤・下が青
+        col:   {max:10, sameRate:0.5},
+        pole:  {max:15, tol:10},
+      },
+      colorOK:{red:['red'], blue:['teal','green','blue']},
+      ghost:{boxBottom:280, boxW:38, boxH:70, panel:25, poleW:20, poleOver:30},
+      trivia:'歩行者用の信号は、箱の下が地面から2.5m以上と決まっています（よくあるのは2.7〜3.2m）。表示面は一辺25cmくらいの四角で、上が赤（止まっている人）、下が青（歩く人）。',
+    },
+    tomare: {
+      name:'「止まれ」の標識', short:'止まれ', icon:'🛑', viewH:300, minW:240,
+      instr:'人の横に、道ばたの「止まれ」の標識を描こう',
+      note:'※板は逆三角形で描けます。文字は描かなくてOK',
+      parts:[
+        {id:'pole', label:'柱',       shape:'rect', z:0},
+        {id:'sign', label:'標識の板', shape:'tri',  z:1},
+      ],
+      score:{
+        size:  {max:30, full:[75,85], zero:[30,170]},    // 一辺
+        height:{max:30, full:[150,250], zero:[60,350]},  // 地面から板の下のとがった所まで
+        color: {max:20, ok:['red']},
+        pole:  {max:20, tol:10},
+      },
+      ghost:{side:80, bottom:180, poleW:7},
+      trivia:'「止まれ」の標識は赤い逆三角形で、基本の大きさは一辺80cm。道ばたの標識は、板の下が地面から1.8mくらいが標準です（場所によって1.5〜2.5m）。',
+    },
+    basket: {
+      name:'バスケットゴール', short:'バスケ', icon:'🏀', viewH:430, minW:300,
+      instr:'人の横に、バスケットボールのゴールを正面から描こう',
+      note:'※中学生以上の公式の試合で使うゴールが正解です',
+      parts:[
+        {id:'pole',  label:'支柱',   shape:'rect', z:0},
+        {id:'board', label:'ボード', shape:'rect', z:1},
+        {id:'ring',  label:'リング', shape:'rect', z:2},
+      ],
+      score:{
+        ringH: {max:35, full:[300,310], zero:[200,420]},  // 地面からリングの上まで
+        ringD: {max:15, full:[42,48], zero:[15,100]},     // リングの直径（横はば）
+        boardW:{max:10, full:[170,190], zero:[80,300]},
+        boardH:{max:10, full:[98,112], zero:[40,200]},
+        ringPos:{max:15, centerRate:0.2, upRate:0.4, belowTol:10},
+        pole:  {max:15, tol:10},
+      },
+      ghost:{boardW:180, boardH:105, boardBottom:290, ringD:45, ringTop:305, ringT:3, poleW:16, poleOver:40},
+      trivia:'バスケのリングは、床からリングの上まで3.05m。ボードは横1.8m×縦1.05mで、下のはしが床から2.9m。リングの内側の直径は45cm。',
+    },
+    pingpong: {
+      name:'卓球台', short:'卓球台', icon:'🏓', viewH:200, minW:430,
+      instr:'人の横に、卓球台を横から描こう（ネットもつけてね）',
+      note:'※台の色（青・緑）は採点しません',
+      parts:[
+        {id:'top',  label:'台の板', shape:'rect', z:1},
+        {id:'leg1', label:'脚①',   shape:'rect', z:0},
+        {id:'leg2', label:'脚②',   shape:'rect', z:0},
+        {id:'net',  label:'ネット', shape:'rect', z:2},
+      ],
+      score:{
+        height:{max:30, full:[74,78], zero:[40,120]},    // 地面から板の上まで
+        length:{max:25, full:[264,284], zero:[150,420]},
+        netH:  {max:20, full:[13,17.5], zero:[3,45]},    // 板の上からネットの上まで
+        netPos:{max:15, centerRate:0.1, tol:8},
+        legs:  {max:10, tol:5},
+      },
+      ghost:{len:274, top:76, thick:3, netH:15.25, netW:2, legW:6, legInset:50},
+      trivia:'卓球台は長さ2.74m、幅1.525m、床から台の上まで76cm。ネットの高さは台から15.25cm。どれも国際ルールで決まっています。',
+    },
+    soccer: {
+      name:'サッカーゴール', short:'サッカー', icon:'⚽', viewH:300, minW:840,
+      instr:'人の横に、サッカーゴールを正面から描こう',
+      note:'※大人の公式の試合で使うゴールが正解です',
+      parts:[
+        {id:'postL', label:'左の柱', shape:'rect', z:0},
+        {id:'postR', label:'右の柱', shape:'rect', z:0},
+        {id:'bar',   label:'横の棒', shape:'rect', z:1},
+      ],
+      score:{
+        height:{max:30, full:[239,249], zero:[150,350]},  // 地面から横の棒の下まで
+        width: {max:30, full:[722,742], zero:[450,1000]}, // 柱の内側どうし
+        thick: {max:10, full:[10,13], zero:[3,40]},
+        color: {max:15, ok:['white']},
+        build: {max:15, tol:10},
+      },
+      ghost:{width:732, height:244, thick:12},
+      trivia:'サッカーゴールは、柱の内側どうしが7.32m、地面から横の棒の下まで2.44m。柱と棒の太さは12cm以下で、色は白と決まっています。',
+    },
+    volley: {
+      name:'バレーボールのネット', short:'バレー', icon:'🏐', viewH:300, minW:1150,
+      instr:'人の横に、バレーボールのネットを正面から描こう',
+      note:'※一般男子の試合のネットが正解です（女子は少し低い）',
+      parts:[
+        {id:'postL', label:'左の支柱', shape:'rect', z:0},
+        {id:'postR', label:'右の支柱', shape:'rect', z:0},
+        {id:'net',   label:'ネット',   shape:'rect', z:1},
+      ],
+      score:{
+        top:  {max:35, full:[238,248], zero:[150,350]},   // 地面からネットの上まで
+        netH: {max:20, full:[90,110], zero:[30,200]},     // ネットの縦のはば
+        netW: {max:20, full:[930,1020], zero:[500,1500]}, // ネットの長さ
+        build:{max:25, tol:15},
+      },
+      ghost:{top:243, netH:100, netW:950, postW:10, postH:255},
+      trivia:'バレーボールのネットは、一般男子で上のはしが2.43m（女子は2.24m）。ネットの縦のはばは1m、長さは9.5〜10m。',
+    },
+    badminton: {
+      name:'バドミントンのネット', short:'バドミントン', icon:'🏸', viewH:250, minW:720,
+      instr:'人の横に、バドミントンのネットを正面から描こう',
+      note:'※公式の試合のネットが正解です',
+      parts:[
+        {id:'postL', label:'左の支柱', shape:'rect', z:0},
+        {id:'postR', label:'右の支柱', shape:'rect', z:0},
+        {id:'net',   label:'ネット',   shape:'rect', z:1},
+      ],
+      score:{
+        top:  {max:35, full:[148,157], zero:[90,240]},    // 地面からネットの上（真ん中）まで
+        post: {max:15, full:[150,160], zero:[90,240]},    // 支柱の高さ
+        netH: {max:15, full:[70,82], zero:[25,150]},
+        span: {max:15, full:[595,625], zero:[350,900]},   // 支柱の内側どうし
+        build:{max:20, tol:15},
+      },
+      ghost:{top:152.4, netH:76, span:610, postW:4, postH:155},
+      trivia:'バドミントンのネットは、上のはしが真ん中で1.524m、支柱の所で1.55m。ネットの縦のはばは76cm、支柱の間は6.1m。',
+    },
+    handball: {
+      name:'ハンドボールのゴール', short:'ハンド', icon:'🤾', viewH:280, minW:420,
+      instr:'人の横に、ハンドボールのゴールを正面から描こう',
+      note:'※色（2色のしましま）は採点しません',
+      parts:[
+        {id:'postL', label:'左の柱', shape:'rect', z:0},
+        {id:'postR', label:'右の柱', shape:'rect', z:0},
+        {id:'bar',   label:'横の棒', shape:'rect', z:1},
+      ],
+      score:{
+        height:{max:35, full:[196,204], zero:[120,300]},  // 地面から横の棒の下まで
+        width: {max:35, full:[292,308], zero:[170,480]},  // 柱の内側どうし
+        thick: {max:10, full:[7,9.5], zero:[2,30]},
+        build: {max:20, tol:10},
+      },
+      ghost:{width:300, height:200, thick:8},
+      trivia:'ハンドボールのゴールは、内側が横3m×高さ2m。柱と棒は8cm角で、2色のしましまにぬると決まっています。',
+    },
+    rugby: {
+      name:'ラグビーのゴール', short:'ラグビー', icon:'🏉', viewH:650, minW:720,
+      instr:'人の横に、ラグビーのゴール（H型）を正面から描こう',
+      note:'※柱の長さは場所でちがうので、横の棒より上にのびていればOK',
+      parts:[
+        {id:'postL', label:'左の柱', shape:'rect', z:0},
+        {id:'postR', label:'右の柱', shape:'rect', z:0},
+        {id:'bar',   label:'横の棒', shape:'rect', z:1},
+      ],
+      score:{
+        barTop:{max:35, full:[295,305], zero:[200,420]},  // 地面から横の棒の上まで
+        width: {max:35, full:[550,570], zero:[350,850]},  // 柱の内側どうし
+        above: {max:15, min:40},                          // 柱が棒より上にのびる長さ
+        build: {max:15, tol:10},
+      },
+      ghost:{width:560, barTop:300, thick:12, postW:14, postH:620},
+      trivia:'ラグビーのゴールは、柱の内側どうしが5.6m、横の棒の上が地面から3.0m。柱は3.4m以上あり、棒より上へ長くのびています。',
+    },
+    beam: {
+      name:'平均台', short:'平均台', icon:'🤸', viewH:220, minW:620,
+      instr:'人の横に、体操の平均台を横から描こう',
+      note:'※体操の試合で使う平均台が正解です（下のマットはなし）',
+      parts:[
+        {id:'beam', label:'台',   shape:'rect', z:1},
+        {id:'leg1', label:'脚①', shape:'rect', z:0},
+        {id:'leg2', label:'脚②', shape:'rect', z:0},
+      ],
+      score:{
+        height:{max:40, full:[120,130], zero:[70,200]},   // 床から台の上まで
+        length:{max:40, full:[490,510], zero:[300,750]},
+        legs:  {max:20, tol:5},
+      },
+      ghost:{len:500, top:125, thick:16, legW:10, legInset:60},
+      trivia:'体操の平均台は、長さ5m、床から上の面まで1.25m、上の面のはばは10cm。国際ルールで決まっています。',
+    },
+    darts: {
+      name:'ダーツの的', short:'ダーツ', icon:'🎯', viewH:230, minW:220,
+      instr:'人の横に、かべにかけたダーツの的を描こう',
+      note:'※いちばん大事なのは真ん中（ブル）の高さです',
+      parts:[
+        {id:'board', label:'的',             shape:'circle', z:0},
+        {id:'bull',  label:'真ん中（ブル）', shape:'circle', z:1},
+      ],
+      score:{
+        center:{max:50, full:[170,176], zero:[110,240]},  // 床からブルの中心まで
+        size:  {max:30, full:[38,47], zero:[15,100]},     // 的の直径
+        bull:  {max:20, rate:0.12},
+      },
+      ghost:{center:173, d:45, bull:4},
+      trivia:'ダーツの的は、真ん中（ブル）の高さが床から1.73m。ハードダーツでもソフトダーツでも同じ高さです。',
+    },
+    pin: {
+      name:'ボウリングのピン', short:'ピン', icon:'🎳', viewH:200, minW:200,
+      instr:'人の横に、ボウリングのピンを描こう',
+      note:'※ボウリング場で使う公式のピンが正解です',
+      parts:[
+        {id:'body', label:'胴',     shape:'rect',   z:0},
+        {id:'head', label:'頭',     shape:'circle', z:1},
+        {id:'line', label:'首の線', shape:'rect',   z:2},
+      ],
+      score:{
+        height:{max:50, full:[36,40], zero:[15,80]},      // 床からてっぺんまで
+        width: {max:25, full:[11,13.2], zero:[4,30]},     // 胴のいちばん太い所
+        line:  {max:10, ok:['red']},
+        head:  {max:15, tol:3},
+      },
+      ghost:{h:38.1, w:12.1, bodyH:30, headD:8.1, lineY:26},
+      trivia:'ボウリングのピンは、高さ38.1cm（15インチ）、いちばん太い所の直径は約12.1cm。首に赤い線が2本入っています。',
+    },
+    parking: {
+      name:'「駐車禁止」の標識', short:'駐車禁止', icon:'🅿️', viewH:300, minW:240,
+      instr:'人の横に、道ばたの「駐車禁止」の標識を描こう',
+      note:'※板の赤いふちと斜めの線は描かなくてOK',
+      parts:[
+        {id:'pole', label:'柱',       shape:'rect',   z:0},
+        {id:'sign', label:'標識の板', shape:'circle', z:1},
+      ],
+      score:{
+        size:  {max:30, full:[57,63], zero:[25,120]},     // 直径
+        height:{max:30, full:[150,250], zero:[60,350]},   // 地面から板の下のはしまで
+        color: {max:20, ok:['blue']},
+        pole:  {max:20, tol:10},
+      },
+      ghost:{d:60, bottom:180, poleW:7},
+      trivia:'「駐車禁止」などの丸い標識は、基本の大きさが直径60cm。青い地に赤いふちと斜めの線。道ばたの標識は、板の下が地面から1.8mくらいが標準です。',
+    },
+    rail: {
+      name:'線路（JRの在来線）', short:'線路', icon:'🛤️', viewH:200, minW:300,
+      instr:'人の横に、電車の線路を正面（電車が来る方向）から描こう',
+      note:'※JRの在来線（新幹線ではない）の線路が正解です',
+      parts:[
+        {id:'sleeper', label:'まくらぎ',   shape:'rect', z:0},
+        {id:'railL',   label:'左のレール', shape:'rect', z:1},
+        {id:'railR',   label:'右のレール', shape:'rect', z:1},
+      ],
+      score:{
+        gauge:  {max:50, full:[104,110], zero:[60,180]},  // レールの内側どうし
+        sleeper:{max:20, full:[190,215], zero:[100,350]}, // まくらぎの長さ
+        railH:  {max:15, full:[13,19], zero:[4,45]},
+        on:     {max:15, tol:5},
+      },
+      ghost:{gauge:106.7, sleeperL:200, sleeperH:17, railW:6.5, railH:15},
+      trivia:'JRの在来線のレールの間は1.067m（狭軌）。新幹線は1.435m（標準軌）で、在来線より広いです。',
+    },
+    drum: {
+      name:'ドラム缶', short:'ドラム缶', icon:'🛢️', viewH:200, minW:200,
+      instr:'人の横に、ドラム缶（200L）を描こう',
+      note:'※色は種類でちがうので採点しません',
+      parts:[
+        {id:'body',  label:'胴',       shape:'rect', z:0},
+        {id:'band1', label:'輪っか①', shape:'rect', z:1},
+        {id:'band2', label:'輪っか②', shape:'rect', z:1},
+      ],
+      score:{
+        height:{max:40, full:[86,92], zero:[50,140]},
+        width: {max:30, full:[55,60], zero:[30,100]},
+        bands: {max:15},
+        ground:{max:15, tol:3},
+      },
+      ghost:{h:89, w:58, bandH:2.5},
+      trivia:'ドラム缶（200L）は、高さ約89cm・直径約57cm。JISという規格で大きさが決まっていて、胴の2本の輪っか（輪帯）で丈夫にしています。',
+    },
+    itto: {
+      name:'一斗缶', short:'一斗缶', icon:'🥫', viewH:200, minW:200,
+      instr:'人の横に、一斗缶（18L）を横から描こう',
+      note:'※色や絵がらは採点しません',
+      parts:[
+        {id:'body', label:'缶', shape:'rect', z:0},
+        {id:'cap',  label:'口', shape:'rect', z:1},
+      ],
+      score:{
+        height:{max:45, full:[33.5,36.5], zero:[15,70]},
+        width: {max:35, full:[22.5,25], zero:[10,50]},
+        cap:   {max:10, tol:3},
+        ground:{max:10, tol:3},
+      },
+      ghost:{w:23.8, h:34.9, capW:5, capH:1.5},
+      trivia:'一斗缶（18L缶）は、たて・横23.8cm、高さ34.9cm。どのメーカーもほぼ同じ大きさで、油やしょうゆなどを入れて運びます。',
+    },
+    container: {
+      name:'輸送コンテナ（20フィート）', short:'コンテナ', icon:'📦', viewH:300, minW:700,
+      instr:'人の横に、貨物の輸送コンテナを横から描こう',
+      note:'※標準の20フィートコンテナ（背の高い「ハイキューブ」ではない）が正解です',
+      parts:[
+        {id:'body',    label:'箱',         shape:'rect', z:0},
+        {id:'cornerL', label:'左はしの柱', shape:'rect', z:1},
+        {id:'cornerR', label:'右はしの柱', shape:'rect', z:1},
+      ],
+      score:{
+        height: {max:40, full:[254,264], zero:[160,380]},
+        length: {max:40, full:[600,612], zero:[350,900]},
+        corners:{max:10, tol:15},
+        ground: {max:10, tol:5},
+      },
+      ghost:{len:605.8, h:259.1, cornerW:16},
+      trivia:'20フィートコンテナは、長さ6.058m・はば2.438m・高さ2.591m。ISOという世界共通の規格なので、船・トラック・鉄道でそのまま運べます。',
+    },
+  },
+};
+
+// ===== [SEC:STATE] =====
+const $ = s => document.querySelector(s);
+const S = {
+  round:0, mode:'edit',   // 'edit' or 'result'
+  order:[],               // 今回出る物
+  parts:{},               // partId -> {shape:{x,y,w,h}|null, color:id|null}
+  active:null,
+  results:[],             // {key, items, total, parts}
+  ghost:[], ghostT:0, showGhost:true,
+};
+const cv = $('#stage'), ctx = cv.getContext('2d');
+const view = {W:0, H:0, scale:1, ox:0, groundY:0};
+let drag = null;
+
+// ===== [SEC:UTIL] =====
+const curKey = () => S.order[S.round];
+const curObj = () => CONFIG.objects[curKey()];
+const colorById = id => CONFIG.colors.find(c => c.id === id);
+const cShort = id => id ? colorById(id).short : '色なし';
+const avg = a => a.reduce((s, v) => s + v, 0) / a.length;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function fmtLen(cm){
+  if (cm >= 100) return (cm / 100).toFixed(2).replace(/0$/, '') + 'm';
+  if (cm < 10) return cm.toFixed(1) + 'cm';
+  return Math.round(cm) + 'cm';
+}
+// full の範囲なら1、zero の外なら0、その間はなめらかに下がる
+function band(v, full, zero){
+  if (v >= full[0] && v <= full[1]) return 1;
+  if (v < full[0]) return v <= zero[0] ? 0 : (v - zero[0]) / (full[0] - zero[0]);
+  return v >= zero[1] ? 0 : (zero[1] - v) / (zero[1] - full[1]);
+}
+const R = {
+  cx: r => r.x + r.w / 2, cy: r => r.y + r.h / 2,
+  top: r => r.y + r.h, right: r => r.x + r.w,
+  has: (r, x, y) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h,
+  dist(a, b){
+    const dx = Math.max(0, a.x - (b.x + b.w), b.x - (a.x + a.w));
+    const dy = Math.max(0, a.y - (b.y + b.h), b.y - (a.y + a.h));
+    return Math.hypot(dx, dy);
+  },
+};
+const item = (label, you, ans, pts, max) => ({label, you, ans, pts:Math.round(clamp(pts, 0, max)), max});
+const partDef = (key, id) => CONFIG.objects[key].parts.find(p => p.id === id);
+
+// ===== [SEC:SCORING] =====
+// 柱が地面に立っていて、支える物とつながっているか
+function poleItem(label, pole, target, s){
+  const onG = pole.y <= s.tol, touch = R.dist(pole, target) <= s.tol;
+  return item(label, (onG ? '地面○' : '地面×') + ' / ' + (touch ? 'つながる○' : 'はなれている×'), '地面に立ち、つながっている',
+    (onG ? s.max / 2 : 0) + (touch ? s.max / 2 : 0), s.max);
+}
+const bandItem = (label, v, ans, c) => item(label, fmtLen(Math.max(0, v)), ans, c.max * band(v, c.full, c.zero), c.max);
+const leftRight = (a, b) => R.cx(a) <= R.cx(b) ? [a, b] : [b, a];
+const touches = (a, b, tol) => R.dist(a, b) <= tol;
+function checkItem(label, ans, checks, max){
+  const n = checks.filter(Boolean).length;
+  return item(label, `${n}/${checks.length} OK`, ans, max * n / checks.length, max);
+}
+const groundItem = (r, c) => item('地面に置いてある', r.y <= c.tol ? 'ぴったり' : fmtLen(r.y) + '浮いている', '地面にぴったり',
+  r.y <= c.tol ? c.max : r.y <= 15 ? c.max / 2 : 0, c.max);
+const SCORERS = {
+  vend(P, o){
+    const s = o.score, b = P.body.shape, it = [];
+    it.push(item('高さ', fmtLen(b.h), '1.83m', s.height.max * band(b.h, s.height.full, s.height.zero), s.height.max));
+    it.push(item('幅', fmtLen(b.w), '1.03〜1.34m', s.width.max * band(b.w, s.width.full, s.width.zero), s.width.max));
+    const gy = b.y;
+    it.push(item('地面に立っている', gy <= s.ground.fullTol ? 'ぴったり' : fmtLen(gy) + '浮いている', '地面にぴったり',
+      gy <= s.ground.fullTol ? s.ground.max : gy <= s.ground.halfTol ? s.ground.max / 2 : 0, s.ground.max));
+    const vpos = r => !R.has(b, R.cx(r), R.cy(r)) ? 'out' : (R.cy(r) >= R.cy(b) ? 'upper' : 'lower');
+    const vName = {upper:'本体の上半分', lower:'本体の下半分', out:'本体の外'};
+    const posItem = (label, r, want, max) => {
+      const p = vpos(r);
+      return item(label, vName[p], vName[want], p === want ? max : p === 'out' ? 0 : max * s.wrongPlaceRate, max);
+    };
+    it.push(posItem('見本の窓の位置', P.window.shape, 'upper', s.window.max));
+    it.push(posItem('取り出し口の位置', P.outlet.shape, 'lower', s.outlet.max));
+    const c = P.coin.shape, cin = R.has(b, R.cx(c), R.cy(c)), right = R.cx(c) >= b.x + b.w * s.coin.rightRatio;
+    it.push(item('お金を入れる所の位置', !cin ? '本体の外' : right ? '右寄り' : '真ん中〜左', '本体の右寄り',
+      cin && right ? s.coin.max : cin ? s.coin.max * s.wrongPlaceRate : 0, s.coin.max));
+    return it;
+  },
+  signal(P, o){
+    const s = o.score, box = P.box.shape, pole = P.pole.shape, it = [];
+    const lamps = ['lamp1', 'lamp2', 'lamp3'].map(id => ({...P[id].shape, color:P[id].color}));
+    it.push(item('箱の高さ（地面から箱の下まで）', fmtLen(box.y), '4.5m以上（よくあるのは5.0〜5.6m）',
+      s.height.max * band(box.y, s.height.full, s.height.zero), s.height.max));
+    const d = avg(lamps.map(l => l.w));
+    it.push(item('ランプの大きさ（直径）', fmtLen(d), '25〜30cm', s.lamp.max * band(d, s.lamp.full, s.lamp.zero), s.lamp.max));
+    const sorted = [...lamps].sort((a, b) => R.cx(a) - R.cx(b));
+    let ok = 0;
+    sorted.forEach((l, i) => { if (o.lampColorOK[s.order.expect[i]].includes(l.color)) ok++; });
+    it.push(item('色の並び', '左から ' + sorted.map(l => cShort(l.color)).join('・'), '左から 青・黄・赤', s.order.max * ok / 3, s.order.max));
+    const allIn = lamps.every(l => R.has(box, R.cx(l), R.cy(l)));
+    const ys = lamps.map(R.cy), flat = Math.max(...ys) - Math.min(...ys) <= d * s.row.flatRate;
+    it.push(item('ランプが箱の中に横一列', allIn && flat ? 'できている' : allIn ? '高さがずれている' : '箱からはみ出している', '箱の中に横一列',
+      allIn && flat ? s.row.max : allIn ? s.row.max / 2 : 0, s.row.max));
+    const onG = pole.y <= s.pole.tol, touch = R.dist(pole, box) <= s.pole.tol;
+    it.push(item('柱が地面から箱を支える', (onG ? '地面○' : '地面×') + ' / ' + (touch ? '箱とつながる○' : '箱とはなれている×'), '地面に立ち、箱とつながる',
+      (onG ? s.pole.max / 2 : 0) + (touch ? s.pole.max / 2 : 0), s.pole.max));
+    return it;
+  },
+  post(P, o){
+    const s = o.score, b = P.body.shape, it = [];
+    const top = R.top(b);
+    it.push(item('全体の高さ（地面から本体の上まで）', fmtLen(top), '1.38m', s.height.max * band(top, s.height.full, s.height.zero), s.height.max));
+    it.push(item('本体の幅', fmtLen(b.w), '81cm', s.width.max * band(b.w, s.width.full, s.width.zero), s.width.max));
+    it.push(item('脚の高さ（地面から本体の下まで）', fmtLen(b.y), '55cm', s.leg.max * band(b.y, s.leg.full, s.leg.zero), s.leg.max));
+    const bc = P.body.color, lc = P.leg.color;
+    it.push(item('本体の色', cShort(bc), '赤', s.bodyColor.ok.includes(bc) ? s.bodyColor.max : 0, s.bodyColor.max));
+    it.push(item('脚の色', cShort(lc), '黒', s.legColor.ok.includes(lc) ? s.legColor.max : 0, s.legColor.max));
+    const s1 = P.slot1.shape, s2 = P.slot2.shape;
+    const upOK = r => R.has(b, R.cx(r), R.cy(r)) && R.cy(r) >= top - b.h * s.slotPos.topRatio;
+    const n = (upOK(s1) ? 1 : 0) + (upOK(s2) ? 1 : 0);
+    const side = Math.abs(R.cy(s1) - R.cy(s2)) <= s.slotPos.sameTol && (R.right(s1) <= s2.x || R.right(s2) <= s1.x);
+    it.push(item('差入口の位置', n === 2 && side ? '上の方に横並び' : n === 2 ? '上の方だが横並びでない' : n === 1 ? '1つだけ上の方' : '上の方にない',
+      '本体の上の方に横並びで2つ', n === 2 && side ? s.slotPos.max : n * s.slotPos.max * s.slotPos.partRate, s.slotPos.max));
+    const w = avg([s1.w, s2.w]), h = avg([s1.h, s2.h]);
+    const ss = s.slotSize;
+    it.push(item('差入口の大きさ', `横${fmtLen(w)}×縦${fmtLen(h)}`, '横29cm×縦4cm',
+      ss.maxW * band(w, ss.fullW, ss.zeroW) + ss.maxH * band(h, ss.fullH, ss.zeroH), ss.maxW + ss.maxH));
+    return it;
+  },
+  ped(P, o){
+    const s = o.score, box = P.box.shape, it = [];
+    it.push(item('箱の高さ（地面から箱の下まで）', fmtLen(box.y), '2.5m以上（よくあるのは2.7〜3.2m）',
+      s.height.max * band(box.y, s.height.full, s.height.zero), s.height.max));
+    const pa = {...P.panelA.shape, color:P.panelA.color}, pb = {...P.panelB.shape, color:P.panelB.color};
+    const size = avg([pa.w, pa.h, pb.w, pb.h]);
+    it.push(item('表示面の大きさ（一辺）', fmtLen(size), '一辺25cmくらい', s.panel.max * band(size, s.panel.full, s.panel.zero), s.panel.max));
+    const [up, down] = R.cy(pa) >= R.cy(pb) ? [pa, pb] : [pb, pa];
+    const ok = (o.colorOK.red.includes(up.color) ? 1 : 0) + (o.colorOK.blue.includes(down.color) ? 1 : 0);
+    it.push(item('色の並び', `上 ${cShort(up.color)} / 下 ${cShort(down.color)}`, '上が赤・下が青', s.order.max * ok / 2, s.order.max));
+    const allIn = [pa, pb].every(r => R.has(box, R.cx(r), R.cy(r)));
+    const col = Math.abs(R.cx(pa) - R.cx(pb)) <= size * s.col.sameRate;
+    it.push(item('表示面が箱の中に縦に並ぶ', allIn && col ? 'できている' : allIn ? '縦にそろっていない' : '箱からはみ出している', '箱の中に縦に2つ',
+      allIn && col ? s.col.max : allIn ? s.col.max / 2 : 0, s.col.max));
+    it.push(poleItem('柱が地面から箱を支える', P.pole.shape, box, s.pole));
+    return it;
+  },
+  tomare(P, o){
+    const s = o.score, sg = P.sign.shape, it = [];
+    it.push(item('板の大きさ（一辺）', fmtLen(sg.w), '80cm', s.size.max * band(sg.w, s.size.full, s.size.zero), s.size.max));
+    it.push(item('板の高さ（地面から板の下のはしまで）', fmtLen(sg.y), '1.8mくらい（1.5〜2.5m）', s.height.max * band(sg.y, s.height.full, s.height.zero), s.height.max));
+    it.push(item('板の色', cShort(P.sign.color), '赤', s.color.ok.includes(P.sign.color) ? s.color.max : 0, s.color.max));
+    it.push(poleItem('柱が地面から板を支える', P.pole.shape, sg, s.pole));
+    return it;
+  },
+  basket(P, o){
+    const s = o.score, bd = P.board.shape, rg = P.ring.shape, it = [];
+    it.push(item('リングの高さ（地面からリングの上まで）', fmtLen(R.top(rg)), '3.05m', s.ringH.max * band(R.top(rg), s.ringH.full, s.ringH.zero), s.ringH.max));
+    it.push(item('リングの大きさ（直径）', fmtLen(rg.w), '45cm', s.ringD.max * band(rg.w, s.ringD.full, s.ringD.zero), s.ringD.max));
+    it.push(item('ボードの横はば', fmtLen(bd.w), '1.8m', s.boardW.max * band(bd.w, s.boardW.full, s.boardW.zero), s.boardW.max));
+    it.push(item('ボードの縦の長さ', fmtLen(bd.h), '1.05m', s.boardH.max * band(bd.h, s.boardH.full, s.boardH.zero), s.boardH.max));
+    const mid = Math.abs(R.cx(rg) - R.cx(bd)) <= bd.w * s.ringPos.centerRate;
+    const low = rg.y >= bd.y - s.ringPos.belowTol && rg.y <= bd.y + bd.h * s.ringPos.upRate;
+    it.push(item('リングの位置', (mid ? '真ん中' : '横にずれている') + '・' + (low ? '下の方' : '高さがちがう'), 'ボードの真ん中・下の方',
+      (mid ? s.ringPos.max / 2 : 0) + (low ? s.ringPos.max / 2 : 0), s.ringPos.max));
+    it.push(poleItem('支柱が地面からボードを支える', P.pole.shape, bd, s.pole));
+    return it;
+  },
+  pingpong(P, o){
+    const s = o.score, tp = P.top.shape, net = P.net.shape, it = [];
+    const h = R.top(tp), nh = R.top(net) - R.top(tp);
+    it.push(item('台の高さ（地面から板の上まで）', fmtLen(h), '76cm', s.height.max * band(h, s.height.full, s.height.zero), s.height.max));
+    it.push(item('台の長さ', fmtLen(tp.w), '2.74m', s.length.max * band(tp.w, s.length.full, s.length.zero), s.length.max));
+    it.push(item('ネットの高さ（台の上から）', nh <= 0 ? '台より低い' : fmtLen(nh), '15.25cm', s.netH.max * band(nh, s.netH.full, s.netH.zero), s.netH.max));
+    const mid = Math.abs(R.cx(net) - R.cx(tp)) <= tp.w * s.netPos.centerRate;
+    const onT = Math.abs(net.y - R.top(tp)) <= s.netPos.tol;
+    it.push(item('ネットの位置', (mid ? '真ん中' : '横にずれている') + '・' + (onT ? '台の上に立つ' : '台からはなれている'), '台の真ん中に立つ',
+      (mid ? s.netPos.max / 2 : 0) + (onT ? s.netPos.max / 2 : 0), s.netPos.max));
+    const legOK = l => l.y <= s.legs.tol && R.dist(l, tp) <= s.legs.tol;
+    const n = (legOK(P.leg1.shape) ? 1 : 0) + (legOK(P.leg2.shape) ? 1 : 0);
+    it.push(item('脚が地面から台を支える', `${n}本OK`, '2本とも地面と台につながる', s.legs.max * n / 2, s.legs.max));
+    return it;
+  },
+  soccer(P, o){
+    const s = o.score, bar = P.bar.shape, it = [];
+    const [L, Rt] = R.cx(P.postL.shape) <= R.cx(P.postR.shape) ? [P.postL.shape, P.postR.shape] : [P.postR.shape, P.postL.shape];
+    const inner = Rt.x - R.right(L);
+    it.push(item('ゴールの高さ（地面から横の棒の下まで）', fmtLen(bar.y), '2.44m', s.height.max * band(bar.y, s.height.full, s.height.zero), s.height.max));
+    it.push(item('ゴールの幅（柱の内側どうし）', inner <= 0 ? '柱が重なっている' : fmtLen(inner), '7.32m', s.width.max * band(inner, s.width.full, s.width.zero), s.width.max));
+    const th = avg([L.w, Rt.w, bar.h]);
+    it.push(item('柱と棒の太さ', fmtLen(th), '12cm以下（ほぼ12cm）', s.thick.max * band(th, s.thick.full, s.thick.zero), s.thick.max));
+    const cols = ['postL', 'postR', 'bar'].map(id => P[id].color), nW = cols.filter(c => s.color.ok.includes(c)).length;
+    it.push(item('色', cols.map(cShort).join('・'), 'ぜんぶ白', s.color.max * nW / 3, s.color.max));
+    const checks = [L.y <= s.build.tol, Rt.y <= s.build.tol, R.dist(bar, L) <= s.build.tol, R.dist(bar, Rt) <= s.build.tol];
+    const nOK = checks.filter(Boolean).length;
+    it.push(item('組み立て（柱が地面に立ち、棒が両方の柱にのる）', `${nOK}/4 OK`, 'ぜんぶOK', s.build.max * nOK / 4, s.build.max));
+    return it;
+  },
+  volley(P, o){
+    const s = o.score, net = P.net.shape, [L, Rt] = leftRight(P.postL.shape, P.postR.shape), t = s.build.tol;
+    return [
+      bandItem('ネットの高さ（地面からネットの上まで）', R.top(net), '2.43m', s.top),
+      bandItem('ネットの縦のはば', net.h, '1m', s.netH),
+      bandItem('ネットの長さ', net.w, '9.5〜10m', s.netW),
+      checkItem('支柱が地面からネットを支える', '両方の支柱が地面に立ち、ネットとつながる',
+        [L.y <= t, Rt.y <= t, touches(L, net, t), touches(Rt, net, t)], s.build.max),
+    ];
+  },
+  badminton(P, o){
+    const s = o.score, net = P.net.shape, [L, Rt] = leftRight(P.postL.shape, P.postR.shape), t = s.build.tol;
+    return [
+      bandItem('ネットの高さ（地面からネットの上まで）', R.top(net), '1.524m', s.top),
+      bandItem('支柱の高さ', avg([R.top(L), R.top(Rt)]), '1.55m', s.post),
+      bandItem('ネットの縦のはば', net.h, '76cm', s.netH),
+      bandItem('支柱の間（内側どうし）', Rt.x - R.right(L), '6.1m', s.span),
+      checkItem('支柱が地面からネットを支える', '両方の支柱が地面に立ち、ネットとつながる',
+        [L.y <= t, Rt.y <= t, touches(L, net, t), touches(Rt, net, t)], s.build.max),
+    ];
+  },
+  handball(P, o){
+    const s = o.score, bar = P.bar.shape, [L, Rt] = leftRight(P.postL.shape, P.postR.shape), t = s.build.tol;
+    return [
+      bandItem('ゴールの高さ（地面から横の棒の下まで）', bar.y, '2m', s.height),
+      bandItem('ゴールの幅（柱の内側どうし）', Rt.x - R.right(L), '3m', s.width),
+      bandItem('柱と棒の太さ', avg([L.w, Rt.w, bar.h]), '8cm', s.thick),
+      checkItem('組み立て（柱が地面に立ち、棒が両方の柱にのる）', 'ぜんぶOK',
+        [L.y <= t, Rt.y <= t, touches(bar, L, t), touches(bar, Rt, t)], s.build.max),
+    ];
+  },
+  rugby(P, o){
+    const s = o.score, bar = P.bar.shape, [L, Rt] = leftRight(P.postL.shape, P.postR.shape), t = s.build.tol;
+    const up = [L, Rt].filter(p => R.top(p) >= R.top(bar) + s.above.min).length;
+    return [
+      bandItem('横の棒の高さ（地面から棒の上まで）', R.top(bar), '3.0m', s.barTop),
+      bandItem('ゴールの幅（柱の内側どうし）', Rt.x - R.right(L), '5.6m', s.width),
+      item('柱が棒より上にのびる（H型）', `${up}/2本`, '2本とも上にのびる', s.above.max * up / 2, s.above.max),
+      checkItem('組み立て（柱が地面に立ち、棒が両方の柱にかかる）', 'ぜんぶOK',
+        [L.y <= t, Rt.y <= t, touches(bar, L, t), touches(bar, Rt, t)], s.build.max),
+    ];
+  },
+  beam(P, o){
+    const s = o.score, b = P.beam.shape, t = s.legs.tol;
+    const n = [P.leg1.shape, P.leg2.shape].filter(l => l.y <= t && touches(l, b, t)).length;
+    return [
+      bandItem('台の高さ（床から台の上まで）', R.top(b), '1.25m', s.height),
+      bandItem('台の長さ', b.w, '5m', s.length),
+      item('脚が床から台を支える', `${n}本OK`, '2本とも床と台につながる', s.legs.max * n / 2, s.legs.max),
+    ];
+  },
+  darts(P, o){
+    const s = o.score, b = P.board.shape, bl = P.bull.shape;
+    const off = Math.hypot(R.cx(bl) - R.cx(b), R.cy(bl) - R.cy(b)), inB = off <= b.w / 2, ok = off <= b.w * s.bull.rate;
+    return [
+      bandItem('真ん中の高さ（床からブルの中心まで）', R.cy(bl), '1.73m', s.center),
+      bandItem('的の大きさ（直径）', b.w, '約40〜45cm', s.size),
+      item('ブルの位置', ok ? '的の真ん中' : inB ? '真ん中からずれている' : '的の外', '的の真ん中',
+        ok ? s.bull.max : inB ? s.bull.max * 0.3 : 0, s.bull.max),
+    ];
+  },
+  pin(P, o){
+    const s = o.score, b = P.body.shape, hd = P.head.shape;
+    const top = Math.max(R.top(b), R.top(hd)), onTop = touches(hd, b, s.head.tol) && R.cy(hd) > R.cy(b);
+    return [
+      bandItem('高さ（床からてっぺんまで）', top, '38.1cm', s.height),
+      bandItem('いちばん太い所', b.w, '約12.1cm', s.width),
+      item('首の線の色', cShort(P.line.color), '赤', s.line.ok.includes(P.line.color) ? s.line.max : 0, s.line.max),
+      item('頭が胴の上にのる', onTop ? 'のっている' : 'はなれている', '胴の上にのる', onTop ? s.head.max : 0, s.head.max),
+    ];
+  },
+  parking(P, o){
+    const s = o.score, sg = P.sign.shape;
+    return [
+      bandItem('板の大きさ（直径）', sg.w, '60cm', s.size),
+      bandItem('板の高さ（地面から板の下のはしまで）', sg.y, '1.8mくらい（1.5〜2.5m）', s.height),
+      item('板の色', cShort(P.sign.color), '青', s.color.ok.includes(P.sign.color) ? s.color.max : 0, s.color.max),
+      poleItem('柱が地面から板を支える', P.pole.shape, sg, s.pole),
+    ];
+  },
+  rail(P, o){
+    const s = o.score, sl = P.sleeper.shape, [L, Rt] = leftRight(P.railL.shape, P.railR.shape);
+    const onS = r => Math.abs(r.y - R.top(sl)) <= s.on.tol && R.cx(r) >= sl.x && R.cx(r) <= R.right(sl);
+    const n = [L, Rt].filter(onS).length;
+    return [
+      bandItem('レールの間（内側どうし）', Rt.x - R.right(L), '1.067m', s.gauge),
+      bandItem('まくらぎの長さ', sl.w, '約2m', s.sleeper),
+      bandItem('レールの高さ', avg([L.h, Rt.h]), '約15〜17cm', s.railH),
+      item('レールがまくらぎの上にのる', `${n}本OK`, '2本ともまくらぎの上', s.on.max * n / 2, s.on.max),
+    ];
+  },
+  drum(P, o){
+    const s = o.score, b = P.body.shape;
+    const [lo, hi] = [P.band1.shape, P.band2.shape].sort((a, c) => R.cy(a) - R.cy(c));
+    const at = (r, a, z) => R.has(b, R.cx(r), R.cy(r)) && R.cy(r) >= b.y + b.h * a && R.cy(r) <= b.y + b.h * z;
+    const n = (at(lo, 0.2, 0.5) ? 1 : 0) + (at(hi, 0.5, 0.8) ? 1 : 0);
+    return [
+      bandItem('高さ', b.h, '約89cm', s.height),
+      bandItem('直径（はば）', b.w, '約57cm', s.width),
+      item('輪っかの位置', `${n}本OK`, '胴を3つに分ける位置に2本', s.bands.max * n / 2, s.bands.max),
+      groundItem(b, s.ground),
+    ];
+  },
+  itto(P, o){
+    const s = o.score, b = P.body.shape, cp = P.cap.shape;
+    const ok = R.cx(cp) >= b.x && R.cx(cp) <= R.right(b) && Math.abs(cp.y - R.top(b)) <= s.cap.tol;
+    return [
+      bandItem('高さ', b.h, '34.9cm', s.height),
+      bandItem('はば', b.w, '23.8cm', s.width),
+      item('口の位置', ok ? '缶の上' : '缶の上にない', '缶の上', ok ? s.cap.max : 0, s.cap.max),
+      groundItem(b, s.ground),
+    ];
+  },
+  container(P, o){
+    const s = o.score, b = P.body.shape, t = s.corners.tol;
+    const [L, Rt] = leftRight(P.cornerL.shape, P.cornerR.shape);
+    const n = (Math.abs(L.x - b.x) <= t ? 1 : 0) + (Math.abs(R.right(Rt) - R.right(b)) <= t ? 1 : 0);
+    return [
+      bandItem('高さ', b.h, '2.591m', s.height),
+      bandItem('長さ', b.w, '6.058m', s.length),
+      item('はしの柱の位置', `${n}本OK`, '箱の左右のはし', s.corners.max * n / 2, s.corners.max),
+      groundItem(b, s.ground),
+    ];
+  },
+};
+
+// ===== [SEC:GHOST] =====
+// プレイヤーの絵の位置に合わせて「よくある本物の例」を置く
+const GHOSTS = {
+  vend(P, o){
+    const g = o.ghost, b = P.body.shape, x0 = R.cx(b) - g.w / 2;
+    const sub = (r, fill) => ({x:x0 + r.x * g.w, y:r.y * g.h, w:r.w * g.w, h:r.h * g.h, fill});
+    return [{x:x0, y:0, w:g.w, h:g.h, fill:'#f4f4f4'}, sub(g.window, '#9cc7e8'), sub(g.outlet, '#333333'), sub(g.coin, '#ff9800')];
+  },
+  signal(P, o){
+    const g = o.ghost, bx = R.cx(P.box.shape) - g.boxW / 2;
+    const out = [
+      {x:bx - g.poleW, y:0, w:g.poleW, h:g.boxBottom + g.boxH + g.poleOver, fill:'#9e9e9e'},
+      {x:bx, y:g.boxBottom, w:g.boxW, h:g.boxH, fill:'#5f6b73'},
+    ];
+    ['#00a99d', '#fdd835', '#e53935'].forEach((fill, i) => {
+      const cx = bx + g.boxW / 2 + (i - 1) * g.lampGap;
+      out.push({x:cx - g.lampD / 2, y:g.boxBottom + (g.boxH - g.lampD) / 2, w:g.lampD, h:g.lampD, fill, kind:'circle'});
+    });
+    return out;
+  },
+  post(P, o){
+    const g = o.ghost, cx = R.cx(P.body.shape), x0 = cx - g.w / 2, top = g.legH + g.h;
+    const sy = top - g.slotFromTop - g.slotH / 2;
+    return [
+      {x:cx - g.legW / 2, y:0, w:g.legW, h:g.legH, fill:'#222222'},
+      {x:x0, y:g.legH, w:g.w, h:g.h, fill:'#e53935'},
+      {x:x0 + 4, y:top - g.panelH - 4, w:g.w - 8, h:g.panelH, fill:'#c3c7cc'},
+      {x:x0 + g.w * 0.27 - g.slotW / 2, y:sy, w:g.slotW, h:g.slotH, fill:'#333333'},
+      {x:x0 + g.w * 0.73 - g.slotW / 2, y:sy, w:g.slotW, h:g.slotH, fill:'#333333'},
+    ];
+  },
+  ped(P, o){
+    const g = o.ghost, bx = R.cx(P.box.shape) - g.boxW / 2, pc = bx + g.boxW / 2 - g.panel / 2;
+    const gap = (g.boxH - g.panel * 2) / 3;
+    return [
+      {x:bx - g.poleW, y:0, w:g.poleW, h:g.boxBottom + g.boxH + g.poleOver, fill:'#9e9e9e'},
+      {x:bx, y:g.boxBottom, w:g.boxW, h:g.boxH, fill:'#5f6b73'},
+      {x:pc, y:g.boxBottom + gap * 2 + g.panel, w:g.panel, h:g.panel, fill:'#e53935'},
+      {x:pc, y:g.boxBottom + gap, w:g.panel, h:g.panel, fill:'#00a99d'},
+    ];
+  },
+  tomare(P, o){
+    const g = o.ghost, cx = R.cx(P.sign.shape), h = g.side * Math.sqrt(3) / 2;
+    return [
+      {x:cx - g.poleW / 2, y:0, w:g.poleW, h:g.bottom + h - 6, fill:'#9e9e9e'},
+      {x:cx - g.side / 2, y:g.bottom, w:g.side, h, fill:'#e53935', kind:'tri'},
+    ];
+  },
+  basket(P, o){
+    const g = o.ghost, cx = R.cx(P.board.shape);
+    return [
+      {x:cx - g.poleW / 2, y:0, w:g.poleW, h:g.boardBottom + g.poleOver, fill:'#555555'},
+      {x:cx - g.boardW / 2, y:g.boardBottom, w:g.boardW, h:g.boardH, fill:'#ffffff'},
+      {x:cx - g.ringD / 2, y:g.ringTop - g.ringT, w:g.ringD, h:g.ringT, fill:'#ff7a00'},
+    ];
+  },
+  pingpong(P, o){
+    const g = o.ghost, x0 = R.cx(P.top.shape) - g.len / 2, legH = g.top - g.thick;
+    return [
+      {x:x0 + g.legInset, y:0, w:g.legW, h:legH, fill:'#333333'},
+      {x:x0 + g.len - g.legInset - g.legW, y:0, w:g.legW, h:legH, fill:'#333333'},
+      {x:x0, y:legH, w:g.len, h:g.thick, fill:'#1e5fa8'},
+      {x:x0 + g.len / 2 - g.netW / 2, y:g.top, w:g.netW, h:g.netH, fill:'#222222'},
+    ];
+  },
+  soccer(P, o){
+    const g = o.ghost, all = [P.postL.shape, P.postR.shape, P.bar.shape];
+    const mid = (Math.min(...all.map(r => r.x)) + Math.max(...all.map(R.right))) / 2, half = g.width / 2;
+    return [
+      {x:mid - half - g.thick, y:0, w:g.thick, h:g.height + g.thick, fill:'#ffffff'},
+      {x:mid + half, y:0, w:g.thick, h:g.height + g.thick, fill:'#ffffff'},
+      {x:mid - half - g.thick, y:g.height, w:g.width + g.thick * 2, h:g.thick, fill:'#ffffff'},
+    ];
+  },
+  volley(P, o){
+    const g = o.ghost, mid = R.cx(P.net.shape), hw = g.netW / 2;
+    return [
+      {x:mid - hw - g.postW, y:0, w:g.postW, h:g.postH, fill:'#9e9e9e'},
+      {x:mid + hw, y:0, w:g.postW, h:g.postH, fill:'#9e9e9e'},
+      {x:mid - hw, y:g.top - g.netH, w:g.netW, h:g.netH, fill:'#ffffff'},
+    ];
+  },
+  badminton(P, o){
+    const g = o.ghost, ps = [P.postL.shape, P.postR.shape];
+    const mid = (Math.min(...ps.map(r => r.x)) + Math.max(...ps.map(R.right))) / 2, hw = g.span / 2;
+    return [
+      {x:mid - hw - g.postW, y:0, w:g.postW, h:g.postH, fill:'#9e9e9e'},
+      {x:mid + hw, y:0, w:g.postW, h:g.postH, fill:'#9e9e9e'},
+      {x:mid - hw, y:g.top - g.netH, w:g.span, h:g.netH, fill:'#ffffff'},
+    ];
+  },
+  handball(P, o){
+    const g = o.ghost, all = [P.postL.shape, P.postR.shape, P.bar.shape];
+    const mid = (Math.min(...all.map(r => r.x)) + Math.max(...all.map(R.right))) / 2, half = g.width / 2;
+    return [
+      {x:mid - half - g.thick, y:0, w:g.thick, h:g.height + g.thick, fill:'#e53935'},
+      {x:mid + half, y:0, w:g.thick, h:g.height + g.thick, fill:'#e53935'},
+      {x:mid - half - g.thick, y:g.height, w:g.width + g.thick * 2, h:g.thick, fill:'#e53935'},
+    ];
+  },
+  rugby(P, o){
+    const g = o.ghost, ps = [P.postL.shape, P.postR.shape];
+    const mid = (Math.min(...ps.map(r => r.x)) + Math.max(...ps.map(R.right))) / 2, half = g.width / 2;
+    return [
+      {x:mid - half - g.postW, y:0, w:g.postW, h:g.postH, fill:'#ffffff'},
+      {x:mid + half, y:0, w:g.postW, h:g.postH, fill:'#ffffff'},
+      {x:mid - half, y:g.barTop - g.thick, w:g.width, h:g.thick, fill:'#ffffff'},
+    ];
+  },
+  beam(P, o){
+    const g = o.ghost, x0 = R.cx(P.beam.shape) - g.len / 2, legH = g.top - g.thick;
+    return [
+      {x:x0 + g.legInset, y:0, w:g.legW, h:legH, fill:'#555555'},
+      {x:x0 + g.len - g.legInset - g.legW, y:0, w:g.legW, h:legH, fill:'#555555'},
+      {x:x0, y:legH, w:g.len, h:g.thick, fill:'#c8a27a'},
+    ];
+  },
+  darts(P, o){
+    const g = o.ghost, cx = R.cx(P.board.shape);
+    return [
+      {x:cx - g.d / 2, y:g.center - g.d / 2, w:g.d, h:g.d, fill:'#222222', kind:'circle'},
+      {x:cx - g.bull / 2, y:g.center - g.bull / 2, w:g.bull, h:g.bull, fill:'#e53935', kind:'circle'},
+    ];
+  },
+  pin(P, o){
+    const g = o.ghost, cx = R.cx(P.body.shape);
+    return [
+      {x:cx - g.w / 2, y:0, w:g.w, h:g.bodyH, fill:'#ffffff'},
+      {x:cx - g.headD / 2, y:g.h - g.headD, w:g.headD, h:g.headD, fill:'#ffffff', kind:'circle'},
+      {x:cx - 3.5, y:g.lineY, w:7, h:1.6, fill:'#e53935'},
+    ];
+  },
+  parking(P, o){
+    const g = o.ghost, cx = R.cx(P.sign.shape);
+    return [
+      {x:cx - g.poleW / 2, y:0, w:g.poleW, h:g.bottom + g.d - 6, fill:'#9e9e9e'},
+      {x:cx - g.d / 2, y:g.bottom, w:g.d, h:g.d, fill:'#1e5fa8', kind:'circle'},
+    ];
+  },
+  rail(P, o){
+    const g = o.ghost, rs = [P.railL.shape, P.railR.shape];
+    const mid = (Math.min(...rs.map(r => r.x)) + Math.max(...rs.map(R.right))) / 2, hg = g.gauge / 2;
+    return [
+      {x:mid - g.sleeperL / 2, y:0, w:g.sleeperL, h:g.sleeperH, fill:'#9e9e9e'},
+      {x:mid - hg - g.railW, y:g.sleeperH, w:g.railW, h:g.railH, fill:'#7a5a44'},
+      {x:mid + hg, y:g.sleeperH, w:g.railW, h:g.railH, fill:'#7a5a44'},
+    ];
+  },
+  drum(P, o){
+    const g = o.ghost, x0 = R.cx(P.body.shape) - g.w / 2;
+    return [
+      {x:x0, y:0, w:g.w, h:g.h, fill:'#1e5fa8'},
+      {x:x0, y:g.h / 3 - g.bandH / 2, w:g.w, h:g.bandH, fill:'#555555'},
+      {x:x0, y:g.h * 2 / 3 - g.bandH / 2, w:g.w, h:g.bandH, fill:'#555555'},
+    ];
+  },
+  itto(P, o){
+    const g = o.ghost, x0 = R.cx(P.body.shape) - g.w / 2;
+    return [
+      {x:x0, y:0, w:g.w, h:g.h, fill:'#c3c7cc'},
+      {x:x0 + 2.5, y:g.h, w:g.capW, h:g.capH, fill:'#888888'},
+    ];
+  },
+  container(P, o){
+    const g = o.ghost, x0 = R.cx(P.body.shape) - g.len / 2;
+    return [
+      {x:x0, y:0, w:g.len, h:g.h, fill:'#c0503a'},
+      {x:x0, y:0, w:g.cornerW, h:g.h, fill:'#7a2e22'},
+      {x:x0 + g.len - g.cornerW, y:0, w:g.cornerW, h:g.h, fill:'#7a2e22'},
+    ];
+  },
+};
+
+// ===== [SEC:RENDER] =====
+function makeTf(ox, groundY, scale){
+  return {x:wx => ox + wx * scale, y:wy => groundY - wy * scale, s:scale};
+}
+const tfMain = () => makeTf(view.ox, view.groundY, view.scale);
+function shapePath(c, r, tf, kind){ // kind: 'rect' / 'circle' / 'tri'（逆三角）
+  const x = tf.x(r.x), y = tf.y(r.y + r.h), w = r.w * tf.s, h = r.h * tf.s;
+  c.beginPath();
+  if (kind === 'circle') c.arc(x + w / 2, y + h / 2, Math.max(0.5, w / 2), 0, Math.PI * 2);
+  else if (kind === 'tri'){ c.moveTo(x, y); c.lineTo(x + w, y); c.lineTo(x + w / 2, y + h); c.closePath(); }
+  else c.rect(x, y, w, h);
+}
+function drawPerson(c, tf){
+  const x0 = CONFIG.personX, H = CONFIG.personHeight, s = tf.s;
+  const rect = (x, y, w, h) => c.fillRect(tf.x(x0 + x), tf.y(y + h), w * s, h * s);
+  c.fillStyle = '#4a5560';
+  rect(9, 0, 12, 94); rect(25, 0, 12, 94);   // 脚
+  rect(6, 90, 34, 56);                        // 胴
+  rect(0, 96, 6, 48); rect(40, 96, 6, 48);   // 腕
+  rect(19, 144, 8, 6);                        // 首
+  c.beginPath(); c.arc(tf.x(x0 + 23), tf.y(H - 10), 10 * s, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#4a5560';
+  c.font = `bold ${Math.max(10, Math.round(11 * Math.min(2, s * 1.4)))}px sans-serif`;
+  c.textAlign = 'center'; c.textBaseline = 'bottom';
+  c.fillText('170cm', tf.x(x0 + 23), tf.y(H) - 3);
+}
+function drawGround(c, W, H, groundY){
+  const g = c.createLinearGradient(0, 0, 0, groundY);
+  g.addColorStop(0, '#dcefff'); g.addColorStop(1, '#ffffff');
+  c.fillStyle = g; c.fillRect(0, 0, W, groundY);
+  c.fillStyle = '#cfc8b8'; c.fillRect(0, groundY, W, H - groundY);
+  c.fillStyle = '#9b9384'; c.fillRect(0, groundY, W, 2);
+}
+// プレイヤーの絵
+function drawPlayer(c, key, parts, tf, opt = {}){
+  const defs = [...CONFIG.objects[key].parts].sort((a, b) => a.z - b.z);
+  for (const d of defs){
+    const p = parts[d.id];
+    if (!p || !p.shape) continue;
+    shapePath(c, p.shape, tf, d.shape);
+    c.fillStyle = p.color ? colorById(p.color).hex : 'rgba(255,255,255,.75)';
+    c.fill();
+    c.setLineDash(p.color ? [] : [4, 3]);
+    c.lineWidth = opt.active === d.id ? 2.5 : 1.5;
+    c.strokeStyle = opt.active === d.id ? '#ff4f6d' : '#333';
+    c.stroke(); c.setLineDash([]);
+    if (opt.labels && !p.color){
+      const w = p.shape.w * tf.s, h = p.shape.h * tf.s;
+      if (w > 34 && h > 14){
+        c.fillStyle = '#777'; c.font = '10px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillText(d.label, tf.x(R.cx(p.shape)), tf.y(R.cy(p.shape)));
+      }
+    }
+  }
+  if (opt.active && parts[opt.active] && parts[opt.active].shape){
+    for (const [sx, sy] of cornersPx(parts[opt.active].shape, tf)){
+      c.fillStyle = '#fff'; c.strokeStyle = '#ff4f6d'; c.lineWidth = 2;
+      c.fillRect(sx - 5, sy - 5, 10, 10); c.strokeRect(sx - 5, sy - 5, 10, 10);
+    }
+  }
+}
+// 本物の点線（t: 0→1 で地面から上へ出てくる）
+function drawGhost(c, shapes, tf, t, groundY){
+  c.save();
+  c.beginPath(); c.rect(0, groundY - groundY * t, 99999, groundY * t + 2); c.clip();
+  for (const r of shapes){
+    shapePath(c, r, tf, r.kind);
+    c.globalAlpha = 0.3; c.fillStyle = r.fill; c.fill();
+    c.globalAlpha = 1; c.setLineDash([6, 4]); c.lineWidth = 2; c.strokeStyle = '#ff2d55'; c.stroke();
+  }
+  c.restore(); c.setLineDash([]);
+}
+function render(){
+  const {W, H} = view;
+  ctx.clearRect(0, 0, W, H);
+  drawGround(ctx, W, H, view.groundY);
+  const tf = tfMain();
+  drawPerson(ctx, tf);
+  const edit = S.mode === 'edit';
+  drawPlayer(ctx, curKey(), S.parts, tf, {active:edit ? S.active : null, labels:edit});
+  if (!edit && S.showGhost) drawGhost(ctx, S.ghost, tf, S.ghostT, view.groundY);
+}
+function layout(){
+  const wrap = $('#stageWrap'), rect = wrap.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  view.W = rect.width; view.H = rect.height;
+  cv.width = Math.round(view.W * dpr); cv.height = Math.round(view.H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const o = curObj();
+  view.groundY = view.H - CONFIG.groundPx;
+  view.ox = CONFIG.marginLeftPx;
+  view.scale = Math.max(0.05, Math.min((view.groundY - CONFIG.topMarginPx) / o.viewH, (view.W - view.ox) / o.minW));
+  render();
+}
+
+// ===== [SEC:INPUT] =====
+function cornersPx(r, tf){
+  return [[tf.x(r.x), tf.y(r.y + r.h)], [tf.x(r.x + r.w), tf.y(r.y + r.h)], [tf.x(r.x), tf.y(r.y)], [tf.x(r.x + r.w), tf.y(r.y)]];
+}
+function toWorld(e){
+  const rect = cv.getBoundingClientRect(), sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+  return {sx, sy, x:(sx - view.ox) / view.scale, y:(view.groundY - sy) / view.scale};
+}
+const worldMax = () => ({x:(view.W - view.ox) / view.scale, y:view.groundY / view.scale});
+const ASPECT = {circle:1, tri:Math.sqrt(3) / 2};  // 高さ÷幅（rect は自由）
+function rectFrom(ax, ay, bx, by, aspect){
+  if (aspect){
+    const w = Math.max(Math.abs(bx - ax), Math.abs(by - ay) / aspect), h = w * aspect;
+    return {x:bx < ax ? ax - w : ax, y:by < ay ? ay - h : ay, w, h};
+  }
+  return {x:Math.min(ax, bx), y:Math.min(ay, by), w:Math.abs(bx - ax), h:Math.abs(by - ay)};
+}
+function fitInWorld(r){ // 画面の外にはみ出さないように
+  const m = worldMax();
+  r.w = Math.min(r.w, m.x); r.h = Math.min(r.h, m.y);
+  r.x = clamp(r.x, 0, m.x - r.w); r.y = clamp(r.y, 0, m.y - r.h);
+  return r;
+}
+cv.addEventListener('pointerdown', e => {
+  if (S.mode !== 'edit' || drag) return;
+  e.preventDefault();
+  const p = toWorld(e), id = S.active, part = S.parts[id], aspect = ASPECT[partDef(curKey(), id).shape] || 0;
+  const m = worldMax(), px = clamp(p.x, 0, m.x), py = clamp(p.y, 0, m.y);
+  const sh = part.shape;
+  const orig = sh ? {...sh} : null;
+  if (sh){
+    const cs = cornersPx(sh, tfMain());
+    const ci = cs.findIndex(([sx, sy]) => Math.hypot(sx - p.sx, sy - p.sy) <= CONFIG.handlePx);
+    if (ci >= 0){
+      const fx = (ci === 0 || ci === 2) ? sh.x + sh.w : sh.x;   // 反対側の角を固定
+      const fy = (ci === 0 || ci === 1) ? sh.y : sh.y + sh.h;
+      drag = {mode:'resize', id, fx, fy, aspect, orig};
+    } else {
+      const pad = CONFIG.movePadPx / view.scale;
+      if (p.x >= sh.x - pad && p.x <= sh.x + sh.w + pad && p.y >= sh.y - pad && p.y <= sh.y + sh.h + pad)
+        drag = {mode:'move', id, sx:p.x, sy:p.y, orig};
+    }
+  }
+  if (!drag) drag = {mode:'draw', id, ax:px, ay:py, aspect, orig};
+  drag.pointerId = e.pointerId;
+  try { cv.setPointerCapture(e.pointerId); } catch(_){}
+});
+cv.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.pointerId) return;
+  e.preventDefault();
+  const p = toWorld(e), m = worldMax(), px = clamp(p.x, 0, m.x), py = clamp(p.y, 0, m.y);
+  const part = S.parts[drag.id];
+  if (drag.mode === 'draw'){
+    part.shape = rectFrom(drag.ax, drag.ay, px, py, drag.aspect);
+  } else if (drag.mode === 'move'){
+    part.shape = fitInWorld({...drag.orig, x:drag.orig.x + p.x - drag.sx, y:drag.orig.y + p.y - drag.sy});
+  } else {
+    const r = rectFrom(drag.fx, drag.fy, px, py, drag.aspect), min = CONFIG.minSizePx / view.scale;
+    if (r.w >= min && r.h >= min) part.shape = fitInWorld(r);
+  }
+  render();
+});
+function endDrag(e){
+  if (!drag || e.pointerId !== drag.pointerId) return;
+  const part = S.parts[drag.id];
+  if (drag.mode === 'draw'){
+    const sh = part.shape, small = !sh || (sh.w * view.scale < CONFIG.minDrawPx && sh.h * view.scale < CONFIG.minDrawPx);
+    if (small) part.shape = drag.orig;
+    else {
+      part.shape = fitInWorld(sh);
+      if (!drag.orig) advanceActive();   // 初めて描いた時だけ次のパーツへ
+    }
+  }
+  drag = null;
+  updateUI(); render();
+}
+cv.addEventListener('pointerup', endDrag);
+cv.addEventListener('pointercancel', endDrag);
+function advanceActive(){
+  const defs = curObj().parts, i = defs.findIndex(d => d.id === S.active);
+  for (let k = 1; k <= defs.length; k++){
+    const d = defs[(i + k) % defs.length];
+    if (!S.parts[d.id].shape){ S.active = d.id; return; }
+  }
+}
+
+// ===== [SEC:UI] =====
+function show(id){
+  for (const s of ['#scrTitle', '#scrGame', '#scrFinal']) $(s).classList.toggle('hidden', s !== id);
+}
+function buildPalette(){
+  const pal = $('#palette');
+  pal.innerHTML = '';
+  for (const c of CONFIG.colors){
+    const b = document.createElement('button');
+    b.className = 'sw'; b.style.background = c.hex; b.title = c.name; b.dataset.id = c.id;
+    b.addEventListener('click', () => {
+      S.parts[S.active].color = c.id;
+      S.colorMsg = `${partDef(curKey(), S.active).label}：${c.name}`;
+      updateUI(); render();
+    });
+    pal.appendChild(b);
+  }
+}
+function buildPartBar(){
+  const bar = $('#partBar');
+  bar.innerHTML = '';
+  for (const d of curObj().parts){
+    const b = document.createElement('button');
+    b.className = 'partBtn'; b.dataset.id = d.id;
+    b.innerHTML = `<span class="chk"></span><span class="dot"></span><span>${d.label}</span>`;
+    b.addEventListener('click', () => { S.active = d.id; S.colorMsg = ''; updateUI(); render(); });
+    bar.appendChild(b);
+  }
+}
+function updateUI(){
+  for (const b of document.querySelectorAll('.partBtn')){
+    const p = S.parts[b.dataset.id];
+    b.classList.toggle('active', b.dataset.id === S.active);
+    b.querySelector('.chk').textContent = p.shape ? '✓' : '';
+    const dot = b.querySelector('.dot');
+    dot.style.background = p.color ? colorById(p.color).hex : '#fff';
+    dot.style.borderStyle = p.color ? 'solid' : 'dashed';
+  }
+  const ab = document.querySelector('.partBtn.active');
+  if (ab) ab.scrollIntoView({block:'nearest', inline:'nearest'});
+  for (const sw of document.querySelectorAll('.sw')) sw.classList.toggle('sel', S.parts[S.active].color === sw.dataset.id);
+  const left = curObj().parts.filter(d => !S.parts[d.id].shape).length;
+  const btn = $('#btnCheck');
+  btn.disabled = left > 0;
+  btn.textContent = left > 0 ? `あと${left}つ描こう` : '答え合わせ';
+  $('#btnDel').disabled = !S.parts[S.active].shape;
+  const d = partDef(curKey(), S.active);
+  let h;
+  if (S.colorMsg) h = `色をぬりました（${S.colorMsg}）`;
+  else if (!S.parts[S.active].shape) h = `「${d.label}」を${{circle:'丸で', tri:'逆三角で'}[d.shape] || ''}ドラッグして描こう`;
+  else h = `「${d.label}」：中をドラッグで移動／角で大きさ変更／下の色でぬる`;
+  $('#hint').textContent = h;
+}
+function startRound(i){
+  S.round = i; S.mode = 'edit'; S.colorMsg = '';
+  const o = curObj();
+  S.parts = {};
+  o.parts.forEach(p => S.parts[p.id] = {shape:null, color:null});
+  S.active = o.parts[0].id;
+  $('#roundLabel').textContent = `ラウンド ${i + 1}/${S.order.length}　${o.icon} ${o.name}`;
+  $('#instr').textContent = o.instr;
+  $('#note').textContent = o.note;
+  $('#editUI').classList.remove('hidden');
+  $('#resultUI').classList.add('hidden');
+  $('#hint').classList.remove('hidden');
+  buildPartBar(); buildPalette();
+  show('#scrGame');
+  layout(); updateUI();
+}
+function doCheck(){
+  const key = curKey(), o = curObj();
+  const items = SCORERS[key](S.parts, o);
+  const total = items.reduce((s, it) => s + it.pts, 0);
+  S.results[S.round] = {key, items, total, parts:JSON.parse(JSON.stringify(S.parts))};
+  S.ghost = GHOSTS[key](S.parts, o);
+  S.mode = 'result'; S.ghostT = 0; drag = null;
+  $('#resScore').innerHTML = `${total}<small> / 100点</small>`;
+  $('#resList').innerHTML = items.map((it, i) => {
+    const cls = it.pts === it.max ? 'full' : it.pts === 0 ? 'zero' : '';
+    return `<li style="animation-delay:${0.25 + i * 0.12}s"><div class="rl"><span>${it.label}</span><span class="pt ${cls}">${it.pts}/${it.max}</span></div>` +
+      `<div class="rv">あなた：${it.you}　→　本物：${it.ans}</div></li>`;
+  }).join('');
+  $('#resTrivia').textContent = '💡 ' + o.trivia;
+  $('#btnNext').textContent = S.round < S.order.length - 1 ? '次のラウンドへ' : '結果を見る';
+  $('#editUI').classList.add('hidden');
+  $('#resultUI').classList.remove('hidden');
+  $('#resultUI').scrollTop = 0;
+  $('#hint').classList.add('hidden');
+  layout();
+  const t0 = performance.now();
+  (function anim(now){
+    if (S.mode !== 'result') return;
+    S.ghostT = Math.min(1, (now - t0) / CONFIG.revealMs);
+    render();
+    if (S.ghostT < 1) requestAnimationFrame(anim);
+  })(t0);
+}
+// 出す物を決める（前回出た物はなるべく避ける。?set=vend,soccer のように指定もできる）
+function pickOrder(){
+  const forced = (new URLSearchParams(location.search).get('set') || '').split(',').filter(k => CONFIG.objects[k]);
+  if (forced.length) return forced;
+  const last = S.order;
+  return CONFIG.pool.map(k => ({k, r:Math.random() + (last.includes(k) ? 1 : 0)}))
+    .sort((a, b) => a.r - b.r).slice(0, CONFIG.roundsPerPlay).map(e => e.k);
+}
+function newGame(){ S.results = []; S.order = pickOrder(); startRound(0); }
+$('#btnStart').addEventListener('click', newGame);
+$('#btnCheck').addEventListener('click', doCheck);
+$('#btnDel').addEventListener('click', () => { S.parts[S.active].shape = null; S.colorMsg = ''; updateUI(); render(); });
+$('#btnNext').addEventListener('click', () => {
+  if (S.round < S.order.length - 1) startRound(S.round + 1); else showFinal();
+});
+$('#chkGhost').addEventListener('change', e => { S.showGhost = e.target.checked; render(); });
+$('#btnRetry').addEventListener('click', newGame);
+window.addEventListener('resize', () => { if (!$('#scrGame').classList.contains('hidden')) layout(); });
+
+// ===== [SEC:FINAL] =====
+const totalScore = () => S.results.reduce((s, r) => s + r.total, 0);
+const maxTotal = () => S.order.length * 100;
+const rankName = t => CONFIG.ranks.find(r => t * CONFIG.roundsPerPlay / S.order.length >= r.min).name;
+function showFinal(){
+  show('#scrFinal');
+  const t = totalScore();
+  $('#finalTotal').innerHTML = `${t}<small> / ${maxTotal()}点</small>`;
+  $('#finalRank').textContent = `称号：${rankName(t)}`;
+  drawFinal();
+}
+function shiftShape(r, dx){ return {...r, x:r.x + dx}; }
+function bboxOf(list){
+  const xs = list.map(r => r.x), xe = list.map(r => r.x + r.w), ye = list.map(r => r.y + r.h);
+  return {x:Math.min(...xs), w:Math.max(...xe) - Math.min(...xs), top:Math.max(...ye)};
+}
+function drawFinal(){
+  const c = $('#finalCanvas'), g = c.getContext('2d'), W = 1080, H = 1080;
+  const gy = 960, sceneTop = 210, sideM = 40, labelPx = 170, gap = 60;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  drawGround(g, W, H, gy);
+  const t = totalScore();
+  g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = '#222';
+  g.font = 'bold 56px sans-serif'; g.fillText('だいたいこのくらい', W / 2, 82);
+  g.font = 'bold 64px sans-serif'; g.fillStyle = '#ff4f6d';
+  g.fillText(`${t} / ${maxTotal()}点`, W / 2, 158);
+  g.font = 'bold 32px sans-serif'; g.fillStyle = '#333';
+  g.fillText(`称号：${rankName(t)}`, W / 2, 200);
+  // 低い物から高い物の順に、人の右へ並べる
+  const items = S.results.filter(Boolean).map(res => {
+    const o = CONFIG.objects[res.key], ghost = GHOSTS[res.key](res.parts, o);
+    const mine = o.parts.map(d => res.parts[d.id].shape).filter(Boolean);
+    return {res, o, ghost, bb:bboxOf([...mine, ...ghost])};
+  }).sort((a, b) => a.bb.top - b.bb.top);
+  const personW = CONFIG.personX + CONFIG.personWidth;
+  const worldH = Math.max(CONFIG.personHeight, ...items.map(it => it.bb.top)) + 30;
+  let scale = (gy - sceneTop) / worldH, slots = [], worldW = 0;
+  for (let k = 0; k < 4; k++){ // 下の名前が重ならない幅になるまで調整
+    slots = items.map(it => Math.max(it.bb.w + gap, labelPx / scale));
+    worldW = personW + gap + slots.reduce((sum, v) => sum + v, 0);
+    scale = Math.min((W - sideM * 2) / worldW, (gy - sceneTop) / worldH);
+  }
+  const tf = makeTf((W - worldW * scale) / 2, gy, scale);
+  drawPerson(g, tf);
+  let cursor = personW + gap;
+  items.forEach((it, i) => {
+    const center = cursor + slots[i] / 2, dx = center - (it.bb.x + it.bb.w / 2);
+    const parts = {};
+    for (const d of it.o.parts){
+      const p = it.res.parts[d.id];
+      parts[d.id] = {color:p.color, shape:p.shape ? shiftShape(p.shape, dx) : null};
+    }
+    drawPlayer(g, it.res.key, parts, tf, {});
+    drawGhost(g, it.ghost.map(r => shiftShape(r, dx)), tf, 1, gy);
+    g.textAlign = 'center'; g.fillStyle = '#333'; g.font = 'bold 26px sans-serif';
+    g.fillText(it.o.short, tf.x(center), gy + 38);
+    g.fillStyle = '#ff4f6d'; g.fillText(`${it.res.total}点`, tf.x(center), gy + 70);
+    cursor += slots[i];
+  });
+  g.textAlign = 'right'; g.font = '22px sans-serif'; g.fillStyle = '#666';
+  g.fillText('点線＝よくある本物', W - 24, gy + 100);
+}
+function shareText(){
+  const t = totalScore();
+  const names = S.results.filter(Boolean).map(r => CONFIG.objects[r.key].short).join('・');
+  return `${names}を本物の大きさで描いたら ${t}/${maxTotal()}点【${rankName(t)}】でした ${CONFIG.shareTag}`;
+}
+$('#btnSave').addEventListener('click', () => {
+  $('#finalCanvas').toBlob(blob => {
+    if (!blob) return;
+    const file = new File([blob], 'daitai-kono-kurai.png', {type:'image/png'});
+    if (navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({files:[file], text:shareText()}).catch(() => {});
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = file.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+  }, 'image/png');
+});
+$('#btnShare').addEventListener('click', () => {
+  const url = location.href.split('#')[0];
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(url)}`, '_blank');
+});
+
+// ===== [SEC:BOOT] =====
+for (const a of document.querySelectorAll('.fbtn')){
+  a.href = `https://x.com/intent/follow?screen_name=${CONFIG.authorX}`;
+  a.textContent = `𝕏 @${CONFIG.authorX}`;
+}
+show('#scrTitle');
+</script>
+</body>
+</html>
