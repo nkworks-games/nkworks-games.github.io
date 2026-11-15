@@ -17,16 +17,20 @@
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--sat:env(safe-area-inset-top);--sar:env(safe-area-inset-right);--sab:env(safe-area-inset-bottom);--sal:env(safe-area-inset-left);--vw:1vw;--vh:1vh}
+/* 横持ち：スマホが縦のままでも、ページ全体を90度回して横長にする（左上を軸に回して右へずらす） */
+html.rot{--sat:env(safe-area-inset-right);--sar:env(safe-area-inset-bottom);--sab:env(safe-area-inset-left);--sal:env(safe-area-inset-top)}
+html.rot body{position:fixed;left:0;top:0;width:var(--lw);height:var(--lh);transform-origin:0 0;transform:translateX(var(--pw)) rotate(90deg)}
 html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block;outline:none}
 .screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;z-index:30;padding:16px;gap:10px}
 .screen.on{display:flex}
 .dim{background:rgba(10,4,2,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-.logo{font-size:clamp(44px,11vw,92px);font-weight:900;letter-spacing:.04em;line-height:1.05;background:linear-gradient(180deg,#fff3b0 0%,#ffb13a 35%,#ff4d12 70%,#9c1500 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,90,20,.65)) drop-shadow(0 4px 0 rgba(60,8,0,.9))}
-.sub{font-size:clamp(14px,3.6vw,19px);opacity:.92;text-shadow:0 2px 6px #000}
-.btn{display:inline-block;font:inherit;font-size:clamp(16px,4.2vw,20px);font-weight:700;color:#fff;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.55);border-radius:14px;padding:10px 24px;min-width:220px;cursor:pointer}
+.logo{font-size:clamp(44px,calc(11*var(--vw)),92px);font-weight:900;letter-spacing:.04em;line-height:1.05;background:linear-gradient(180deg,#fff3b0 0%,#ffb13a 35%,#ff4d12 70%,#9c1500 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,90,20,.65)) drop-shadow(0 4px 0 rgba(60,8,0,.9))}
+.sub{font-size:clamp(14px,calc(3.6*var(--vw)),19px);opacity:.92;text-shadow:0 2px 6px #000}
+.btn{display:inline-block;font:inherit;font-size:clamp(16px,calc(4.2*var(--vw)),20px);font-weight:700;color:#fff;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.55);border-radius:14px;padding:10px 24px;min-width:220px;cursor:pointer}
 .btn:active{transform:scale(.97)}
-.btn.main{background:linear-gradient(180deg,#ff8a2a,#e0400c);border-color:#ffd08a;font-size:clamp(20px,5vw,26px);box-shadow:0 0 22px rgba(255,90,20,.6)}
+.btn.main{background:linear-gradient(180deg,#ff8a2a,#e0400c);border-color:#ffd08a;font-size:clamp(20px,calc(5*var(--vw)),26px);box-shadow:0 0 22px rgba(255,90,20,.6)}
 .small{font-size:13px;opacity:.85;line-height:1.6}
 .howto{font-size:13px;line-height:1.7;background:rgba(0,0,0,.35);border-radius:12px;padding:8px 14px;max-width:520px}
 .best{font-size:15px;color:#ffd58a;min-height:1em}
@@ -34,7 +38,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
 .stage{display:flex;flex-direction:column;align-items:center;min-width:280px;line-height:1.3}
 .stage small{font-size:12px;font-weight:600;opacity:.9;margin-top:2px}
 .stage:disabled{opacity:.42;cursor:default}
-.credit{position:absolute;bottom:max(10px,env(safe-area-inset-bottom));font-size:12px;opacity:.7}
+.credit{position:absolute;bottom:max(10px,var(--sab));font-size:12px;opacity:.7}
 /* 作者をフォロー（タイトルと結果画面。サイトのほかのゲームと同じ形） */
 .follow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f3e9dc;color:#2a1f1a;border:1px solid #e4d6c4;border-radius:14px;padding:6px 8px 6px 12px;text-align:left;width:100%;max-width:400px;flex-shrink:0}
 .follow>div{min-width:0;overflow:hidden}.follow p{margin:0;overflow:hidden;text-overflow:ellipsis}
@@ -43,33 +47,35 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
 .fbtn{flex-shrink:0;display:inline-block;padding:8px 12px;border-radius:999px;background:#000;color:#fff;border:1px solid #4a4f66;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #333;white-space:nowrap}
 .fbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #333}
 .credit a{color:#ffd58a}
-#loadbarWrap{width:min(320px,70vw);height:10px;border-radius:6px;background:rgba(255,255,255,.15);overflow:hidden}
+#loadbarWrap{width:min(320px,calc(70*var(--vw)));height:10px;border-radius:6px;background:rgba(255,255,255,.15);overflow:hidden}
 #loadbar{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff4d12,#ffd36a)}
 #hud{position:fixed;inset:0;pointer-events:none;z-index:10;display:none}
 #hud.on{display:block}
-#hTop{position:absolute;top:max(8px,env(safe-area-inset-top));left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:0 max(10px,env(safe-area-inset-left))}
+#hTop{position:absolute;top:max(8px,var(--sat));left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:0 max(10px,var(--sal))}
 .chip{background:rgba(0,0,0,.45);border-radius:10px;padding:5px 10px;font-weight:700;font-size:15px;text-shadow:0 1px 3px #000;white-space:nowrap}
 .hbtn{white-space:nowrap}
-@media (max-width:480px){.chip{font-size:12px;padding:4px 7px}#hTime{font-size:16px}.hbtn{font-size:12px;padding:4px 7px}#hRight{gap:4px}}
+/* (max-width:480px) の代わり（横持ちでも効くようにクラスで切りかえ） */
+html.narrow .chip{font-size:12px;padding:4px 7px}html.narrow .hbtn{font-size:12px;padding:4px 7px}html.narrow #hRight{gap:4px}
 .rkWarn{color:#ffd0a0;font-weight:700;font-size:13px;background:rgba(120,30,0,.55);border:1px solid rgba(255,160,90,.6);border-radius:10px;padding:4px 10px;display:none}
-#hWarn{position:absolute;left:50%;top:calc(52px + env(safe-area-inset-top));transform:translateX(-50%);white-space:nowrap}
+#hWarn{position:absolute;left:50%;top:calc(52px + var(--sat));transform:translateX(-50%);white-space:nowrap}
 #hTime{font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+#hTime.wait{font-size:15px;color:#ffe07a;animation:tWait 1s ease-in-out infinite alternate} @keyframes tWait{to{opacity:.45}}
 #hRight{display:flex;gap:6px;align-items:center}
 .hbtn{pointer-events:auto;font:inherit;font-weight:700;font-size:14px;color:#fff;background:rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.5);border-radius:10px;padding:6px 10px;cursor:pointer}
 #cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 0 3px #000;display:none}
-#grip{position:absolute;left:50%;top:calc(56px + env(safe-area-inset-top));transform:translateX(-50%);display:none;align-items:center;gap:8px;font-weight:700;font-size:14px;text-shadow:0 1px 3px #000}
+#grip{position:absolute;left:50%;top:calc(56px + var(--sat));transform:translateX(-50%);display:none;align-items:center;gap:8px;font-weight:700;font-size:14px;text-shadow:0 1px 3px #000}
 #grip .g{width:160px;height:12px;border-radius:7px;background:rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.6);overflow:hidden}
 #gripbar{display:block;height:100%;width:100%;background:#7cf27c}
 #grip.low #gripbar{background:#ff4040;animation:blink .3s infinite alternate}
 @keyframes blink{to{opacity:.35}}
-#hint{position:absolute;left:50%;bottom:calc(20% + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:min(92vw,640px);background:rgba(0,0,0,.55);border-radius:12px;padding:8px 14px;font-size:15px;line-height:1.55;font-weight:700;text-align:center;opacity:0;transition:opacity .35s}
+#hint{position:absolute;left:50%;bottom:calc(20% + var(--sab));transform:translateX(-50%);max-width:min(calc(92*var(--vw)),640px);background:rgba(0,0,0,.55);border-radius:12px;padding:8px 14px;font-size:15px;line-height:1.55;font-weight:700;text-align:center;opacity:0;transition:opacity .35s}
 #hint.on{opacity:1}
-#banner{position:absolute;left:0;right:0;top:20%;text-align:center;font-size:clamp(26px,7vw,44px);font-weight:900;text-shadow:0 0 16px rgba(255,90,20,.8),0 3px 0 #000;opacity:0;transition:opacity .4s}
+#banner{position:absolute;left:0;right:0;top:20%;text-align:center;font-size:clamp(26px,calc(7*var(--vw)),44px);font-weight:900;text-shadow:0 0 16px rgba(255,90,20,.8),0 3px 0 #000;opacity:0;transition:opacity .4s}
 #banner.on{opacity:1}
 #banner small{display:block;font-size:.45em;opacity:.9}
 #lockMsg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.6);padding:12px 18px;border-radius:12px;font-weight:700;display:none}
 #flash{position:fixed;inset:0;pointer-events:none;z-index:12;background:radial-gradient(circle at 50% 70%,rgba(255,200,80,.0) 0%,rgba(255,80,10,.75) 75%);opacity:0;transition:opacity .25s}
-#achi{position:fixed;left:0;right:0;top:34%;text-align:center;z-index:13;pointer-events:none;font-size:clamp(48px,14vw,110px);font-weight:900;color:#fff;-webkit-text-stroke:3px #a51b00;text-shadow:0 0 24px #ff5a14;opacity:0;transform:scale(.6);transition:opacity .15s,transform .25s}
+#achi{position:fixed;left:0;right:0;top:34%;text-align:center;z-index:13;pointer-events:none;font-size:clamp(48px,calc(14*var(--vw)),110px);font-weight:900;color:#fff;-webkit-text-stroke:3px #a51b00;text-shadow:0 0 24px #ff5a14;opacity:0;transform:scale(.6);transition:opacity .15s,transform .25s}
 #achi.on{opacity:1;transform:scale(1)}
 #fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:14;transition:opacity .25s}
 #touch{position:fixed;inset:0;z-index:11;display:none;pointer-events:none}
@@ -77,18 +83,18 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
 #stick{position:absolute;width:120px;height:120px;margin:-60px;border-radius:50%;border:2px solid rgba(255,255,255,.45);background:rgba(0,0,0,.18);display:none}
 #knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px;border-radius:50%;background:rgba(255,255,255,.55)}
 .tb{position:absolute;pointer-events:auto;font:inherit;font-weight:900;color:#fff;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:rgba(255,110,30,.45);display:flex;align-items:center;justify-content:center;text-shadow:0 1px 3px #000}
-#tJump{width:92px;height:92px;right:calc(18px + env(safe-area-inset-right));bottom:calc(26px + env(safe-area-inset-bottom));font-size:17px}
-#tDrop{width:66px;height:66px;right:calc(118px + env(safe-area-inset-right));bottom:calc(92px + env(safe-area-inset-bottom));font-size:14px;background:rgba(40,120,255,.45);display:none}
-#stickHint{position:absolute;left:calc(26px + env(safe-area-inset-left));bottom:calc(30px + env(safe-area-inset-bottom));font-size:12px;opacity:.6;font-weight:700}
-.resT{font-size:clamp(30px,8vw,52px);font-weight:900;color:#ffe07a;text-shadow:0 0 18px rgba(255,120,30,.8)}
-.resBig{font-size:clamp(34px,9vw,60px);font-weight:900;font-variant-numeric:tabular-nums}
+#tJump{width:92px;height:92px;right:calc(18px + var(--sar));bottom:calc(26px + var(--sab));font-size:17px}
+#tDrop{width:66px;height:66px;right:calc(118px + var(--sar));bottom:calc(92px + var(--sab));font-size:14px;background:rgba(40,120,255,.45);display:none}
+#stickHint{position:absolute;left:calc(26px + var(--sal));bottom:calc(30px + var(--sab));font-size:12px;opacity:.6;font-weight:700}
+.resT{font-size:clamp(30px,calc(8*var(--vw)),52px);font-weight:900;color:#ffe07a;text-shadow:0 0 18px rgba(255,120,30,.8)}
+.resBig{font-size:clamp(34px,calc(9*var(--vw)),60px);font-weight:900;font-variant-numeric:tabular-nums}
 .splits{font-size:14px;line-height:1.6;background:rgba(0,0,0,.35);border-radius:12px;padding:8px 14px;font-variant-numeric:tabular-nums;min-width:240px}
 .splits div{display:flex;justify-content:space-between;gap:18px}
 .newrec{color:#7cf27c;font-weight:900}
 .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 #sens{width:200px}
-.rankBox{background:rgba(0,0,0,.4);border-radius:12px;padding:8px 12px;min-width:270px;max-width:min(92vw,420px);font-size:14px;line-height:1.55;font-variant-numeric:tabular-nums}
-.rankBox ol{margin:0;padding:0;list-style:none;max-height:min(34vh,300px);overflow:auto}
+.rankBox{background:rgba(0,0,0,.4);border-radius:12px;padding:8px 12px;min-width:270px;max-width:min(calc(92*var(--vw)),420px);font-size:14px;line-height:1.55;font-variant-numeric:tabular-nums}
+.rankBox ol{margin:0;padding:0;list-style:none;max-height:min(calc(34*var(--vh)),300px);overflow:auto}
 .rankBox li{display:flex;gap:10px;justify-content:space-between;padding:1px 6px;border-radius:6px}
 .rankBox li.me{background:rgba(255,200,80,.25);color:#ffe07a;font-weight:900}
 .rankBox li b{width:2em;text-align:right;opacity:.85}
@@ -103,16 +109,17 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
 .tabs button{font:inherit;font-weight:700;font-size:14px;color:#fff;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.45);border-radius:10px;padding:5px 12px;cursor:pointer}
 .tabs button.on{background:#e0400c;border-color:#ffd08a}
 .resCols{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
-#title,#result,#rankScr,#vidScr{overflow-y:auto}
+#title,#result,#rankScr,#vidScr{overflow-y:auto;justify-content:flex-start} /* 入りきらない時に上が切れないように（真ん中寄せは最初と最後の margin:auto でする） */
 #title>:first-child,#result>:first-child,#rankScr>:first-child,#vidScr>:first-child{margin-top:auto}
 #title>:last-child,#result>:last-child,#rankScr>:last-child,#vidScr>:last-child{margin-bottom:auto}
-.vidWrap{position:relative;width:min(92vw,calc(62vh*16/9),820px);aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;flex-shrink:0}
+.vidWrap{position:relative;width:min(calc(92*var(--vw)),calc(calc(62*var(--vh))*16/9),820px);aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;flex-shrink:0}
 .vidWrap canvas,.vidWrap video{position:absolute;inset:0;width:100%;height:100%;display:block}
-#vidBar{width:min(92vw,820px);height:8px;border-radius:5px;background:rgba(255,255,255,.15);overflow:hidden;flex-shrink:0}
+#vidBar{width:min(calc(92*var(--vw)),820px);height:8px;border-radius:5px;background:rgba(255,255,255,.15);overflow:hidden;flex-shrink:0}
 #vidBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff4d12,#ffd36a)}
-@media (max-height:460px){.rankBox ol{max-height:30vh}.rankBox{font-size:12px;min-width:240px;max-width:300px}.logo{font-size:46px}.screen{gap:6px;padding:8px}.howto{font-size:11px;padding:4px 10px;line-height:1.5}.btn{padding:6px 18px;font-size:16px}.btn.main{font-size:20px}.credit{position:static}.resBig{font-size:34px}.resT{font-size:26px}.splits{font-size:12px;line-height:1.4}.logo{font-size:40px}.sub{font-size:13px}.stages{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px}.stage{min-width:0;padding:5px 12px;font-size:15px}.btn.main.stage{font-size:16px}.stage small{font-size:10px}.splits{columns:2;column-gap:28px}.splits div{break-inside:avoid}.resT{font-size:24px}.resBig{font-size:30px}}
+/* (max-height:460px) の代わり（横持ちでも効くようにクラスで切りかえ） */
+html.short .rankBox ol{max-height:calc(30*var(--vh))}html.short .rankBox{font-size:12px;min-width:240px;max-width:300px}html.short .logo{font-size:46px}html.short .screen{gap:6px;padding:8px}html.short .howto{font-size:11px;padding:4px 10px;line-height:1.5}html.short .btn{padding:6px 18px;font-size:16px}html.short .btn.main{font-size:20px}html.short .credit{position:static}html.short .resBig{font-size:34px}html.short .resT{font-size:26px}html.short .splits{font-size:12px;line-height:1.4}html.short .logo{font-size:40px}html.short .sub{font-size:13px}html.short .stages{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px}html.short .stage{min-width:0;padding:5px 12px;font-size:15px}html.short .btn.main.stage{font-size:16px}html.short .stage small{font-size:10px}html.short .splits{columns:2;column-gap:28px}html.short .splits div{break-inside:avoid}html.short .resT{font-size:24px}html.short .resBig{font-size:30px}
 /* Sorotta の宣伝①：ページを開いた時に1回だけ。×ですぐ閉じられる */
-#promo{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:calc(14px + env(safe-area-inset-top)) 14px 14px;box-sizing:border-box;background:rgba(10,4,2,.6);animation:pmFade .2s ease-out}
+#promo{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:calc(14px + var(--sat)) 14px 14px;box-sizing:border-box;background:rgba(10,4,2,.6);animation:pmFade .2s ease-out}
 #promo.on{display:flex}
 #promo .pcard{position:relative;display:grid;grid-template-areas:"pr" "shot" "body";justify-items:center;width:min(330px,100%);max-height:100%;overflow-y:auto;box-sizing:border-box;background:#fbf8f3;color:#2a2622;border-radius:22px;padding:18px 20px 14px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.45);animation:pmPop .28s cubic-bezier(.2,1.3,.4,1)}
 #promo p{margin:0}
@@ -131,12 +138,11 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
 #promoX{position:absolute;z-index:1;right:8px;top:8px;width:40px;height:40px;padding:0;border:none;border-radius:50%;background:rgba(0,0,0,.08);color:#4a443e;font:inherit;font-size:22px;line-height:40px;cursor:pointer}
 #promoX:active{background:rgba(0,0,0,.16)}
 @keyframes pmFade{from{opacity:0}} @keyframes pmPop{from{transform:scale(.88);opacity:0}}
-@media (orientation:portrait) and (max-height:680px){ #promo .pshot{width:180px;margin-bottom:8px} #promo .pr{margin-bottom:6px} }
-@media (orientation:landscape) and (max-height:560px){ /* 横向き：左に画面の写真、右に説明 */
-  #promo .pcard{grid-template-areas:"shot ." "shot pr" "shot body" "shot .";grid-template-columns:auto 1fr;grid-template-rows:1fr auto auto 1fr;column-gap:18px;justify-items:start;width:min(560px,100%);padding:12px 18px;text-align:left}
-  #promo .pshot{width:auto;height:230px;height:min(230px,calc(100dvh - 60px));margin:0}
-  #promo .pr{margin-bottom:6px} #promo .phead{justify-content:flex-start;margin-bottom:4px} #promo .picon{width:38px;height:38px;border-radius:9px}
-  #promo .pname{font-size:19px} #promo .ptext{font-size:12px;line-height:1.5;margin-bottom:8px} #promo .ptext br{display:none} #promo .pbtn{padding:9px 10px;font-size:14px} #promo .pnote{margin-top:4px} }
+/* (orientation:portrait) and (max-height:680px) の代わり（横持ちでも効くようにクラスで切りかえ） */
+html.pmPort #promo .pshot{width:180px;margin-bottom:8px}html.pmPort #promo .pr{margin-bottom:6px}
+/* (orientation:landscape) and (max-height:560px) の代わり（横持ちでも効くようにクラスで切りかえ） */
+/* 横向き：左に画面の写真、右に説明 */
+  html.pmLand #promo .pcard{grid-template-areas:"shot ." "shot pr" "shot body" "shot .";grid-template-columns:auto 1fr;grid-template-rows:1fr auto auto 1fr;column-gap:18px;justify-items:start;width:min(560px,100%);padding:12px 18px;text-align:left}html.pmLand #promo .pshot{width:auto;height:230px;height:min(230px,calc(100*var(--vh) - 60px));margin:0}html.pmLand #promo .pr{margin-bottom:6px}html.pmLand #promo .phead{justify-content:flex-start;margin-bottom:4px}html.pmLand #promo .picon{width:38px;height:38px;border-radius:9px}html.pmLand #promo .pname{font-size:19px}html.pmLand #promo .ptext{font-size:12px;line-height:1.5;margin-bottom:8px}html.pmLand #promo .ptext br{display:none}html.pmLand #promo .pbtn{padding:9px 10px;font-size:14px}html.pmLand #promo .pnote{margin-top:4px}
 /* Sorotta の宣伝②：結果画面のいちばん下に小さく */
 .resAd{display:none;align-items:center;gap:10px;width:100%;max-width:360px;box-sizing:border-box;margin-top:4px;padding:6px 8px 6px 8px;background:#fbf8f3;color:#2a2622;border-radius:12px;text-align:left;text-decoration:none;flex-shrink:0}
 .resAd.on{display:flex}
@@ -150,6 +156,26 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 </head>
 <body>
+<script>
+// ===== [SEC:LAYOUT] =====
+// 画面の向きと大きさ。スマホで「横持ち」を選ぶと、縦向きロックのままでもページごと90度回す。
+// 回した時は画面の縦横が入れかわるので、文字の大きさなどの切りかえも「回した後の大きさ」で決める（html に short などのクラスをつける）
+(function () {
+  var touch = matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+  var L = window.LAYOUT = { rot: false, w: innerWidth, h: innerHeight, orient: 'port' };
+  try { L.orient = JSON.parse(localStorage.getItem('yukamagma_orient')) || 'port'; } catch (e) { }
+  L.apply = function () {
+    var d = document.documentElement, st = d.style, rot = touch && L.orient === 'land' && innerHeight > innerWidth;
+    L.rot = rot; L.w = rot ? innerHeight : innerWidth; L.h = rot ? innerWidth : innerHeight;
+    d.classList.toggle('rot', rot);
+    st.setProperty('--lw', L.w + 'px'); st.setProperty('--lh', L.h + 'px'); st.setProperty('--pw', innerWidth + 'px');
+    st.setProperty('--vw', L.w / 100 + 'px'); st.setProperty('--vh', L.h / 100 + 'px');
+    d.classList.toggle('narrow', L.w <= 480); d.classList.toggle('short', L.h <= 460);
+    d.classList.toggle('pmPort', L.h >= L.w && L.h <= 680); d.classList.toggle('pmLand', L.w > L.h && L.h <= 560);
+  };
+  L.apply(); addEventListener('resize', L.apply);
+})();
+</script>
 <canvas id="c" tabindex="0"></canvas>
 
 <div id="loading" class="screen on"><div class="logo">床はマグマ</div><div id="loadbarWrap"><i id="loadbar"></i></div><div class="small" id="loadtxt">読みこみ中…</div></div>
@@ -158,7 +184,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
   <div class="logo">床はマグマ</div>
   <div class="sub">家具・かべ・照明をつたって、家から脱出せよ！</div>
   <div id="stageBtns" class="stages"></div>
-  <div class="row"><button id="btnRank" class="btn">🏆 ランキング</button><button id="btnView" class="btn">視点：1人称</button></div>
+  <div class="row"><button id="btnRank" class="btn">🏆 ランキング</button><button id="btnView" class="btn">視点：1人称</button><button id="btnOrient" class="btn" style="display:none">向き：縦持ち</button></div>
   <div id="tWarn" class="rkWarn">⚠️ 今はランキングに登録できません（ゲームは遊べます）</div>
   <div id="bestTitle" class="best"></div>
   <div class="howto" id="howto"></div>
@@ -188,6 +214,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
   <button id="pResume" class="btn main">つづける</button>
   <button id="pView" class="btn">視点：1人称</button>
   <button id="pSound" class="btn">音：ON</button>
+  <button id="pOrient" class="btn" style="display:none">向き：縦持ち</button>
   <div class="small">視点の速さ<br><input id="sens" type="range" min="0.4" max="2" step="0.1" value="1"></div>
   <button id="pRestart" class="btn">最初からやり直す</button>
   <button id="pTitle" class="btn">タイトルへ</button>
@@ -207,7 +234,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
 </div>
 
 <div id="rankScr" class="screen dim">
-  <div class="logo" style="font-size:clamp(34px,8vw,52px)">ランキング</div>
+  <div class="logo" style="font-size:clamp(34px,calc(8*var(--vw)),52px)">ランキング</div>
   <div class="tabs" id="rkTabs"></div>
   <div class="rankBox" id="rkBox"></div>
   <button id="rkClose" class="btn">もどる</button>
@@ -290,23 +317,24 @@ const IS_TOUCH = matchMedia('(pointer: coarse)').matches || ('ontouchstart' in w
 const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !IS_TOUCH, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, IS_TOUCH ? 1.5 : 2));
-renderer.setSize(innerWidth, innerHeight);
+renderer.setSize(LAYOUT.w, LAYOUT.h);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87a7c8);
-const camera = new THREE.PerspectiveCamera(CONFIG.FOV, innerWidth / innerHeight, 0.05, 150);
+const camera = new THREE.PerspectiveCamera(CONFIG.FOV, LAYOUT.w / LAYOUT.h, 0.05, 150);
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), CONFIG.BLOOM.strength, CONFIG.BLOOM.radius, CONFIG.BLOOM.threshold);
+const bloom = new UnrealBloomPass(new THREE.Vector2(LAYOUT.w / 2, LAYOUT.h / 2), CONFIG.BLOOM.strength, CONFIG.BLOOM.radius, CONFIG.BLOOM.threshold);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
-function onResize() {
-  renderer.setSize(innerWidth, innerHeight);
-  composer.setSize(innerWidth, innerHeight);
-  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+function onResize() { // LAYOUT（横持ちなら縦横を入れかえた大きさ）に合わせる
+  LAYOUT.apply();
+  renderer.setSize(LAYOUT.w, LAYOUT.h);
+  composer.setSize(LAYOUT.w, LAYOUT.h);
+  camera.aspect = LAYOUT.w / LAYOUT.h; camera.updateProjectionMatrix();
 }
 addEventListener('resize', onResize);
 
@@ -1382,7 +1410,7 @@ const P = {
   ropeCD: 0, lastRope: null, lastRopeT: 0, grip: 100, hang: null, climb: null, swing: null, deadT: 0, bodyYaw: 0, room: 0,
   airT: 0, landT: 0, yawTween: null, justGrab: 0,
 };
-const G = { state: 'loading', stage: 0, time: 0, misses: 0, splits: [], view: 'fp', clearT: 0, seenHint: {}, firstHang: true, sound: true, sens: 1 };
+const G = { state: 'loading', stage: 0, time: 0, misses: 0, splits: [], view: 'fp', clearT: 0, seenHint: {}, firstHang: true, sound: true, sens: 1, waiting: false };
 function overlapsSolid(x, y, z, ignore = null) {
   for (const c of SOLIDS) {
     if (c.off || c === ignore) continue;
@@ -1434,7 +1462,10 @@ function intentDir() { const m = getMoveInput(); if (m.mag > 0.2) return { x: m.
 function tick(dt) {
   if (G.state !== 'play' && G.state !== 'clear') return;
   rpRecord(dt); // リプレイ用に様子を覚える
-  if (G.state === 'play') G.time += dt;
+  if (G.state === 'play') {
+    if (G.waiting && (getMoveInput().mag > 0.05 || P.jumpBuf > 0)) G.waiting = false; // タイムは、スタート後に動くかジャンプした時から数える（見回すだけでは始まらない）
+    if (!G.waiting) G.time += dt;
+  }
   if (P.mode !== 'climb') P.jumpBuf = Math.max(0, P.jumpBuf - dt); // よじ登り中に押したジャンプは、登り終わりまで覚えておく
   P.dropBuf = Math.max(0, P.dropBuf - dt);
   P.regrabCD = Math.max(0, P.regrabCD - dt); P.lastGrabT = Math.max(0, P.lastGrabT - dt);
@@ -1952,16 +1983,19 @@ function look(dx, dy) { P.yaw -= dx; P.pitch = THREE.MathUtils.clamp(P.pitch - d
 // タッチ
 const stickEl = document.getElementById('stick'), knobEl = document.getElementById('knob');
 const T = { stickId: null, sx: 0, sy: 0, lookId: null, lx: 0, ly: 0 };
+const tpos = t => LAYOUT.rot ? { x: t.clientY, y: innerWidth - t.clientX } : { x: t.clientX, y: t.clientY }; // 指の位置（横持ちで回している時は、回した画面の中での位置に直す）
 canvas.addEventListener('touchstart', e => {
   e.preventDefault(); AU.unlock();
-  for (const t of e.changedTouches) {
-    if (t.clientX < innerWidth * 0.45 && T.stickId === null) { T.stickId = t.identifier; document.getElementById('stickHint').style.display = 'none'; T.sx = t.clientX; T.sy = t.clientY; stickEl.style.display = 'block'; stickEl.style.left = t.clientX + 'px'; stickEl.style.top = t.clientY + 'px'; knobEl.style.transform = ''; }
+  for (const t0 of e.changedTouches) {
+    const p = tpos(t0), t = { identifier: t0.identifier, clientX: p.x, clientY: p.y };
+    if (t.clientX < LAYOUT.w * 0.45 && T.stickId === null) { T.stickId = t.identifier; document.getElementById('stickHint').style.display = 'none'; T.sx = t.clientX; T.sy = t.clientY; stickEl.style.display = 'block'; stickEl.style.left = t.clientX + 'px'; stickEl.style.top = t.clientY + 'px'; knobEl.style.transform = ''; }
     else if (T.lookId === null) { T.lookId = t.identifier; T.lx = t.clientX; T.ly = t.clientY; }
   }
 }, { passive: false });
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
-  for (const t of e.changedTouches) {
+  for (const t0 of e.changedTouches) {
+    const p = tpos(t0), t = { identifier: t0.identifier, clientX: p.x, clientY: p.y };
     if (t.identifier === T.stickId) {
       let dx = t.clientX - T.sx, dy = t.clientY - T.sy; const l = Math.hypot(dx, dy), m = CONFIG.STICK_R;
       if (l > m) { dx *= m / l; dy *= m / l; }
@@ -2043,7 +2077,7 @@ function toggleView() { setView(G.view === 'fp' ? 'tp' : 'fp'); }
 function load(k, d) { try { const v = localStorage.getItem('yukamagma_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
 function save(k, v) { try { localStorage.setItem('yukamagma_' + k, JSON.stringify(v)); } catch (e) { } }
 function updateHud(dt) {
-  $('hTime').textContent = fmt(G.time); $('hMiss').textContent = `ミス ${G.misses}`;
+  const wait = G.waiting && G.state === 'play'; $('hTime').textContent = wait ? '動くとタイム開始' : fmt(G.time); $('hTime').classList.toggle('wait', wait); $('hMiss').textContent = `ミス ${G.misses}`;
   const showGrip = (P.mode === 'hang' || P.mode === 'swing') || P.grip < CONFIG.GRIP_MAX - 0.5;
   $('grip').style.display = showGrip && G.state === 'play' ? 'flex' : 'none';
   $('gripbar').style.width = (P.grip / CONFIG.GRIP_MAX * 100).toFixed(1) + '%';
@@ -2071,11 +2105,11 @@ function refreshBest() { // タイトルのステージ選択ボタン
 function startGame(stage = G.stage) {
   AU.unlock();
   useStage(stage);
-  G.state = 'play'; G.time = 0; G.misses = 0; G.splits = [0]; G.seenHint = {}; P.room = 0;
+  G.state = 'play'; G.time = 0; G.waiting = true; G.misses = 0; G.splits = [0]; G.seenHint = {}; P.room = 0;
   respawn(); fade(0); rpReset();
   showScreen(null); $('hud').classList.add('on'); $('touch').classList.toggle('on', IS_TOUCH);
   updateHudRoom(); G.seenHint[0] = true; showHint(ROOMS[0].hint, 7);
-  showBanner(`ステージ${G.stage + 1}「${STAGES[G.stage].name}」`, 'スタート！');
+  showBanner(`ステージ${G.stage + 1}「${STAGES[G.stage].name}」`, '動くとタイム開始！');
   const warn = RANK.state !== 'ok' && RANK.state !== 'checking'; // ランキングに登録できない時は、遊ぶ前に知らせる
   $('hWarn').style.display = warn ? 'block' : 'none'; clearTimeout(startGame.wt); if (warn) startGame.wt = setTimeout(() => { $('hWarn').style.display = 'none'; }, 6000);
   if (!IS_TOUCH && !manual) lockPointer();
@@ -2107,6 +2141,10 @@ $('btnView').onclick = toggleView; $('pView').onclick = toggleView; $('hView').o
 $('hPause').onclick = pauseGame; $('pResume').onclick = resumeGame;
 $('pRestart').onclick = () => { showScreen(null); startGame(G.stage); };
 $('pTitle').onclick = toTitle; $('rTitle').onclick = toTitle; $('rAgain').onclick = () => startGame(G.stage);
+// 向き（スマホだけ）：縦持ち＝スマホの向きのまま／横持ち＝縦向きロックのままでも画面を90度回す
+function setOrient(o) { LAYOUT.orient = o; save('orient', o); const t = '向き：' + (o === 'land' ? '横持ち' : '縦持ち'); $('btnOrient').textContent = t; $('pOrient').textContent = t; onResize(); }
+$('btnOrient').onclick = $('pOrient').onclick = () => setOrient(LAYOUT.orient === 'land' ? 'port' : 'land');
+if (IS_TOUCH) { $('btnOrient').style.display = ''; $('pOrient').style.display = ''; setOrient(LAYOUT.orient); }
 $('pSound').onclick = () => { G.sound = !G.sound; AU.setOn(G.sound); $('pSound').textContent = '音：' + (G.sound ? 'ON' : 'OFF'); save('sound', G.sound); };
 $('sens').oninput = e => { G.sens = +e.target.value; save('sens', G.sens); };
 function setShareLink() { // window.open が使えない環境でも開けるよう、ふつうのリンクにする（作者→@アカウント つき）
@@ -2506,7 +2544,7 @@ window.__TEST__ = {
   setRoom(i) { P.room = i; updateHudRoom(); },
   makeVideo() { return makeReplayVideo(); }, toTitle() { toTitle(); }, // テスト用：リプレイ動画を作る
   async videoB64() { const b = await (await fetch(RP.url)).blob(); return await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); }); },
-  get RP() { return RP; },
+  get IN() { return IN; }, get RP() { return RP; },
   hands() { const r = {}; for (const k of ['hand_l', 'hand_r', 'lowerarm_l', 'lowerarm_r', 'upperarm_l', 'upperarm_r']) { const v = new THREE.Vector3(); if (bones[k]) { bones[k].updateWorldMatrix(true, false); bones[k].getWorldPosition(v); } r[k] = v.toArray().map(x => +x.toFixed(3)); }
     const tips = Object.keys(bones).filter(n => /(index|middle).*(03|_3|end|tip)/i.test(n)).map(n => { const v = new THREE.Vector3(); bones[n].getWorldPosition(v); return n + ':' + v.toArray().map(x => x.toFixed(2)); });
     return { r, tips, names: Object.keys(bones).join(','), pos: P.pos.toArray(), mode: P.mode, hang: P.hang && { face: P.hang.face, ax: P.hang.ax, top: P.hang.c.y1 }, rope: P.swing && P.swing.p.toArray() }; },
