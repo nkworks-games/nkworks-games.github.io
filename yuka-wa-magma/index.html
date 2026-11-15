@@ -111,6 +111,41 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
 #vidBar{width:min(92vw,820px);height:8px;border-radius:5px;background:rgba(255,255,255,.15);overflow:hidden;flex-shrink:0}
 #vidBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff4d12,#ffd36a)}
 @media (max-height:460px){.rankBox ol{max-height:30vh}.rankBox{font-size:12px;min-width:240px;max-width:300px}.logo{font-size:46px}.screen{gap:6px;padding:8px}.howto{font-size:11px;padding:4px 10px;line-height:1.5}.btn{padding:6px 18px;font-size:16px}.btn.main{font-size:20px}.credit{position:static}.resBig{font-size:34px}.resT{font-size:26px}.splits{font-size:12px;line-height:1.4}.logo{font-size:40px}.sub{font-size:13px}.stages{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px}.stage{min-width:0;padding:5px 12px;font-size:15px}.btn.main.stage{font-size:16px}.stage small{font-size:10px}.splits{columns:2;column-gap:28px}.splits div{break-inside:avoid}.resT{font-size:24px}.resBig{font-size:30px}}
+/* Sorotta の宣伝①：ページを開いた時に1回だけ。×ですぐ閉じられる */
+#promo{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:calc(14px + env(safe-area-inset-top)) 14px 14px;box-sizing:border-box;background:rgba(10,4,2,.6);animation:pmFade .2s ease-out}
+#promo.on{display:flex}
+#promo .pcard{position:relative;display:grid;grid-template-areas:"pr" "shot" "body";justify-items:center;width:min(330px,100%);max-height:100%;overflow-y:auto;box-sizing:border-box;background:#fbf8f3;color:#2a2622;border-radius:22px;padding:18px 20px 14px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.45);animation:pmPop .28s cubic-bezier(.2,1.3,.4,1)}
+#promo p{margin:0}
+#promo .pr{grid-area:pr;font-size:11px;font-weight:700;color:#7a7065;margin-bottom:10px}
+#promo .pr b,.resAd .ra1 b{margin-right:6px;padding:1px 6px;border:1px solid #b9ae9f;border-radius:4px;font-size:10px}
+#promo .pshot{grid-area:shot;display:block;width:min(230px,100%);height:auto;margin-bottom:12px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.28))}
+#promo .pbody{grid-area:body;width:100%}
+#promo .phead{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;text-align:left}
+#promo .picon{display:block;width:46px;height:46px;border-radius:11px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+#promo .pname{font-size:22px;font-weight:900;line-height:1.15}
+#promo .psub{font-size:12px;color:#6b6258}
+#promo .ptext{margin-bottom:14px;font-size:14px;line-height:1.6}
+#promo .pbtn{display:block;padding:13px 10px;border-radius:999px;background:#111;color:#fff;font-size:16px;font-weight:800;text-align:center;text-decoration:none}
+#promo .pbtn:active{transform:translateY(2px)}
+#promo .pnote{margin-top:8px;font-size:11px;color:#8a8076;text-align:center}
+#promoX{position:absolute;z-index:1;right:8px;top:8px;width:40px;height:40px;padding:0;border:none;border-radius:50%;background:rgba(0,0,0,.08);color:#4a443e;font:inherit;font-size:22px;line-height:40px;cursor:pointer}
+#promoX:active{background:rgba(0,0,0,.16)}
+@keyframes pmFade{from{opacity:0}} @keyframes pmPop{from{transform:scale(.88);opacity:0}}
+@media (orientation:portrait) and (max-height:680px){ #promo .pshot{width:180px;margin-bottom:8px} #promo .pr{margin-bottom:6px} }
+@media (orientation:landscape) and (max-height:560px){ /* 横向き：左に画面の写真、右に説明 */
+  #promo .pcard{grid-template-areas:"shot ." "shot pr" "shot body" "shot .";grid-template-columns:auto 1fr;grid-template-rows:1fr auto auto 1fr;column-gap:18px;justify-items:start;width:min(560px,100%);padding:12px 18px;text-align:left}
+  #promo .pshot{width:auto;height:230px;height:min(230px,calc(100dvh - 60px));margin:0}
+  #promo .pr{margin-bottom:6px} #promo .phead{justify-content:flex-start;margin-bottom:4px} #promo .picon{width:38px;height:38px;border-radius:9px}
+  #promo .pname{font-size:19px} #promo .ptext{font-size:12px;line-height:1.5;margin-bottom:8px} #promo .ptext br{display:none} #promo .pbtn{padding:9px 10px;font-size:14px} #promo .pnote{margin-top:4px} }
+/* Sorotta の宣伝②：結果画面のいちばん下に小さく */
+.resAd{display:none;align-items:center;gap:10px;width:100%;max-width:360px;box-sizing:border-box;margin-top:4px;padding:6px 8px 6px 8px;background:#fbf8f3;color:#2a2622;border-radius:12px;text-align:left;text-decoration:none;flex-shrink:0}
+.resAd.on{display:flex}
+.resAd img{width:34px;height:34px;border-radius:8px;flex-shrink:0}
+.resAd>div{flex:1;min-width:0}
+.resAd p{margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resAd .ra1{font-size:13px;font-weight:800;line-height:1.35}
+.resAd .ra2{font-size:10px;color:#6b6258;line-height:1.3}
+.resAd .raBtn{flex-shrink:0;padding:6px 10px;border-radius:999px;background:#111;color:#fff;font-size:11px;font-weight:800;white-space:nowrap}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 </head>
@@ -168,6 +203,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
   <div class="row"><a id="rShare" class="btn main" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet" style="text-decoration:none">Xでシェア</a><button id="rAgain" class="btn">もう一度</button></div>
   <div class="row"><button id="rNext" class="btn main">次のステージへ ▶</button><button id="rTitle" class="btn">タイトルへ</button></div>
   <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false" href="#">𝕏 @</a></div>
+  <a id="resAd" class="resAd" target="_blank" rel="noopener" data-google-vignette="false" href="#"><img id="resAdIcon" alt="" width="34" height="34"><div><p class="ra1"><b>PR</b>Sorotta｜持ち物チェック</p><p class="ra2">曜日ごとの持ち物を通知でお知らせ・基本無料</p></div><span class="raBtn">App Store</span></a>
 </div>
 
 <div id="rankScr" class="screen dim">
@@ -183,6 +219,20 @@ html,body{margin:0;height:100%;overflow:hidden;background:#140806;color:#fff;fon
   <div id="vidBar"><i></i></div>
   <div class="row" id="vidBtns"></div>
   <div id="vidNote" class="small"></div>
+</div>
+
+<div id="promo" role="dialog" aria-modal="true" aria-label="アプリ Sorotta のお知らせ">
+  <div class="pcard">
+    <button id="promoX" aria-label="閉じる">×</button>
+    <p class="pr"><b>PR</b>N.K. Works のアプリ</p>
+    <img class="pshot" id="promoShot" alt="Sorotta のウィジェット画面" width="560" height="583">
+    <div class="pbody">
+      <div class="phead"><img class="picon" id="promoIcon" alt="" width="46" height="46"><div><p class="pname">Sorotta</p><p class="psub">持ち物チェック</p></div></div>
+      <p class="ptext">曜日ごとの持ち物を登録すると、<br>前の晩や朝に通知でお知らせ。<br>ウィジェットでそのままチェック。</p>
+      <a class="pbtn" id="promoGo" target="_blank" rel="noopener" data-google-vignette="false">App Store で見る</a>
+      <p class="pnote">基本無料 ・ iPhone / iPad</p>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -225,6 +275,7 @@ const CONFIG = {
   BLOOM: { strength: 0.35, radius: 0.4, threshold: 1.0 },
   SHARE_URL: 'https://nkworks-games.com/yuka-wa-magma/',
   FOLLOW_X: 'vyaPudzd1E54661', // 「作者をフォロー」ボタンとシェア文に入れる作者のXアカウント（@なし）
+  SOROTTA: { URL: 'https://apps.apple.com/jp/app/sorotta-%E6%8C%81%E3%81%A1%E7%89%A9%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF/id6830588408', ICON: '', SHOT: '/assets/sorotta-widget.webp', ONLY_APPLE: true }, // Sorotta の宣伝（開いた時のカードと結果画面の下）。URLを '' にすると両方出なくなる
   // 額に入れる広告画像（横:縦＝16:9。1600×900 くらい）。assets/ads/ に画像を置いて、ファイル名をここに書く。null の間は「広告スペース」の仮の絵
   ADS: { s2: ['assets/ads/s2_1.webp', 'assets/ads/s2_2.webp', 'assets/ads/s2_3.webp', 'assets/ads/s2_4.webp', 'assets/ads/s2_5.webp'], s3: ['assets/ads/s3_1.webp', 'assets/ads/s3_2.webp', 'assets/ads/s3_3.webp', 'assets/ads/s3_4.webp', 'assets/ads/s3_5.webp'] },
   RANK: { nameMax: 10, top: 10, more: 50, minSec: [15, 20, 25], cols: ['magmaBest1', 'magmaBest2', 'magmaBest3'], wait: 8, probeWait: 6, probeEvery: 60 }, // ランキング：表示する数・これより速いタイムは登録しない（秒）・置き場所・待つ秒数
@@ -2382,6 +2433,22 @@ function frame(now) {
   if (!manual) render();
   requestAnimationFrame(frame);
 }
+
+// ===== [SEC:PROMO] =====
+// Sorotta の宣伝：①ページを開いた時に1回だけ出るカード（×ですぐ閉じられる。「もう一度」「タイトルへ」では出ない）②結果画面のいちばん下に小さく
+// iPhone・iPad・Mac だけに出す。広告会社の広告に入れかえる時は、ここと #promo・#resAd の中身を差しかえる
+const PROMO_ICON = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#3d5a66"/><path d="M38 38q0-14 12-14t12 14" fill="none" stroke="#f4ead8" stroke-width="5" stroke-linecap="round"/><path d="M24 36h52l-5 44H29z" fill="#f4ead8"/><path d="M38 58l9 9 16-18" fill="none" stroke="#e2a33b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+function initPromo() {
+  const c = CONFIG.SOROTTA; if (!c.URL || (c.ONLY_APPLE && !/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent))) return;
+  const icon = c.ICON || PROMO_ICON;
+  $('promoIcon').src = icon; $('promoShot').src = c.SHOT; $('promoGo').href = c.URL; $('promo').classList.add('on');
+  $('resAdIcon').src = icon; $('resAd').href = c.URL; $('resAd').classList.add('on');
+}
+const closePromo = () => $('promo').classList.remove('on');
+$('promoX').onclick = closePromo; $('promoGo').addEventListener('click', () => setTimeout(closePromo, 300));
+$('promo').addEventListener('click', e => { if (e.target.id === 'promo') closePromo(); }); // 外側の暗い所を押しても閉じる
+addEventListener('keydown', e => { if (e.key === 'Escape' && $('promo').classList.contains('on')) closePromo(); });
+initPromo();
 
 // ===== [SEC:BOOT] =====
 async function boot() {
