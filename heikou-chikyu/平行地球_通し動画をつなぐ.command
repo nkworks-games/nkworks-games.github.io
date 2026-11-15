@@ -6,27 +6,54 @@ export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 SIM=heikou-chikyu/_sim
 pause() { echo; read -n 1 -s -r -p "何かキーを押すと閉じます"; echo; }
 
-echo "===== 最新を取ってきます ====="
-git pull --ff-only || echo "（最新を取れませんでした。いまの手もとのまま続けます）"
+# 最新を取ってきて、このファイル自身が新しくなっていたら、新しいほうで始め直す
+if [ -z "$HEIKOU_PULLED" ]; then
+  echo "===== 最新を取ってきます ====="
+  git pull --ff-only || echo "（最新を取れませんでした。いまの手もとのまま続けます）"
+  export HEIKOU_PULLED=1
+  exec bash "$0" "$@"
+fi
 
-# 1. 描いた 3D（平行地球_本番を描く.command が out/renders/final に集めたもの）
+# 1. 描いた 3D：描いた所（~/heikou-renders）から集める（どのコピーのリポジトリで描いても、描いた物はそこにある）
+R="$HOME/heikou-renders"
+mkdir -p $SIM/out/renders/final
+for f in "$R"/cut*.mp4 "$R"/cut*.png "$R"/anchors_cut*.json; do
+  [ -e "$f" ] && cp -p "$f" $SIM/out/renders/final/
+done
 n=$(ls $SIM/out/renders/final/cut*.mp4 2>/dev/null | wc -l | tr -d ' ')
 if [ "$n" -lt 30 ]; then
-  echo "描いた 3D の動画が ${n} 本しかありません（30 本のはず）。先に「平行地球_本番を描く.command」を流してください。"
+  echo "描いた 3D の動画が ${n} 本しかありません（30 本のはず。$R を見ました）。"
+  echo "先に「平行地球_本番を描く.command」を流してください。"
   pause; exit 1
 fi
 echo "描いた 3D の動画：${n} 本"
 
-# 2. 材料一式（はじめの1回だけ、ダウンロードフォルダの heikou-ep1-pack.zip を展開する）
+# 2. 材料一式（図の動画・字幕・字体など）。はじめの1回だけ、zip か、前に展開したフォルダから入れる
 if [ ! -f $SIM/out/script/cuts_v4.csv ]; then
-  Z=$(ls -t "$HOME/Downloads"/heikou-ep1-pack*.zip 2>/dev/null | head -1)
-  if [ -z "$Z" ]; then
-    echo "材料一式（heikou-ep1-pack.zip）が「ダウンロード」フォルダにありません。"
-    echo "Claude の会話にある zip を保存してから、もう一度ダブルクリックしてください。"
-    pause; exit 1
+  HERE_OUT="$(cd $SIM && pwd)/out"
+  Z=$( (ls -t "$HOME/Downloads"/heikou-ep1-pack*.zip "$HOME/Desktop"/heikou-ep1-pack*.zip 2>/dev/null; \
+        mdfind -name "heikou-ep1-pack" 2>/dev/null | grep -i '\.zip$') | head -1)
+  if [ -n "$Z" ]; then
+    echo "===== 材料一式を展開します：$Z ====="
+    ditto -x -k "$Z" $SIM || { echo "展開できませんでした。この画面を Claude に送ってください。"; pause; exit 1; }
+  else
+    # zip が見つからないときは、前に展開した場所（別のコピーのリポジトリなど）を探して写す
+    SRC=""
+    while IFS= read -r p; do
+      o="$(dirname "$(dirname "$p")")"
+      if [ "$o" != "$HERE_OUT" ] && [ -f "$o/video/cut007.mp4" ] && [ -f "$o/fonts/ipag.ttf" ]; then SRC="$o"; break; fi
+    done < <(mdfind -name "cuts_v4.csv" 2>/dev/null)
+    if [ -z "$SRC" ]; then
+      echo "材料一式（heikou-ep1-pack.zip）が見つかりません。"
+      echo "Claude の会話にある zip を「ダウンロード」フォルダに保存してから、もう一度ダブルクリックしてください。"
+      pause; exit 1
+    fi
+    echo "===== 材料一式を写します：$SRC ====="
+    for d in script overlay video main verify-tide fonts; do
+      [ -d "$SRC/$d" ] && mkdir -p "$HERE_OUT/$d" && cp -Rp "$SRC/$d/." "$HERE_OUT/$d/"
+    done
   fi
-  echo "===== 材料一式を展開します：$Z ====="
-  ditto -x -k "$Z" $SIM || { echo "展開できませんでした。この画面を Claude に送ってください。"; pause; exit 1; }
+  [ -f $SIM/out/script/cuts_v4.csv ] || { echo "材料一式を入れられませんでした。この画面を Claude に送ってください。"; pause; exit 1; }
 fi
 
 # 3. Python の道具（numpy・pillow）。はじめの1回だけ、専用の場所（~/heikou-venv）に入れる
