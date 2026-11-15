@@ -305,7 +305,7 @@ const CONFIG = {
   SOROTTA: { URL: 'https://apps.apple.com/jp/app/sorotta-%E6%8C%81%E3%81%A1%E7%89%A9%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF/id6830588408', ICON: '', SHOT: '/assets/sorotta-widget.webp', ONLY_APPLE: true }, // Sorotta の宣伝（開いた時のカードと結果画面の下）。URLを '' にすると両方出なくなる
   // 額に入れる広告画像（横:縦＝16:9。1600×900 くらい）。assets/ads/ に画像を置いて、ファイル名をここに書く。null の間は「広告スペース」の仮の絵
   ADS: { s2: ['assets/ads/s2_1.webp', 'assets/ads/s2_2.webp', 'assets/ads/s2_3.webp', 'assets/ads/s2_4.webp', 'assets/ads/s2_5.webp'], s3: ['assets/ads/s3_1.webp', 'assets/ads/s3_2.webp', 'assets/ads/s3_3.webp', 'assets/ads/s3_4.webp', 'assets/ads/s3_5.webp'] },
-  RANK: { nameMax: 10, top: 10, more: 50, minSec: [15, 20, 25], cols: ['magmaBest1', 'magmaBest2', 'magmaBest3'], wait: 8, probeWait: 6, probeEvery: 60 }, // ランキング：表示する数・これより速いタイムは登録しない（秒）・置き場所・待つ秒数
+  RANK: { nameMax: 10, top: 10, more: 50, minSec: [0.01, 0.01, 0.01], cols: ['magmaBest1', 'magmaBest2', 'magmaBest3'], wait: 8, probeWait: 6, probeEvery: 60 }, // ランキング：表示する数・これより速いタイムは登録しない（秒。今は下限なし＝0.01秒以上なら登録。Firebaseのルールも1＝0.01秒）・置き場所・待つ秒数
   REPLAY_SEC: 12, REC_W: 1280, REC_H: 720, REC_FPS: 30, REC_BPS: 5000000, REC_END: 1.2, REC_CAM_DIST: 3.8, // リプレイ動画：クリア前の秒数・大きさ・なめらかさ・画質・最後の画面の秒数・カメラのきょり
   AD_GLOW: 0.12, // 広告画像をうす暗い部屋でも見えるように少し光らせる強さ（上げすぎると白い画像がまぶしくにじむ）
 };
