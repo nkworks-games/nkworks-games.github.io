@@ -12,6 +12,7 @@
   python3 make_roughcut.py            # 字幕（ナレーション）とカット番号を焼き込む
   python3 make_roughcut.py --clean    # 何も焼き込まない（編集ソフトに持っていく用）
   python3 make_roughcut.py --only 097,211   # そのカットだけ作り直す（ほかは前に作ったものを使う）
+  python3 make_roughcut.py --final    # 仕上げ（確認用のカット番号を出さない）→ out/roughcut/ep1.mp4
 
 ナレーション：out/voice/ に VOICEVOX で書き出した音声（001_….wav のように番号で始まるもの）があれば、
   out/script/voicevox_ep1.txt の行の順＝ナレーションのあるカットの順に、各カットの頭（0.3秒後）へ置く。
@@ -77,6 +78,9 @@ def subtitle_of(row):
     return _SUBS.get(row['no'], row['narration']).strip()
 
 
+FINAL = '--final' in sys.argv     # 仕上げ：右上の確認用のカット番号を出さない（字幕・左上の表示・解説は出す）
+
+
 def overlay_png(row, path, clean):
     """重ねる透明な画像：左上の「どの歴史・何年目」（out/overlay/hudNNN.png）＋字幕とカット番号（確認用）"""
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
@@ -92,10 +96,11 @@ def overlay_png(row, path, clean):
             d.rounded_rectangle([W / 2 - w / 2 - 16, y - 5, W / 2 + w / 2 + 16, y + 45], radius=8, fill=(0, 0, 0, 150))
             d.text((W / 2, y + 20), s, font=font(36), fill=TEXT + (255,), anchor='mm')
             y += 50
-        tag = '%s　%s　%s' % (row['no'], row['kind'], row['label'])
-        tw = d.textlength(tag, font=font(22))
-        d.rounded_rectangle([W - 60 - tw, 112, W - 44, 146], radius=6, fill=(0, 0, 0, 120))
-        d.text((W - 52, 129), tag, font=font(22), fill=TEXT2 + (255,), anchor='rm')
+        if not FINAL:
+            tag = '%s　%s　%s' % (row['no'], row['kind'], row['label'])
+            tw = d.textlength(tag, font=font(22))
+            d.rounded_rectangle([W - 60 - tw, 112, W - 44, 146], radius=6, fill=(0, 0, 0, 120))
+            d.text((W - 52, 129), tag, font=font(22), fill=TEXT2 + (255,), anchor='rm')
     img.save(path)
 
 
@@ -264,7 +269,7 @@ def main():
     with open(lst, 'w') as f:
         for p in segs:
             f.write("file '%s'\n" % p)
-    name = 'roughcut_clean.mp4' if clean else 'roughcut.mp4'
+    name = 'roughcut_clean.mp4' if clean else ('ep1.mp4' if FINAL else 'roughcut.mp4')
     # 音声：ナレーションがあれば並べたもの、なければ無音（編集ソフトで扱いやすいように）
     vt = voice_track(rows, os.path.join(OUT, 'voice.wav'))
     audio = ['-i', vt] if vt else ['-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo']

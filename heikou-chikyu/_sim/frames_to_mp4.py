@@ -24,6 +24,9 @@ def encode(d, out):
     if len(fs) < 2:
         print('コマが足りない', d)
         return
+    if os.path.exists(out) and os.path.getmtime(out) >= max(os.path.getmtime(f) for f in fs):
+        print('もうある', out)          # 前に作った mp4 のあとに描き足したコマがなければ、作り直さない
+        return
     step = min(b - a for a, b in zip(nums, nums[1:]))
     if any(b - a != step for a, b in zip(nums, nums[1:])):
         print('抜けたコマがある（描き終わっていない？）', d)
