@@ -189,6 +189,21 @@ a.btn{text-decoration:none}
 #result .resAd{max-width:none;margin:2px 0 0}
 #title .follow{margin-top:16px;max-width:360px}
 #title .follow p{margin:0;color:inherit;line-height:1.3;max-width:none}#title .follow .fl{font-size:14px}#title .follow .fs{font-size:10px;opacity:.7}
+
+/* 友だちの挑戦状・シェア・めずらしさ */
+.fr{max-width:420px;margin:0 0 14px;padding:10px 14px;border-radius:14px;background:rgba(80,227,194,.12);border:1px solid rgba(80,227,194,.4);font-size:14px;line-height:1.65;color:#dffcf5}
+.fr b{display:block;color:var(--gold2);font-size:18px;font-weight:900}
+.rare{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:14px;line-height:1.6;color:#e6f1ee}
+.rare b{color:var(--gold2);font-size:20px;font-weight:900}
+.rare small{display:block;font-size:10.5px;color:var(--dim);margin-top:2px}
+.sharebox img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:contain;border-radius:14px;border:1px solid var(--line);margin:10px 0 12px;background:#0b1d2e}
+.sharebox .btn{width:100%;margin-top:8px}
+.btn.img{background:linear-gradient(180deg,#ffd58c,#ffb347);color:#2a1600}
+.btn.img[disabled]{opacity:.5}
+.sharebox .note{font-size:11.5px;color:var(--sub);margin:8px 2px 0;line-height:1.6}
+.cmp p{margin:6px 0 0;font-size:14.5px;line-height:1.7;color:#d7e7e3}
+.cmp p b{color:#fff}
+.cmp .big{margin-top:8px;font-size:clamp(24px,7vw,30px);font-weight:900;color:var(--gold2)}
 #err{position:absolute;inset:0;display:grid;place-items:center;padding:30px;text-align:center;font-size:15px;line-height:1.8;color:#cfe3df}
 </style>
 </head>
@@ -200,6 +215,7 @@ a.btn{text-decoration:none}
     <div id="topbar"><button class="icb" id="mute" aria-label="音">🔊</button></div>
 
     <div id="title">
+      <div class="fr hide" id="friend"></div>
       <div class="kicker">20の質問で見つける</div>
       <h1>運命の町、当てます</h1>
       <p>質問に答えると、あなたの性格や考え方、<br>生き方に合う市町村区が見つかります。</p>
@@ -874,7 +890,7 @@ function townCard(i, rank, pct, open) {
   const tx = townText(i, result.p);
   if (rank === 1) return `<div class="rank"><span class="no">1</span>あなたの運命の町</div>
     <div class="town"><small>${DATA.P[DATA.PI[i]]}</small>${NAMES[i]}</div>
-    <div class="match">相性<b>${pct}</b>%</div>
+    <div class="match">相性<b>${pct}</b>%</div>${rareBox(i)}
     <p class="lead">${tx.lead}。</p><p class="body">${tx.body}</p><p class="you">${tx.you}</p>${whyBox(i)}
     <div class="chips">${tx.chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>${townLinks(i)}`;
   return `<button class="h"><span class="no">${rank}</span><span class="nm"><small>${DATA.P[DATA.PI[i]]}</small>${NAMES[i]}</span><span class="pc">${pct}%</span></button>
@@ -885,19 +901,25 @@ function showResult() {
   R.innerHTML = `
     <div class="card"><div class="type">あなたのタイプ</div><div class="typename">${r.type.name}<small>タイプ</small></div><p class="typedesc">${r.type.desc}</p></div>
     <div class="card" id="r1">${townCard(t[0], 1, r.pct[0])}</div>
+    ${friendCard()}
     <div class="card"><div class="type" style="margin-bottom:8px">ほかにも合う場所</div><div class="sub3">
       ${t.slice(1).map((i, k) => `<div class="mini" data-i="${i}" data-r="${k + 2}">${townCard(i, k + 2, r.pct[k + 1], false)}</div>`).join('')}
     </div><button class="btn top1 hide" id="back1" style="margin-top:10px">1位の場所にもどる</button></div>
+    <div class="card sharebox"><div class="type">結果をシェア</div>
+      <img id="shareImg" class="hide" alt="結果の画像" width="1080" height="1350">
+      <button class="btn img" id="shareImgBtn" disabled>画像を作っています…</button>
+      <a class="btn x" id="share" target="_blank" rel="noopener">𝕏 で結果をポスト</a>
+      <p class="note">画像は長押しでも保存できます。シェアしたリンクを友だちが開くと、2人の運命の町をくらべられます。</p>
+    </div>
     <div class="acts">
-      <a class="btn x" id="share" target="_blank" rel="noopener">𝕏 で結果をシェア</a>
       <button class="btn again" id="again">もう一度やる</button>
       <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
       ${resAdHTML()}
     </div>
     <p class="credit">人口：令和2年国勢調査（総務省統計局）／暮らしのデータ：e-Stat「統計でみる市区町村のすがた」／地図：国土数値情報（行政区域）をもとにしたSmartNews Media Research Instituteの地形データ／標高：気象庁アメダス観測所一覧／名所の一部：japan-stats-map（Wikipediaなどの公開情報）／公式サイトのアドレス：地方公共団体情報システム機構「全国自治体マップ検索」をもとにした一覧（jp-localgov-websites）。平均気温と雪の多さは、緯度と標高からのおおよその推定です。</p>`;
   show('result', true); R.scrollTop = 0;
-  const txt = `「運命の町、当てます」の結果、わたしの運命の町は【${fullName(t[0])}】（相性${r.pct[0]}%）でした！\nタイプ：${r.type.name}タイプ\n${CONFIG.TAG}`;
-  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(txt) + '&url=' + encodeURIComponent(CONFIG.URL);
+  $('share').href = 'https://x.com/intent/post?text=' + encodeURIComponent(shareText(r)) + '&url=' + encodeURIComponent(shareURL(r));
+  prepareImage(r);
   setFollow();
   $('again').onclick = () => { leftShown = NM; startQuiz(); };
   R.querySelectorAll('.mini').forEach(b => b.querySelector('.h').onclick = () => focusTown(+b.dataset.i, b));
@@ -914,6 +936,103 @@ function focusTown(i, btn) {
 $('start').onclick = startQuiz;
 function setFollow() { document.querySelectorAll('.fbtn').forEach(a => { a.href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; a.textContent = '𝕏 @' + CONFIG.FOLLOW_X; }); }
 setFollow(); // タイトル画面の「作者をフォロー」
+
+// ===== [SEC:SHARE] =====
+// シェアしたくなる工夫：①結果画像 ②めずらしさ ③友だちへの挑戦状リンク ④町のハッシュタグ ⑤シェア文に決め手
+const RARE = [50,0,0,0,14,34,0,7,44,125,59,14,4,42,19,64,0,11,46,3,78,27,17,0,9,3,14,3,4,0,78,42,11,15,0,4,16,39,61,74,23,33,21,2,0,41,125,64,13,17,52,11,26,6,72,58,51,4,59,1,9,0,2,5,39,7,19,6,3,6,1,110,3,5,1,11,12,32,0,7,3,3,4,6,4,0,6,3,6,0,31,1,0,6,3,0,6,27,5,1,1,1,0,2,1,1,11,1,1,3,8,12,0,1,16,3,1,42,6,10,0,15,18,1,3,6,10,2,51,74,20,178,2,23,1,26,20,9,1,3,3,20,2,5,10,526,0,4,13,4,1,6,1,6,18,14,0,23,12,5,9,46,85,31,7,0,1,154,12,1,4,9,0,49,147,43,14,63,53,42,49,8,17,29,53,35,18,17,106,14,16,65,171,180,22,5,30,104,215,89,120,11,20,3,23,21,97,80,250,67,17,134,64,52,12,23,28,5,24,32,6,1,41,5,72,22,35,91,75,1,13,9,7,8,24,147,13,25,1,36,13,26,58,3,48,243,12,31,10,11,41,17,0,52,8,46,228,134,8,11,50,1,0,135,0,20,5,3,5,96,64,24,2,20,5,13,3,16,0,0,0,7,14,18,47,98,7,0,8,2,2,2,3,0,0,4,14,16,24,23,84,19,152,48,46,9,7,37,68,50,0,112,13,16,0,30,4,0,3,1,0,150,25,39,25,4,35,24,8,18,98,19,18,55,5,7,1,0,4,0,18,10,0,10,4,25,3,0,5,3,10,8,0,80,3,37,13,123,19,15,1,6,142,2,134,6,12,16,1,11,0,8,22,2,0,27,0,0,2,2,2,4,0,46,1,0,0,0,0,19,11,0,3,1,11,0,0,3,1,6,6,7,2,12,0,1,0,4,0,3,14,1,14,14,31,0,2,7,14,28,3,0,0,68,26,6,2,0,0,3,39,0,23,0,0,5,25,4,3,15,2,0,3,184,8,8,49,3,1,70,0,4,10,0,1,0,17,4,3,0,35,13,1,51,4,17,31,1,21,2,6,0,10,5,0,4,1,13,1,0,11,112,2,6,40,0,0,0,3,18,62,10,172,3,38,10,0,0,0,0,0,17,31,4,59,50,8,2,8,6,57,2,22,1,3,4,0,2,0,0,0,0,0,0,0,7,0,0,8,0,0,0,0,12,24,0,0,7,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,10,0,5,13,10,1,20,11,14,0,0,35,6,15,44,4,0,2,6,0,0,0,0,1,0,0,18,0,21,0,9,35,0,0,16,7,0,43,5,0,0,3,1,0,0,27,5,0,35,3,1,0,12,17,1,0,1,38,19,15,5,0,3,26,1,1,15,1,83,5,6,18,1,17,7,3,60,21,15,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,8,0,0,0,0,0,0,0,0,2,0,0,0,0,0,9,7,0,54,4,1,38,63,10,16,64,16,44,17,0,0,0,0,3,12,0,0,0,0,0,0,0,0,0,0,0,23,0,1,26,10,8,77,0,10,12,0,0,0,14,0,0,100,0,16,0,104,55,6,105,0,3,57,39,5,136,6,4,2,98,6,4,0,0,4,0,18,41,85,50,24,38,22,13,19,63,4,30,5,30,16,127,7,8,22,25,26,9,0,21,22,34,2,0,9,17,97,80,7,36,28,34,16,53,43,9,9,1,9,23,73,20,13,0,5,89,4,58,31,36,39,23,8,8,0,12,5,5,5,41,24,3,0,2,180,31,68,83,151,0,61,69,8,7,20,5,16,102,19,58,1,31,141,22,54,123,0,33,12,2,0,0,6,7,71,0,0,93,36,2,20,0,0,127,7,166,45,2,14,96,285,203,14,50,6,5,46,60,39,228,89,34,1,2,47,0,0,0,29,12,25,9,8,93,108,43,29,227,41,118,9,81,42,48,2,32,0,1,22,0,0,0,5,1,0,10,11,13,0,0,6,11,0,104,0,0,31,40,35,0,79,20,3,44,15,50,17,29,30,43,13,1,217,6,0,12,0,17,0,7,27,46,17,1,7,1,4,29,6,5,6,2,0,9,30,2,0,14,0,0,3,3,233,3,2,31,0,7,0,0,8,30,11,1,7,121,0,11,0,12,5,32,75,5,29,10,26,33,12,0,1,0,3,0,15,1,4,228,4,83,16,9,23,1,2,19,0,1,25,0,1,0,0,0,9,0,0,0,0,0,0,0,0,8,2,78,0,3,0,8,78,23,27,1,0,10,60,109,8,0,0,0,0,21,0,1,0,0,46,37,0,0,53,3,1,0,17,0,0,0,0,128,14,5,0,167,28,0,11,10,1,22,7,0,0,0,0,0,19,11,29,1,1,4,3,0,170,0,16,0,14,7,87,7,23,47,4,10,1,1,9,3,11,44,6,197,140,6,7,0,0,0,4,10,6,11,18,25,0,10,3,30,11,9,37,0,16,0,117,67,60,0,18,0,43,24,1,10,64,3,55,1,0,7,0,0,3,0,0,1,36,99,0,5,6,4,0,0,10,50,6,0,0,0,3,0,0,0,0,0,0,0,2,0,0,2,77,0,0,6,0,0,28,0,26,0,0,0,1,0,0,0,4,0,0,45,0,0,18,0,1,178,0,7,90,0,0,0,0,0,3,0,2,3,20,5,61,23,32,107,35,31,26,8,13,0,0,24,6,0,7,1,4,24,80,3,0,24,6,68,1,9,52,34,12,1,17,9,1,142,2,117,41,66,5,23,1,0,13,0,0,43,0,54,3,6,0,0,25,80,39,3,0,10,0,13,0,1,0,5,18,0,0,50,0,163,16,20,3,0,0,0,22,2,14,27,2,187,0,0,2,1,0,27,3,0,0,0,13,20,8,37,3,217,8,63,11,0,3,13,37,37,4,4,67,9,4,16,136,0,34,48,0,123,66,0,0,0,28,102,125,149,1,2,7,5,47,68,27,6,123,125,0,4,6,0,5,52,0,10,46,65,3,0,10,25,9,15,0,72,13,13,31,322,0,51,9,3,0,0,2,5,24,31,20,27,34,18,3,5,12,101,56,21,4,6,23,0,1,32,17,11,2,5,0,15,17,1,0,5,0,4,13,3,1,0,0,5,10,9,26,157,17,92,67,0,6,10,8,13,0,27,29,3,1,0,0,48,47,74,17,0,1,12,24,6,8,22,97,1,31,2,63,5,104,0,0,0,5,17,0,0,0,8,20,4,23,0,0,16,0,0,5,33,1,2,0,2,0,15,0,19,3,4,0,2,5,6,0,56,38,2,89,4,0,11,11,29,6,1,0,38,6,0,126,5,35,0,5,7,4,49,2,0,36,9,0,1,8,0,3,0,13,25,14,15,7,4,53,17,0,46,1,0,43,0,1,0,22,4,0,0,8,1,37,19,32,39,3,6,1,14,34,55,12,0,0,2,2,0,2,21,7,3,4,64,2,11,5,96,26,0,4,0,64,0,36,8,17,71,4,0,1,67,10,11,12,91,31,3,0,1,54,0,29,0,17,3,0,18,0,3,0,2,4,5,0,2,19,0,4,0,2,8,0,56,1,27,65,30,1,21,0,21,4,8,32,4,5,0,0,1,0,16,142,1,30,35,5,0,10,23,13,57,3,85,5,40,6,129,112,7,6,0,5,3,38,145,86,13,0,9,3,0,0,32,85,3,12,108,47,11,73,47,113,84,0,0,0,2,20,18,1,2,6,39,24,20,22,43,0,32,6,6,3,8,0,5,44,10,8,0,69,0,0,31,3,5,8,246,21,31,12,70,0,38,42,13,40,18,31,0,28,13,97,0,11,16,0,0,6,4,9,3,97,9,5,9,10,33,22,0,8,22,40,19,2,1,12,19,33,0,13,61,7,20,37,49,244,13,7,7,125,27,6,5,28,43,30,2,20,11,8,9,44,1,36,8,49,13,19,98,21,15,3,26,30,15,0,85,19,55,0,10,28,10,3,1,3,43,5,2,27,20,42,16,18,41,15,49,13,4,15,27,8,17,44,3,9,42,48,6,24,5,4,5,2,71,8,3,36,0,21,9,21,16], RARE_N = 40000; // 町ごとに「いろいろな好みの人4万人」の中で1位になった人数（build で計算）
+function rareText(i) {
+  if (RARE.length !== NM) return ''; const c = RARE[i];
+  if (!c) return '4万人に1人も出ない';
+  const n = RARE_N / c, r = n < 100 ? Math.round(n) : n < 1000 ? Math.round(n / 10) * 10 : n < 10000 ? Math.round(n / 100) * 100 : Math.round(n / 1000) / 10;
+  return n < 10000 ? `約${r.toLocaleString()}人に1人` : `約${r}万人に1人`;
+}
+function rareBox(i) { const t = rareText(i); return t ? `<div class="rare">この町が1位になるのは <b>${t}</b><small>いろいろな好みの人を4万人ぶん試算した、おおよその数です</small></div>` : ''; }
+const ansText = o => QUESTIONS[o.a.q].a[o.a.c][0].replace(/^「|」$/g, '');
+// 答えを短い文字にする（1問2文字）。友だちのリンク ?f= に使う
+const encodeAns = ans => ans.map(a => (a.q * 5 + a.c + 1).toString(36).padStart(2, '0')).join('');
+function decodeAns(str) {
+  if (!str || !/^[0-9a-z]+$/.test(str) || str.length !== MAIN_Q * 2) return null; const out = [];
+  for (let k = 0; k < MAIN_Q; k++) { const v = parseInt(str.slice(k * 2, k * 2 + 2), 36), q = Math.floor(v / 5), c = v % 5 - 1; if (!(q < QUESTIONS.length)) return null; out.push({ q, c }); }
+  return out;
+}
+const shareURL = r => CONFIG.URL + '?f=' + encodeAns(r.ans);
+const xLen = s => [...s].reduce((n, ch) => n + (ch.codePointAt(0) <= 0x10FF ? 1 : 2), 0);
+function shareText(r) {
+  const i = r.t3[0], d = deciders(i, r.ans)[0], rt = rareText(i), tag = '#' + NAMES[i].replace(/[^\p{L}\p{N}_]/gu, '');
+  const head = `「運命の町、当てます」の結果、わたしの運命の町は【${fullName(i)}】（相性${r.pct[0]}%）でした！`, tail = `${CONFIG.TAG} ${tag}`;
+  const opt = [rt && `${rt}の町らしい。`, d && `決め手は「${ansText(d)}」。`, `タイプ：${r.type.name}タイプ`].filter(Boolean);
+  while (opt.length && xLen([head, ...opt, tail].join('\n')) + 24 > 280) opt.pop(); // 長すぎる時は後ろから外す
+  return [head, ...opt, tail].join('\n');
+}
+// 友だちの結果（リンクで開いた時）
+let FRIEND = null;
+try { const a = decodeAns(new URLSearchParams(location.search).get('f')); if (a) { const k = ranking(a); FRIEND = { i: top3(k)[0], type: typeOf(k.p) }; } } catch (e) {}
+if (FRIEND) { $('friend').innerHTML = `友だちの運命の町は<b>${fullName(FRIEND.i)}</b>でした。あなたの運命の町は？`; $('friend').classList.remove('hide'); }
+function friendCard() {
+  if (!FRIEND || !result) return ''; const a = result.t3[0], b = FRIEND.i, km = Math.round(Math.hypot(MX[a] - MX[b], MZ[a] - MZ[b]) * 10), same = result.type.name === FRIEND.type.name;
+  const msg = a === b ? 'まさかの同じ町！ 運命かもしれません。' : km < 30 ? 'ご近所さんです。いっしょに住めるかも。' : km < 150 ? '日帰りで会いに行ける距離です。' : km < 500 ? '少し遠いけど、会いに行けない距離ではありません。' : km < 1200 ? 'けっこう遠い！ 好みはかなりちがうみたいです。' : '日本の端と端くらい、はなれています。';
+  return `<div class="card cmp"><div class="type">友だちとくらべると</div><p>友だちの運命の町は <b>${fullName(b)}</b>（${FRIEND.type.name}タイプ）</p>
+    <div class="big">${a === b ? '同じ町' : `${km.toLocaleString()}km はなれています`}</div><p>${msg}${same ? 'しかも、2人は同じタイプです。' : ''}</p></div>`;
+}
+// 結果の画像（1080×1350）
+let shareBlob = null;
+function fitFont(ctx, text, max, size, weight = 900) { let s = size; do { ctx.font = `${weight} ${s}px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif`; s -= 2; } while (ctx.measureText(text).width > max && s > 16); }
+function rrect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+async function makeImage(r) {
+  try { await Promise.race([Promise.all([document.fonts.load('900 40px "Zen Maru Gothic"'), document.fonts.load('700 40px "Zen Maru Gothic"')]), new Promise(ok => setTimeout(ok, 1500))]); } catch (e) {}
+  const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'), i = r.t3[0];
+  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#0d2233'); bg.addColorStop(1, '#06101b'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  g.textBaseline = 'alphabetic'; g.fillStyle = '#50e3c2'; g.font = '700 30px "Zen Maru Gothic",sans-serif'; g.fillText('運命の町、当てます', 64, 92);
+  g.fillStyle = '#cfe3df'; g.font = '700 38px "Zen Maru Gothic",sans-serif'; g.fillText('わたしの運命の町は', 64, 168);
+  g.fillStyle = '#a8fff0'; g.font = '700 40px "Zen Maru Gothic",sans-serif'; g.fillText(DATA.P[DATA.PI[i]], 64, 236);
+  g.fillStyle = '#ffdca0'; fitFont(g, NAMES[i], W - 128, 112); g.fillText(NAMES[i], 64, 350);
+  g.fillStyle = '#ffc56b'; g.font = '900 46px "Zen Maru Gothic",sans-serif'; g.fillText(`相性 ${r.pct[0]}%`, 64, 420);
+  // 地図
+  const top = 445, bot = 1015; let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+  for (let k = 0; k < NM; k++) { if (tg(k).isl && k !== i) continue; x0 = Math.min(x0, MX[k]); x1 = Math.max(x1, MX[k]); z0 = Math.min(z0, MZ[k]); z1 = Math.max(z1, MZ[k]); } // 本州・北海道・九州・四国（＋その町）がおさまる範囲
+  const sc = Math.min((W - 128) / (x1 - x0), (bot - top) / (z1 - z0)) * .94, ox = W / 2 - (x0 + x1) / 2 * sc, oz = (top + bot) / 2 - (z0 + z1) / 2 * sc;
+  const P = (x, z) => [ox + x * sc, oz + z * sc];
+  g.save(); g.beginPath(); g.rect(0, top - 10, W, bot - top + 20); g.clip();
+  g.fillStyle = '#35605a'; g.strokeStyle = 'rgba(150,215,200,.5)'; g.lineWidth = 1;
+  for (const polys of PREFSHAPE) for (const rings of polys) { g.beginPath(); for (const rr of rings) { for (let k = 0; k < rr.length; k += 2) { const [px, py] = P(rr[k], rr[k + 1]); k ? g.lineTo(px, py) : g.moveTo(px, py); } g.closePath(); } g.fill('evenodd'); g.stroke(); }
+  g.restore();
+  const [tx, ty] = P(MX[i], MZ[i]);
+  // 町の形を拡大した枠（町と反対側の角に置く）
+  if (!MUNISHAPE) MUNISHAPE = readShapes(DATA.MP, NM);
+  // 日本は左下から右上にのびるので、あいている左上か右下のうち、町から遠い方に置く
+  const bw = 300, TL = [64, top], BR = [W - 64 - bw, bot - bw], far = Math.hypot(tx - TL[0] - bw / 2, ty - TL[1] - bw / 2) > Math.hypot(tx - BR[0] - bw / 2, ty - BR[1] - bw / 2) ? TL : BR, bx = far[0], by = far[1];
+  g.strokeStyle = 'rgba(80,227,194,.55)'; g.lineWidth = 2; g.beginPath(); g.moveTo(tx, ty); g.lineTo(bx + bw / 2, by + bw / 2); g.stroke();
+  rrect(g, bx, by, bw, bw, 22); g.fillStyle = 'rgba(7,18,31,.92)'; g.fill(); g.strokeStyle = 'rgba(80,227,194,.7)'; g.stroke();
+  let a0 = 1e9, a1 = -1e9, b0 = 1e9, b1 = -1e9; const outs = MUNISHAPE[i].map(rs => rs[0]);
+  for (const o of outs) for (let k = 0; k < o.length; k += 2) { a0 = Math.min(a0, o[k]); a1 = Math.max(a1, o[k]); b0 = Math.min(b0, o[k + 1]); b1 = Math.max(b1, o[k + 1]); }
+  const s2 = Math.min((bw - 60) / Math.max(1e-6, a1 - a0), (bw - 60) / Math.max(1e-6, b1 - b0)), cx2 = bx + bw / 2 - (a0 + a1) / 2 * s2, cy2 = by + bw / 2 - (b0 + b1) / 2 * s2;
+  g.fillStyle = 'rgba(80,227,194,.45)'; g.strokeStyle = '#a8fff0'; g.lineWidth = 3; g.beginPath();
+  for (const o of outs) { for (let k = 0; k < o.length; k += 2) { const px = cx2 + o[k] * s2, py = cy2 + o[k + 1] * s2; k ? g.lineTo(px, py) : g.moveTo(px, py); } g.closePath(); }
+  g.fill('evenodd'); g.stroke();
+  const glow = g.createRadialGradient(tx, ty, 0, tx, ty, 46); glow.addColorStop(0, 'rgba(168,255,240,1)'); glow.addColorStop(.25, 'rgba(80,227,194,.85)'); glow.addColorStop(1, 'rgba(80,227,194,0)');
+  g.fillStyle = glow; g.beginPath(); g.arc(tx, ty, 46, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(168,255,240,.8)'; g.lineWidth = 3; g.beginPath(); g.arc(tx, ty, 22, 0, 7); g.stroke();
+  // タイプ・めずらしさ・決め手
+  let y = 1088; g.fillStyle = '#ffffff'; fitFont(g, `${r.type.name}タイプ`, W - 128, 50); g.fillText(`${r.type.name}タイプ`, 64, y);
+  const rt = rareText(i); if (rt) { y += 62; g.fillStyle = '#ffdca0'; fitFont(g, `この町が1位になるのは${rt}`, W - 128, 38, 700); g.fillText(`この町が1位になるのは${rt}`, 64, y); }
+  const d = deciders(i, r.ans)[0]; if (d) { y += 56; g.fillStyle = '#dffcf5'; fitFont(g, `決め手：「${ansText(d)}」`, W - 128, 34, 700); g.fillText(`決め手：「${ansText(d)}」`, 64, y); }
+  g.fillStyle = 'rgba(159,182,180,.9)'; g.font = '700 28px "Zen Maru Gothic",sans-serif'; g.fillText(`${CONFIG.TAG}   nkworks-games.com/unmei-no-machi`, 64, H - 52);
+  return await new Promise(ok => c.toBlob(ok, 'image/png'));
+}
+async function prepareImage(r) {
+  const btn = $('shareImgBtn'); shareBlob = null;
+  try { shareBlob = await makeImage(r); } catch (e) { shareBlob = null; }
+  if (!shareBlob || result !== r || !$('shareImg')) { if (btn) btn.textContent = '画像を作れませんでした'; return; }
+  $('shareImg').src = URL.createObjectURL(shareBlob); $('shareImg').classList.remove('hide');
+  const file = new File([shareBlob], 'unmei-no-machi.png', { type: 'image/png' });
+  const canFile = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+  btn.disabled = false; btn.textContent = canFile ? '📷 画像つきでシェア' : '📷 画像を保存';
+  btn.onclick = async () => {
+    SND.tap();
+    if (canFile) { try { await navigator.share({ files: [file], text: shareText(r) + '\n' + shareURL(r) }); } catch (e) {} return; }
+    const a = document.createElement('a'); a.href = $('shareImg').src; a.download = 'unmei-no-machi.png'; document.body.appendChild(a); a.click(); a.remove();
+  };
+}
 
 // ===== [SEC:PROMO] =====
 // Sorotta の宣伝：①ページを開いた時に1回だけ出るカード（×ですぐ閉じられる。「もう一度やる」では出ない）②結果画面のいちばん下に小さく
@@ -961,7 +1080,12 @@ requestAnimationFrame(loop);
 if (location.search.includes('card=1')) { $('start').classList.add('hide'); $('topbar').classList.add('hide'); $('tfollow').classList.add('hide'); } // シェア画像を撮る時だけ
 // 確認用：window.__OASIS.sim(1000) で、ランダムに答えた時の1位のばらつきを見る
 window.__OASIS = {
-  NM, NAMES, CONFIG, PERSONA, QUESTIONS, deciders, ranking, top3, typeOf, townText, matchPct, keepCount, get state() { return state; },
+  NM, NAMES, CONFIG, PERSONA, QUESTIONS, deciders, ranking, encodeAns, decodeAns, shareText, rareText, get result() { return result; },
+  rarity(n = 40000, noise = .03, seed = 11) { let s = seed; const rnd = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; const cnt = new Array(NM).fill(0);
+    for (let r = 0; r < n; r++) { const pr = AX.map(a => (a === 'hist' || a === 'onsen') ? (rnd() < .3 ? 1 : 0) : rnd());
+      const a = QUESTIONS.slice(0, MAIN_Q).map((q, qi) => { let best = 0, bd = 1e9; q.a.forEach((o, k) => { let d = 0, m = 0; for (const key in o[1]) { const v = o[1][key]; d += ((Array.isArray(v) ? v[0] : v) - pr[AXI[key]]) ** 2; m++; } d = d / m + rnd() * noise; if (d < bd) { bd = d; best = k; } }); return { q: qi, c: best }; });
+      cnt[top3(ranking(a))[0]]++; }
+    return cnt; }, top3, typeOf, townText, matchPct, keepCount, get state() { return state; },
   answer: k => { const b = document.querySelectorAll('.ch')[k]; b && b.click(); },
   sim(n = 1000, seed = 1) { let s = seed; const rnd = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; const cnt = {}; const pcts = [];
     for (let r = 0; r < n; r++) { const a = Array.from({ length: MAIN_Q }, (_, q) => ({ q, c: Math.floor(rnd() * 4) })); const k = ranking(a); const t = top3(k); cnt[t[0]] = (cnt[t[0]] || 0) + 1; pcts.push(matchPct(k.D[t[0]])); }
