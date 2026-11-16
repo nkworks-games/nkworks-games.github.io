@@ -1,0 +1,1319 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>並行地球 制作スタジオ | N.K. Works</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="並行地球の制作用ページ。3つの星を同じ条件で計算し、比べる。">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;
+  --line:#e1e0d9;--axis:#c3c2b7;--border:rgba(11,11,11,.10);--hover:rgba(11,11,11,.05);
+  --p1:#2a78d6;--p2:#eb6834;--p3:#1baf7a;--accent:#2a78d6;--onaccent:#fff;
+  --sea:#e6eef5;--shallow:#5fb3c9;--field:#c9a227;--forest:#2f7d32;--barren:#ddd2b6;--route:#52514e;--reach:rgba(82,81,78,.18);
+  --warning:#fab219;--critical:#d03b3b;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;
+    --line:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);--hover:rgba(255,255,255,.06);
+    --p1:#3987e5;--p2:#d95926;--p3:#199e70;--accent:#3987e5;--onaccent:#fff;
+    --sea:#14212c;--shallow:#3b8ea3;--field:#c9a227;--forest:#3f9a44;--barren:#4a4436;--route:#c3c2b7;--reach:rgba(195,194,183,.16);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;
+  --line:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);--hover:rgba(255,255,255,.06);
+  --p1:#3987e5;--p2:#d95926;--p3:#199e70;--accent:#3987e5;--onaccent:#fff;
+  --sea:#14212c;--shallow:#3b8ea3;--field:#c9a227;--forest:#3f9a44;--barren:#4a4436;--route:#c3c2b7;--reach:rgba(195,194,183,.16);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;line-height:1.6;font-size:15px}
+main{max-width:1280px;margin:0 auto;padding:20px 16px 64px}
+h1{font-size:1.35rem;margin:0;letter-spacing:.04em}
+h2{font-size:1rem;margin:0 0 10px;letter-spacing:.03em}
+h3{font-size:1rem;margin:0}
+a{color:var(--accent)}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:14px}
+.top p{margin:0;color:var(--ink2);font-size:.85rem}
+.ver{font-size:.75rem;color:var(--ink2);border:1px solid var(--border);border-radius:999px;padding:0 8px;margin-left:6px;vertical-align:3px;font-weight:500}
+section{margin-top:18px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px}
+.note{color:var(--ink2);font-size:.82rem;margin:6px 0 0}
+.muted{color:var(--muted)}
+.error{border:1px solid var(--critical);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:.88rem}
+
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:3px;font-size:.78rem;color:var(--ink2)}
+.field>span{white-space:nowrap}
+.inline{display:flex;align-items:center;gap:6px;white-space:nowrap;flex-wrap:wrap}
+#stormPower{width:110px}
+input,select,button,textarea{font:inherit;color:var(--ink)}
+input[type=number],input[type=text],select{background:var(--bg);border:1px solid var(--axis);border-radius:8px;padding:5px 8px;font-size:.9rem;min-height:34px}
+input[type=number]{width:84px;font-variant-numeric:tabular-nums}
+input[type=range]{accent-color:var(--accent)}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+select{max-width:300px}
+button{background:var(--bg);border:1px solid var(--axis);border-radius:8px;padding:5px 12px;min-height:34px;cursor:pointer;font-size:.88rem}
+button:hover{background:var(--hover)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--onaccent);font-weight:600}
+button.primary:hover{filter:brightness(1.08)}
+button:disabled{opacity:.5;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--axis);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;border-radius:0;min-height:32px;flex:1 1 auto}
+.seg button+button{border-left:1px solid var(--axis)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--surface);font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.yearbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.yearbar input[type=range]{flex:1;min-width:200px}
+.yearnum{font-size:1.5rem;font-weight:700;min-width:5.5em}
+.yearnum small{font-size:.8rem;font-weight:500;color:var(--ink2);margin-left:2px}
+
+.planets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:980px){.planets{grid-template-columns:1fr}}
+.planet header{display:flex;gap:8px;align-items:flex-start}
+.key{flex:none;width:14px;height:4px;border-radius:2px;margin-top:.62em;background:var(--pc)}
+.planet .desc{margin:2px 0 0;color:var(--ink2);font-size:.8rem}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:.75rem;border:1px solid var(--border);border-radius:999px;padding:1px 8px;margin-left:6px;color:var(--ink);vertical-align:2px;font-weight:500}
+.badge i{width:8px;height:8px;border-radius:50%;background:var(--warning);display:inline-block}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;margin:12px 0}
+.stat{min-width:0}
+.stat dt{font-size:.72rem;color:var(--ink2)}
+.stat dd{margin:0;font-weight:600;font-size:1.02rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.map{position:relative}
+.map svg{display:block;width:100%;height:auto;border-radius:8px;touch-action:manipulation}
+.maplegend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.72rem;color:var(--ink2);margin-top:6px}
+.maplegend span{display:inline-flex;align-items:center;gap:4px}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+.recent{list-style:none;margin:10px 0 0;padding:0;font-size:.8rem}
+.recent li{display:flex;gap:6px;padding:2px 0;color:var(--ink2)}
+.recent li b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;min-width:3.6em}
+
+.tip{position:absolute;z-index:5;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:8px 10px;font-size:.78rem;min-width:170px;display:none}
+.tip .t{color:var(--ink2);margin-bottom:4px}
+.tip .row{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tip .row strong{font-variant-numeric:tabular-nums;font-size:.86rem}
+.tip .row span{color:var(--ink2)}
+.lk{width:12px;height:2px;border-radius:1px;display:inline-block;flex:none}
+
+.charthead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;margin-bottom:8px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--ink2);margin:4px 0 6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.chartwrap{position:relative}
+.chartwrap svg{display:block;width:100%;height:auto;overflow:visible}
+.chartwrap:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+.tablewrap{overflow:auto;max-height:360px;margin-top:10px;border:1px solid var(--border);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.82rem}
+th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{position:sticky;top:0;background:var(--surface);color:var(--ink2);font-weight:600}
+td{font-variant-numeric:tabular-nums}
+td small{color:var(--muted);margin-left:4px}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chips button{border-radius:999px;min-height:30px;padding:3px 12px}
+.chips button[aria-pressed=true]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.timelines{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:980px){.timelines{grid-template-columns:1fr}}
+.timeline h3{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.timeline ol{list-style:none;margin:0;padding:0;max-height:380px;overflow:auto;border-top:1px solid var(--line)}
+.timeline li{border-bottom:1px solid var(--line)}
+.timeline li button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:3.4em 4.8em 1fr;gap:6px;width:100%;padding:5px 4px;font-size:.8rem;cursor:pointer}
+.timeline li button:hover{background:var(--hover)}
+.timeline li button:focus-visible{outline:2px solid var(--accent)}
+.timeline li.future{opacity:.42}
+.timeline li.now{background:var(--hover)}
+.timeline .y{font-variant-numeric:tabular-nums;color:var(--ink2)}
+.timeline .tag{font-size:.72rem;color:var(--ink2);border:1px solid var(--border);border-radius:999px;text-align:center;padding:0 4px;align-self:start}
+.timeline .turn .tag{border-color:var(--ink);color:var(--ink);font-weight:600}
+
+.batchbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end}
+progress{width:200px;height:10px;accent-color:var(--accent)}
+.stale{color:var(--ink);font-size:.82rem;display:inline-flex;align-items:center;gap:6px}
+.stale i{width:8px;height:8px;border-radius:50%;background:var(--warning);display:inline-block}
+
+details>summary{cursor:pointer;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"";width:8px;height:8px;border-right:2px solid var(--ink2);border-bottom:2px solid var(--ink2);transform:rotate(-45deg);transition:transform .15s;margin-right:2px}
+details[open]>summary::before{transform:rotate(45deg)}
+.settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:12px}
+fieldset{border:1px solid var(--border);border-radius:10px;margin:0;padding:10px 12px;min-width:0}
+legend{font-weight:600;font-size:.88rem;padding:0 4px;display:flex;align-items:center;gap:6px}
+.prow{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow label{font-size:.82rem}
+.prow small{grid-column:1/-1;color:var(--muted);font-size:.72rem}
+.prow input[type=text]{width:100%}
+.prow.wide{grid-template-columns:1fr}
+.prow.changed label::after{content:"（変更あり）";color:var(--ink2);font-size:.72rem;margin-left:4px}
+.saves{list-style:none;padding:0;margin:8px 0 0}
+.saves li{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line);font-size:.85rem}
+.saves li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{font-size:.8rem;color:var(--ink2);min-height:1.2em;margin-top:6px}
+.doc{font-size:.86rem;color:var(--ink2)}
+.doc h3{color:var(--ink);font-size:.9rem;margin:14px 0 4px}
+.doc ul{padding-left:1.2em;margin:4px 0}
+.doc code{font-size:.8rem;background:var(--hover);padding:0 4px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<main>
+<div class="top">
+  <h1>並行地球 制作スタジオ<span class="ver" id="ver"></span></h1>
+  <p>制作用のページです（検索には出ません）。3つの星を同じ地形・同じ偶然で計算し、違いを比べます。係数はすべて検証前の仮置きです。</p>
+</div>
+
+<section class="panel" aria-label="共通の条件">
+  <div class="controls">
+    <div class="field"><span>計算の範囲</span><div class="seg" id="popMode" role="group" aria-label="計算の範囲"></div></div>
+    <label class="field"><span>年数</span><input id="years" type="number" min="1" max="1000" step="1"></label>
+    <div class="field"><span>採取の方針</span><div class="seg" id="policy" role="group" aria-label="採取の方針"></div></div>
+    <div class="field"><span>共通の嵐（D・Eの島が強く受ける）</span>
+      <div class="inline">
+        <input id="storm" type="checkbox" aria-label="共通の嵐を起こす">
+        <input id="stormYear" type="number" min="1" step="1" aria-label="嵐の年">
+        <span>年目・強さ</span>
+        <span class="inline" style="flex-wrap:nowrap"><input id="stormPower" type="range" min="0" max="2" step="0.05" aria-label="嵐の強さ"><output id="stormPowerOut"></output></span>
+      </div>
+    </div>
+    <label class="field"><span>ほかの嵐</span><span class="inline"><input id="randomStorms" type="checkbox"> ときどき起きる</span></label>
+    <div class="field"><span>種（偶然の引き方）</span>
+      <div class="inline"><input id="seed" type="number" step="1"><button id="seedNew" type="button">別の種</button></div>
+    </div>
+  </div>
+  <p class="note" id="modeNote"></p>
+  <div class="error" id="errorBox" role="alert" hidden></div>
+</section>
+
+<section class="panel" aria-label="比べる年">
+  <div class="yearbar">
+    <button id="play" type="button">再生</button>
+    <label class="sr" for="year">比べる年</label>
+    <input id="year" type="range" min="0" step="1">
+    <div class="yearnum" id="yearNum" aria-live="polite"></div>
+  </div>
+</section>
+
+<section aria-label="3つの星の比較">
+  <div class="planets" id="planets"></div>
+  <p class="note">数値の「100」は、それぞれの星・それぞれの量の開始時です。星どうしの絶対量の比較には使えません。島の図は惑星全体の地図ではなく、比較用の模式図です。</p>
+</section>
+
+<section class="panel" aria-label="グラフ">
+  <div class="charthead">
+    <label class="field"><span>見るもの</span><select id="metric"></select></label>
+    <label class="field"><span>範囲</span><select id="scope"></select></label>
+    <div class="field"><span>表示</span><div class="seg" id="chartMode" role="group" aria-label="グラフの表示"></div></div>
+    <button id="tableToggle" type="button" aria-expanded="false">表で見る</button>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="chartwrap" id="chartwrap" tabindex="0" aria-label="グラフ。左右の矢印キーで年を動かせます">
+    <svg id="chart" role="img"></svg>
+    <div class="tip" id="chartTip"></div>
+  </div>
+  <p class="note" id="chartNote"></p>
+  <div class="tablewrap" id="tablewrap" hidden></div>
+</section>
+
+<section class="panel" aria-label="年表">
+  <h2>年表</h2>
+  <div class="chips" id="filters" role="group" aria-label="出来事の種類"></div>
+  <div class="timelines" id="timelines"></div>
+  <p class="note">出来事をクリックすると、その年に移ります。薄い行は、選んでいる年より後の出来事です。計算の規則から生じた記録だけで、規則にない戦争や発明は起きません。</p>
+</section>
+
+<section class="panel" aria-label="試行のまとめ">
+  <h2>試行のまとめ</h2>
+  <div class="batchbar">
+    <label class="field"><span>試行回数</span><input id="trials" type="number" min="2" max="500" step="10"></label>
+    <button id="batchRun" class="primary" type="button">試行をまとめる</button>
+    <button id="batchCancel" type="button" hidden>止める</button>
+    <progress id="batchProgress" max="1" value="0" hidden></progress>
+    <span id="batchStale" class="stale" hidden><i></i>条件が変わりました。もう一度まとめてください</span>
+  </div>
+  <p class="note">種を「今の種」から1つずつ変えて、何回も計算します。偶然で起きたことと、その星の条件から繰り返し起きることを見分けるためのものです。モデル内の頻度であり、現実の確率ではありません。</p>
+  <div id="batchResult"></div>
+</section>
+
+<section class="panel">
+  <details id="settingsBox">
+    <summary>星と係数の設定</summary>
+    <p class="note">初期値は v0.2 と同じです。変えると、v0.2 の記録や第1話の構成案の数値とは一致しなくなります。</p>
+    <div class="settings" id="settings"></div>
+    <div class="btnrow" style="margin-top:12px">
+      <button id="resetWorlds" type="button">星の設定を初期値に戻す</button>
+      <button id="resetCoef" type="button">係数を初期値に戻す</button>
+    </div>
+  </details>
+</section>
+
+<section class="panel">
+  <h2>保存と書き出し</h2>
+  <div class="settings" style="margin-top:0">
+    <fieldset>
+      <legend>条件を保存（このブラウザ）</legend>
+      <div class="btnrow"><input id="saveName" type="text" placeholder="例：第1話・需要優先・嵐あり" aria-label="保存する名前" style="flex:1;min-width:160px"><button id="saveBtn" type="button">保存</button></div>
+      <ul class="saves" id="saves"></ul>
+    </fieldset>
+    <fieldset>
+      <legend>条件のファイル</legend>
+      <div class="btnrow">
+        <button id="scenarioOut" type="button">条件を書き出す（JSON）</button>
+        <button id="scenarioInBtn" type="button">読み込む</button><input id="scenarioIn" type="file" accept=".json,application/json" hidden>
+      </div>
+      <p class="note">同じファイルを読み込めば、別のパソコンでも同じ結果になります。</p>
+    </fieldset>
+    <fieldset>
+      <legend>結果を書き出す（今の種の1回分）</legend>
+      <div class="btnrow">
+        <button id="exportData" type="button">計算データ（v0.2と同じ形）</button>
+        <button id="exportBlender" type="button">Blender用 JSON</button>
+        <button id="exportCsv" type="button">CSV（星ごと）</button>
+        <button id="exportCsvIsl" type="button">CSV（島ごと）</button>
+        <button id="copyYear" type="button">この年の比較をコピー</button>
+      </div>
+      <div class="status" id="ioStatus" role="status"></div>
+    </fieldset>
+  </div>
+</section>
+
+<section class="panel">
+  <details>
+    <summary>計算のしくみと書き出しの形式</summary>
+    <div class="doc">
+      <h3>v0.2 との関係</h3>
+      <ul>
+        <li>「v0.2と同じ（人口固定）」は、v0.2 の <code>simulation-source.py</code> と同じ規則・同じ順番・同じ乱数で計算します。v0.2 の12試行の記録と、すべての数値・出来事・輸送が一致することを確認しています。</li>
+        <li>「人口・移住・技術あり」は v0.3 で加えた拡張です。人口固定の計算に、出生と死亡、淡水の上限、島どうしの移住、知識と4つの技術を足しています。係数はすべて仮置きです。</li>
+      </ul>
+      <h3>1年の流れ（共通）</h3>
+      <ul>
+        <li>船の寿命と嵐による沈没 → 食料の傷み → 生態系の1年（96段階） → 食料の採取（潮麦 → 小魚など → 陸上の食用植物の固定順） → 伐採・採掘 → 船の建造（1つの島で1年に1隻まで）。</li>
+        <li>船の輸送枠を使って、足りない島へ近い島から運ぶ（今の食料 → 備蓄 → 木材 → 鉱石 → 軽殻石）。価格・交渉・対立はなく、協力して分け合う。航路の上限は145（帆の改良の後は200）。</li>
+        <li>食べる。食料消費と傷んだ食料の70％は枯死物として生態系へ戻る。</li>
+        <li>拡張あり：移住は輸送の前に行い、食べた後に人口が増減し、知識が増えて技術が生まれる。</li>
+      </ul>
+      <h3>生態系</h3>
+      <ul>
+        <li>9つの量（栄養・枯死物・分解者・小魚など・捕食者・陸上の食用植物・森・藻類・潮麦）を、共通の抽象的な物質単位で扱います。実測の重量・個体数・種数ではありません。</li>
+        <li>人類が採り始める前に160年分計算して、量が大きく揺れない状態を作ります。生命の誕生や進化を再現する処理ではありません。</li>
+        <li>生物の星は潮麦がある状態で準備するので、開始時の藻類や小魚などの量も基準の星と違います。</li>
+      </ul>
+      <h3>拡張（人口・移住・技術）の仮置き</h3>
+      <ul>
+        <li>人口：出生は年3.5％（食料が足りないと減る）、死亡は年2.5％。足りない割合に応じて死亡が増え、淡水の上限を超えた分は毎年その25％が減る。</li>
+        <li>淡水の上限：A 300・B 240・C 230・D 280・E 220人（v0.2 は初期人口分を確保済みとだけ仮定）。</li>
+        <li>移住：混み合う島や食料が足りなかった島から、航路の範囲内で余裕のある島へ、年に人口の5％まで。1人あたり物資2単位分の輸送枠を使う。</li>
+        <li>技術：干物と塩漬け／貯水池／帆の改良／畑の拡大。知識の累計と、その分野の経験（採った食料・造った船・陸上植物の収穫）がそろうと生まれる。</li>
+      </ul>
+      <h3>Blender用 JSON の形式</h3>
+      <ul>
+        <li><code>islands</code>：島の id・名前・模式図上の位置（<code>x</code> 0〜300、<code>y</code> 0〜280、単位は仮想km）・資源量・浅瀬・嵐へのさらされやすさ・淡水の上限。</li>
+        <li><code>planets[].years[]</code>：年ごとの食料の充足・嵐の強さ・輸送（<code>transfers</code>）と、島 id ごとの人口・船（木・軽殻石の数）・在庫・残りの鉱床・9つの量の指数（開始時を100）。</li>
+        <li>生物量と画面上の個体数は別の量です。森の指数が70だから木の本数を7割にする、と単純に対応させず、密度・大きさ・林冠などの見せ方を決めて対応させます。</li>
+      </ul>
+    </div>
+  </details>
+</section>
+</main>
+
+<script src="model.js"></script>
+<script>
+(function () {
+  'use strict';
+  var M = window.HeikouModel;
+  var STORE_KEY = 'nkw-heikou-studio-v3';
+  var COLORS = ['--p1', '--p2', '--p3'];
+  var NF = new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 0 });
+  var NF1 = new Intl.NumberFormat('ja-JP', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  function sumIsl(r, f) { return r.islands.reduce(function (a, s) { return a + f(s); }, 0); }
+  // 見るもの。isl があるものは島ごとにも見られる。idx は「開始時を100」とする指数
+  var METRICS = [
+    { k: 'coverage', label: '食料の充足（必要量に対する％）', pct: true, get: function (r) { return r.coverage; }, isl: function (s) { return s.coverage; } },
+    { k: 'population', label: '人口', unit: '人', get: function (r) { return r.population; }, isl: function (s) { return s.population; } }
+  ].concat(['forest', 'grazers', 'predators', 'algae', 'tide', 'land', 'microbes', 'detritus', 'nutrients'].map(function (p) {
+    return { k: 'eco:' + p, label: M.POOL_NAMES[p] + '（開始時を100）', idx: true, get: function (r) { return r.ecology_index[p]; }, isl: function (s) { return s.ecology_index[p]; } };
+  })).concat([
+    { k: 'ships', label: '船', unit: '隻', get: function (r) { return r.ships; }, isl: function (s) { return s.ships; } },
+    { k: 'transported', label: '島どうしの輸送量', unit: '', get: function (r) { return r.transported; } },
+    { k: 'produced_food', label: '採った食料', unit: '人年', get: function (r) { return r.year ? r.produced_food : null; } },
+    { k: 'src:tide', label: '採った食料のうち潮麦', unit: '人年', get: function (r) { return r.food_sources ? r.food_sources.tide : null; } },
+    { k: 'src:grazers', label: '採った食料のうち小魚など', unit: '人年', get: function (r) { return r.food_sources ? r.food_sources.grazers : null; } },
+    { k: 'src:land', label: '採った食料のうち陸上の食用植物', unit: '人年', get: function (r) { return r.food_sources ? r.food_sources.land : null; } },
+    { k: 'stock_food', label: '食料の在庫', unit: '人年', get: function (r) { return sumIsl(r, function (s) { return s.stock.food; }); }, isl: function (s) { return s.stock.food; } },
+    { k: 'stock_wood', label: '木材の在庫', unit: '', get: function (r) { return sumIsl(r, function (s) { return s.stock.wood; }); }, isl: function (s) { return s.stock.wood; } },
+    { k: 'ore_left', label: '鉱石の残り（鉱床）', unit: '', get: function (r) { return sumIsl(r, function (s) { return s.deposits.ore; }); }, isl: function (s) { return s.deposits.ore; } },
+    { k: 'shell_left', label: '軽殻石の残り（鉱床）', unit: '', get: function (r) { return sumIsl(r, function (s) { return s.deposits.shell; }); }, isl: function (s) { return s.deposits.shell; } },
+    { k: 'knowledge', label: '知識の累計（拡張のみ）', unit: '', get: function (r) { return r.knowledge; } }
+  ]);
+  var TYPE_LABELS = { start: '開始', build: '船', migrate: '移住', tech: '技術', storm: '嵐', shortage: '食料', crisis: '危機', eco: '生態系', resource: '資源', turn: '転機' };
+  var FILTERS = [['main', '主な出来事'], ['all', 'すべて'], ['turn', '転機'], ['risk', '嵐・食料'], ['eco', '生態系・資源'], ['social', '移住・技術'], ['build', '船']];
+  var FILTER_TYPES = { risk: ['storm', 'shortage', 'crisis'], eco: ['eco', 'resource'], social: ['migrate', 'tech'], build: ['build'], turn: ['turn'] };
+
+  var WORLD_SPECS = {
+    biology: [
+      ['start', '開始時の潮麦の量', '準備計算を始めるときの量（栄養から差し引く）', 0, 100, 1],
+      ['growth', '潮麦の増え方', '1年あたり', 0, 10, 0.1],
+      ['mortality', '潮麦の枯れやすさ', '1年あたり', 0, 2, 0.01],
+      ['cap', '潮麦の生育場所の上限', '浅瀬のある島ごと', 0, 1000, 10],
+      ['palatability', '小魚などにとっての食べやすさ', '藻類を1として', 0, 1, 0.05],
+      ['competition', '藻類との場所の取り合い', '相手の量にかける割合', 0, 1, 0.05],
+      ['stormLoss', '嵐で失われる割合', '共通の嵐の強さ100のとき', 0, 1, 0.05]
+    ],
+    material: [
+      ['deposit', '軽殻石の埋蔵量', '鉱山の島（C）だけにある', 0, 20000, 100],
+      ['mining', '1年の採掘量', '', 0, 200, 1],
+      ['capacity', '軽殻石の船の輸送枠', '木の船は120', 1, 1000, 10],
+      ['life', '軽殻石の船の寿命', '年（木の船は8年）', 1, 200, 1],
+      ['costWood', '建造に要る木材', '加工の燃料を含む（木の船は50）', 0, 500, 1],
+      ['costOre', '建造に要る鉱石', '木の船は10', 0, 100, 1],
+      ['costShell', '建造に要る軽殻石', '', 0, 100, 1]
+    ]
+  };
+  var ECO_SPECS = [
+    ['nutrient_inflow', '外から入る栄養', '1年あたり', 0, 100, 0.5],
+    ['nutrient_export', '外へ出る栄養', '1年あたりの割合', 0, 1, 0.005],
+    ['detritus_export', '外へ出る枯死物', '1年あたりの割合', 0, 1, 0.001],
+    ['decompose_rate', '分解の速さ', '', 0, 50, 0.5],
+    ['decomposer_efficiency', '分解者が自分の体にする割合', '残りは栄養に戻る', 0, 1, 0.01],
+    ['grazing_rate', '小魚などが食べる速さ', '', 0, 10, 0.1],
+    ['grazer_assimilation', '小魚などが体にする割合', '残りは枯死物', 0, 1, 0.01],
+    ['predation_rate', '捕食者が食べる速さ', '', 0, 10, 0.1],
+    ['predator_assimilation', '捕食者が体にする割合', '残りは枯死物', 0, 1, 0.01],
+    ['growth.land', '陸上の食用植物の増え方', '1年あたり', 0, 10, 0.1],
+    ['growth.forest', '森の増え方', '1年あたり', 0, 2, 0.01],
+    ['growth.algae', '藻類の増え方', '1年あたり', 0, 10, 0.1],
+    ['mortality.land', '陸上の食用植物の枯れやすさ', '1年あたり', 0, 2, 0.01],
+    ['mortality.forest', '森の枯れやすさ', '1年あたり', 0, 1, 0.005],
+    ['mortality.algae', '藻類の枯れやすさ', '1年あたり', 0, 2, 0.01],
+    ['mortality.grazers', '小魚などの死にやすさ', '1年あたり', 0, 2, 0.01],
+    ['mortality.predators', '捕食者の死にやすさ', '1年あたり', 0, 2, 0.01],
+    ['mortality.microbes', '分解者の死にやすさ', '1年あたり', 0, 3, 0.01],
+    ['crowding.grazers', '小魚などの混み合い', '量が多いほど死にやすくなる度合い', 0, 0.1, 0.001],
+    ['crowding.predators', '捕食者の混み合い', '', 0, 0.1, 0.001],
+    ['crowding.microbes', '分解者の混み合い', '', 0, 0.1, 0.001],
+    ['food_per_biomass', '生物量1あたりの食料', '人年', 0.1, 100, 0.5],
+    ['waste_return', '食べた後に生態系へ戻る割合', '', 0, 1, 0.05],
+    ['substeps', '1年の計算の刻み', '回（多いほど細かいが遅い）', 4, 960, 4],
+    ['warmup_years', '準備計算の年数', '人類が採り始める前', 0, 2000, 10]
+  ];
+  var DEMO_SPECS = [
+    ['birth', '出生', '1年あたり（食料が足りるとき）', 0, 0.2, 0.001],
+    ['death', '死亡', '1年あたり', 0, 0.2, 0.001],
+    ['starvation', '食料不足による死亡', '足りない割合にかける', 0, 2, 0.05],
+    ['overcrowd', '淡水の上限を超えた分が減る割合', '1年あたり', 0, 1, 0.05],
+    ['migration', '1年に移住できる割合', '元の島の人口に対して', 0, 0.5, 0.01],
+    ['personCost', '1人を運ぶのに使う輸送枠', '物資何単位分か', 0, 20, 0.5],
+    ['ideaRate', '知識の増え方', '人口の平方根にかける', 0, 1, 0.005]
+  ];
+
+  var state = {
+    options: M.normalizeOptions({}), worlds: M.clone(M.WORLDS), trials: 30,
+    year: 0, metric: 'eco:grazers', scope: 'all', chartMode: 'single', filter: 'main', table: false,
+    runs: null, batch: null, batchJob: null, playing: false
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === 'text') n.textContent = attrs[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] != null && attrs[k] !== false) n.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) { if (c != null) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  }
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function sv(tag, attrs, text) {
+    var n = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function idxText(v) { return v == null || !isFinite(v) ? '—' : v < 0.1 ? '<0.1' : NF1.format(v); }
+  function covText(v) { return v == null || !isFinite(v) ? '—' : NF1.format(v) + '％'; }
+  function fmt(m, v) {
+    if (v == null || !isFinite(v)) return '—';
+    if (m.idx) return idxText(v);
+    if (m.pct) return covText(v);
+    return (Math.abs(v) < 100 && v % 1 ? NF1.format(v) : NF.format(v)) + (m.unit || '');
+  }
+  function islandIdx(id) { return M.ISLANDS.findIndex(function (d) { return d.id === id; }); }
+  function getPath(o, path) { return path.split('.').reduce(function (a, k) { return a == null ? a : a[k]; }, o); }
+  function setPath(o, path, v) { var ks = path.split('.'), last = ks.pop(); ks.reduce(function (a, k) { return a[k]; }, o)[last] = v; }
+
+  // ---- 保存 ----
+  function storeRead() { try { var t = localStorage.getItem(STORE_KEY); return t ? JSON.parse(t) || {} : {}; } catch (e) { return {}; } }
+  function storeWrite(o) { try { localStorage.setItem(STORE_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
+  function scenarioFile() {
+    return { app: 'heikou-chikyu-studio', version: M.VERSION, options: M.clone(state.options), worlds: M.clone(state.worlds), trials: state.trials };
+  }
+  function mergeWorlds(list) {
+    return M.WORLDS.map(function (d) {
+      var w = M.clone(d);
+      var src = Array.isArray(list) ? list.filter(function (q) { return q && q.id === d.id; })[0] : null;
+      if (src) {
+        if (typeof src.name === 'string' && src.name.trim()) w.name = src.name.trim().slice(0, 24);
+        if (typeof src.subtitle === 'string') w.subtitle = src.subtitle.slice(0, 80);
+        if (src.params) for (var k in w.params) { var v = +src.params[k]; if (src.params[k] !== '' && src.params[k] != null && isFinite(v)) w.params[k] = v; }
+      }
+      return w;
+    });
+  }
+  function applyScenarioFile(f) {
+    if (!f || typeof f !== 'object' || !f.options) throw new Error('並行地球 v0.3 の条件ファイルではありません');
+    state.options = M.normalizeOptions(f.options);
+    state.worlds = mergeWorlds(f.worlds);
+    if (isFinite(+f.trials)) state.trials = Math.max(2, Math.min(500, Math.round(+f.trials)));
+  }
+  function saveCurrent() {
+    var s = storeRead();
+    s.current = scenarioFile();
+    s.view = { metric: state.metric, scope: state.scope, filter: state.filter, year: state.year };
+    storeWrite(s);
+  }
+  function restore() {
+    var s = storeRead();
+    if (s.current) { try { applyScenarioFile(s.current); } catch (e) { /* 壊れていたら初期値のまま */ } }
+    if (s.view) {
+      if (METRICS.some(function (m) { return m.k === s.view.metric; })) state.metric = s.view.metric;
+      if (s.view.scope === 'all' || islandIdx(s.view.scope) >= 0) state.scope = s.view.scope;
+      if (FILTERS.some(function (f) { return f[0] === s.view.filter; })) state.filter = s.view.filter;
+      if (isFinite(s.view.year)) state.year = Math.max(0, Math.round(s.view.year));
+    }
+  }
+
+  // ---- 計算 ----
+  function batchKey() { return JSON.stringify([state.options, state.worlds, state.trials]); }
+  function recompute() {
+    stopPlay();
+    var box = $('errorBox');
+    try {
+      state.runs = M.simulateAll(state.worlds, state.options);
+      box.hidden = true;
+    } catch (e) {
+      box.hidden = false;
+      box.textContent = '計算を続けられませんでした（' + e.message + '）。係数を見直すか、「係数を初期値に戻す」を押してください。';
+      return;
+    }
+    state.year = Math.min(state.year, state.options.years);
+    if (state.batch) state.batch.stale = state.batch.key !== batchKey();
+    renderAll();
+    saveCurrent();
+  }
+  var recomputeTimer = 0;
+  function recomputeSoon() { clearTimeout(recomputeTimer); recomputeTimer = setTimeout(recompute, 200); }
+  function isDefaultCoef() {
+    var d = M.normalizeOptions({});
+    return JSON.stringify(state.options.eco) === JSON.stringify(d.eco) && JSON.stringify(state.worlds.map(function (w) { return w.params; })) === JSON.stringify(M.WORLDS.map(function (w) { return w.params; }));
+  }
+
+  // ---- 条件の入力 ----
+  function segButtons(box, items, onPick) {
+    items.forEach(function (it) {
+      box.appendChild(el('button', { type: 'button', 'data-v': it[0], text: it[1], onclick: function () { onPick(it[0]); } }));
+    });
+  }
+  function pressSeg(box, v) { Array.prototype.forEach.call(box.children, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === v)); }); }
+
+  function buildControls() {
+    $('ver').textContent = 'モデル v' + M.VERSION;
+    segButtons($('popMode'), [['fixed', 'v0.2と同じ（人口固定）'], ['dynamic', '人口・移住・技術あり']], function (v) { state.options.population = v; writeControls(); fillMetricOptions(); recompute(); });
+    segButtons($('policy'), Object.keys(M.POLICIES).map(function (k) { return [k, M.POLICIES[k].name]; }), function (v) { state.options.policy = v; writeControls(); recompute(); });
+    ['years', 'stormYear', 'seed'].forEach(function (id) { $(id).addEventListener('change', function () { readControls(); recompute(); }); });
+    ['storm', 'randomStorms'].forEach(function (id) { $(id).addEventListener('change', function () { readControls(); recompute(); }); });
+    $('stormPower').addEventListener('input', function () { readControls(); recomputeSoon(); });
+    $('seedNew').addEventListener('click', function () { state.options.seed = 1 + Math.floor(Math.random() * 99999); writeControls(); recompute(); });
+    $('trials').addEventListener('change', function () { state.trials = Math.max(2, Math.min(500, Math.round(+this.value) || 30)); this.value = state.trials; if (state.batch) state.batch.stale = state.batch.key !== batchKey(); renderBatch(); renderChart(); saveCurrent(); });
+
+    $('year').addEventListener('input', function () { stopPlay(); setYear(+this.value); });
+    $('play').addEventListener('click', togglePlay);
+
+    segButtons($('chartMode'), [['single', '今の種の1回'], ['batch', '試行のまとめ']], function (v) { state.chartMode = v; renderChart(); });
+    var scope = $('scope');
+    scope.appendChild(el('option', { value: 'all', text: '星全体' }));
+    M.ISLANDS.forEach(function (d) { scope.appendChild(el('option', { value: d.id, text: d.id + '・' + d.name })); });
+    scope.addEventListener('change', function () { state.scope = this.value; fillMetricOptions(); renderChart(); saveCurrent(); });
+    $('metric').addEventListener('change', function () { state.metric = this.value; renderChart(); saveCurrent(); });
+    $('tableToggle').addEventListener('click', function () {
+      state.table = !state.table;
+      this.setAttribute('aria-expanded', String(state.table));
+      this.textContent = state.table ? '表を閉じる' : '表で見る';
+      renderChart();
+    });
+    segButtons($('filters'), FILTERS, function (v) { state.filter = v; renderEvents(); saveCurrent(); });
+
+    $('batchRun').addEventListener('click', runBatch);
+    $('batchCancel').addEventListener('click', cancelBatch);
+    $('resetWorlds').addEventListener('click', function () { state.worlds = M.clone(M.WORLDS); renderSettings(); recompute(); });
+    $('resetCoef').addEventListener('click', function () {
+      var d = M.normalizeOptions({});
+      state.options.eco = d.eco; state.options.demography = d.demography;
+      renderSettings(); recompute();
+    });
+
+    $('saveBtn').addEventListener('click', saveNamed);
+    $('saveName').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveNamed(); });
+    $('scenarioOut').addEventListener('click', function () { download('heikou-joken-' + stamp() + '.json', JSON.stringify(scenarioFile(), null, 2), 'application/json'); status('条件を書き出しました。'); });
+    $('scenarioInBtn').addEventListener('click', function () { $('scenarioIn').click(); });
+    $('scenarioIn').addEventListener('change', function () {
+      var file = this.files && this.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        try { applyScenarioFile(JSON.parse(reader.result)); writeControls(); fillMetricOptions(); renderSettings(); recompute(); status('「' + file.name + '」を読み込みました。'); }
+        catch (e) { status('読み込めませんでした：' + e.message); }
+      };
+      reader.readAsText(file);
+      this.value = '';
+    });
+    $('exportData').addEventListener('click', exportData);
+    $('exportBlender').addEventListener('click', exportBlender);
+    $('exportCsv').addEventListener('click', function () { download('heikou-hoshi-' + stamp() + '.csv', csvWorlds(), 'text/csv'); status('CSV（星ごと）を書き出しました。'); });
+    $('exportCsvIsl').addEventListener('click', function () { download('heikou-shima-' + stamp() + '.csv', csvIslands(), 'text/csv'); status('CSV（島ごと）を書き出しました。'); });
+    $('copyYear').addEventListener('click', copyYear);
+
+    $('chartwrap').addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault(); stopPlay();
+        setYear(state.year + (e.key === 'ArrowRight' ? 1 : -1) * (e.shiftKey ? 10 : 1));
+      }
+    });
+    if (window.matchMedia) {
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      var onTheme = function () { renderCards(); renderChart(); };
+      if (mq.addEventListener) mq.addEventListener('change', onTheme); else if (mq.addListener) mq.addListener(onTheme);
+    }
+    var resizeTimer = 0;
+    window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderChart, 120); });
+  }
+
+  function readControls() {
+    var o = state.options;
+    o.years = +$('years').value;
+    o.storm = $('storm').checked;
+    o.stormYear = +$('stormYear').value;
+    o.stormPower = +$('stormPower').value;
+    o.randomStorms = $('randomStorms').checked;
+    o.seed = +$('seed').value;
+    state.options = M.normalizeOptions(o);
+    writeControls();
+  }
+  function writeControls() {
+    var o = state.options;
+    pressSeg($('popMode'), o.population);
+    pressSeg($('policy'), o.policy);
+    $('years').value = o.years;
+    $('storm').checked = o.storm;
+    $('stormYear').value = o.stormYear;
+    $('stormYear').disabled = !o.storm;
+    $('stormPower').value = o.stormPower;
+    $('stormPower').disabled = !o.storm;
+    $('stormPowerOut').textContent = NF.format(o.stormPower * 100);
+    $('randomStorms').checked = o.randomStorms;
+    $('seed').value = o.seed;
+    $('trials').value = state.trials;
+    var p = M.POLICIES[o.policy];
+    var same = o.population === 'fixed' && o.years === 24 && o.seed === 29 && o.stormYear === 12 && o.stormPower === 1 && !o.randomStorms && isDefaultCoef();
+    $('modeNote').textContent = (o.population === 'fixed'
+      ? '人口は各島200人のまま。v0.2 と同じ規則で計算します。'
+      : '出生・死亡・淡水の上限・移住・技術を加えた拡張です（v0.3 の仮置き）。') +
+      '　方針「' + p.name + '」：食料になる生物は1年に最大' + NF.format(p.food_fraction * 100) + '％、森は最大' + NF1.format(p.wood_fraction * 100) + '％まで採る。' +
+      (same ? '　今の条件（24年・種29・12年目の嵐' + (o.storm ? 'あり' : 'なし') + '）は v0.2 の記録と同じになります。' : '');
+  }
+  function fillMetricOptions() {
+    var sel = $('metric');
+    sel.textContent = '';
+    var island = state.scope !== 'all';
+    var list = METRICS.filter(function (m) {
+      if (m.k === 'knowledge' && state.options.population !== 'dynamic') return false;
+      return island ? !!m.isl : true;
+    });
+    list.forEach(function (m) { sel.appendChild(el('option', { value: m.k, text: m.label })); });
+    if (!list.some(function (m) { return m.k === state.metric; })) state.metric = 'coverage';
+    sel.value = state.metric;
+    $('scope').value = state.scope;
+  }
+
+  // ---- 年 ----
+  function setYear(y) {
+    state.year = Math.max(0, Math.min(state.options.years, Math.round(y)));
+    renderYear(); renderCards(); renderChart(); renderEvents();
+    saveYearSoon();
+  }
+  var yearSaveTimer = 0;
+  function saveYearSoon() { clearTimeout(yearSaveTimer); yearSaveTimer = setTimeout(saveCurrent, 400); }
+  function togglePlay() { if (state.playing) stopPlay(); else startPlay(); }
+  var playTimer = 0;
+  function startPlay() {
+    if (state.year >= state.options.years) state.year = 0;
+    state.playing = true;
+    $('play').textContent = '停止';
+    var last = 0, wait = state.options.years <= 40 ? 400 : 60;
+    function tick(t) {
+      if (!state.playing) return;
+      if (t - last >= wait) {
+        last = t;
+        if (state.year >= state.options.years) { stopPlay(); return; }
+        setYear(state.year + 1);
+      }
+      playTimer = requestAnimationFrame(tick);
+    }
+    playTimer = requestAnimationFrame(tick);
+  }
+  function stopPlay() {
+    if (!state.playing) return;
+    state.playing = false;
+    cancelAnimationFrame(playTimer);
+    $('play').textContent = '再生';
+  }
+  function renderYear() {
+    var r = $('year');
+    r.max = state.options.years;
+    r.value = state.year;
+    var n = $('yearNum');
+    n.textContent = '';
+    n.appendChild(document.createTextNode(state.year));
+    n.appendChild(el('small', { text: '年目 / ' + state.options.years + '年' }));
+  }
+
+  // ---- 星のカード ----
+  function recAt(run) { return run.records[Math.min(state.year, run.records.length - 1)]; }
+  function renderCards() {
+    var box = $('planets');
+    box.textContent = '';
+    var dynamic = state.options.population === 'dynamic';
+    state.runs.forEach(function (run, i) {
+      var w = state.worlds[i];
+      var r = recAt(run);
+      var h3 = el('h3', { text: w.name });
+      if (r.storm > 0) h3.appendChild(el('span', { class: 'badge' }, [el('i'), (state.options.storm && r.year === state.options.stormYear ? '共通の嵐' : '嵐') + '・強さ' + NF.format(r.storm * 100)]));
+      var shellShips = r.islands.reduce(function (a, s) { return a + s.fleet.filter(function (f) { return f.type === 'shell'; }).length; }, 0);
+      var special = w.tidal_crop ? ['潮麦', idxText(r.ecology_index.tide)]
+        : w.special_material ? ['軽殻石の残り', NF.format(r.islands[2].deposits.shell)]
+        : ['藻類', idxText(r.ecology_index.algae)];
+      var stats = [
+        ['食料の充足', r.year ? covText(r.coverage) : '開始時'],
+        ['人口', NF.format(r.population) + '人'],
+        w.special_material ? ['船（うち軽殻石）', r.ships + '（' + shellShips + '）隻'] : ['船', r.ships + '隻'],
+        ['森', idxText(r.ecology_index.forest)],
+        ['小魚など', idxText(r.ecology_index.grazers)],
+        ['捕食者', idxText(r.ecology_index.predators)],
+        special,
+        ['輸送量', NF.format(r.transported)],
+        dynamic ? ['技術', r.techs.length + '件'] : ['分解者', idxText(r.ecology_index.microbes)]
+      ];
+      var dl = el('dl', { class: 'stats' }, stats.map(function (x) {
+        return el('div', { class: 'stat' }, [el('dt', { text: x[0] }), el('dd', { text: x[1], title: x[1] })]);
+      }));
+      var recent = run.notes.filter(function (n) { return n.year <= state.year && n.type !== 'build'; }).slice(-3).reverse();
+      var ul = el('ul', { class: 'recent', 'aria-label': 'この年までの出来事' }, recent.map(function (n) {
+        return el('li', {}, [el('b', { text: n.year + '年' }), el('span', { text: n.text })]);
+      }));
+      var mapBox = el('div', { class: 'map' });
+      box.appendChild(el('article', { class: 'panel planet', style: '--pc:var(' + COLORS[i] + ')' }, [
+        el('header', {}, [el('span', { class: 'key', 'aria-hidden': 'true' }), el('div', {}, [h3, el('p', { class: 'desc', text: w.subtitle })])]),
+        dl, mapBox, mapLegend(w), ul
+      ]));
+      drawMap(mapBox, r, w);
+    });
+  }
+
+  function mapLegend(w) {
+    var items = [
+      [el('span', { class: 'sw', style: 'background:var(--forest)' }), '森（濃いほど多い）'],
+      [el('span', { class: 'sw', style: 'background:var(--shallow);opacity:.6' }), '浅瀬の藻類'],
+      [el('span', { class: 'sw', style: 'background:var(--ink);border-radius:50%' }), '人口'],
+      [el('span', { class: 'lk', style: 'background:var(--route);height:3px' }), 'この年の輸送']
+    ];
+    if (w.tidal_crop) items.splice(2, 0, [el('span', { class: 'sw', style: 'background:var(--field)' }), '潮麦']);
+    return el('div', { class: 'maplegend' }, items.map(function (x) { return el('span', {}, x); }));
+  }
+  function mix(a, b, t) {
+    function hex(c) { c = c.replace('#', ''); if (c.length === 3) c = c.replace(/./g, '$&$&'); return [0, 2, 4].map(function (k) { return parseInt(c.substr(k, 2), 16); }); }
+    var x = hex(a), y = hex(b);
+    return 'rgb(' + x.map(function (v, k) { return Math.round(v + (y[k] - v) * t); }).join(',') + ')';
+  }
+  var RADIUS = { A: 24, B: 18, C: 19, D: 21, E: 16 };
+
+  function drawMap(box, r, w) {
+    var svg = sv('svg', { viewBox: '0 0 300 285', role: 'img', 'aria-label': w.name + 'の模式図（' + r.year + '年目）' });
+    svg.appendChild(sv('rect', { x: 0, y: 0, width: 300, height: 285, fill: 'var(--sea)' }));
+    var limit = r.techs.indexOf('sail') >= 0 ? 200 : 145;
+    var I = M.ISLANDS;
+    // 届く範囲（薄い線）と、その年に運んだもの（太さは量）
+    for (var a = 0; a < I.length; a++) for (var b = a + 1; b < I.length; b++) {
+      if (M.dist(I[a], I[b]) <= limit) svg.appendChild(sv('line', { x1: I[a].x, y1: I[a].y, x2: I[b].x, y2: I[b].y, stroke: 'var(--reach)', 'stroke-width': 1 }));
+    }
+    var pairs = {};
+    r.transfers.forEach(function (t) {
+      var key = [t.source, t.target].sort().join('');
+      pairs[key] = (pairs[key] || 0) + (t.resource === 'people' ? t.amount * 2 : t.amount);
+    });
+    Object.keys(pairs).forEach(function (key) {
+      var A = I[islandIdx(key[0])], B = I[islandIdx(key[1])];
+      svg.appendChild(sv('line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y, stroke: 'var(--route)', 'stroke-width': (1 + Math.sqrt(pairs[key]) * 0.35).toFixed(2), 'stroke-linecap': 'round', opacity: 0.85 }));
+    });
+    var barren = cssVar('--barren') || '#ddd2b6', forest = cssVar('--forest') || '#2f7d32';
+    var tip = el('div', { class: 'tip' });
+    var maxPop = state.options.population === 'dynamic' ? 400 : 200;
+    I.forEach(function (d, k) {
+      var s = r.islands[k];
+      var rl = RADIUS[d.id];
+      var g = sv('g', { tabindex: 0, role: 'button', 'aria-label': d.id + '・' + d.name, style: 'cursor:pointer;outline:none' });
+      if (d.shallow) {
+        var al = s.ecology_index.algae == null ? 1 : s.ecology_index.algae / 100;
+        g.appendChild(sv('circle', { cx: d.x, cy: d.y, r: rl + 8, fill: 'var(--shallow)', opacity: (0.12 + 0.4 * Math.min(1.4, al) / 1.4).toFixed(3) }));
+      }
+      if (w.tidal_crop && d.shallow && s.ecology_index.tide != null) {
+        var rr = rl + 3.5, circ = 2 * Math.PI * rr, frac = Math.max(0, Math.min(1, s.ecology_index.tide / 100));
+        g.appendChild(sv('circle', { cx: d.x, cy: d.y, r: rr, fill: 'none', stroke: 'var(--field)', 'stroke-width': 3, 'stroke-dasharray': (circ * frac).toFixed(2) + ' ' + circ.toFixed(2), transform: 'rotate(-90 ' + d.x + ' ' + d.y + ')' }));
+      }
+      if (r.storm > 0 && d.exposed) g.appendChild(sv('circle', { cx: d.x, cy: d.y, r: rl + 11, fill: 'none', stroke: 'var(--warning)', 'stroke-width': (1 + 1.5 * Math.min(1, r.storm)).toFixed(2) }));
+      var fi = s.ecology_index.forest == null ? 1 : Math.max(0, Math.min(1, s.ecology_index.forest / 100));
+      g.appendChild(sv('circle', { cx: d.x, cy: d.y, r: rl, fill: mix(barren, forest, fi) }));
+      if (s.population > 0) {
+        var pr = Math.max(2.5, Math.min(rl * 0.62, rl * 0.45 * Math.sqrt(s.population / maxPop)));
+        g.appendChild(sv('circle', { cx: d.x, cy: d.y, r: pr.toFixed(2), fill: 'var(--ink)', stroke: 'var(--surface)', 'stroke-width': 1.5 }));
+      }
+      var labelY = d.y + rl + (d.shallow ? 20 : 12);
+      g.appendChild(sv('text', { x: d.x, y: labelY, 'text-anchor': 'middle', 'font-size': 9.5, fill: 'var(--ink)', 'font-weight': 600 }, d.id + ' ' + d.name));
+      g.appendChild(sv('text', { x: d.x, y: labelY + 11, 'text-anchor': 'middle', 'font-size': 8.5, fill: 'var(--ink2)' }, NF.format(s.population) + '人・船' + s.ships));
+      g.appendChild(sv('circle', { cx: d.x, cy: d.y, r: rl + 12, fill: 'transparent' }));
+      var show = function () { islandTip(tip, box, d, s, w, r); };
+      g.addEventListener('pointerenter', show);
+      g.addEventListener('focus', show);
+      g.addEventListener('click', show);
+      g.addEventListener('pointerleave', function () { tip.style.display = 'none'; });
+      g.addEventListener('blur', function () { tip.style.display = 'none'; });
+      svg.appendChild(g);
+    });
+    box.appendChild(svg);
+    box.appendChild(tip);
+  }
+
+  function islandTip(tip, box, d, s, w, r) {
+    tip.textContent = '';
+    tip.appendChild(el('div', { class: 't', text: d.id + '・' + d.name + '（' + r.year + '年目）' }));
+    var wood = s.fleet.filter(function (f) { return f.type === 'wood'; }).length, shell = s.ships - wood;
+    var rows = [
+      ['人口', NF.format(s.population) + '人' + (state.options.population === 'dynamic' ? '（淡水の上限 ' + NF.format(s.water) + '）' : '')],
+      ['食料の充足', r.year ? covText(s.coverage) : '開始時'],
+      ['船', s.ships + '隻' + (shell ? '（木' + wood + '・軽殻石' + shell + '）' : '')],
+      ['在庫', '食料' + NF.format(s.stock.food) + '・木材' + NF.format(s.stock.wood) + '・鉱石' + NF.format(s.stock.ore) + (w.special_material ? '・軽殻石' + NF.format(s.stock.shell) : '')],
+      ['鉱床の残り', '鉱石' + NF.format(s.deposits.ore) + (s.deposits.shell ? '・軽殻石' + NF.format(s.deposits.shell) : '')]
+    ];
+    ['forest', 'land', 'algae', 'tide', 'grazers', 'predators', 'microbes'].forEach(function (p) {
+      if (s.ecology_index[p] == null) return;
+      rows.push([M.POOL_NAMES[p], idxText(s.ecology_index[p])]);
+    });
+    rows.forEach(function (x) { tip.appendChild(el('div', { class: 'row' }, [el('strong', { text: x[1] }), el('span', { text: x[0] })])); });
+    tip.appendChild(el('div', { class: 'row', style: 'margin-top:4px;white-space:normal;color:var(--muted)', text: d.note }));
+    var bw = box.clientWidth, scale = bw / 300;
+    tip.style.display = 'block';
+    var tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(bw - tw, d.x * scale + 14)) + 'px';
+    tip.style.top = Math.max(0, d.y * scale - 30) + 'px';
+  }
+
+  // ---- グラフ ----
+  function metricDef() { return METRICS.filter(function (m) { return m.k === state.metric; })[0] || METRICS[0]; }
+  function seriesFor(run, m) {
+    var idx = state.scope === 'all' ? -1 : islandIdx(state.scope);
+    return run.records.map(function (r) {
+      var v = idx < 0 ? m.get(r) : (m.isl ? m.isl(r.islands[idx]) : null);
+      if (m.k === 'coverage' && !r.year) v = null;
+      return v == null ? NaN : v;
+    });
+  }
+  function batchUsable(m) {
+    return state.batch && !state.batch.stale && state.scope === 'all' && M.SERIES_KEYS.indexOf(m.k) >= 0;
+  }
+  function niceMax(v) {
+    if (!(v > 0)) return 1;
+    var p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p;
+    var n = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].filter(function (c) { return f <= c + 1e-9; })[0];
+    return n * p;
+  }
+  function renderChart() {
+    var m = metricDef();
+    var wantBatch = state.chartMode === 'batch';
+    var useBatch = wantBatch && batchUsable(m);
+    pressSeg($('chartMode'), state.chartMode);
+    var note = '';
+    if (wantBatch && !useBatch) {
+      if (!state.batch) note = '試行のまとめはまだありません。下の「試行をまとめる」を押すと、ここに幅つきで表示されます。今は今の種の1回分です。';
+      else if (state.batch.stale) note = '条件が変わったので、今の種の1回分を表示しています。もう一度まとめると、まとめの表示に戻ります。';
+      else if (state.scope !== 'all') note = '島ごとの表示は、今の種の1回分だけです。';
+      else note = 'この項目は試行のまとめに含まれていないので、今の種の1回分です。';
+    } else if (useBatch) {
+      note = '線は' + state.batch.trials + '回の試行の中央の値、帯は10〜90％の範囲（種 ' + state.batch.seedFrom + '〜' + (state.batch.seedFrom + state.batch.trials - 1) + '）。';
+    } else {
+      note = '種 ' + state.options.seed + ' の1回分。' + (state.scope !== 'all' ? M.ISLANDS[islandIdx(state.scope)].name + 'の値。' : '');
+    }
+    if (m.idx) note += '　開始時を100とした各星の中の変化で、星どうしの絶対量は比べられません。';
+    $('chartNote').textContent = note;
+
+    var lines = state.runs.map(function (run, i) {
+      if (useBatch) {
+        var b = state.batch.agg[i].series[m.k];
+        return { mid: Array.from(b.p50), lo: Array.from(b.p10), hi: Array.from(b.p90) };
+      }
+      return { mid: seriesFor(run, m) };
+    });
+    var years = state.options.years;
+    var maxV = 0;
+    lines.forEach(function (l) { (l.hi || l.mid).forEach(function (v) { if (v > maxV) maxV = v; }); });
+    var yMax = m.pct ? 100 : niceMax(maxV * 1.04 || 1);
+    if (m.idx && maxV <= 100) yMax = 100;
+
+    var legend = $('legend');
+    legend.textContent = '';
+    state.worlds.forEach(function (w, i) {
+      var empty = lines[i].mid.every(function (v) { return isNaN(v); });
+      legend.appendChild(el('span', {}, [el('span', { class: 'lk', style: 'background:var(' + COLORS[i] + ')' }), w.name + (empty ? '（この星にはない）' : '')]));
+    });
+
+    var wrap = $('chartwrap');
+    var W = Math.max(320, wrap.clientWidth || 800), Hh = Math.round(Math.max(220, Math.min(340, W * 0.36)));
+    var ml = 52, mr = 92, mt = 12, mb = 30;
+    var pw = W - ml - mr, ph = Hh - mt - mb;
+    var X = function (y) { return ml + pw * y / Math.max(1, years); };
+    var Y = function (v) { return mt + ph * (1 - Math.max(0, Math.min(yMax * 1.2, v)) / yMax); };
+    var svg = $('chart');
+    svg.textContent = '';
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + Hh);
+    svg.setAttribute('aria-label', m.label + 'の推移');
+    var ticks = 4;
+    for (var t = 0; t <= ticks; t++) {
+      var v = yMax * t / ticks, yy = Y(v);
+      svg.appendChild(sv('line', { x1: ml, x2: ml + pw, y1: yy, y2: yy, stroke: t === 0 ? 'var(--axis)' : 'var(--line)', 'stroke-width': 1 }));
+      svg.appendChild(sv('text', { x: ml - 8, y: yy + 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)', style: 'font-variant-numeric:tabular-nums' }, m.pct ? NF.format(v) + '％' : NF.format(v)));
+    }
+    var step = years <= 30 ? (years <= 12 ? 1 : 6) : years <= 60 ? 10 : years <= 150 ? 25 : years <= 400 ? 50 : 100;
+    for (var yx = 0; yx <= years; yx += step) {
+      svg.appendChild(sv('text', { x: X(yx), y: mt + ph + 18, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--muted)', style: 'font-variant-numeric:tabular-nums' }, String(yx)));
+    }
+    svg.appendChild(sv('text', { x: ml - 14, y: mt + ph + 18, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' }, '年目'));
+    function pathOf(arr) {
+      var d = '', pen = false;
+      for (var k = 0; k < arr.length; k++) {
+        if (isNaN(arr[k])) { pen = false; continue; }
+        d += (pen ? 'L' : 'M') + X(k).toFixed(1) + ' ' + Y(arr[k]).toFixed(1);
+        pen = true;
+      }
+      return d;
+    }
+    lines.forEach(function (l, i) {
+      if (!l.lo) return;
+      var d = '', started = false;
+      for (var k = 0; k < l.hi.length; k++) if (!isNaN(l.hi[k])) { d += (started ? 'L' : 'M') + X(k).toFixed(1) + ' ' + Y(l.hi[k]).toFixed(1); started = true; }
+      for (k = l.lo.length - 1; k >= 0; k--) if (!isNaN(l.lo[k])) d += 'L' + X(k).toFixed(1) + ' ' + Y(l.lo[k]).toFixed(1);
+      if (started) svg.appendChild(sv('path', { d: d + 'Z', fill: 'var(' + COLORS[i] + ')', opacity: 0.12 }));
+    });
+    lines.forEach(function (l, i) {
+      var d = pathOf(l.mid);
+      if (d) svg.appendChild(sv('path', { d: d, fill: 'none', stroke: 'var(' + COLORS[i] + ')', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    });
+    // 線の端の名前（重なるときは引き出し線でずらす）
+    var ends = [];
+    lines.forEach(function (l, i) { var v = l.mid[l.mid.length - 1]; if (!isNaN(v)) ends.push({ i: i, y: Y(v), ly: 0 }); });
+    ends.sort(function (a, b) { return a.y - b.y; });
+    ends.forEach(function (e, k) { e.ly = k === 0 ? e.y : Math.max(e.y, ends[k - 1].ly + 15); });
+    var over = ends.length ? ends[ends.length - 1].ly - (mt + ph) : 0;
+    if (over > 0) ends.forEach(function (e) { e.ly -= over; });
+    ends.forEach(function (e) {
+      var x0 = X(years);
+      if (Math.abs(e.ly - e.y) > 1) svg.appendChild(sv('path', { d: 'M' + (x0 + 3) + ' ' + e.y + 'L' + (x0 + 9) + ' ' + e.ly, stroke: 'var(--muted)', 'stroke-width': 1, fill: 'none' }));
+      svg.appendChild(sv('text', { x: x0 + 12, y: e.ly + 4, 'font-size': 11.5, fill: 'var(--ink2)' }, state.worlds[e.i].name));
+    });
+    var cx = X(state.year);
+    svg.appendChild(sv('line', { x1: cx, x2: cx, y1: mt, y2: mt + ph, stroke: 'var(--ink2)', 'stroke-width': 1 }));
+    lines.forEach(function (l, i) {
+      var v = l.mid[Math.min(state.year, l.mid.length - 1)];
+      if (!isNaN(v)) svg.appendChild(sv('circle', { cx: cx, cy: Y(v), r: 4, fill: 'var(' + COLORS[i] + ')', stroke: 'var(--surface)', 'stroke-width': 2 }));
+    });
+    var hover = sv('line', { x1: 0, x2: 0, y1: mt, y2: mt + ph, stroke: 'var(--muted)', 'stroke-width': 1, opacity: 0 });
+    svg.appendChild(hover);
+    var hit = sv('rect', { x: ml, y: mt, width: pw, height: ph, fill: 'transparent', style: 'cursor:crosshair' });
+    svg.appendChild(hit);
+    var tip = $('chartTip');
+    tip.style.display = 'none';
+    function yearAt(ev) {
+      var rect = svg.getBoundingClientRect();
+      var px = (ev.clientX - rect.left) * W / rect.width;
+      return Math.max(0, Math.min(years, Math.round((px - ml) / pw * years)));
+    }
+    hit.addEventListener('pointermove', function (ev) {
+      var yr = yearAt(ev), x = X(yr);
+      hover.setAttribute('x1', x); hover.setAttribute('x2', x); hover.setAttribute('opacity', 1);
+      tip.textContent = '';
+      tip.appendChild(el('div', { class: 't', text: yr + '年目・' + m.label }));
+      lines.forEach(function (l, i) {
+        var txt = fmt(m, l.mid[yr]) + (l.lo && !isNaN(l.lo[yr]) ? '（' + fmt(m, l.lo[yr]) + '〜' + fmt(m, l.hi[yr]) + '）' : '');
+        tip.appendChild(el('div', { class: 'row' }, [el('span', { class: 'lk', style: 'background:var(' + COLORS[i] + ')' }), el('strong', { text: txt }), el('span', { text: state.worlds[i].name })]));
+      });
+      tip.style.display = 'block';
+      var rect = svg.getBoundingClientRect(), sx = x * rect.width / W, tw = tip.offsetWidth;
+      tip.style.left = (sx + 14 + tw > rect.width ? sx - 14 - tw : sx + 14) + 'px';
+      tip.style.top = '8px';
+    });
+    hit.addEventListener('pointerleave', function () { tip.style.display = 'none'; hover.setAttribute('opacity', 0); });
+    hit.addEventListener('click', function (ev) { stopPlay(); setYear(yearAt(ev)); });
+    renderTable(m, lines);
+  }
+  function renderTable(m, lines) {
+    var tw = $('tablewrap');
+    tw.hidden = !state.table;
+    if (!state.table) return;
+    tw.textContent = '';
+    var years = state.options.years, step = years <= 30 ? 1 : years <= 100 ? 5 : 10;
+    var head = el('tr', {}, [el('th', { text: '年目' })].concat(state.worlds.map(function (w) { return el('th', { text: w.name }); })));
+    var body = el('tbody');
+    for (var y = 0; y <= years; y += step) {
+      body.appendChild(el('tr', {}, [el('td', { text: String(y) })].concat(lines.map(function (l) {
+        var td = el('td', { text: fmt(m, l.mid[y]) });
+        if (l.lo && !isNaN(l.lo[y])) td.appendChild(el('small', { text: fmt(m, l.lo[y]) + '〜' + fmt(m, l.hi[y]) }));
+        return td;
+      }))));
+    }
+    tw.appendChild(el('table', {}, [el('caption', { class: 'sr', text: m.label }), el('thead', {}, [head]), body]));
+  }
+
+  // ---- 年表 ----
+  function renderEvents() {
+    pressSeg($('filters'), state.filter);
+    var box = $('timelines');
+    var keep = Array.prototype.map.call(box.querySelectorAll('ol'), function (o) { return o.scrollTop; });
+    box.textContent = '';
+    var types = FILTER_TYPES[state.filter] || null;
+    state.runs.forEach(function (run, i) {
+      var list = run.notes.filter(function (n) {
+        if (state.filter === 'main') return n.type !== 'build';
+        return !types || types.indexOf(n.type) >= 0;
+      });
+      var ol = el('ol');
+      list.forEach(function (n) {
+        var cls = (n.type === 'turn' ? 'turn ' : '') + (n.year > state.year ? 'future' : n.year === state.year ? 'now' : '');
+        ol.appendChild(el('li', { class: cls }, [el('button', { type: 'button', onclick: function () { stopPlay(); setYear(n.year); } }, [
+          el('span', { class: 'y', text: n.year + '年' }),
+          el('span', { class: 'tag', text: TYPE_LABELS[n.type] || n.type }),
+          el('span', { text: n.text })
+        ])]));
+      });
+      if (!list.length) ol.appendChild(el('li', {}, [el('span', { class: 'muted', style: 'display:block;padding:6px 4px;font-size:.8rem', text: 'この種類の出来事はありません' })]));
+      box.appendChild(el('div', { class: 'timeline' }, [
+        el('h3', {}, [el('span', { class: 'key', style: '--pc:var(' + COLORS[i] + ');margin-top:0', 'aria-hidden': 'true' }), state.worlds[i].name]),
+        ol
+      ]));
+      if (keep[i]) ol.scrollTop = keep[i];
+    });
+  }
+
+  // ---- 試行のまとめ（別スレッドで計算。使えないときはこの画面で少しずつ） ----
+  function runBatch() {
+    if (state.batchJob) return;
+    stopPlay();
+    var options = M.clone(state.options), worlds = M.clone(state.worlds), n = state.trials, key = batchKey();
+    var digests = worlds.map(function () { return []; });
+    var job = state.batchJob = { cancel: false, worker: null };
+    var done = 0;
+    $('batchRun').disabled = true;
+    $('batchCancel').hidden = false;
+    var prog = $('batchProgress');
+    prog.hidden = false; prog.value = 0;
+    function onTrial(ds) {
+      ds.forEach(function (d, k) { digests[k].push(d); });
+      done++;
+      prog.value = done / n;
+    }
+    function finish(errMsg) {
+      if (job.finished) return;
+      job.finished = true;
+      if (job.worker) job.worker.terminate();
+      state.batchJob = null;
+      $('batchRun').disabled = false;
+      $('batchCancel').hidden = true;
+      prog.hidden = true;
+      if (errMsg) status('試行のまとめを続けられませんでした：' + errMsg);
+      if (done >= 2 && !errMsg) {
+        state.batch = { key: key, trials: done, seedFrom: options.seed, worlds: worlds, options: options, agg: digests.map(function (d) { return M.aggregate(d); }), stale: false };
+        if (batchKey() !== key) state.batch.stale = true;
+        state.chartMode = 'batch';
+      }
+      renderChart(); renderBatch();
+    }
+    job.finish = finish;
+    function runHere() {
+      var i = done;
+      (function chunk() {
+        if (job.cancel) { finish(); return; }
+        var t0 = performance.now();
+        try {
+          while (i < n && performance.now() - t0 < 40) {
+            var opts = Object.assign({}, options, { seed: options.seed + i });
+            onTrial(worlds.map(function (w) { return M.digest(M.simulate(w, opts)); }));
+            i++;
+          }
+        } catch (e) { finish(e.message); return; }
+        if (i < n) setTimeout(chunk, 0); else finish();
+      })();
+    }
+    if (typeof Worker !== 'undefined' && location.protocol !== 'file:') {
+      try {
+        var wk = job.worker = new Worker('worker.js');
+        wk.onmessage = function (e) {
+          if (e.data.type === 'trial') onTrial(e.data.digests);
+          else if (e.data.type === 'done') finish();
+          else if (e.data.type === 'error') finish(e.data.message);
+        };
+        wk.onerror = function (e) { e.preventDefault(); wk.terminate(); job.worker = null; runHere(); };
+        wk.postMessage({ worlds: worlds, options: options, seedFrom: options.seed, trials: n });
+        return;
+      } catch (e) { job.worker = null; }
+    }
+    runHere();
+  }
+  function cancelBatch() {
+    var job = state.batchJob;
+    if (!job) return;
+    job.cancel = true;
+    if (job.worker) job.finish();
+  }
+
+  function summaryRows() {
+    var b = state.batch;
+    var rows = [
+      { k: 'firstShortage', label: '最初の食料不足', kind: 'year' },
+      { k: 'shortageYears', label: '食料が足りなかった年の数', kind: 'value', unit: '年' },
+      { k: 'minCoverage', label: '最も低かった食料の充足', kind: 'value', unit: '％', digits: 1 },
+      { k: 'low:grazers', label: '小魚などが開始時の10％未満', kind: 'year' },
+      { k: 'low:predators', label: '捕食者が開始時の10％未満', kind: 'year' },
+      { k: 'low:forest', label: '森が開始時の50％未満', kind: 'year' },
+      { k: 'low:land', label: '陸上の食用植物が開始時の50％未満', kind: 'year' },
+      { k: 'low:tide', label: '潮麦が開始時の30％未満', kind: 'year', feature: 'tidal_crop' },
+      { k: 'ev:oreC', label: '鉱山の島の鉱石を掘り尽くす', kind: 'year' },
+      { k: 'ev:tideStorm', label: '転機：潮麦に頼っていたところへ嵐', kind: 'year', feature: 'tidal_crop' },
+      { k: 'ev:shellOut', label: '転機：軽殻石を掘り尽くす', kind: 'year', feature: 'special_material' }
+    ];
+    if (b.options.population === 'dynamic') {
+      rows.push({ k: 'firstMigration', label: '最初の移住', kind: 'year' });
+      M.TECHS.forEach(function (t) { rows.push({ k: 'tech:' + t.id, label: t.name, kind: 'year' }); });
+      rows.push({ k: 'finalPopulation', label: '最後の年の人口', kind: 'value', unit: '人' });
+    }
+    if (b.options.storm) rows.push({ k: 'stormShips', label: '共通の嵐で沈んだ船', kind: 'value', unit: '隻' });
+    rows.push({ k: 'finalShips', label: '最後の年の船', kind: 'value', unit: '隻' });
+    rows.push({ k: 'finalForest', label: '最後の年の森（開始時を100）', kind: 'value', unit: '', digits: 1 });
+    rows.push({ k: 'finalGrazers', label: '最後の年の小魚など（開始時を100）', kind: 'value', unit: '', digits: 1 });
+    return rows;
+  }
+  function renderBatch() {
+    $('batchStale').hidden = !(state.batch && state.batch.stale);
+    var box = $('batchResult');
+    box.textContent = '';
+    var b = state.batch;
+    if (!b) return;
+    var head = el('tr', {}, [el('th', { text: '種 ' + b.seedFrom + '〜' + (b.seedFrom + b.trials - 1) + '（' + b.trials + '回・' + b.options.years + '年）' })]
+      .concat(b.worlds.map(function (w, i) { return el('th', {}, [el('span', { class: 'lk', style: 'background:var(' + COLORS[i] + ');margin-right:6px;vertical-align:middle' }), w.name]); })));
+    var body = el('tbody');
+    summaryRows().forEach(function (row) {
+      if (row.feature && !b.worlds.some(function (w) { return w[row.feature]; })) return;
+      body.appendChild(el('tr', {}, [el('td', { text: row.label })].concat(b.worlds.map(function (w, i) {
+        if (row.feature && !w[row.feature]) return el('td', { class: 'muted', text: '—' });
+        return summaryCell(row, b.agg[i].milestones[row.k]);
+      }))));
+    });
+    box.appendChild(el('div', { class: 'tablewrap', style: 'max-height:none' }, [el('table', {}, [el('thead', {}, [head]), body])]));
+    box.appendChild(el('p', { class: 'note', text: '「何％の試行で起きたか・起きた年の中央値（10〜90％の範囲）」。100％に近いものほど、偶然ではなく条件から繰り返し起きる傾向です。' }));
+  }
+  function summaryCell(row, m) {
+    var f = row.digits ? NF1 : NF;
+    if (row.kind === 'year') {
+      if (!m || !m.n) return el('td', { class: 'muted', text: '起きなかった' });
+      var td = el('td', { text: NF.format(m.share * 100) + '％・' + NF.format(m.p50) + '年目' });
+      if (m.n > 1) td.appendChild(el('small', { text: NF.format(m.p10) + '〜' + NF.format(m.p90) }));
+      return td;
+    }
+    if (!m || !m.n) return el('td', { class: 'muted', text: '—' });
+    var td2 = el('td', { text: f.format(m.p50) + row.unit });
+    td2.appendChild(el('small', { text: f.format(m.p10) + '〜' + f.format(m.p90) }));
+    return td2;
+  }
+
+  // ---- 設定 ----
+  var uid = 0;
+  function paramRow(spec, value, def, onChange) {
+    var id = 'p' + (++uid);
+    var input = el('input', { id: id, type: 'number', min: spec[3], max: spec[4], step: spec[5], value: value });
+    var row = el('div', { class: 'prow' + (value !== def ? ' changed' : '') }, [el('label', { for: id, text: spec[1] }), input, el('small', { text: (spec[2] ? spec[2] + '・' : '') + '初期値 ' + def })]);
+    input.addEventListener('change', function () {
+      var v = +this.value;
+      if (this.value === '' || !isFinite(v)) v = value;
+      v = Math.max(spec[3], Math.min(spec[4], v));
+      this.value = v;
+      value = v;
+      row.classList.toggle('changed', v !== def);
+      onChange(v);
+    });
+    return row;
+  }
+  function textRow(label, value, max, onChange) {
+    var id = 'p' + (++uid);
+    var input = el('input', { id: id, type: 'text', maxlength: max, value: value });
+    input.addEventListener('change', function () { onChange(this.value); });
+    return el('div', { class: 'prow wide' }, [el('label', { for: id, text: label }), input]);
+  }
+  function renderSettings() {
+    var box = $('settings');
+    box.textContent = '';
+    var d = M.normalizeOptions({});
+    state.worlds.forEach(function (w, i) {
+      var def = M.WORLDS[i];
+      var fs = el('fieldset', {}, [el('legend', {}, [el('span', { class: 'lk', style: 'background:var(' + COLORS[i] + ')' }), w.name])]);
+      fs.appendChild(textRow('名前', w.name, 24, function (v) { if (v.trim()) { w.name = v.trim(); renderSettings(); recompute(); } }));
+      fs.appendChild(textRow('説明', w.subtitle, 80, function (v) { w.subtitle = v; recompute(); }));
+      var specs = w.tidal_crop ? WORLD_SPECS.biology : w.special_material ? WORLD_SPECS.material : [];
+      specs.forEach(function (spec) { fs.appendChild(paramRow(spec, w.params[spec[0]], def.params[spec[0]], function (v) { w.params[spec[0]] = v; recomputeSoon(); })); });
+      if (!specs.length) fs.appendChild(el('p', { class: 'note', text: '特別な生物・素材はありません。ほかの2つの星と比べる基準です。' }));
+      box.appendChild(fs);
+    });
+    var eco = el('fieldset', {}, [el('legend', { text: '生態系の係数（3つの星で共通）' })]);
+    ECO_SPECS.forEach(function (spec) { eco.appendChild(paramRow(spec, getPath(state.options.eco, spec[0]), getPath(d.eco, spec[0]), function (v) { setPath(state.options.eco, spec[0], v); recomputeSoon(); })); });
+    box.appendChild(eco);
+    var dem = el('fieldset', {}, [el('legend', { text: '人口・移住・技術の係数（拡張のみ）' })]);
+    DEMO_SPECS.forEach(function (spec) { dem.appendChild(paramRow(spec, state.options.demography[spec[0]], d.demography[spec[0]], function (v) { state.options.demography[spec[0]] = v; recomputeSoon(); })); });
+    box.appendChild(dem);
+  }
+
+  // ---- 保存した条件 ----
+  function saveNamed() {
+    var name = $('saveName').value.trim();
+    if (!name) { status('名前を入れてください。'); $('saveName').focus(); return; }
+    var s = storeRead();
+    s.saved = s.saved || {};
+    s.saved[name] = { at: new Date().toISOString(), file: scenarioFile() };
+    if (storeWrite(s)) { status('「' + name + '」を保存しました。'); $('saveName').value = ''; }
+    else status('このブラウザでは保存できませんでした。「条件を書き出す」でファイルに保存してください。');
+    renderSaves();
+  }
+  function renderSaves() {
+    var ul = $('saves');
+    ul.textContent = '';
+    var saved = storeRead().saved || {};
+    var names = Object.keys(saved).sort(function (a, b) { return String(saved[b].at).localeCompare(String(saved[a].at)); });
+    if (!names.length) { ul.appendChild(el('li', {}, [el('span', { class: 'muted', text: 'まだありません' })])); return; }
+    names.forEach(function (name) {
+      ul.appendChild(el('li', {}, [
+        el('span', { text: name, title: name }),
+        el('button', { type: 'button', text: '開く', onclick: function () {
+          try { applyScenarioFile(saved[name].file); writeControls(); fillMetricOptions(); renderSettings(); recompute(); status('「' + name + '」を開きました。'); }
+          catch (e) { status('開けませんでした：' + e.message); }
+        } }),
+        el('button', { type: 'button', text: '削除', 'aria-label': name + 'を削除', onclick: function () {
+          if (!confirm('「' + name + '」を削除しますか？')) return;
+          var s = storeRead(); if (s.saved) delete s.saved[name]; storeWrite(s); renderSaves();
+        } })
+      ]));
+    });
+  }
+
+  // ---- 書き出し ----
+  function stamp() {
+    var d = new Date();
+    function z(n) { return (n < 10 ? '0' : '') + n; }
+    var o = state.options;
+    return d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '-' + z(d.getHours()) + z(d.getMinutes()) + '-' + o.policy + '-' + (o.population === 'dynamic' ? 'dyn' : 'fixed') + '-seed' + o.seed;
+  }
+  function download(name, text, type) {
+    var blob = new Blob([type === 'text/csv' ? '﻿' + text : text], { type: type + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = el('a', { href: url, download: name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+  function status(msg) { $('ioStatus').textContent = msg; }
+  function exportData() {
+    var out = {
+      version: M.VERSION, status: '生態系から開始する未校正のルールモデル。AI判断・進化予測ではありません。',
+      options: M.clone(state.options), islands: M.ISLANDS, worlds: M.clone(state.worlds), policies: M.POLICIES,
+      runs: {}
+    };
+    state.runs.forEach(function (run, i) { out.runs[state.worlds[i].id] = { records: run.records, notes: run.notes }; });
+    download('heikou-data-' + stamp() + '.json', JSON.stringify(out), 'application/json');
+    status('計算データを書き出しました（records は v0.2 の simulation-data.json と同じ形）。');
+  }
+  function exportBlender() {
+    var out = M.blenderExport(state.runs, state.worlds, state.options);
+    download('heikou-blender-' + stamp() + '.json', JSON.stringify(out), 'application/json');
+    status('Blender用 JSON を書き出しました（3つの星・' + (state.options.years + 1) + '年分）。');
+  }
+  function csvCell(v) { var s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+  function csvWorlds() {
+    var rows = [['world', 'year', 'coverage', 'population', 'ships', 'transported', 'produced_food', 'food_tide', 'food_grazers', 'food_land', 'storm', 'knowledge'].concat(M.POOLS.map(function (p) { return 'index_' + p; }), M.POOLS.map(function (p) { return 'amount_' + p; }))];
+    state.runs.forEach(function (run, i) {
+      run.records.forEach(function (r) {
+        var fsrc = r.food_sources || {};
+        rows.push([state.worlds[i].name, r.year, r.coverage, r.population, r.ships, r.transported, r.produced_food, fsrc.tide, fsrc.grazers, fsrc.land, r.storm, r.knowledge]
+          .concat(M.POOLS.map(function (p) { return r.ecology_index[p]; }), M.POOLS.map(function (p) { return r.ecology[p]; })));
+      });
+    });
+    return rows.map(function (r) { return r.map(csvCell).join(','); }).join('\n');
+  }
+  function csvIslands() {
+    var rows = [['world', 'year', 'island', 'population', 'coverage', 'ships', 'stock_food', 'stock_wood', 'stock_ore', 'stock_shell', 'deposit_ore', 'deposit_shell'].concat(M.POOLS.map(function (p) { return 'index_' + p; }))];
+    state.runs.forEach(function (run, i) {
+      run.records.forEach(function (r) {
+        r.islands.forEach(function (s) {
+          rows.push([state.worlds[i].name, r.year, s.id, s.population, s.coverage, s.ships, s.stock.food, s.stock.wood, s.stock.ore, s.stock.shell, s.deposits.ore, s.deposits.shell]
+            .concat(M.POOLS.map(function (p) { return s.ecology_index[p]; })));
+        });
+      });
+    });
+    return rows.map(function (r) { return r.map(csvCell).join(','); }).join('\n');
+  }
+  function copyYear() {
+    var y = state.year, o = state.options;
+    var lines = [y + '年目（' + M.POLICIES[o.policy].name + '・' + (o.storm ? o.stormYear + '年目に共通の嵐' : '共通の嵐なし') + '・種 ' + o.seed + '・' + (o.population === 'dynamic' ? '人口・移住・技術あり' : '人口固定') + '）'];
+    state.runs.forEach(function (run, i) {
+      var r = recAt(run), w = state.worlds[i];
+      lines.push('');
+      lines.push('■' + w.name + '：食料の充足' + (r.year ? covText(r.coverage) : '—') + '・人口' + NF.format(r.population) + '人・船' + r.ships + '隻');
+      lines.push('　開始時を100として：森' + idxText(r.ecology_index.forest) + '・小魚など' + idxText(r.ecology_index.grazers) + '・捕食者' + idxText(r.ecology_index.predators) + '・藻類' + idxText(r.ecology_index.algae) + (w.tidal_crop ? '・潮麦' + idxText(r.ecology_index.tide) : ''));
+      run.notes.filter(function (n) { return n.year === y; }).forEach(function (n) { lines.push('　・' + n.text); });
+    });
+    var text = lines.join('\n');
+    function fallback() {
+      var ta = el('textarea', { style: 'position:fixed;left:-9999px' });
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ta.remove();
+      status(ok ? y + '年目の比較をコピーしました。' : 'コピーできませんでした。');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { status(y + '年目の比較をコピーしました。'); }, fallback);
+    else fallback();
+  }
+
+  function renderAll() { renderYear(); renderCards(); renderChart(); renderEvents(); renderBatch(); writeControls(); }
+
+  restore();
+  buildControls();
+  writeControls();
+  fillMetricOptions();
+  renderSettings();
+  renderSaves();
+  recompute();
+})();
+</script>
+</body>
+</html>
