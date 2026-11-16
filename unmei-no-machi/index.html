@@ -971,7 +971,7 @@ function decodeAns(str) {
 }
 // シェアのリンクは町ごとのページ（m/町のコード/）。Xはそこの画像を読み、人が開くとすぐゲームに移る
 const shareURL = r => `${CONFIG.URL}m/${DATA.C[r.t3[0]]}/?f=${encodeAns(r.ans)}`;
-function shareText(r) { const i = r.t3[0], tag = '#' + NAMES[i].replace(/[^\p{L}\p{N}_]/gu, ''); return `わたしの運命の町は【${fullName(i)}】でした。あなたは？\n${CONFIG.TAG} ${tag}`; }
+function shareText(r) { const i = r.t3[0], tag = '#' + NAMES[i].replace(/[^\p{L}\p{N}_]/gu, ''); return `わたしの運命の町は【${fullName(i)}】でした。あなたは？\n${CONFIG.TAG} ${tag}\n作者→@${CONFIG.FOLLOW_X}`; }
 // 友だちの結果（リンクで開いた時）
 let FRIEND = null;
 try { const a = decodeAns(new URLSearchParams(location.search).get('f')); if (a) { const k = ranking(a); FRIEND = { i: top3(k)[0], type: typeOf(k.p) }; } } catch (e) {}
