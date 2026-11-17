@@ -58,6 +58,10 @@ button.xbtn{background:#000;color:#fff;box-shadow:0 5px 0 #444,0 8px 18px rgba(0
 .fbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #333}
 @media (max-width:420px){.follow{gap:8px;padding:6px 6px 6px 12px}.follow .fs{display:none}.follow .fl{font-size:13px}.fbtn{font-size:12px;padding:8px 10px}}
 @media (max-height:560px){.follow{padding:4px 6px 4px 12px}.follow .fs{display:none}}
+/* 作者を応援する（結果画面だけ。OFUSEのページを新しいタブで開く。.fbtnにするとフォローのリンクで上書きされるので別の名前） */
+.tbtn{flex-shrink:0;display:inline-block;padding:8px 12px;border-radius:999px;background:linear-gradient(#ffe08a,#ffb53c);color:#3a1a08;font-size:13px;font-weight:800;text-decoration:none;box-shadow:0 3px 0 #a8580f;white-space:nowrap}
+.tbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #a8580f}
+@media (max-width:420px){.tbtn{font-size:12px;padding:8px 10px}}
 #mute{position:fixed;z-index:6;right:10px;top:calc(10px + var(--st));width:42px;height:42px;padding:0;border-radius:50%;font-size:18px;background:rgba(0,0,0,.35);color:#fff;box-shadow:none}
 /* Sorotta のお知らせ（ページを開いた時に1回だけ。×ですぐ閉じられる） */
 #promo{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:calc(14px + var(--st)) 14px 14px;box-sizing:border-box;background:rgba(10,6,3,.6);animation:pmFade .2s ease-out}
@@ -110,6 +114,7 @@ button.xbtn{background:#000;color:#fff;box-shadow:0 5px 0 #444,0 8px 18px rgba(0
   <div class="row share"><button id="postBtn" class="xbtn">𝕏 結果をポスト</button><button id="saveBtn" class="sub">画像を保存</button></div>
   <div class="row"><button id="retryBtn">もう一回</button><button class="sub" id="titleBtn">タイトルへ</button></div>
   <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
+  <div class="follow tip" id="tipCard"><div><p class="fl">作者を応援する</p><p class="fs">100円から送れます</p></div><a class="tbtn" id="tipBtn" target="_blank" rel="noopener" data-google-vignette="false">☕ 応援する</a></div>
 </div>
 <button id="mute" aria-label="音のオンオフ">🔊</button>
 <div id="promo" class="hidden" role="dialog" aria-modal="true" aria-label="アプリ Sorotta のお知らせ">
@@ -178,6 +183,7 @@ const CONFIG = {
   TAP_SEP: 0.26, MAX_TAPS: 3, MIN_GAP: 0.95,                                       // MIN_GAP:マークどうしの最小の距離                                                       // 押す攻撃どうしの最小の間（秒）・同時に出る数
   BGM_VOL: 0.5,
   FOLLOW_X: 'vyaPudzd1E54661',                    // 「作者をフォロー」ボタンのXアカウント
+  TIP_URL: 'https://ofuse.me/nkworks_games',      // 「作者を応援する」ボタンの行き先（OFUSEのページ。空なら出さない）
   URL: 'https://nkworks-games.com/akeraremasen/', TAG: 'どこからでも開けられません', SNAP_T: 0.6, // シェア：ゲームのURL・ハッシュタグ・結果画像に使う場面（終わってから何秒後）
   SOROTTA: { URL: 'https://apps.apple.com/jp/app/sorotta-%E6%8C%81%E3%81%A1%E7%89%A9%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF/id6830588408', ICON: '', SHOT: '/assets/sorotta-widget.webp', ONLY_APPLE: true }, // Sorottaのお知らせ。URL：App Storeのリンク（空なら出さない）／ICON：アイコン画像（空なら仮の絵）／SHOT：アプリの画面の写真／ONLY_APPLE：iPhone・iPad・Macの人だけに出す
 };
@@ -1119,6 +1125,7 @@ $('promo').addEventListener('click',e=>{ if(e.target.id==='promo') closePromo();
 addEventListener('keydown',e=>{ if(e.key==='Escape') closePromo(); });
 initPromo();
 document.querySelectorAll('.fbtn').forEach(a=>{ a.href='https://x.com/intent/follow?screen_name='+CONFIG.FOLLOW_X; a.textContent='𝕏 @'+CONFIG.FOLLOW_X; });
+if(CONFIG.TIP_URL) $('tipBtn').href=CONFIG.TIP_URL; else $('tipCard').classList.add('hidden');
 resize(); requestAnimationFrame(frame);
 
 // ===== [SEC:TEST] =====
