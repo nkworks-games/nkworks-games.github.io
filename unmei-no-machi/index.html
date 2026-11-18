@@ -153,33 +153,20 @@ a.btn{text-decoration:none}
 #ad-banner{width:100%;height:var(--ad-h);max-height:var(--ad-h);overflow:hidden;display:flex;align-items:center;justify-content:center;contain:layout paint}
 #ad-banner ins{max-height:var(--ad-h)!important;overflow:hidden}
 #ad-banner ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important}
-/* Sorotta の宣伝①：ページを開いた時に1回だけ。×ですぐ閉じられる */
-#promo{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:calc(14px + var(--sat)) 14px 14px;box-sizing:border-box;background:rgba(10,4,2,.6);animation:pmFade .2s ease-out}
+/* アプリの宣伝①：ページを開いた時に1回だけ。×ですぐ閉じられる。宣伝の画像そのものを押すと App Store へ */
+#promo{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:calc(14px + env(safe-area-inset-top, 0px)) 14px 14px;box-sizing:border-box;background:rgba(10,4,2,.6);animation:pmFade .2s ease-out}
 #promo.on{display:flex}
-#promo .pcard{position:relative;display:grid;grid-template-areas:"pr" "shot" "body";justify-items:center;width:min(330px,100%);max-height:100%;overflow-y:auto;box-sizing:border-box;background:#fbf8f3;color:#2a2622;border-radius:22px;padding:18px 20px 14px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.45);animation:pmPop .28s cubic-bezier(.2,1.3,.4,1)}
+#promo .pcard{position:relative;display:flex;flex-direction:column;align-items:center;max-height:100%;box-sizing:border-box;background:#fbf8f3;color:#2a2622;border-radius:20px;padding:8px 8px 10px;box-shadow:0 18px 50px rgba(0,0,0,.45);animation:pmPop .28s cubic-bezier(.2,1.3,.4,1)}
 #promo p{margin:0}
-#promo .pr{grid-area:pr;font-size:11px;font-weight:700;color:#7a7065;margin-bottom:10px}
+#promo .pr{font-size:11px;font-weight:700;color:#7a7065;margin:2px 0 6px}
 #promo .pr b,.resAd .ra1 b{margin-right:6px;padding:1px 6px;border:1px solid #b9ae9f;border-radius:4px;font-size:10px}
-#promo .pshot{grid-area:shot;display:block;width:min(230px,100%);height:auto;margin-bottom:12px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.28))}
-#promo .pbody{grid-area:body;width:100%}
-#promo .phead{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;text-align:left}
-#promo .picon{display:block;width:46px;height:46px;border-radius:11px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
-#promo .pname{font-size:22px;font-weight:900;line-height:1.15}
-#promo .psub{font-size:12px;color:#6b6258}
-#promo .ptext{margin-bottom:14px;font-size:14px;line-height:1.6}
-#promo .pbtn{display:block;padding:13px 10px;border-radius:999px;background:#111;color:#fff;font-size:16px;font-weight:800;text-align:center;text-decoration:none}
-#promo .pbtn:active{transform:translateY(2px)}
-#promo .pnote{margin-top:8px;font-size:11px;color:#8a8076;text-align:center}
-#promoX{position:absolute;z-index:1;right:8px;top:8px;width:40px;height:40px;padding:0;border:none;border-radius:50%;background:rgba(0,0,0,.08);color:#4a443e;font:inherit;font-size:22px;line-height:40px;cursor:pointer}
-#promoX:active{background:rgba(0,0,0,.16)}
+#promo .pshot{display:block;width:auto;height:auto;max-width:min(330px,calc(100vw - 44px));max-height:calc(100vh - 90px - env(safe-area-inset-top, 0px));max-height:calc(100dvh - 90px - env(safe-area-inset-top, 0px));border-radius:12px}
+#promo a:active .pshot{transform:scale(.98)}
+#promoX{position:absolute;z-index:1;right:-10px;top:-10px;width:38px;height:38px;padding:0;border:none;border-radius:50%;background:#fbf8f3;color:#4a443e;font:inherit;font-size:21px;line-height:38px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)} /* カードの角の外に出して、文字や画像にかぶらないように */
+#promoX:active{background:#e8e1d6}
 @keyframes pmFade{from{opacity:0}} @keyframes pmPop{from{transform:scale(.88);opacity:0}}
-@media (orientation:portrait) and (max-height:680px){ #promo .pshot{width:180px;margin-bottom:8px} #promo .pr{margin-bottom:6px} }
-@media (orientation:landscape) and (max-height:560px){ /* 横向き：左に画面の写真、右に説明 */
-  #promo .pcard{grid-template-areas:"shot ." "shot pr" "shot body" "shot .";grid-template-columns:auto 1fr;grid-template-rows:1fr auto auto 1fr;column-gap:18px;justify-items:start;width:min(560px,100%);padding:12px 18px;text-align:left}
-  #promo .pshot{width:auto;height:230px;height:min(230px,calc(100dvh - 60px));margin:0}
-  #promo .pr{margin-bottom:6px} #promo .phead{justify-content:flex-start;margin-bottom:4px} #promo .picon{width:38px;height:38px;border-radius:9px}
-  #promo .pname{font-size:19px} #promo .ptext{font-size:12px;line-height:1.5;margin-bottom:8px} #promo .ptext br{display:none} #promo .pbtn{padding:9px 10px;font-size:14px} #promo .pnote{margin-top:4px} }
-/* Sorotta の宣伝②：結果画面のいちばん下に小さく */
+@media (max-height:560px){ #promo .pr span{display:none} } /* 横向きはカードが細いので「PR」だけ */
+/* アプリの宣伝②：結果画面のいちばん下に小さく */
 .resAd{display:none;align-items:center;gap:10px;width:100%;max-width:360px;box-sizing:border-box;margin-top:4px;padding:6px 8px 6px 8px;background:#fbf8f3;color:#2a2622;border-radius:12px;text-align:left;text-decoration:none;flex-shrink:0}
 .resAd.on{display:flex}
 .resAd img{width:34px;height:34px;border-radius:8px;flex-shrink:0}
@@ -246,17 +233,11 @@ a.btn{text-decoration:none}
   </div>
   <div id="err" class="hide"></div>
 </div>
-<div id="promo" role="dialog" aria-modal="true" aria-label="アプリ Sorotta のお知らせ">
+<div id="promo" role="dialog" aria-modal="true" aria-label="アプリ 一画一会 のお知らせ">
   <div class="pcard">
     <button id="promoX" aria-label="閉じる">×</button>
-    <p class="pr"><b>PR</b>N.K. Works のアプリ</p>
-    <img class="pshot" id="promoShot" alt="Sorotta のウィジェット画面" width="560" height="583">
-    <div class="pbody">
-      <div class="phead"><img class="picon" id="promoIcon" alt="" width="46" height="46"><div><p class="pname">Sorotta</p><p class="psub">持ち物チェック</p></div></div>
-      <p class="ptext">曜日ごとの持ち物を登録すると、<br>前の晩や朝に通知でお知らせ。<br>ウィジェットでそのままチェック。</p>
-      <a class="pbtn" id="promoGo" target="_blank" rel="noopener" data-google-vignette="false">App Store で見る</a>
-      <p class="pnote">基本無料 ・ iPhone / iPad</p>
-    </div>
+    <p class="pr"><b>PR</b><span>N.K. Works のアプリ</span></p>
+    <a id="promoGo" target="_blank" rel="noopener" data-google-vignette="false"><img class="pshot" id="promoShot" alt="一画一会：部品を組み合わせて、漢字をつくるパズル。App Store で無料" width="720" height="1280"></a>
   </div>
 </div>
 <!-- 広告の帯（ゲームとの間は75pxあける）。広告が出ない時も帯の高さはそのまま。ゲームの操作は この帯の上では反応しない -->
@@ -275,8 +256,8 @@ const CONFIG = {
   URL: 'https://nkworks-games.com/unmei-no-machi/',
   TAG: '#運命の町当てます',
   FOLLOW_X: 'vyaPudzd1E54661',          // 「作者をフォロー」ボタンのXアカウント（タイトルと結果画面）
+  APP_AD: { NAME: '一画一会', URL: 'https://apps.apple.com/jp/app/%E4%B8%80%E7%94%BB%E4%B8%80%E4%BC%9A/id6815909260', SHOT: '/assets/ikkaku-ichie-ad.webp', ICON: '/assets/ikkaku-ichie-icon.webp', ONLY_APPLE: true }, // 自分のアプリの宣伝（開いた時のカードと結果画面の下）。URLを '' にすると出さない
   TIP_URL: 'https://ofuse.me/nkworks_games',  // 「作者を応援する」ボタンの行き先（OFUSEのページ。結果画面だけ。空なら出さない）
-  SOROTTA: { URL: 'https://apps.apple.com/jp/app/sorotta-%E6%8C%81%E3%81%A1%E7%89%A9%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF/id6830588408', ICON: '', SHOT: '/assets/sorotta-widget.webp', ONLY_APPLE: true }, // Sorotta の宣伝（開いた時のカードと結果画面の下）。URLを '' にすると両方出なくなる
   AD_ON: false,                          // AdSenseの審査が通ったら true（ほかの作品と同じく今は止めてある）
   AD_H: 60, AD_GAP: 75,                  // バナーの高さ・ゲームとの間(px)
   AD_CLIENT: 'ca-pub-2073267239630350', AD_SLOT: '6261635446',
@@ -1176,17 +1157,16 @@ async function prepareImage(r) {
 }
 
 // ===== [SEC:PROMO] =====
-// Sorotta の宣伝：①ページを開いた時に1回だけ出るカード（×ですぐ閉じられる。「もう一度やる」では出ない）②結果画面のいちばん下に小さく
-// iPhone・iPad・Mac だけに出す（ほかの作品と同じ）。広告会社の広告に入れかえる時は、ここと #promo の中身を差しかえる
-const PROMO_ICON = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#3d5a66"/><path d="M38 38q0-14 12-14t12 14" fill="none" stroke="#f4ead8" stroke-width="5" stroke-linecap="round"/><path d="M24 36h52l-5 44H29z" fill="#f4ead8"/><path d="M38 58l9 9 16-18" fill="none" stroke="#e2a33b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>');
-const PROMO_OK = !!(CONFIG.SOROTTA.URL && (!CONFIG.SOROTTA.ONLY_APPLE || /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent))) && !location.search.includes('card=1');
+// 自分のアプリ（今は 一画一会）の宣伝：①ページを開いた時に1回だけ出るカード（×ですぐ閉じられる。「もう一度やる」では出ない）②結果画面のいちばん下に小さく
+// iPhone・iPad・Mac だけに出す（ほかの作品と同じ）。別のアプリに入れかえる時は、CONFIG.APP_AD と resAdHTML の文を差しかえる
+const PROMO_OK = !!(CONFIG.APP_AD.URL && (!CONFIG.APP_AD.ONLY_APPLE || /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent))) && !location.search.includes('card=1');
 function resAdHTML() {
-  if (!PROMO_OK) return ''; const c = CONFIG.SOROTTA;
-  return `<a class="resAd on" target="_blank" rel="noopener" data-google-vignette="false" href="${c.URL}"><img src="${c.ICON || PROMO_ICON}" alt="" width="34" height="34"><div><p class="ra1"><b>PR</b>Sorotta｜持ち物チェック</p><p class="ra2">曜日ごとの持ち物を通知でお知らせ・基本無料</p></div><span class="raBtn">App Store</span></a>`;
+  if (!PROMO_OK) return ''; const c = CONFIG.APP_AD;
+  return `<a class="resAd on" target="_blank" rel="noopener" data-google-vignette="false" href="${c.URL}"><img src="${c.ICON}" alt="" width="34" height="34"><div><p class="ra1"><b>PR</b>一画一会｜漢字をつくるパズル</p><p class="ra2">部品を組み合わせて漢字をつくる・無料</p></div><span class="raBtn">App Store</span></a>`;
 }
 function initPromo() {
-  if (!PROMO_OK) return; const c = CONFIG.SOROTTA, icon = c.ICON || PROMO_ICON;
-  $('promoIcon').src = icon; $('promoShot').src = c.SHOT; $('promoGo').href = c.URL; $('promo').classList.add('on');
+  if (!PROMO_OK) return; const c = CONFIG.APP_AD;
+  $('promoShot').src = c.SHOT; $('promoGo').href = c.URL; $('promo').classList.add('on');
 }
 const closePromo = () => $('promo').classList.remove('on');
 $('promoX').onclick = closePromo; $('promoGo').addEventListener('click', () => setTimeout(closePromo, 300));
