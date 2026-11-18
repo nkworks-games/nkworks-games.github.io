@@ -29,7 +29,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0c1220;color:#fff;f
 #tries{display:flex;gap:6px;flex:1;min-width:0}
 #tries .chip{flex:0 1 auto;overflow:hidden}
 #tries .chip.now{outline:2px solid #ffd400}
-#mute{pointer-events:auto;border:0;background:rgba(10,16,30,.72);color:#fff;border-radius:6px;width:38px;height:34px;font-size:16px}
+#mute,#menuBtn{pointer-events:auto;border:0;background:rgba(10,16,30,.72);color:#fff;border-radius:6px;width:38px;height:34px;font-size:16px}
 #row2{position:absolute;top:calc(50px + env(safe-area-inset-top));left:10px;right:10px;display:flex;gap:8px;align-items:center}
 #mini{position:relative;flex:1;height:6px;margin:0 8px 0 6px;background:rgba(10,16,30,.6);border-radius:3px}
 #miniPit{position:absolute;top:0;bottom:0;background:#d9c59a;border-radius:0 3px 3px 0}
@@ -109,6 +109,11 @@ button.link{pointer-events:auto;border:0;background:none;color:#cfd8ea;text-deco
 .sup[data-k="ofuse"] .go{background:#ffd400}
 @media (orientation:landscape){#result .sups{flex-direction:row}#result .sup{flex:1}}
 @media (max-height:480px){.screen{padding:6px}#resBest{font-size:40px}#resTitle{font-size:16px;margin:0 0 6px}#resTable{margin-bottom:6px}#resTable td{padding:3px 8px;font-size:12px}#resTable td.d{font-size:14px}#resNote{font-size:12px;margin-bottom:6px}.sups{margin-top:8px}.sup{padding:6px 8px 6px 12px}button.link{margin-top:6px}#result .card{width:min(94vw,640px)}#result button.big{padding:8px 26px;font-size:17px}}
+#menuBtn{font-size:20px;font-weight:900;line-height:1}
+#menu{background:rgba(6,10,20,.84)}
+.mbtns{display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:4px}.mbtns button.big{min-width:230px}
+.mnote{font-size:12px;color:#aab4c8;margin-top:14px}
+.links{display:flex;gap:22px;justify-content:center}
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0c1220;font-weight:800}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
@@ -116,7 +121,7 @@ button.link{pointer-events:auto;border:0;background:none;color:#cfd8ea;text-deco
 <body>
 <canvas id="c"></canvas>
 <div id="hud" class="hidden">
-  <div id="topbar"><div id="tries"></div><button id="mute" aria-label="音">🔊</button></div>
+  <div id="topbar"><div id="tries"></div><button id="mute" aria-label="音">🔊</button><button id="menuBtn" aria-label="メニュー">≡</button></div>
   <div id="row2"><div class="chip" id="wind"></div><div class="chip" id="speed"><div id="speedFill"></div><div id="speedTxt"></div></div><div id="mini"><div id="miniPit"></div><div id="miniBoard"></div><div id="miniDot"></div></div></div>
   <div id="judge"></div>
   <div id="gauge" class="hidden"><div id="alignTxt"></div><div id="gZone"></div><div id="gLast"></div><div id="gNeedle"></div><div id="gTarget"></div><span class="gl">早い＝歩幅せまい</span><span class="gr">遅い＝歩幅ひろい</span></div>
@@ -144,7 +149,13 @@ button.link{pointer-events:auto;border:0;background:none;color:#cfd8ea;text-deco
   <div id="resNote"></div>
   <div class="btns"><button class="big" id="shareBtn">Xに投稿</button><button class="big sub" id="retryBtn">もう一度</button></div>
   <div class="sups"><a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a><a class="sup" data-k="ofuse" target="_blank" rel="noopener"><span class="t"><b>作者を応援する</b><small>100円から送れます</small></span><span class="go">☕ 応援する</span></a></div>
-  <button class="link" id="helpBtn2">あそび方を見る</button>
+  <div class="links"><button class="link" id="homeBtn2">タイトルへ</button><button class="link" id="helpBtn2">あそび方を見る</button></div>
+</div></div>
+<div id="menu" class="screen hidden"><div class="card">
+  <div class="kicker">一時停止中</div>
+  <h2>メニュー</h2>
+  <div class="mbtns"><button class="big" id="mResume">つづける</button><button class="big sub" id="mHelp">あそび方</button><button class="big sub" id="mHome">タイトルに戻る</button></div>
+  <p class="mnote">タイトルに戻ると、この回の記録は残りません。</p>
 </div></div>
 <div id="help" class="screen hidden"><div class="card">
   <button id="helpClose" aria-label="とじる">✕</button>
@@ -441,7 +452,7 @@ const SFX = {
 
 // ===== [SEC:STATE] =====
 let state = 'load', manual = false, paused = false;
-const G = { helpOpen: false, resultAt: 0, time: 0, seed: 1, rng: mulberry32(1), idx: 0, results: [], at: null, best: 0, aspect: 1, down: new Set(), ptrs: {}, kUp: false, kDown: false, touch: window.matchMedia && window.matchMedia('(pointer: coarse)').matches, lastStamp: 0 };
+const G = { menuOpen: false, helpOpen: false, resultAt: 0, time: 0, seed: 1, rng: mulberry32(1), idx: 0, results: [], at: null, best: 0, aspect: 1, down: new Set(), ptrs: {}, kUp: false, kDown: false, touch: window.matchMedia && window.matchMedia('(pointer: coarse)').matches, lastStamp: 0 };
 try { G.best = parseFloat(localStorage.getItem('zenchu_best')) || 0; } catch (e) {}
 const inputs = [];
 function setState(s) { state = s; inputs.length = 0; G.down.clear(); $('title').classList.toggle('hidden', s !== 'title'); $('result').classList.toggle('hidden', s !== 'result'); $('hud').classList.toggle('hidden', s !== 'play'); if (s === 'title') $('titleBest').textContent = G.best > 0 ? 'これまでの自己ベスト：' + fmtM(G.best) : ''; }
@@ -462,7 +473,7 @@ const bestOf = rs => rs.reduce((m, r) => (!r.foul && r.dist > m ? r.dist : m), 0
 function press(side, stamp, pid, x, y) { if (G.down.has(pid)) return; G.down.add(pid); G.ptrs[pid] = { x0: x || 0, y0: y || 0, x: x || 0, y: y || 0 }; let lead = 0; if (!manual && stamp) lead = clamp((stamp - G.lastStamp) / 1000, 0, 0.05); inputs.push({ d: 1, side, pid, lead }); }
 function release(pid) { if (!G.down.has(pid)) return; G.down.delete(pid); inputs.push({ d: 0, pid }); }
 function releaseAll() { for (const p of [...G.down]) release(p); G.kUp = G.kDown = false; }
-window.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('button')) return; if (state !== 'play') return; e.preventDefault(); auInit(); const side = e.pointerType === 'mouse' ? (e.button === 2 ? 'R' : 'L') : (e.clientX < window.innerWidth / 2 ? 'L' : 'R');   // マウスは左クリック＝左、右クリック＝右
+window.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('button')) return; if (state !== 'play' || G.menuOpen || G.helpOpen) return; e.preventDefault(); auInit(); const side = e.pointerType === 'mouse' ? (e.button === 2 ? 'R' : 'L') : (e.clientX < window.innerWidth / 2 ? 'L' : 'R');   // マウスは左クリック＝左、右クリック＝右
   press(side, e.timeStamp, 'p' + e.pointerId, e.clientX, e.clientY); }, { passive: false });
 window.addEventListener('pointermove', e => { const id = 'p' + e.pointerId, p = G.ptrs[id]; if (p && G.down.has(id)) { p.x = e.clientX; p.y = e.clientY; } });
 const pUp = e => release('p' + e.pointerId);
@@ -472,6 +483,8 @@ const KEYSIDE = { ArrowLeft: 'L', KeyA: 'L', KeyF: 'L', ArrowRight: 'R', KeyD: '
 const KEYMOD = { ArrowUp: 'kUp', KeyW: 'kUp', ArrowDown: 'kDown', KeyS: 'kDown' };
 window.addEventListener('keydown', e => {
   if (G.helpOpen) { e.preventDefault(); if (e.repeat) return; if (e.code === 'Escape') closeHelp(); else if (e.code === 'ArrowLeft') showHelp(help.i - 1); else if (e.code === 'ArrowRight' || e.code === 'Space' || e.code === 'Enter') helpNext(); return; }
+  if (G.menuOpen) { e.preventDefault(); if (e.code === 'Escape' && !e.repeat) closeMenu(); return; }
+  if (e.code === 'Escape' && state === 'play') { e.preventDefault(); openMenu(); return; }
   if (KEYMOD[e.code]) { e.preventDefault(); G[KEYMOD[e.code]] = true; return; }
   const side = KEYSIDE[e.code]; if (!side) return; e.preventDefault(); if (e.repeat) return;
   if (state === 'title') { if (side === 'S') startOrHelp(); return; }
@@ -480,7 +493,7 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => { if (KEYMOD[e.code]) { G[KEYMOD[e.code]] = false; return; } if (KEYSIDE[e.code]) release('k' + e.code); });
 window.addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('touchmove', e => { if (state === 'play' && !G.helpOpen) e.preventDefault(); }, { passive: false }); document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('touchmove', e => { if (state === 'play' && !G.helpOpen && !G.menuOpen) e.preventDefault(); }, { passive: false }); document.addEventListener('gesturestart', e => e.preventDefault());
 $('startBtn').addEventListener('click', () => startOrHelp());
 $('retryBtn').addEventListener('click', () => { if (performance.now() - G.resultAt < 600) return; auInit(); startGame(); });
 $('mute').addEventListener('click', () => { AU.muted = !AU.muted; if (AU.out) AU.out.gain.value = AU.muted ? 0 : 0.7; $('mute').textContent = AU.muted ? '🔇' : '🔊'; try { localStorage.setItem('zenchu_mute', AU.muted ? '1' : '0'); } catch (e) {} });
@@ -739,7 +752,7 @@ function hudUpdate() {
 // ===== [SEC:HELP] =====
 // あそび方（図つき・6ページ）。文を直す時は HELP の txt、図は fig（SVG）
 const HELP = [
-  { t: 'ルール', pc: '', txt: ['3本跳んで、いちばん良い記録が結果です', '記録は、踏切線から「砂についた跡のいちばん手前」まで', '踏切線を踏み越えるとファウル（記録なし）'],
+  { t: 'ルール', pc: '', txt: ['3本跳んで、いちばん良い記録が結果です', '記録は、踏切線から「砂についた跡のいちばん手前」まで', '踏切線を踏み越えるとファウル（記録なし）', '遊んでいる途中でも、右上の ≡ からあそび方を見られます'],
     fig: `<rect x="10" y="92" width="140" height="14" fill="#b5452f"/><rect x="138" y="92" width="12" height="14" fill="#fff"/><rect x="150" y="92" width="5" height="14" fill="#e9862e"/><rect x="168" y="92" width="142" height="14" fill="#d8c394"/>
 <path d="M144 90 Q212 0 280 90" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 5"/><ellipse cx="280" cy="98" rx="9" ry="4" fill="#7a5f2b"/>
 <path d="M150 124 H280 M150 117 V131 M280 117 V131" stroke="#ffd400" stroke-width="3" fill="none"/><text x="215" y="119" fill="#ffd400" font-size="13" font-weight="900" text-anchor="middle">記録</text>
@@ -795,6 +808,14 @@ document.querySelectorAll('a.sup').forEach(a => { a.href = a.dataset.k === 'foll
 $('helpBtn').addEventListener('click', () => openHelp(false)); $('helpBtn2').addEventListener('click', () => openHelp(false));
 $('helpNext').addEventListener('click', helpNext); $('helpPrev').addEventListener('click', () => showHelp(help.i - 1)); $('helpClose').addEventListener('click', closeHelp);
 
+// ===== [SEC:MENU] =====
+// 遊んでいる途中のメニュー（一時停止）。開いている間はゲームの時間が止まる
+function openMenu() { if (state !== 'play' || G.menuOpen || G.helpOpen) return; G.menuOpen = true; releaseAll(); $('menu').classList.remove('hidden'); }
+function closeMenu() { G.menuOpen = false; $('menu').classList.add('hidden'); }
+function goTitle() { closeMenu(); clearDents(); S.tape.visible = false; S.flag.visible = false; S.pillar.visible = true; $('fade').classList.remove('on'); A.blend = null; cam.init = false; G.at = null; setState('title'); evalClip(A.idle, G.time); placeAnim(CONFIG.RUN_START, 0); }
+$('menuBtn').addEventListener('click', openMenu); $('mResume').addEventListener('click', closeMenu); $('mHelp').addEventListener('click', () => openHelp(false)); $('mHome').addEventListener('click', goTitle);
+$('homeBtn2').addEventListener('click', () => { if (performance.now() - G.resultAt < 600) return; goTitle(); });
+
 // ===== [SEC:LOOP] =====
 function tick(dt) {
   G.time += dt; puffTick(dt);
@@ -819,7 +840,7 @@ function tick(dt) {
 let acc = 0, last = performance.now();
 function update(frameDt) { acc += Math.min(frameDt, CONFIG.MAX_FRAME); while (acc >= CONFIG.FIXED) { tick(CONFIG.FIXED); acc -= CONFIG.FIXED; } }
 function render() { hudUpdate(); camApply(); renderer.render(scene, camera); }
-function frame(now) { if (!paused && !manual && state !== 'load') { update((now - last) / 1000); G.lastStamp = now; } last = now; if (state !== 'load') render(); requestAnimationFrame(frame); }
+function frame(now) { if (!paused && !manual && state !== 'load' && !G.menuOpen && !(G.helpOpen && state === 'play')) { update((now - last) / 1000); G.lastStamp = now; } last = now; if (state !== 'load') render(); requestAnimationFrame(frame); }
 document.addEventListener('visibilitychange', () => { paused = document.hidden; last = performance.now(); if (paused) releaseAll(); });
 function resize() { const w = window.innerWidth, h = window.innerHeight; renderer.setSize(w, h, false); G.aspect = w / h; camera.aspect = G.aspect; camera.updateProjectionMatrix(); }
 window.addEventListener('resize', resize);
