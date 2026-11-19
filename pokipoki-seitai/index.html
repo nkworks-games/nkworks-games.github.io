@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>ポキポキ整体院</title>
+<meta name="description" content="お客さんの悩みを聞いて、全身19か所の関節から鳴らす場所を選ぶ整体ゲーム。ゆるみを取り、息を吐いた瞬間に短く素早くポキッ。★と口コミで評価されます。">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<meta property="og:title" content="ポキポキ整体院">
+<meta property="og:description" content="鳴らす場所はあなたが選ぶ。ゆるみを取って、息を吐いた瞬間にポキッ。口コミ★5の整体院をめざせ。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nkworks-games.com/pokipoki-seitai/">
+<meta property="og:image" content="https://nkworks-games.com/pokipoki-seitai/card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nkworks-games.com/pokipoki-seitai/card.png">
+<style>
+:root{--teal:#2a9d8f;--teal-d:#1f7a6f;--coral:#e76f51;--ink:#2b2622;--cream:#fbf7f0;--line:#e3dccf;--star:#f4a52a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#e9e4da;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;color:var(--ink);user-select:none;-webkit-user-select:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#ui{position:fixed;inset:0;pointer-events:none}
+#ui .pe{pointer-events:auto}
+.hide{display:none!important}
+button{font-family:inherit;cursor:pointer;border:none}
+.btn{pointer-events:auto;background:var(--teal);color:#fff;font-weight:800;font-size:16px;padding:12px 20px;border-radius:999px;box-shadow:0 3px 0 var(--teal-d)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--teal-d)}
+.btn.sub{background:#fff;color:var(--ink);box-shadow:0 3px 0 #cfc6b6;border:1.5px solid var(--line)}
+.btn.coral{background:var(--coral);box-shadow:0 3px 0 #b8533a}
+.btn:disabled{opacity:.45}
+/* 上のバー */
+#topbar{position:absolute;left:0;right:0;top:0;padding:max(8px,env(safe-area-inset-top)) 10px 0;display:flex;align-items:flex-start;gap:8px}
+#custInfo{background:rgba(255,255,255,.92);border-radius:12px;padding:6px 10px;font-size:12px;line-height:1.35;box-shadow:0 2px 8px rgba(0,0,0,.08);max-width:44vw}
+#custInfo b{font-size:14px}
+@media (max-width:520px){#custInfo{font-size:10.5px;max-width:34vw;padding:5px 8px}#custInfo b{font-size:12px}#breath{min-width:0;padding:6px 10px;font-size:13px}#breath .bar{min-width:36px}}
+#breath{white-space:nowrap;margin:0 auto;background:rgba(255,255,255,.92);border-radius:999px;padding:6px 14px;display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.08);min-width:150px}
+#breath .bar{flex:1;height:8px;border-radius:9px;background:#eee;overflow:hidden;min-width:60px}
+#breath i{display:block;height:100%;width:0;border-radius:9px;background:var(--star)}
+#breath.out i{background:#4a90d9}
+#breath.out #breathTxt{color:#2f6db0}
+#breath.in #breathTxt{color:#c77a12}
+.tbtn{pointer-events:auto;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;font-weight:900;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,.1);flex:none}
+/* 選ぶパネル */
+#panel{position:absolute;background:rgba(251,247,240,.97);box-shadow:0 -2px 16px rgba(0,0,0,.12);pointer-events:auto;display:grid;gap:8px;padding:10px}
+#panel.land{top:0;right:0;bottom:0;width:290px;grid-template-rows:auto minmax(0,1fr) auto auto;border-radius:16px 0 0 16px;padding-top:max(10px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom))}
+#panel.port{left:0;right:0;bottom:0;height:47%;grid-template-columns:42% minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto;border-radius:16px 16px 0 0;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+#panel.port #mapWrap{grid-column:1;grid-row:1/4}
+#panel.port #memo{grid-column:2;grid-row:1}
+#panel.port #selInfo{grid-column:2;grid-row:2}
+#panel.port #panelBtns{grid-column:2;grid-row:3;flex-direction:column}
+#mapWrap{position:relative;min-height:0;display:flex;align-items:center;justify-content:center}
+#bodymap{height:100%;max-height:100%;width:auto;max-width:100%}
+#bodymap .dot{cursor:pointer}
+#bodymap .dot circle.v{fill:#fff;stroke:var(--teal);stroke-width:2.5}
+#bodymap .dot.sel circle.v{fill:var(--coral);stroke:#b8533a}
+#bodymap .dot.done circle.v{fill:var(--teal);stroke:var(--teal-d)}
+#bodymap .dot.warn circle.v{stroke:#d03c2c;stroke-dasharray:3 2}
+#memo{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12.5px;line-height:1.5;overflow:auto;max-height:24vh}
+#panel.port #memo{max-height:none;min-height:0}
+#memo .lbl{font-size:11px;color:#8a8073;font-weight:700}
+#selInfo{font-size:13px;line-height:1.45;min-height:38px}
+#selInfo b{font-size:15px}
+#selInfo .tech{color:#6d655b;font-size:12px}
+#panelBtns{display:flex;gap:8px}
+#panelBtns .btn{flex:1;padding:11px 8px;font-size:15px}
+/* 施術中 */
+#techbar{position:absolute;left:0;right:0;bottom:0;padding:8px 12px max(10px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px;background:linear-gradient(transparent,rgba(251,247,240,.95) 35%)}
+#techName{flex:1;font-size:13px;line-height:1.4}
+#techName b{font-size:15px}
+#techbar .btn{padding:9px 14px;font-size:14px}
+#overlay{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#hint{position:absolute;transform:translate(-50%,0);background:rgba(43,38,34,.82);color:#fff;font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:999px;white-space:nowrap}
+#bubble{position:absolute;transform:translate(-50%,-100%);background:#fff;border:2px solid var(--ink);border-radius:14px;padding:6px 11px;font-size:14px;font-weight:800;max-width:min(260px,70vw);text-align:center;line-height:1.35}
+#bubble:after{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-7px;border:7px solid transparent;border-top-color:var(--ink);border-bottom:0}
+#toast{position:absolute;left:50%;top:22%;transform:translateX(-50%);background:rgba(43,38,34,.86);color:#fff;font-weight:700;font-size:14px;padding:8px 14px;border-radius:12px;max-width:86vw;text-align:center;opacity:0;transition:opacity .25s}
+#toast.show{opacity:1}
+#toast.warn{background:#c23b2c}
+#big{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%) scale(.6);font-size:min(17vw,96px);font-weight:900;color:#fff;-webkit-text-stroke:3px var(--ink);paint-order:stroke;text-shadow:0 5px 0 var(--ink);opacity:0;white-space:nowrap;letter-spacing:-2px}
+#big.pop{animation:pop 1.1s ease-out}
+#big.pain{color:#ff6b57}
+#big small{display:block;font-size:.32em;-webkit-text-stroke:2px var(--ink);letter-spacing:0;text-align:center;margin-top:4px}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-6deg)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(3deg)}25%{transform:translate(-50%,-50%) scale(1) rotate(0)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1)}}
+/* 画面（タイトル・問診・口コミ・結果） */
+.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:auto;padding:16px}
+.card{background:var(--cream);border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,.22);padding:20px;width:min(440px,94vw);max-height:92vh;overflow:auto}
+#title{background:linear-gradient(rgba(233,228,218,.15),rgba(233,228,218,.55))}
+#title .card{text-align:center;background:rgba(251,247,240,.94)}
+.logo{font-size:min(11vw,48px);font-weight:900;letter-spacing:1px;line-height:1.1;margin:4px 0 2px}
+.logo span{color:var(--coral)}
+.sublogo{font-size:13px;color:#6d655b;margin-bottom:16px}
+.col{display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.note{font-size:11px;color:#8a8073;line-height:1.5;margin-top:14px}
+.cust{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.ava{width:52px;height:52px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:900;color:#fff;font-size:22px}
+.cust .nm{font-size:18px;font-weight:900}
+.cust .job{font-size:12.5px;color:#6d655b}
+.say{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:10px 12px;font-size:15px;line-height:1.6;margin-bottom:8px;position:relative}
+.say+.say{margin-top:6px}
+.stars{color:var(--star);font-size:28px;letter-spacing:2px}
+.stars .off{color:#ddd3c3}
+.rv{font-size:15px;line-height:1.65;background:#fff;border-radius:12px;padding:10px 12px;border:1.5px solid var(--line);margin:10px 0}
+.log{font-size:12.5px;color:#6d655b;line-height:1.6}
+.row{display:flex;gap:10px;margin-top:14px}
+.row .btn{flex:1;white-space:nowrap}
+/* 結果ページ */
+#result{align-items:flex-start;overflow:auto}
+#result .card{margin:auto 0;width:min(520px,96vw);max-height:none}
+.shop{border-bottom:1.5px solid var(--line);padding-bottom:12px;margin-bottom:6px}
+.shop h2{margin:0;font-size:22px}
+.shop .avg{display:flex;align-items:center;gap:10px;margin-top:4px}
+.shop .avg b{font-size:34px}
+.rank{display:inline-block;background:var(--coral);color:#fff;font-weight:900;padding:5px 12px;border-radius:999px;margin-top:6px;font-size:15px}
+.rvItem{padding:12px 0;border-bottom:1px solid var(--line)}
+.rvItem .hd{display:flex;align-items:center;gap:8px}
+.rvItem .ava{width:34px;height:34px;font-size:15px}
+.rvItem .stars{font-size:16px}
+.rvItem p{margin:6px 0 0;font-size:14px;line-height:1.6}
+.support{display:flex;gap:8px;margin-top:14px}
+.support a{flex:1;text-decoration:none;text-align:center;border-radius:14px;padding:10px 6px;font-weight:800;font-size:13.5px;pointer-events:auto}
+.support .fol{background:#111;color:#fff}
+.support .ofu{background:#fff3c4;color:#6b4c00;border:1.5px solid #f0d36a}
+.support small{display:block;font-weight:600;font-size:11px;opacity:.8;margin-top:2px}
+#adGap{height:75px}
+#adBox{min-height:100px;background:rgba(0,0,0,.035);border-radius:10px;overflow:hidden}
+/* 読み込み・エンド */
+.spin{width:38px;height:38px;border-radius:50%;border:5px solid #e3dccf;border-top-color:var(--teal);margin:0 auto;animation:spin 0.9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#sirenFx{position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,rgba(255,40,30,.0),rgba(255,30,20,.9));opacity:0;pointer-events:none;transition:opacity .08s}
+.endHead{text-align:center;border-radius:16px;padding:14px 12px 12px;margin:-4px -4px 12px;background:#efe9df;position:relative;overflow:hidden}
+.endT{font-size:24px;font-weight:900;margin-top:4px}
+.endS{font-size:14px;line-height:1.55;margin-top:4px;color:#4a433c}
+.end-hospital{background:linear-gradient(#fff1ef,#ffd9d3);border:2px solid #e5483a}
+.end-hospital .endT{color:#c8281b}
+.end-closed{background:repeating-linear-gradient(#b9b4ab 0 9px,#a7a197 9px 12px);color:#fff}
+.end-closed .endT,.end-closed .endS{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.end-god{background:linear-gradient(135deg,#fff3c4,#f4c95d 55%,#fff3c4);border:2px solid #d9a521}
+.end-god .endT{color:#8a5a00}
+.confetti{position:absolute;inset:0;pointer-events:none;z-index:0}
+.endHead>*:not(.confetti){position:relative;z-index:1}
+.confetti i{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:fall 2.4s linear infinite}
+@keyframes fall{to{transform:translateY(160px) rotate(540deg)}}
+.warnNote{background:#fff1ef;border:1.5px solid #f2b8b0;color:#a52a1d;border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.5;margin:8px 0}
+/* あそび方・確認 */
+.modal{position:absolute;inset:0;background:rgba(30,25,20,.45);display:flex;align-items:center;justify-content:center;pointer-events:auto;padding:14px;z-index:5}
+#howto .card{width:min(460px,94vw)}
+#howPage h3{margin:0 0 6px;font-size:19px}
+#howPage p{margin:8px 0 0;font-size:14.5px;line-height:1.65}
+#howPage svg{width:100%;height:auto;background:#fff;border-radius:14px;border:1.5px solid var(--line)}
+.pg{text-align:center;font-size:12px;color:#8a8073;margin-top:8px}
+</style>
+<script>
+(function(){ if (/(^|\.)nkworks-games\.com$/.test(location.hostname)) { var s=document.createElement('script'); s.async=true; s.crossOrigin='anonymous'; s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2073267239630350'; document.head.appendChild(s); } })();
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+  <div id="topbar" class="hide">
+    <div id="custInfo"></div>
+    <div id="breath" class="in"><span id="breathTxt">すー</span><div class="bar"><i id="breathBar"></i></div></div>
+    <button class="tbtn" id="btnHelp" aria-label="あそび方">？</button>
+    <button class="tbtn" id="btnHome" aria-label="タイトルへ">⌂</button>
+  </div>
+  <svg id="overlay"></svg>
+  <div id="hint" class="hide"></div>
+  <div id="bubble" class="hide"></div>
+  <div id="toast"></div>
+  <div id="big"></div>
+
+  <div id="panel" class="hide land">
+    <div id="memo"></div>
+    <div id="mapWrap"><svg id="bodymap" viewBox="0 0 200 372"></svg></div>
+    <div id="selInfo"></div>
+    <div id="panelBtns"><button class="btn" id="btnDo" disabled>施術する</button><button class="btn coral" id="btnPay">お会計</button></div>
+  </div>
+
+  <div id="techbar" class="hide">
+    <div id="techName"></div>
+    <button class="btn sub" id="btnQuit">やめる</button>
+  </div>
+
+  <div id="title" class="screen">
+    <div class="card">
+      <div class="logo">ポキポキ<span>整体院</span></div>
+      <div class="sublogo">鳴らす場所は、あなたが選ぶ。<br>めざせ、口コミ★5の整体院。</div>
+      <div class="col">
+        <button class="btn" id="btnStart">営業スタート（5人）</button>
+        <button class="btn sub" id="btnHow">あそび方</button>
+        <button class="btn sub" id="btnSound">音：ON</button>
+      </div>
+      <div class="note">※これはゲームです。首を急にひねるなど、強い力で関節を鳴らす施術は危険とされています。マネしないでください。</div>
+    </div>
+  </div>
+
+  <div id="sirenFx"></div>
+  <div id="loading" class="screen hide"><div class="card" style="text-align:center"><div class="spin"></div><div id="loadingMsg" style="font-weight:800;margin-top:10px">お客さんが来ます…</div></div></div>
+  <div id="intake" class="screen hide"><div class="card" id="intakeCard"></div></div>
+  <div id="review" class="screen hide"><div class="card" id="reviewCard"></div></div>
+  <div id="result" class="screen hide"><div class="card" id="resultCard"></div></div>
+
+  <div id="howto" class="modal hide"><div class="card">
+    <div id="howPage"></div>
+    <div class="pg" id="howPg"></div>
+    <div class="row"><button class="btn sub" id="howPrev">もどる</button><button class="btn" id="howNext">つぎへ</button></div>
+  </div></div>
+  <div id="confirm" class="modal hide"><div class="card" style="text-align:center">
+    <div id="confirmMsg" style="font-weight:800;font-size:16px;line-height:1.6"></div>
+    <div class="row"><button class="btn sub" id="confNo">やめておく</button><button class="btn" id="confYes">はい</button></div>
+  </div></div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+// ===== [SEC:CONFIG] =====
+const CONFIG = {
+  FIXED: 1 / 120, MAX_FRAME: 0.1,
+  CUSTOMERS_PER_DAY: 5,
+  // 呼吸（秒）
+  BREATH_IN: 1.7, BREATH_OUT: 2.6, BREATH_NERVOUS: 0.68,
+  BREATH_GOOD_FROM: 0.08, BREATH_GOOD_TO: 0.85, // 吐く時間のうち、いちばん力が抜けている範囲
+  // ゆるみ取り（ゆっくりドラッグ）。距離は画面の短い辺に対する割合
+  PRELOAD_DRAG: 0.17, HEAVY_FROM: 0.78, HEAVY_SCALE: 0.38,
+  SWEET_MIN: 0.88, SWEET_MAX: 1.08, NO_SLACK: 0.6,
+  DISCOMFORT_R: 1.13, DISCOMFORT_TIME: 1.2, PAIN_R: 1.26,
+  RELAX_SPEED: 1.6,            // 指を離した時に、ゆるみが戻る速さ（r/秒）
+  // 突き（短く素早いフリック）
+  THRUST_SPEED: 1.5,           // これより速い動き（短い辺/秒）を「突き」とみなす
+  THRUST_LOOKBACK: 0.05, THRUST_WINDOW: 0.14,
+  AMP_MIN: 0.022, AMP_MAX: 0.12, // 突きの深さ（短い辺に対する割合）
+  INHALE_RELAX: 0.3, EXHALE_EDGE_RELAX: 0.82, CRACK_Q: 0.45,
+  // 評価（点数→★）
+  SCORE_BASE: 30, SCORE_CRACK: 75, STIFF_MIN: 0.5, MINOR_MIN: 0.25, LEFT_MIN: 0.6,
+  PEN_PAIN: 15, PEN_DISCOMFORT: 6, PEN_NECK: 45, PEN_EXTRA: 4, FREE_EXTRA: 2, PEN_FAIL: 3, FREE_FAIL: 3, BONUS_REFUSE_NECK: 6,
+  STAR_TH: [45, 65, 82, 100], PAINS_TO_LEAVE: 3,
+  // 見た目・カメラ
+  TABLE_TOP: 0.74, TABLE_LEN: 1.95, TABLE_W: 0.62, POSE_TIME: 0.95, POSE_LIFT: 0.08, ROOT_X: -0.12,
+  EXPOSURE: 0.95, ENV_INTENSITY: 0.75, HOSPITAL_TIME: 3.4,
+  CAM_LERP: 4.0, FOV: 40, OVERVIEW_R: 1.02, TECH_R: 0.4,
+  ROOM: { x0: -3.2, x1: 3.2, z0: -2.4, z1: 3.4, h: 2.7 },
+};
+
+// ===== [SEC:DATA] =====
+// 関節（左側だけ書き、右側は自動で作る）。骨の名前は MakeHuman の骨
+// off: 接触点 … {from, surf, pad}=体の表面を探す / {to, t}=骨と骨の間 / [x,y,z]=骨からのずれ
+// drv: 押す/引く向き … [x,y,z]=体の向き / {to}=骨の向き。grip: 施術者の手の形
+const JOINT_BASE = [
+  { id: 'neck', name: '首', nm2: '首', posture: 'supine', motion: 'twist', grip: 'cup', danger: true, tech: '頭をかかえて、首をひねる', node: 'head', off: { from: [0, 0.08, 0.02], surf: [-1, 0, 0], pad: 0.01 }, drvNode: 'head', drv: [0, 0, 1], vis: { node: 'neck01', type: 'rot', axis: [0, 1, 0], amt: 0.5 }, pops: [2, 4], pitch: 1.25 },
+  { id: 'upperBack', name: '背中の上', nm2: '背中の上のほう', posture: 'supine', motion: 'push', grip: 'press', tech: '仰向けで腕を組んでもらい、上から押す', node: 'spine01', off: { from: [0, 0.03, 0], surf: [0, 0, 1], pad: 0.085 }, drvNode: 'spine01', drv: [0, 0, -1], vis: { node: 'spine01', type: 'pos', amt: 0.008 }, pops: [2, 4], pitch: 0.95, mods: { 'upperarm01.L': [-0.5, -1.1, -0.35], 'lowerarm01.L': [-2.2, 0, 0], 'upperarm01.R': [-0.55, 1.1, 0.3], 'lowerarm01.R': [-2.1, 0, 0] } },
+  { id: 'midBack', name: '背中のまん中', nm2: '背中のまん中', posture: 'prone', motion: 'push', grip: 'press', tech: 'うつ伏せで背骨を押す（トグル）', node: 'spine02', off: { from: [0, 0.05, 0], surf: [0, 0, -1], pad: 0.012 }, drvNode: 'spine02', drv: [0, 0, 1], vis: { node: 'spine02', type: 'pos', amt: 0.008 }, pops: [3, 5], pitch: 0.85 },
+  { id: 'lowBackL', name: '腰（左）', nm2: '左の腰', posture: 'sideL', motion: 'twist', grip: 'press', tech: '横向きで腰をひねる（ランバーロール）', node: 'root', off: { from: [0, 0.02, 0.02], surf: [1, 0, 0], pad: 0.012 }, drvNode: 'root', drv: [0, -0.35, 1], vis: { node: 'spine04', type: 'rot', axis: [0, 1, 0], amt: -0.16 }, pops: [1, 3], pitch: 0.7 },
+  { id: 'pelvisL', name: '骨盤（左）', nm2: '左の骨盤', posture: 'prone', motion: 'push', grip: 'press', tech: 'うつ伏せで骨盤のうしろを押す', node: 'root', off: { from: [0.07, 0.03, 0], surf: [0, 0, -1], pad: 0.012 }, drvNode: 'root', drv: [0, 0.35, 1], vis: { node: 'root', type: 'pos', amt: 0.008 }, pops: [1, 2], pitch: 0.6 },
+  { id: 'shoulderL', name: '肩（左）', nm2: '左肩', posture: 'supine', motion: 'pull', grip: 'grip', tech: '腕を持って、肩を引っぱる', node: 'lowerarm01.L', off: { to: 'wrist.L', t: 0.78 }, drvNode: 'upperarm01.L', drv: { to: 'lowerarm01.L' }, vis: { node: 'upperarm01.L', type: 'pos', amt: 0.02 }, pops: [1, 2], pitch: 1.0, mods: { 'upperarm01.L': [0, 0, 0.55] } },
+  { id: 'wristL', name: '手首（左）', nm2: '左の手首', posture: 'supine', motion: 'pull', grip: 'grip', tech: '手を持って、手首を引っぱる', node: 'wrist.L', off: { to: 'finger3-1.L', t: 0.45 }, drvNode: 'lowerarm01.L', drv: { to: 'wrist.L' }, vis: { node: 'wrist.L', type: 'pos', amt: 0.012 }, pops: [1, 2], pitch: 1.35, mods: { 'upperarm01.L': [0, 0, 0.34] } },
+  { id: 'fingerL', name: '指（左）', nm2: '左手の指', posture: 'supine', motion: 'pull', grip: 'pinch', tech: '指をつまんで、引っぱる', node: 'finger2-2.L', off: { to: 'finger2-3.L', t: 0.6 }, drvNode: 'finger2-1.L', drv: { to: 'finger2-2.L' }, vis: { node: 'finger2-1.L', type: 'pos', amt: 0.008 }, pops: [2, 4], pitch: 1.7, mods: { 'upperarm01.L': [0, 0, 0.34] } },
+  { id: 'hipL', name: '股関節（左）', nm2: '左の股関節', posture: 'supine', motion: 'pull', grip: 'grip', tech: '足首を持って、足ごと引っぱる', node: 'lowerleg01.L', off: { to: 'foot.L', t: 0.88 }, drvNode: 'upperleg01.L', drv: { to: 'lowerleg01.L' }, vis: { node: 'upperleg01.L', type: 'pos', amt: 0.02 }, pops: [1, 2], pitch: 0.62, mods: { 'upperleg01.L': [0, 0, 0.1] } },
+  { id: 'kneeL', name: 'ひざ（左）', nm2: '左ひざ', posture: 'prone', motion: 'pull', grip: 'grip', tech: 'うつ伏せでひざを曲げ、足を引き上げる', node: 'lowerleg01.L', off: { to: 'foot.L', t: 0.88 }, drvNode: 'lowerleg01.L', drv: { to: 'foot.L' }, vis: { node: 'lowerleg01.L', type: 'pos', amt: 0.015 }, pops: [1, 2], pitch: 0.9, mods: { 'lowerleg01.L': [1.57, 0, 0], 'foot.L': [0.4, 0, 0] } },
+  { id: 'ankleL', name: '足首（左）', nm2: '左の足首', posture: 'supine', motion: 'pull', grip: 'grip', tech: 'かかとと足の甲を持って、引っぱる', node: 'foot.L', off: { to: 'toe3-1.L', t: 0.45 }, drvNode: 'lowerleg01.L', drv: { to: 'foot.L' }, vis: { node: 'foot.L', type: 'pos', amt: 0.012 }, pops: [1, 3], pitch: 1.1 },
+];
+const mirrorName = s => s.replace(/\.L$/, '.R').replace(/L$/, 'R');
+const mirrorRot = r => [r[0], -r[1], -r[2]];
+const mirrorVec = v => [-v[0], v[1], v[2]];
+function mirrorOff(o) {
+  if (Array.isArray(o)) return mirrorVec(o);
+  if (o.surf) return { ...o, from: mirrorVec(o.from), surf: mirrorVec(o.surf) };
+  return { ...o, to: o.to.replace(/\.L$/, '.R') };
+}
+function makeJoints() {
+  const out = [];
+  for (const b of JOINT_BASE) {
+    out.push({ ...b, side: b.id.endsWith('L') ? 1 : 0 });
+    if (!b.id.endsWith('L')) continue;
+    const R = JSON.parse(JSON.stringify(b)), mn = n => n.replace(/\.L$/, '.R');
+    R.id = b.id.slice(0, -1) + 'R'; R.side = -1;
+    R.name = b.name.replace('左', '右'); R.nm2 = b.nm2.replace('左', '右');
+    R.posture = b.posture === 'sideL' ? 'sideR' : b.posture;
+    R.node = mn(b.node); R.drvNode = mn(b.drvNode);
+    R.off = mirrorOff(b.off); R.drv = Array.isArray(b.drv) ? mirrorVec(b.drv) : { to: mn(b.drv.to) };
+    R.vis = { ...b.vis, node: mn(b.vis.node), amt: b.vis.type === 'rot' ? -b.vis.amt : b.vis.amt };
+    if (b.mods) { R.mods = {}; for (const k in b.mods) R.mods[mn(k)] = mirrorRot(b.mods[k]); }
+    out.push(R);
+  }
+  return out;
+}
+const JOINTS = makeJoints();
+const JMAP = Object.fromEntries(JOINTS.map(j => [j.id, j]));
+// 体の地図（背中側から見た図。左=お客さんの左）
+const MAP_POS = { neck: [100, 60], upperBack: [100, 88], midBack: [100, 124], lowBackL: [83, 154], lowBackR: [117, 154], pelvisL: [86, 181], pelvisR: [114, 181], shoulderL: [62, 76], shoulderR: [138, 76], wristL: [38, 196], wristR: [162, 196], fingerL: [33, 220], fingerR: [167, 220], hipL: [70, 200], hipR: [130, 200], kneeL: [79, 268], kneeR: [121, 268], ankleL: [80, 334], ankleR: [120, 334] };
+
+// お客さん（glb=3Dの人物ファイル。こり：0〜1。0.5以上が「こっている」場所）
+const CUSTOMERS = [
+  { glb: 'sato', name: '佐藤 ケンジ', age: 34, job: '会社員・一日中パソコン', look: { shirt: 0x3b3b40 }, lines: ['一日中パソコンで、背中の上のほうがガチガチなんです。', '右手でマウスばっかり使ってるせいか、右肩と右の手首もだるくて…'], stiff: { upperBack: 0.9, shoulderR: 0.7, wristR: 0.6, midBack: 0.3 } },
+  { glb: 'omori', name: '大森 ゴウ', age: 41, job: '引っ越し屋さん', traits: { big: true }, look: { shirt: 0x4f7fc4 }, lines: ['毎日重いタンスを運んでて、腰がもう限界っす。特に左側。', 'あと、左の骨盤のあたりもズーンと重いっす。'], stiff: { lowBackL: 0.95, pelvisL: 0.7, lowBackR: 0.35, midBack: 0.3 } },
+  { glb: 'shiraishi', name: '白石 ミオ', age: 22, job: '音大生・ピアノ専攻', traits: { nervous: true }, look: { shirt: 0x2f5fae }, lines: ['練習しすぎて、両手の指がこわばってます。', '手首も少し…。こういうの初めてなので、ちょっと緊張してます。'], stiff: { fingerL: 0.8, fingerR: 0.8, wristL: 0.5, wristR: 0.5 } },
+  { glb: 'noguchi', name: '野口 ダイチ', age: 20, job: '大学サッカー部', look: { shirt: 0x1f5fbf }, lines: ['試合続きで、右の股関節とひざが重いっす！', '右の足首もちょっとかたい気がします。'], stiff: { hipR: 0.9, kneeR: 0.7, ankleR: 0.55, ankleL: 0.3 } },
+  { glb: 'bokita', name: 'ボキ田 バズ男', age: 27, job: '動画配信者', wantsNeck: true, look: { shirt: 0xb0443a }, lines: ['首ボキの動画を撮りたいんで、首を思いっきりお願いします！', 'あ、撮影で中腰が多くて、背中のまん中と右の腰もキツいです。'], stiff: { midBack: 0.85, lowBackR: 0.7, upperBack: 0.3 } },
+  { glb: 'umeda', name: '梅田 トメ', age: 78, job: '農家', traits: { elderly: true }, look: { shirt: 0x8a6fa6 }, lines: ['畑仕事で腰が曲がりっぱなしでねぇ。右の腰が特にね。', '左のひざもギシギシいうのよ。やさしくしてね。'], stiff: { lowBackR: 0.85, kneeL: 0.7, pelvisR: 0.4 } },
+  { glb: 'kurokawa', name: '黒川 リョウ', age: 29, job: 'プロボクサー', look: { shirt: 0xe8e6e1 }, lines: ['ミット打ちのしすぎで、左肩がつまってる感じっす。', '左の手首と、左手の指の付け根もやられてます。'], stiff: { shoulderL: 0.9, wristL: 0.7, fingerL: 0.6 } },
+  { glb: 'hayakawa', name: '早川 ナナ', age: 31, job: '美容師', look: { shirt: 0x3e4a3e }, lines: ['ずっと腕を上げっぱなしで、両肩と背中の上がパンパンです。', 'ハサミを持つ右の手首も、ちょっとだけ。'], stiff: { shoulderL: 0.7, shoulderR: 0.75, upperBack: 0.8, wristR: 0.35 } },
+  { glb: 'nagao', name: '長尾 テツ', age: 52, job: '長距離トラック運転手', traits: { big: true }, look: { shirt: 0x6b6f5c }, lines: ['運転しっぱなしで、骨盤の右側がガチガチ。右の腰もだ。', '左の股関節も固まってる気がするなあ。'], stiff: { pelvisR: 0.85, lowBackR: 0.6, hipL: 0.7 } },
+  { glb: 'komatsu', name: '小松 ユイ', age: 36, job: '保育士', wantsNeck: true, look: { shirt: 0x2f6fc0 }, lines: ['子どもの抱っこで、背中のまん中と左の手首が…', 'あと、たまに首もボキッとしてほしくなるんです。お願いできます？'], stiff: { midBack: 0.8, wristL: 0.7, lowBackL: 0.4 } },
+  { glb: 'fujii', name: '藤井 アキラ', age: 24, job: 'eスポーツ選手', traits: { nervous: true }, look: { shirt: 0x2a63b8 }, lines: ['画面にかじりついてて、背中の上と首がつらいです。', '右手の指も、一日中クリックでカチカチです。'], stiff: { upperBack: 0.85, fingerR: 0.7, shoulderR: 0.4, neck: 0.6 } },
+  { glb: 'iwata', name: '岩田 ゴンゾウ', age: 45, job: 'ラグビー部のコーチ', traits: { big: true }, look: { shirt: 0x7a5236 }, lines: ['若いころのタックルのせいか、両方の股関節がパンパンでね。', '腰も左右ともどっしり重いんだ。思いきりやってくれ！'], stiff: { hipL: 0.8, hipR: 0.8, lowBackL: 0.55, lowBackR: 0.55 } },
+];
+
+const REVIEW = {
+  5: ['{best}が鳴った瞬間、10年分のコリが抜けました。神の手です。', '{best}から「ポキッ」と最高の音。帰りにスキップしました。', '音がすごい。{best}が羽みたいに軽いです。また絶対来ます。'],
+  4: ['{best}がかなりスッキリしました。{leftOr}', 'いい音でした。{best}がラクになりました。{leftOr}'],
+  3: ['{best}は良かったけど、{leftOr3}', '音は鳴りました。{leftOr3}'],
+  2: ['{left}を相談したのに、あまり変わりませんでした。', 'うーん、あんまりスッキリしなかったです。'],
+  1: ['正直、来る前より{left}が重い気がします。', '残念でした。もう行かないと思います。'],
+};
+const RANKS = [[4.6, '行列のできる整体院'], [4.0, '腕のいい整体院'], [3.2, '街の人気整体院'], [2.4, 'ふつうの整体院'], [0, '閑古鳥の整体院']];
+// エンド（ending）
+const ENDINGS = {
+  hospital: { title: '病院送りエンド', sub: 'ピーポーピーポー…お客さんは救急車で運ばれていきました。', cls: 'end-hospital' },
+  closed: { title: '閉店エンド', sub: '口コミが荒れに荒れて、ポキポキ整体院は閉店しました…。', cls: 'end-closed' },
+  normal: { title: '本日の営業おわり', sub: 'おつかれさまでした。明日もがんばりましょう。', cls: '' },
+  god: { title: '伝説のゴッドハンドエンド', sub: '5人全員が★5！ テレビの取材がやってきた！', cls: 'end-god' },
+};
+const URLS = { game: 'https://nkworks-games.com/pokipoki-seitai/', follow: 'https://x.com/intent/follow?screen_name=vyaPudzd1E54661', ofuse: 'https://ofuse.me/nkworks_games' };
+
+// ===== [SEC:UTIL] =====
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = t => t * t * (3 - 2 * t);
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let rng = mulberry32(1);
+const pick = arr => arr[Math.floor(rng() * arr.length)];
+const $ = id => document.getElementById(id);
+const V3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
+const tv1 = new THREE.Vector3(), tv2 = new THREE.Vector3(), tv3 = new THREE.Vector3(), tq1 = new THREE.Quaternion();
+const minDim = () => Math.max(200, Math.min(innerWidth, innerHeight));
+const okNum = v => Number.isFinite(v);
+
+// ===== [SEC:AUDIO] =====
+const SND = { ctx: null, on: true, master: null, wet: null, noise: null, breathGain: null };
+function initAudio() {
+  if (SND.ctx) { if (SND.ctx.state === 'suspended') SND.ctx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  const ctx = new AC(); SND.ctx = ctx;
+  SND.master = ctx.createGain(); SND.master.gain.value = SND.on ? 0.9 : 0; SND.master.connect(ctx.destination);
+  // 部屋の響き（短いリバーブ）
+  const len = Math.floor(ctx.sampleRate * 0.35), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+  const conv = ctx.createConvolver(); conv.buffer = ir; SND.wet = ctx.createGain(); SND.wet.gain.value = 0.22; SND.wet.connect(conv); conv.connect(SND.master);
+  const nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1; SND.noise = nb;
+  // 呼吸の音（ずっと流しておき、音量だけ変える）
+  const bs = ctx.createBufferSource(); bs.buffer = nb; bs.loop = true;
+  const bf = ctx.createBiquadFilter(); bf.type = 'bandpass'; bf.frequency.value = 700; bf.Q.value = 0.7;
+  SND.breathGain = ctx.createGain(); SND.breathGain.gain.value = 0;
+  bs.connect(bf); bf.connect(SND.breathGain); SND.breathGain.connect(SND.master); bs.start();
+}
+function out(node) { node.connect(SND.master); node.connect(SND.wet); }
+function popOnce(t, vol, freq, body) {
+  const ctx = SND.ctx;
+  const src = ctx.createBufferSource(); src.buffer = SND.noise; src.playbackRate.value = 1;
+  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 1.6;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.0015); g.gain.exponentialRampToValueAtTime(0.001, t + 0.018 + body * 0.012);
+  src.connect(bp); bp.connect(g); out(g); src.start(t, Math.random() * 1.5, 0.06);
+  // 高いクリック
+  const hs = ctx.createBufferSource(); hs.buffer = SND.noise; const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 4200;
+  const hg = ctx.createGain(); hg.gain.setValueAtTime(vol * 0.7, t); hg.gain.exponentialRampToValueAtTime(0.001, t + 0.006);
+  hs.connect(hp); hp.connect(hg); out(hg); hs.start(t, Math.random() * 1.5, 0.02);
+  // 体に響く低い音
+  if (body > 0.2) {
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(150 * (freq / 1800), t); o.frequency.exponentialRampToValueAtTime(60, t + 0.06);
+    const og = ctx.createGain(); og.gain.setValueAtTime(vol * body * 0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+    o.connect(og); out(og); o.start(t); o.stop(t + 0.08);
+  }
+}
+function sndCrack(q, n, pitch, stiff) {
+  if (!SND.ctx || !SND.on) return; const t0 = SND.ctx.currentTime + 0.01; let t = t0;
+  for (let i = 0; i < n; i++) {
+    const vol = (0.45 + 0.55 * q) * (i === 0 ? 1 : 0.55 + Math.random() * 0.4) * (0.7 + 0.3 * stiff);
+    popOnce(t, vol, 1700 * pitch * (0.8 + Math.random() * 0.45), (0.4 + stiff * 0.6) * (i === 0 ? 1 : 0.6));
+    t += 0.028 + Math.random() * 0.055;
+  }
+}
+function sndPain() {
+  if (!SND.ctx || !SND.on) return; const t = SND.ctx.currentTime + 0.01;
+  popOnce(t, 0.9, 520, 1);
+  const o = SND.ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.18);
+  const g = SND.ctx.createGain(); g.gain.setValueAtTime(0.25, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.22); o.connect(g); out(g); o.start(t); o.stop(t + 0.25);
+}
+function sndTone(freqs, dur = 0.5, type = 'sine', vol = 0.25, gap = 0.09) {
+  if (!SND.ctx || !SND.on) return; let t = SND.ctx.currentTime + 0.01;
+  for (const f of freqs) {
+    const o = SND.ctx.createOscillator(); o.type = type; o.frequency.value = f;
+    const g = SND.ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); out(g); o.start(t); o.stop(t + dur + 0.02); t += gap;
+  }
+}
+function sndSiren(sec) {
+  if (!SND.ctx || !SND.on) return; const ctx = SND.ctx, t0 = ctx.currentTime + 0.05;
+  const o = ctx.createOscillator(); o.type = 'square'; const g = ctx.createGain(); const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2200;
+  for (let t = 0, i = 0; t < sec; t += 0.62, i++) o.frequency.setValueAtTime(i % 2 ? 770 : 960, t0 + t);
+  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.07, t0 + 0.4); g.gain.setValueAtTime(0.07, t0 + sec - 0.6); g.gain.linearRampToValueAtTime(0, t0 + sec);
+  o.connect(f); f.connect(g); out(g); o.start(t0); o.stop(t0 + sec + 0.05);
+}
+const sndTap = () => sndTone([880], 0.06, 'triangle', 0.08);
+const sndRegister = () => sndTone([1318, 1760], 0.9, 'sine', 0.22, 0.12);
+const sndCreak = () => { if (!SND.ctx || !SND.on) return; const t = SND.ctx.currentTime; const s = SND.ctx.createBufferSource(); s.buffer = SND.noise; const f = SND.ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 300; f.Q.value = 6; const g = SND.ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.18, t + 0.05); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25); s.connect(f); f.connect(g); out(g); s.start(t, Math.random(), 0.3); };
+const vib = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) { } };
+
+// ===== [SEC:SCENE] =====
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = CONFIG.EXPOSURE;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0xe9e2d6);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.45; // 本物の光（HDRI）が読めるまでの仮
+const camera = new THREE.PerspectiveCamera(CONFIG.FOV, 1, 0.03, 30);
+scene.add(new THREE.HemisphereLight(0xfff6ea, 0xb39b80, 0.35));
+const sun = new THREE.DirectionalLight(0xfff0dc, 1.6); sun.position.set(-1.4, 4.2, 2.4); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -2.2, right: 2.2, top: 2.2, bottom: -2.2, near: 0.5, far: 9 }); sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.015;
+scene.add(sun);
+const fill = new THREE.PointLight(0xffe2c4, 0.35, 6); fill.position.set(1.6, 2.2, 1.8); scene.add(fill);
+const siren = new THREE.PointLight(0xff2a1a, 0, 7); siren.position.set(1.2, 1.6, CONFIG.ROOM.z0 + 0.4); scene.add(siren); // 病院送りの時の赤い光
+
+const LOADER = new GLTFLoader();
+const TEXL = new THREE.TextureLoader();
+function canvasTex(w, h, draw, repeat) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); } return t; }
+function fileTex(url, srgb, repeat) { const t = TEXL.load(url); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); } return t; }
+const M = (color, rough = 0.7, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0, ...extra });
+function addMesh(geo, mat, x, y, z, parent = scene, shadow = true) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = shadow; m.receiveShadow = true; parent.add(m); return m; }
+
+function buildRoom() {
+  const R = CONFIG.ROOM, A = 'assets/room/';
+  const floorM = new THREE.MeshStandardMaterial({ map: fileTex(A + 'floor_color.jpg', true, [3, 3]), normalMap: fileTex(A + 'floor_normal.jpg', false, [3, 3]), roughnessMap: fileTex(A + 'floor_rough.jpg', false, [3, 3]), roughness: 1 });
+  const floor = addMesh(new THREE.PlaneGeometry(R.x1 - R.x0, R.z1 - R.z0), floorM, (R.x0 + R.x1) / 2, 0, (R.z0 + R.z1) / 2, scene, false);
+  floor.rotation.x = -Math.PI / 2;
+  const wallM = M(0xf1ebe1, 0.92);
+  addMesh(new THREE.PlaneGeometry(R.x1 - R.x0, R.h), wallM, (R.x0 + R.x1) / 2, R.h / 2, R.z0, scene, false);
+  const left = addMesh(new THREE.PlaneGeometry(R.z1 - R.z0, R.h), wallM, R.x0, R.h / 2, (R.z0 + R.z1) / 2, scene, false); left.rotation.y = Math.PI / 2;
+  const right = addMesh(new THREE.PlaneGeometry(R.z1 - R.z0, R.h), wallM, R.x1, R.h / 2, (R.z0 + R.z1) / 2, scene, false); right.rotation.y = -Math.PI / 2;
+  // 腰壁（木）
+  const wain = M(0xb8916a, 0.6);
+  addMesh(new THREE.BoxGeometry(R.x1 - R.x0, 0.9, 0.02), wain, 0, 0.45, R.z0 + 0.01, scene, false);
+  addMesh(new THREE.BoxGeometry(R.x1 - R.x0, 0.04, 0.05), M(0x8e6a49, 0.5), 0, 0.92, R.z0 + 0.025, scene, false);
+  // 窓
+  const win = new THREE.Group(); win.position.set(1.2, 1.6, R.z0 + 0.012); scene.add(win);
+  addMesh(new THREE.PlaneGeometry(1.1, 0.9), new THREE.MeshBasicMaterial({ color: 0xe4f2ff }), 0, 0, 0.002, win, false);
+  const fr = M(0xffffff, 0.5);
+  for (const [w, h, x, y] of [[1.2, 0.06, 0, 0.47], [1.2, 0.06, 0, -0.47], [0.06, 1, -0.57, 0], [0.06, 1, 0.57, 0], [0.04, 0.9, 0, 0], [1.1, 0.04, 0, 0]]) addMesh(new THREE.BoxGeometry(w, h, 0.04), fr, x, y, 0.02, win, false);
+  // ポスター（背骨の図）
+  const poster = canvasTex(256, 360, (g, w, h) => {
+    g.fillStyle = '#fffdf7'; g.fillRect(0, 0, w, h); g.fillStyle = '#2a9d8f'; g.fillRect(0, 0, w, 46);
+    g.fillStyle = '#fff'; g.font = 'bold 26px sans-serif'; g.textAlign = 'center'; g.fillText('せぼねの図', w / 2, 32);
+    for (let i = 0; i < 24; i++) { const y = 70 + i * 11.5, x = w / 2 + Math.sin(i / 23 * Math.PI * 1.6 - 0.4) * 18; g.fillStyle = i < 7 ? '#f4a52a' : i < 19 ? '#e76f51' : '#2a9d8f'; g.beginPath(); g.ellipse(x, y, 17 - i * 0.15 + i * 0.4, 4.5, 0, 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = '#6d655b'; g.font = '15px sans-serif'; g.fillText('首 7・胸 12・腰 5', w / 2, h - 18);
+  });
+  addMesh(new THREE.PlaneGeometry(0.42, 0.6), M(0xffffff, 0.8, { map: poster }), -1.0, 1.65, R.z0 + 0.01, scene, false);
+  const clock = canvasTex(128, 128, (g) => { g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 64, 60, 0, 7); g.fill(); g.strokeStyle = '#333'; g.lineWidth = 5; g.stroke(); g.lineCap = 'round'; g.beginPath(); g.moveTo(64, 64); g.lineTo(64, 26); g.moveTo(64, 64); g.lineTo(92, 74); g.stroke(); });
+  addMesh(new THREE.CircleGeometry(0.17, 32), M(0xffffff, 0.5, { map: clock }), 0.0, 2.2, R.z0 + 0.012, scene, false);
+  const cur = addMesh(new RoundedBoxGeometry(0.05, 1.6, 1.3, 2, 0.02), M(0xcfe6e1, 0.9), -2.7, 0.82, 0.7); cur.rotation.y = 0.15;
+}
+// 3d-assets の素材（光・小物）。あとから読み込み、来なくてもゲームは進む
+async function loadRoomAssets(onProgress) {
+  const A = 'assets/room/';
+  const env = new RGBELoader().loadAsync(A + 'lebombo_1k.hdr').then(t => {
+    t.mapping = THREE.EquirectangularReflectionMapping; scene.environment = t; scene.environmentIntensity = CONFIG.ENV_INTENSITY;
+  }).catch(() => { });
+  const prop = (name, x, y, z, ry = 0, s = 1) => LOADER.loadAsync(`${A}${name}/${name}.gltf`).then(g => {
+    g.scene.position.set(x, y, z); g.scene.rotation.y = ry; g.scene.scale.setScalar(s);
+    g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); scene.add(g.scene); return g.scene;
+  }).catch(() => null);
+  const R = CONFIG.ROOM;
+  await env; if (onProgress) onProgress();
+  prop('potted_plant_02', 2.55, 0, R.z0 + 0.45, 0.4, 1.15);
+  prop('modern_arm_chair_01', -2.2, 0, R.z0 + 0.7, 0.5);
+  prop('wooden_table_02', -1.35, 0, R.z0 + 0.45, 0, 1).then(t => { if (!t) return; const b = new THREE.Box3().setFromObject(t); prop('tea_set_01', -1.35, b.max.y, R.z0 + 0.45, 0.3, 1); });
+}
+const TABLE = { group: null };
+function buildTable() {
+  const g = new THREE.Group(); scene.add(g); TABLE.group = g;
+  const L = CONFIG.TABLE_LEN, W = CONFIG.TABLE_W, top = CONFIG.TABLE_TOP;
+  addMesh(new RoundedBoxGeometry(L, 0.09, W, 3, 0.035), M(0x3f6f73, 0.5, { sheen: 0 }), 0, top - 0.045, 0, g);
+  addMesh(new THREE.BoxGeometry(L - 0.1, 0.05, W - 0.1), M(0xdedad2, 0.35, { metalness: 0.4 }), 0, top - 0.115, 0, g);
+  const legM = M(0xc9c6c0, 0.3, { metalness: 0.7 });
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) addMesh(new THREE.CylinderGeometry(0.025, 0.025, top - 0.14, 12), legM, sx * (L / 2 - 0.15), (top - 0.14) / 2, sz * (W / 2 - 0.08), g);
+  addMesh(new THREE.BoxGeometry(L - 0.3, 0.03, 0.03), legM, 0, 0.18, 0, g);
+  // 頭側のタオル（布の質感）
+  const towelM = new THREE.MeshStandardMaterial({ color: 0xf7f5f0, normalMap: fileTex('assets/room/fabric_normal.jpg', false, [2, 2]), roughness: 0.95 });
+  addMesh(new RoundedBoxGeometry(0.46, 0.012, W - 0.02, 2, 0.005), towelM, -L / 2 + 0.25, top + 0.003, 0, g);
+}
+
+// ===== [SEC:BODY] =====
+// 体の向き（寝かせ方）。体の中の向き：Y=頭の方向、Z=おなか側、X=お客さんの左
+const BASIS = {
+  supine: [[0, 0, -1], [-1, 0, 0], [0, 1, 0]],
+  prone: [[0, 0, 1], [-1, 0, 0], [0, -1, 0]],
+  sideL: [[0, 1, 0], [-1, 0, 0], [0, 0, 1]],
+  sideR: [[0, -1, 0], [-1, 0, 0], [0, 0, -1]],
+};
+// 姿勢ごとの関節の曲げ（ラジアン。腕・足は「気をつけ」の形が基準）
+const POSTURES = {
+  supine: { 'upperarm01.L': [0, 0, 0.06], 'upperarm01.R': [0, 0, -0.06], 'foot.L': [0.35, 0, 0], 'foot.R': [0.35, 0, 0] },
+  prone: { 'upperarm01.L': [0, 0, 0.1], 'upperarm01.R': [0, 0, -0.1], 'foot.L': [1.1, 0, 0], 'foot.R': [1.1, 0, 0], 'neck01': [0, 0.55, 0], 'head': [0, 0.75, 0] },
+  sideL: { 'upperarm01.R': [-1.3, 0, 0], 'lowerarm01.R': [-0.7, 0, 0], 'upperarm01.L': [-0.3, 0, 0.05], 'lowerarm01.L': [-0.8, 0, 0], 'upperleg01.L': [-1.0, 0, -0.38], 'lowerleg01.L': [1.5, 0, 0], 'foot.L': [0.5, 0, 0], 'upperleg01.R': [-0.25, 0, 0], 'lowerleg01.R': [0.4, 0, 0], 'foot.R': [0.5, 0, 0], 'spine02': [0, 0.16, 0], 'spine01': [0, 0.14, 0], 'neck01': [0, -0.12, 0], 'head': [0, -0.12, 0] },
+};
+POSTURES.sideR = {}; for (const k in POSTURES.sideL) POSTURES.sideR[mirrorName(k)] = mirrorRot(POSTURES.sideL[k]);
+const FACES = {
+  calm: { eyesClosed: 0.5, smile: 0.25 }, open: {}, happy: { eyesClosed: 0.85, smile: 1, browsUp: 0.25 },
+  pain: { eyesClosed: 1, browsDown: 0.9, grimace: 1, mouthOpen: 0.3 }, tense: { eyesClosed: 0.35, browsDown: 0.6, grimace: 0.45 },
+  wow: { mouthOpen: 0.6, browsUp: 1 }, sick: { eyesClosed: 0.75, browsUp: 0.7, mouthOpen: 0.2 },
+};
+const MORPHS = ['eyesClosed', 'mouthOpen', 'smile', 'browsUp', 'browsDown', 'grimace'];
+const CAP_BONES = ['root', 'spine05', 'spine04', 'spine03', 'spine02', 'spine01', 'neck01', 'neck02', 'neck03', 'head', 'pelvis.L', 'pelvis.R', 'clavicle.L', 'clavicle.R', 'shoulder01.L', 'shoulder01.R', 'upperarm01.L', 'upperarm01.R', 'upperarm02.L', 'upperarm02.R', 'lowerarm01.L', 'lowerarm01.R', 'lowerarm02.L', 'lowerarm02.R', 'wrist.L', 'wrist.R', 'upperleg01.L', 'upperleg01.R', 'upperleg02.L', 'upperleg02.R', 'lowerleg01.L', 'lowerleg01.R', 'lowerleg02.L', 'lowerleg02.R', 'foot.L', 'foot.R'];
+const QI = new THREE.Quaternion(), _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _v = new THREE.Vector3(), _v2 = new THREE.Vector3();
+const DOWN = new THREE.Vector3(0, -1, 0);
+
+const PEOPLE = {};
+function loadPerson(id) {
+  if (!PEOPLE[id]) PEOPLE[id] = LOADER.loadAsync(`assets/people/${id}.glb`).then(g => { g.userData.mh = prepRig(g.scene); return g; });
+  return PEOPLE[id];
+}
+// 骨の情報をそろえる（MakeHumanの人も、施術者の手も同じしくみ）
+function prepRig(root) {
+  const top = root.children.find(o => o.userData && o.userData.bones) || root.children[0];
+  const info = { top, meshes: [], morph: [], byName: {}, names: Object.keys(top.userData.bones), head: {}, tail: {}, parent: {}, C: {}, Cinv: {}, rest: {}, caps: [] };
+  root.traverse(o => { if (o.isSkinnedMesh) { info.meshes.push(o); o.frustumCulled = false; o.castShadow = true; o.receiveShadow = true; if (o.morphTargetDictionary) info.morph.push(o); } });
+  const sk = info.meshes[0].skeleton;
+  info.names.forEach((n, i) => { const b = sk.bones[i]; info.byName[n] = b; b.userData.mhName = n; info.head[n] = V3(top.userData.bones[n].head); info.tail[n] = V3(top.userData.bones[n].tail); info.rest[n] = b.position.clone(); });
+  for (const n of info.names) { const p = info.byName[n].parent; info.parent[n] = p && p.isBone ? p.userData.mhName : null; info.C[n] = new THREE.Quaternion(); }
+  // 「気をつけ」の形に直す回転（腕・足は少し開いた形で作られているため）
+  const sub = (n, q) => { const b = info.byName[n]; if (!b) return; b.traverse(o => { if (o.isBone) info.C[o.userData.mhName].copy(q); }); };
+  const dir = (a, b) => info.head[b].clone().sub(info.head[a]).normalize();
+  for (const s of ['L', 'R']) {
+    if (info.byName['upperarm01.' + s] && info.byName['lowerarm01.' + s] && info.parent['upperarm01.' + s]) {
+      const qa = new THREE.Quaternion().setFromUnitVectors(dir('upperarm01.' + s, 'lowerarm01.' + s), DOWN); sub('upperarm01.' + s, qa);
+      const df = dir('lowerarm01.' + s, 'wrist.' + s).applyQuaternion(qa);
+      sub('lowerarm01.' + s, new THREE.Quaternion().setFromUnitVectors(df, DOWN).multiply(qa));
+    }
+    if (info.byName['upperleg01.' + s]) {
+      const qt = new THREE.Quaternion().setFromUnitVectors(dir('upperleg01.' + s, 'lowerleg01.' + s), DOWN); sub('upperleg01.' + s, qt);
+      const ds = dir('lowerleg01.' + s, 'foot.' + s).applyQuaternion(qt);
+      sub('lowerleg01.' + s, new THREE.Quaternion().setFromUnitVectors(ds, DOWN).multiply(qt));
+    }
+  }
+  for (const n of info.names) info.Cinv[n] = info.C[n].clone().invert();
+  // 当たり判定用のカプセル（骨ごとの太さを、体の頂点から測る）
+  const idx = Object.fromEntries(info.names.map((n, i) => [n, i]));
+  const capOf = {}; for (const n of info.names) { let m = n; while (m && !CAP_BONES.includes(m)) m = info.parent[m]; capOf[n] = m; }
+  const dists = {}; for (const n of CAP_BONES) dists[n] = [];
+  for (const m of info.meshes) {
+    if (m.name !== 'body' && m.name !== 'outfit') continue;
+    const pos = m.geometry.attributes.position, si = m.geometry.attributes.skinIndex, sw = m.geometry.attributes.skinWeight;
+    for (let i = 0; i < pos.count; i += 2) {
+      let best = 0, bw = -1; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w > bw) { bw = w; best = si.getComponent(i, k); } }
+      const cn = capOf[info.names[best]]; if (!cn) continue;
+      _v.fromBufferAttribute(pos, i); const a = info.head[cn], b = info.tail[cn];
+      const ab = _v2.copy(b).sub(a), t = clamp(_v.clone().sub(a).dot(ab) / Math.max(1e-6, ab.lengthSq()), 0, 1);
+      dists[cn].push(_v.distanceTo(a.clone().addScaledVector(ab, t)));
+    }
+  }
+  for (const n of CAP_BONES) { const d = dists[n]; if (!d || !d.length || !info.byName[n]) continue; d.sort((x, y) => x - y); info.caps.push({ n, r: d[Math.floor(d.length * 0.96)], local: info.tail[n].clone().sub(info.head[n]) }); }
+  return info;
+}
+let P = null; // いまのお客さん
+function buildPatient(c, gltf) {
+  if (P) { scene.remove(P.group); }
+  const info = gltf.userData.mh;
+  const group = new THREE.Group(), inner = new THREE.Group(); group.add(inner); inner.add(gltf.scene); scene.add(group);
+  gltf.scene.position.set(0, 0, 0); inner.position.copy(info.head.root).negate();
+  P = { c, group, inner, info, rootX: -CONFIG.TABLE_LEN / 2 + 0.06 + (info.tail.head.y - info.head.root.y + 0.03), cur: null, from: null, to: null, blend: 1, roll: false, rootYCache: {}, offs: {}, lift: 0, morphNow: {}, morphWant: {}, blinkT: 2, faceKind: 'calm', contacts: {}, axes: {} };
+  // 元の形（バインドポーズ）にもどしてから、接触点を体の表面から探す
+  group.position.set(0, 0, 0); group.quaternion.identity();
+  for (const n of info.names) { const b = info.byName[n]; b.position.copy(info.rest[n]); b.quaternion.identity(); }
+  for (const m of info.morph) m.morphTargetInfluences.fill(0);
+  group.updateMatrixWorld(true); info.meshes.forEach(m => m.skeleton.update());
+  const ray = new THREE.Raycaster(); const targets = info.meshes.filter(m => ['body', 'outfit', 'hair'].includes(m.name));
+  for (const j of JOINTS) {
+    const h = info.head[j.node]; let off;
+    if (Array.isArray(j.off)) off = V3(j.off);
+    else if (j.off.to) off = info.head[j.off.to].clone().sub(h).multiplyScalar(j.off.t);
+    else {
+      const o = h.clone().add(V3(j.off.from)), d = V3(j.off.surf).normalize();
+      const from = o.clone().addScaledVector(d, 0.6).add(inner.position); // 体の座標→世界
+      ray.set(from, d.clone().negate()); ray.far = 0.6;
+      const hit = ray.intersectObjects(targets, false)[0];
+      const p = hit ? hit.point.clone().sub(inner.position) : o.clone().addScaledVector(d, 0.1);
+      off = p.addScaledVector(d, j.off.pad).sub(h);
+    }
+    P.contacts[j.id] = off;
+    P.axes[j.id] = Array.isArray(j.drv) ? V3(j.drv).normalize() : info.head[j.drv.to].clone().sub(info.head[j.drvNode]).normalize();
+  }
+  for (const n of info.names) P.offs[n] = null;
+  for (const k of MORPHS) { P.morphNow[k] = 0; P.morphWant[k] = 0; }
+  P.cur = poseTarget('supine', null); applyPoseInstant(P.cur);
+  setFace('calm');
+  return P;
+}
+function quatFromBasis(name) { const b = BASIS[name]; const m = new THREE.Matrix4().makeBasis(V3(b[0]), V3(b[1]), V3(b[2])); return new THREE.Quaternion().setFromRotationMatrix(m); }
+const BASIS_Q = Object.fromEntries(Object.keys(BASIS).map(k => [k, quatFromBasis(k)]));
+function poseTarget(posture, joint) {
+  const rots = { ...POSTURES[posture], ...(joint && joint.mods ? joint.mods : {}) };
+  const q = {}; for (const n in rots) { const r = rots[n]; q[n] = new THREE.Quaternion().setFromEuler(new THREE.Euler(r[0], r[1], r[2], 'XYZ')); }
+  const key = posture + '|' + (joint && joint.mods ? joint.id : '');
+  const pose = { posture, key, q, rootQ: BASIS_Q[posture], rootX: P.rootX, rootY: 0, capBias: 0 };
+  const m = measureRootY(pose); pose.rootY = m.y; pose.capBias = m.bias;
+  return pose;
+}
+// 骨の回転をセット（procQ：「気をつけ」基準の回転）
+function setBone(n, procQ) {
+  const info = P.info, b = info.byName[n], p = info.parent[n];
+  b.quaternion.copy(p ? info.Cinv[p] : QI).multiply(procQ || QI).multiply(info.C[n]);
+  b.position.copy(info.rest[n]);
+  const o = P.offs[n]; if (o) { b.position.add(o.pos); b.quaternion.multiply(o.rot); }
+}
+function setPoseNow(pose, rootY) {
+  P.group.quaternion.copy(pose.rootQ); P.group.position.set(pose.rootX, rootY, 0);
+  for (const n of P.info.names) setBone(n, pose.q[n]);
+}
+const onTableXZ = (x, z) => Math.abs(x) < CONFIG.TABLE_LEN / 2 - 0.02 && Math.abs(z) < CONFIG.TABLE_W / 2 - 0.01;
+// 皮ふ・服の頂点で、施術台の上でいちばん低い所（正確・少し重い）
+function lowestSkinned(step = 3) {
+  let lo = Infinity, who = '';
+  P.group.updateMatrixWorld(true);
+  for (const m of P.info.meshes) {
+    if (m.name === 'eyes' || m.name === 'eyelashes' || m.name === 'eyebrows') continue;
+    m.skeleton.update(); const n = m.geometry.attributes.position.count;
+    for (let i = 0; i < n; i += step) { m.getVertexPosition(i, _v); _v.applyMatrix4(m.matrixWorld); if (onTableXZ(_v.x, _v.z) && _v.y < lo) { lo = _v.y; who = m.name; } }
+  }
+  return { lo, who };
+}
+// カプセルでの近似（速い・寝返り中に使う）
+function lowestCaps() {
+  let lo = Infinity;
+  for (const c of P.info.caps) {
+    const b = P.info.byName[c.n]; b.getWorldPosition(_v); _v2.copy(c.local).applyMatrix4(b.matrixWorld);
+    if (onTableXZ((_v.x + _v2.x) / 2, (_v.z + _v2.z) / 2)) lo = Math.min(lo, _v.y - c.r, _v2.y - c.r);
+  }
+  return lo;
+}
+function measureRootY(pose) {
+  if (P.rootYCache[pose.key] !== undefined) return P.rootYCache[pose.key];
+  const info = P.info, saveQ = info.names.map(n => info.byName[n].quaternion.clone()), saveP = info.names.map(n => info.byName[n].position.clone());
+  const gq = P.group.quaternion.clone(), gp = P.group.position.clone(), so = P.offs; P.offs = {};
+  setPoseNow(pose, 1); const { lo } = lowestSkinned(2); const capLo = lowestCaps();
+  P.offs = so; P.group.quaternion.copy(gq); P.group.position.copy(gp); info.names.forEach((n, i) => { info.byName[n].quaternion.copy(saveQ[i]); info.byName[n].position.copy(saveP[i]); });
+  const r = { y: 1 + (CONFIG.TABLE_TOP + 0.004 - lo), bias: lo - capLo };
+  P.rootYCache[pose.key] = r; return r;
+}
+function applyPoseInstant(pose) { P.from = pose; P.to = pose; P.blend = 1; setPoseNow(pose, pose.rootY); }
+function goPose(pose) {
+  if (P.to && P.to.key === pose.key) return;
+  const now = { posture: P.to.posture, key: 'now', q: {}, rootQ: P.group.quaternion.clone(), rootX: P.group.position.x, rootY: P.group.position.y - P.lift, capBias: lerp(P.from.capBias, P.to.capBias, smooth(P.blend)) };
+  const k = smooth(P.blend);
+  const keys = new Set([...Object.keys(P.from.q), ...Object.keys(P.to.q)]);
+  for (const n of keys) now.q[n] = new THREE.Quaternion().slerpQuaternions(P.from.q[n] || QI, P.to.q[n] || QI, k);
+  P.from = now; P.to = pose; P.blend = 0; P.roll = now.posture !== pose.posture;
+}
+function setFace(kind) { if (!P) return; P.faceKind = kind; const f = FACES[kind] || {}; for (const k of MORPHS) P.morphWant[k] = f[k] || 0; }
+function updateFace(dt) {
+  P.blinkT -= dt; let blink = 0;
+  if (P.blinkT < 0) { blink = 1; if (P.blinkT < -0.13) P.blinkT = 2 + rng() * 3; }
+  const k = 1 - Math.exp(-10 * dt);
+  for (const n of MORPHS) P.morphNow[n] += (P.morphWant[n] - P.morphNow[n]) * k;
+  for (const m of P.info.morph) {
+    const d = m.morphTargetDictionary;
+    for (const n of MORPHS) if (d[n] !== undefined) m.morphTargetInfluences[d[n]] = n === 'eyesClosed' ? Math.max(P.morphNow[n], blink) : P.morphNow[n];
+  }
+}
+// 毎刻み：姿勢の切りかえ＋呼吸＋技の動き＋表情
+const BREATH_BONES = { spine01: new THREE.Quaternion(), 'clavicle.L': new THREE.Quaternion(), 'clavicle.R': new THREE.Quaternion() };
+function updateBody(dt) {
+  if (!P) return;
+  if (P.blend < 1) P.blend = Math.min(1, P.blend + dt / CONFIG.POSE_TIME);
+  const k = smooth(P.blend);
+  P.group.quaternion.slerpQuaternions(P.from.rootQ, P.to.rootQ, k);
+  const lift = P.roll ? Math.sin(Math.PI * k) * CONFIG.POSE_LIFT : 0;
+  P.group.position.set(lerp(P.from.rootX, P.to.rootX, k), lerp(P.from.rootY, P.to.rootY, k) + lift, 0);
+  const e = G.breathExpand;
+  BREATH_BONES.spine01.setFromAxisAngle(_v.set(1, 0, 0), -0.03 * e);
+  BREATH_BONES['clavicle.L'].setFromAxisAngle(_v.set(0, 0, 1), 0.035 * e); BREATH_BONES['clavicle.R'].setFromAxisAngle(_v.set(0, 0, 1), -0.035 * e);
+  const keys = new Set([...Object.keys(P.from.q), ...Object.keys(P.to.q)]);
+  for (const n of P.info.names) {
+    let q = null;
+    if (keys.has(n)) q = _q1.slerpQuaternions(P.from.q[n] || QI, P.to.q[n] || QI, k);
+    if (BREATH_BONES[n]) q = (q ? _q2.copy(q) : _q2.identity()).multiply(BREATH_BONES[n]);
+    setBone(n, q);
+  }
+  // 寝返りの途中は、台より下に入った分だけ持ち上げる（押し戻し）
+  P.group.updateMatrixWorld(true);
+  if (P.blend < 1) { const need = Math.max(0, CONFIG.TABLE_TOP + 0.004 - (lowestCaps() + lerp(P.from.capBias, P.to.capBias, k))); P.lift = Math.max(need, P.lift); }
+  else P.lift = Math.max(0, P.lift - dt * 0.4);
+  P.group.position.y += P.lift;
+  updateFace(dt);
+}
+function nodeWorld(name, off, target) { const b = P.info.byName[name]; b.updateWorldMatrix(true, false); return target.copy(off).applyMatrix4(b.matrixWorld); }
+function nodeDirWorld(name, dir, target) { P.info.byName[name].getWorldQuaternion(tq1); return target.copy(dir).normalize().applyQuaternion(tq1); }
+function headWorld(target) { return nodeWorld('head', V3([0, 0.13, 0.02]), target); }
+
+// ===== [SEC:HANDS] =====
+// 施術者の手（MakeHumanの手・ひじから先）。左右それぞれ lowerarm01 が根元
+const GRIPS = { // 指の曲げ（1〜3関節）。thumb=親指
+  press: { f: [0.05, 0.05, 0.04], thumb: [0.25, 0.1, 0.05] },
+  grip: { f: [0.95, 1.05, 0.7], thumb: [0.55, 0.45, 0.35] },
+  cup: { f: [0.3, 0.35, 0.3], thumb: [0.3, 0.2, 0.1] },
+  pinch: { f: [1.2, 1.3, 0.8], index: [0.55, 0.6, 0.4], thumb: [0.65, 0.5, 0.4] },
+};
+const HANDS = { root: new THREE.Group(), info: null, side: {}, ready: false };
+async function loadHands() {
+  const g = await LOADER.loadAsync('assets/people/hands.glb');
+  const info = prepRig(g.scene); HANDS.info = info;
+  HANDS.root.add(g.scene); scene.add(HANDS.root); HANDS.root.visible = false;
+  const sleeveM = new THREE.MeshStandardMaterial({ color: 0xeef1f3, roughness: 0.9, side: THREE.DoubleSide, normalMap: fileTex('assets/room/fabric_normal.jpg', false, [1, 2]), normalScale: new THREE.Vector2(0.4, 0.4) });
+  for (const s of ['L', 'R']) {
+    const h = info.head, W = h['wrist.' + s], Mid = h['finger3-1.' + s], I = h['finger2-1.' + s], K = h['finger5-1.' + s];
+    const f = Mid.clone().sub(W).normalize(), across = I.clone().sub(K).normalize();
+    const n = new THREE.Vector3().crossVectors(f, across).normalize(); if (n.y > 0) n.negate(); // 手のひらの向き（作られた形では下向き）
+    const side = new THREE.Vector3().crossVectors(f, n);
+    const frame = new THREE.Matrix4().makeBasis(f, n, side), palm = W.clone().lerp(Mid, 0.55).addScaledVector(n, 0.016);
+    const curl = {}; // 指を曲げる軸
+    for (let a = 1; a <= 5; a++) for (let b = 1; b <= 3; b++) {
+      const nm = `finger${a}-${b}.${s}`; const d = info.tail[nm].clone().sub(info.head[nm]).normalize();
+      curl[nm] = new THREE.Vector3().crossVectors(d, n).normalize();
+    }
+    // 白衣の袖（ひじの切れ目をかくす）
+    const rootN = 'lowerarm01.' + s, ax = h['wrist.' + s].clone().sub(h[rootN]).normalize();
+    const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.054, 0.8, 22, 4, true), sleeveM);
+    sleeve.castShadow = true; sleeve.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), ax.clone().negate());
+    sleeve.position.copy(ax).multiplyScalar(-0.32); info.byName[rootN].add(sleeve);
+    HANDS.side[s] = { root: info.byName[rootN], rootHead: h[rootN].clone(), frameInv: frame.clone().invert(), palm, curl, f, n };
+  }
+  HANDS.ready = true;
+}
+const _m4 = new THREE.Matrix4(), _up = new THREE.Vector3(0, 1, 0);
+// 手のひらの中心を pos に、手のひらを palmDir の向きに、指先を fingerDir の向きに置く
+function placeHand(s, pos, palmDir, fingerDir, grip) {
+  const H = HANDS.side[s]; if (!H) return;
+  const n = palmDir.clone().normalize(); const f = fingerDir.clone().addScaledVector(n, -fingerDir.dot(n));
+  if (f.lengthSq() < 1e-6) f.set(1, 0, 0).addScaledVector(n, -n.x); f.normalize();
+  const side = new THREE.Vector3().crossVectors(f, n);
+  _m4.makeBasis(f, n, side).multiply(H.frameInv);
+  H.root.quaternion.setFromRotationMatrix(_m4);
+  H.root.position.copy(pos).sub(H.palm.clone().sub(H.rootHead).applyQuaternion(H.root.quaternion));
+  const gp = GRIPS[grip] || GRIPS.press;
+  for (const nm in H.curl) {
+    const a = +nm[6], b = +nm[8]; const arr = a === 1 ? gp.thumb : (a === 2 && gp.index ? gp.index : gp.f);
+    HANDS.info.byName[nm].quaternion.setFromAxisAngle(H.curl[nm], arr[b - 1]);
+  }
+}
+
+// ===== [SEC:GAME] =====
+const G = {
+  state: 'title', time: 0, day: null, cust: null, rec: null, sel: null,
+  breathT: 0, breathExpand: 0, inhale: true, breathP: 0,
+  cam: { pos: new THREE.Vector3(0.3, 2.2, 2.6), tgt: new THREE.Vector3(0, 0.8, 0), wantPos: new THREE.Vector3(), wantTgt: new THREE.Vector3() },
+  fx: { snap: 0, snapDir: new THREE.Vector3(), shake: 0, bubbleT: 0, siren: 0 },
+  paused: false, seed: 1, ending: null, endT: 0, loadErr: false,
+};
+const tech = { joint: null, phase: 'idle', t: 0, drag: 0, r: 0, s: 0, perp: 0, dir: { x: 0, y: 1 }, samples: [], thrust: null, overT: 0, afterT: 0, afterNext: null, wallBuzz: false, attempts: 0, lastX: 0, lastY: 0, pid: null };
+
+function startDay(seed) {
+  G.seed = seed; rng = mulberry32(seed);
+  // 首を頼むお客さんはちょうど1人
+  const neckers = CUSTOMERS.filter(c => c.wantsNeck), others = CUSTOMERS.filter(c => !c.wantsNeck);
+  const pool = others.slice(); for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const list = pool.slice(0, CONFIG.CUSTOMERS_PER_DAY - 1); list.splice(Math.floor(rng() * CONFIG.CUSTOMERS_PER_DAY), 0, pick(neckers));
+  G.day = { list, idx: -1, reviews: [] }; G.ending = null; G.fx.siren = 0;
+  nextCustomer();
+}
+function nextCustomer() {
+  const d = G.day; d.idx++;
+  if (d.idx >= d.list.length) { finishDay(); return; }
+  const base = d.list[d.idx];
+  const c = { ...base, traits: base.traits || {}, barrier: {} };
+  for (const j of JOINTS) c.barrier[j.id] = (c.traits.big ? 1.28 : 1) * (0.85 + rng() * 0.3);
+  G.cust = c; G.rec = { cracked: {}, pains: 0, discomforts: 0, fails: 0, neck: false, left: false };
+  G.sel = null; G.breathT = rng() * 2;
+  setState('loading');
+  loadPerson(c.glb).then(g => {
+    if (G.cust !== c || G.state !== 'loading') return;
+    buildPatient(c, g); setState('intake');
+    const nx = d.list[d.idx + 1]; if (nx) loadPerson(nx.glb); // 次のお客さんを先に読んでおく
+  }).catch(() => { G.loadErr = true; $('loadingMsg').textContent = '読み込みに失敗しました。通信のよい所で、ページを読み直してください。'; });
+}
+function setState(s) {
+  G.state = s;
+  for (const id of ['title', 'intake', 'review', 'result', 'loading']) $(id).classList.toggle('hide', id !== s);
+  $('topbar').classList.toggle('hide', !(s === 'select' || s === 'tech'));
+  $('panel').classList.toggle('hide', s !== 'select');
+  $('techbar').classList.toggle('hide', s !== 'tech');
+  $('bubble').classList.add('hide'); $('hint').classList.add('hide');
+  HANDS.root.visible = s === 'tech' && HANDS.ready;
+  if (s !== 'tech' && s !== 'hospital') { tech.phase = 'idle'; tech.joint = null; clearOffs(); }
+  if (s === 'select' && P) { goPose(poseTarget(P.to.posture, null)); setFace('calm'); }
+  if (s === 'loading') { G.loadErr = false; $('loadingMsg').textContent = G.day && G.day.idx > 0 ? '次のお客さんが来ます…' : 'お客さんが来ます…'; }
+  if (s === 'intake') renderIntake();
+  if (s === 'select') renderPanel();
+  layout();
+}
+function clearOffs() { if (!P) return; for (const n in P.offs) P.offs[n] = null; }
+
+// ===== [SEC:BREATH] =====
+function updateBreath(dt) {
+  const c = G.cust; const mul = c && c.traits.nervous ? CONFIG.BREATH_NERVOUS : 1;
+  const ti = CONFIG.BREATH_IN * mul, to = CONFIG.BREATH_OUT * mul;
+  G.breathT = (G.breathT + dt) % (ti + to);
+  G.inhale = G.breathT < ti;
+  G.breathP = G.inhale ? G.breathT / ti : (G.breathT - ti) / to;
+  G.breathExpand = G.inhale ? smooth(G.breathP) : 1 - smooth(G.breathP);
+  if (SND.breathGain) SND.breathGain.gain.value = (G.state === 'tech' || G.state === 'select') && SND.on ? (G.inhale ? 0.018 * Math.sin(Math.PI * G.breathP) : 0.03 * Math.sin(Math.PI * Math.min(1, G.breathP * 1.4))) : 0;
+}
+function relaxNow() {
+  if (G.inhale) return (G.cust && G.cust.traits.nervous) ? CONFIG.INHALE_RELAX * 0.8 : CONFIG.INHALE_RELAX;
+  return (G.breathP >= CONFIG.BREATH_GOOD_FROM && G.breathP <= CONFIG.BREATH_GOOD_TO) ? 1 : CONFIG.EXHALE_EDGE_RELAX;
+}
+
+// ===== [SEC:TECH] =====
+function barrierMul() { return G.cust.barrier[tech.joint.id]; }
+function dragToR(d) { const lin = d / (CONFIG.PRELOAD_DRAG * barrierMul()); return lin <= CONFIG.HEAVY_FROM ? lin : CONFIG.HEAVY_FROM + (lin - CONFIG.HEAVY_FROM) * CONFIG.HEAVY_SCALE; }
+function ampMax() { return CONFIG.AMP_MAX * (G.cust.traits.elderly ? 0.75 : 1); }
+function painR() { return CONFIG.PAIN_R - (G.cust.traits.elderly ? 0.07 : 0); }
+function beginTech(id) {
+  const j = JMAP[id]; if (!j) return;
+  if (G.rec.cracked[id] !== undefined) { toast('さっき鳴らしたばかり。同じ関節はしばらく鳴りません'); return; }
+  tech.joint = j; tech.phase = 'posing'; tech.t = 0; tech.drag = 0; tech.r = 0; tech.attempts = 0; tech.thrust = null;
+  setState('tech');
+  goPose(poseTarget(j.posture, j));
+  setFace('open');
+  $('techName').innerHTML = `<b>${j.name}</b><br><span style="color:#6d655b">${j.tech}</span>`;
+  if (j.danger) toast('⚠ 首を急にひねるのは危険とされています', true);
+}
+function contactWorld(target) { const j = tech.joint; return nodeWorld(j.node, P.contacts[j.id], target); }
+function driveWorld(target) { const j = tech.joint; return nodeDirWorld(j.drvNode, P.axes[j.id], target); }
+function screenOf(v) { const p = tv3.copy(v).project(camera); return { x: (p.x + 1) / 2 * innerWidth, y: (1 - p.y) / 2 * innerHeight, ok: p.z < 1 }; }
+function screenDir() {
+  const c = contactWorld(new THREE.Vector3()), d = driveWorld(new THREE.Vector3());
+  const a = screenOf(c), b = screenOf(c.clone().addScaledVector(d, 0.12));
+  let x = b.x - a.x, y = b.y - a.y; const l = Math.hypot(x, y);
+  if (l < 1e-3) return { x: 0, y: 1 }; return { x: x / l, y: y / l };
+}
+function techDown(x, y, ts) {
+  if (G.state !== 'tech' || tech.phase !== 'ready') return;
+  initAudio();
+  tech.phase = 'press'; tech.dir = screenDir(); tech.lastX = x; tech.lastY = y; tech.s = 0; tech.perp = 0;
+  tech.samples = [{ t: ts, s: 0, drag: tech.drag }]; tech.overT = 0; tech.wallBuzz = tech.r >= 0.85;
+  $('hint').classList.add('hide');
+}
+function speedOver(now) {
+  const sm = tech.samples; if (sm.length < 2) return 0;
+  let old = null; for (const s of sm) { if (now - s.t <= CONFIG.THRUST_LOOKBACK) { old = s; break; } }
+  if (!old) old = sm[sm.length - 2]; const last = sm[sm.length - 1];
+  const dt = last.t - old.t; if (dt < 0.008) { const prev = sm[sm.length - 2]; const d2 = last.t - prev.t; return d2 > 0.001 ? (last.s - prev.s) / Math.max(0.008, d2) : 0; }
+  return (last.s - old.s) / dt;
+}
+function techMove(x, y, ts) {
+  if (G.state !== 'tech' || (tech.phase !== 'press' && tech.phase !== 'thrust')) return;
+  const md = minDim(); const dx = x - tech.lastX, dy = y - tech.lastY; tech.lastX = x; tech.lastY = y;
+  const along = (dx * tech.dir.x + dy * tech.dir.y) / md, perp = (-dx * tech.dir.y + dy * tech.dir.x) / md;
+  tech.s += along;
+  const prevDrag = tech.drag;
+  tech.samples.push({ t: ts, s: tech.s, drag: prevDrag });
+  while (tech.samples.length > 2 && ts - tech.samples[0].t > 0.25) tech.samples.shift();
+  const v = speedOver(ts);
+  if (tech.phase === 'press') {
+    if (v > CONFIG.THRUST_SPEED) {
+      // 突きの始まり：少し前（LOOKBACK）の位置とゆるみを基準にする
+      let base = tech.samples[0]; for (const s of tech.samples) { if (ts - s.t <= CONFIG.THRUST_LOOKBACK) { base = s; break; } }
+      tech.drag = base.drag; tech.r = dragToR(tech.drag);
+      tech.thrust = { s0: base.s, t0: ts, gt0: G.time, r0: tech.r, vmax: v, amp: tech.s - base.s, perp: 0, inhale: G.inhale, relax: relaxNow() };
+      tech.phase = 'thrust';
+    } else {
+      tech.drag = Math.max(0, tech.drag + along); tech.r = dragToR(tech.drag);
+      if (tech.r >= 0.85 && !tech.wallBuzz) { tech.wallBuzz = true; vib(18); sndCreak(); }
+      if (tech.r < 0.7) tech.wallBuzz = false;
+      if (tech.r > painR()) doPain('ゆっくりでも、押しこみすぎると痛い');
+    }
+  } else {
+    const th = tech.thrust; th.vmax = Math.max(th.vmax, v); th.amp = tech.s - th.s0; th.perp += Math.abs(perp);
+    if (ts - th.t0 > CONFIG.THRUST_WINDOW || v < CONFIG.THRUST_SPEED * 0.35) resolveThrust();
+  }
+}
+function techUp(x, y, ts) {
+  if (G.state !== 'tech') return;
+  if (tech.phase === 'thrust') { if (x !== undefined) techMove(x, y, ts); if (tech.phase === 'thrust') resolveThrust(); }
+  else if (tech.phase === 'press') tech.phase = 'ready';
+}
+function resolveThrust() {
+  const th = tech.thrust; const j = tech.joint; if (!th) return;
+  tech.attempts++;
+  const amp = th.amp, pre = th.r0, am = ampMax();
+  if (amp > am) return doPain('突きが深すぎた');
+  if (th.inhale && amp > am * 0.72) return doPain('息を吸って力が入っている時に、強く突いた');
+  if (th.perp > Math.max(0.03, Math.abs(amp) * 1.1)) return doFail('dir');
+  let preQ, ampQ, why = null;
+  if (pre < CONFIG.NO_SLACK) { preQ = 0; why = 'slack'; }
+  else if (pre < CONFIG.SWEET_MIN) preQ = (pre - CONFIG.NO_SLACK) / (CONFIG.SWEET_MIN - CONFIG.NO_SLACK);
+  else if (pre <= CONFIG.SWEET_MAX) preQ = 1;
+  else preQ = clamp(1 - (pre - CONFIG.SWEET_MAX) / (painR() - CONFIG.SWEET_MAX), 0, 1);
+  if (amp < CONFIG.AMP_MIN) { ampQ = 0; why = why || 'shallow'; }
+  else if (amp < CONFIG.AMP_MIN * 1.7) ampQ = 0.55 + 0.45 * (amp - CONFIG.AMP_MIN) / (CONFIG.AMP_MIN * 0.7);
+  else if (amp <= am * 0.8) ampQ = 1;
+  else ampQ = 1 - 0.4 * (amp - am * 0.8) / (am * 0.2);
+  const speedQ = clamp((th.vmax - CONFIG.THRUST_SPEED) / (CONFIG.THRUST_SPEED * 0.8), 0, 1);
+  const q = clamp(preQ * ampQ * th.relax * (0.72 + 0.28 * speedQ), 0, 1);
+  if (q >= (j.danger ? 0.3 : CONFIG.CRACK_Q)) return doCrack(q);
+  if (!why) { const f = [['slack', preQ], ['shallow', ampQ], ['inhale', th.relax]].sort((a, b) => a[1] - b[1]); why = f[0][0]; }
+  doFail(why);
+}
+function stiffOf(id) { return (G.cust.stiff[id] || 0); }
+function doCrack(q) {
+  const j = tech.joint, s = stiffOf(j.id);
+  G.rec.cracked[j.id] = q; if (j.danger) G.rec.neck = true;
+  const n = Math.max(1, Math.round(lerp(j.pops[0], j.pops[1], q * (0.5 + 0.5 * s)) + (rng() < 0.3 ? 1 : 0) - (rng() < 0.2 ? 1 : 0)));
+  sndCrack(q, n, j.pitch, s); vib([25, 15, 35]);
+  G.fx.snap = 1; G.fx.shake = 0.5 + q * 0.5;
+  big(n >= 3 ? 'ポキポキッ！' : 'ポキッ！', q >= 0.85 ? '完ぺき！' : q >= 0.65 ? 'いい音！' : 'まずまず', false);
+  let line, face;
+  if (j.danger) { line = G.cust.wantsNeck ? 'うおー！ 撮れ高きた！…あ、あれ…目が回る…' : 'えっ…今、首…あれ、なんか目が回る…'; face = 'wow'; toast('⚠ 首を急にひねる施術は、脳卒中などの危険があるとされています', true); }
+  else if (s >= 0.6) { line = pick(q >= 0.75 ? ['あ゛ぁ〜〜っ！ そこそこ！', 'うわっ、効くぅ〜…！', 'い、今の最高です…！'] : ['おっ、ラクになった…', 'いい音しましたね！']); face = 'happy'; }
+  else if (s >= CONFIG.MINOR_MIN) { line = pick(['お、ちょっと軽くなった。', 'へぇ、そこも鳴るんだ。']); face = 'calm'; }
+  else { line = pick(['ん？ そこは別に…', 'あ、そこは大丈夫なんですけど…', 'え、そこ？']); face = 'open'; }
+  say(line); setFace(face);
+  tech.phase = 'after'; tech.afterT = j.danger ? 2.0 : 1.35; tech.afterNext = j.danger ? 'hospital' : 'select';
+}
+const FAIL_MSG = { slack: 'ゆるみが残っていて、力が逃げた。もっとじわっと押してから。', shallow: '浅すぎて、関節まで届かなかった。', inhale: '息を吸っている時は、体に力が入っていて鳴らない。', dir: '向きがずれて、力が逃げた。矢印の向きにまっすぐ。' };
+function doFail(why) {
+  G.rec.fails++;
+  toast(FAIL_MSG[why] || '鳴らなかった…'); sndTone([220], 0.12, 'triangle', 0.08);
+  say(pick(['ん？', '…あれ？', 'ふぅ…']), 1.2); setFace('open');
+  tech.phase = 'after'; tech.afterT = 0.8; tech.afterNext = 'ready';
+}
+function doPain(why) {
+  G.rec.pains++; sndPain(); vib([60, 30, 60]); G.fx.shake = 1;
+  big('痛っ！', why, true); say(pick(['痛っ！！', 'いだだだっ！', 'ちょ、痛い痛い！']), 1.6); setFace('pain');
+  tech.phase = 'after'; tech.afterT = 1.5;
+  tech.afterNext = G.rec.pains >= CONFIG.PAINS_TO_LEAVE ? 'hospital' : 'select';
+}
+function doDiscomfort() {
+  G.rec.discomforts++; vib(40); say('う…うぅ…苦しい…', 1.5); setFace('tense'); toast('押しこんだまま長く待ちすぎた');
+  tech.phase = 'after'; tech.afterT = 1.0; tech.afterNext = 'ready';
+}
+function updateTech(dt) {
+  if (G.state !== 'tech' || !P) return;
+  const j = tech.joint;
+  if (tech.phase === 'posing') { if (P.blend >= 1) { tech.phase = 'ready'; showHint(); } }
+  if (tech.phase === 'ready' || tech.phase === 'after') { tech.drag = Math.max(0, tech.drag - CONFIG.RELAX_SPEED * CONFIG.PRELOAD_DRAG * barrierMul() * dt * 0.8); tech.r = dragToR(tech.drag); }
+  if (tech.phase === 'press') {
+    if (tech.r > CONFIG.DISCOMFORT_R) { tech.overT += dt; if (tech.overT > CONFIG.DISCOMFORT_TIME) doDiscomfort(); } else tech.overT = Math.max(0, tech.overT - dt);
+    if (P.faceKind !== 'tense' && tech.r > 1.05) setFace('tense'); else if (P.faceKind === 'tense' && tech.r < 0.95) setFace('open');
+  }
+  if (tech.phase === 'thrust' && G.time - tech.thrust.gt0 > CONFIG.THRUST_WINDOW + 0.06) resolveThrust();
+  if (tech.phase === 'after') {
+    tech.afterT -= dt;
+    if (tech.afterT <= 0) {
+      const nx = tech.afterNext;
+      if (nx === 'ready') { tech.phase = 'ready'; setFace('open'); }
+      else if (nx === 'hospital') { startHospital(); return; }
+      else setState('select');
+    }
+  }
+  // 体の動き：ゆるみ取りの量＋ポキッの反動
+  clearOffs();
+  if (G.state !== 'tech' || tech.joint !== j) return;
+  if (j && tech.phase !== 'posing') {
+    const amt = Math.min(tech.r, 1.3) + G.fx.snap * 0.9;
+    const v = j.vis, off = { pos: new THREE.Vector3(), rot: new THREE.Quaternion() };
+    if (v.type === 'rot') off.rot.setFromAxisAngle(V3(v.axis), v.amt * amt);
+    else {
+      // 押す/引く向きを、その骨の親から見た向きに直して動かす
+      const dW = driveWorld(new THREE.Vector3());
+      P.info.byName[v.node].parent.getWorldQuaternion(tq1); tq1.invert();
+      off.pos.copy(dW.applyQuaternion(tq1)).multiplyScalar(v.amt * amt);
+    }
+    P.offs[v.node] = off;
+  }
+}
+function placeTechHands() {
+  if (G.state !== 'tech' || !tech.joint || !HANDS.ready || !P) return;
+  const j = tech.joint, c = contactWorld(new THREE.Vector3()), d = driveWorld(new THREE.Vector3());
+  const press = Math.min(tech.r, 1.3) * 0.008 + G.fx.snap * 0.016;
+  // 施術者は手前（カメラ側）に立っているので、指先は奥へ向ける
+  const away = c.clone().sub(camera.position).setY(0); if (away.lengthSq() < 1e-6) away.set(0, 0, -1); away.normalize();
+  const right = new THREE.Vector3().crossVectors(away, _up).normalize();
+  const pair = (p1, p2) => right.dot(p1) >= right.dot(p2) ? ['R', 'L'] : ['L', 'R'];
+  if (j.motion === 'push') {
+    const p = c.clone().addScaledVector(d, press);
+    placeHand('R', p, d, away.clone().applyAxisAngle(d, 0.45), 'press');
+    placeHand('L', p.clone().addScaledVector(d, -0.028), d, away.clone().applyAxisAngle(d, -0.45), 'press');
+  } else if (j.motion === 'pull') {
+    let n = new THREE.Vector3(0, -1, 0); n.addScaledVector(d, -n.dot(d));
+    if (n.lengthSq() < 0.09) { n.copy(away).addScaledVector(d, -away.dot(d)); }
+    n.normalize();
+    const f = new THREE.Vector3().crossVectors(d, n); if (f.dot(away) < 0) f.negate();
+    const rad = j.id.startsWith('finger') ? 0.014 : j.id.startsWith('wrist') ? 0.028 : j.id.startsWith('ankle') ? 0.035 : 0.042;
+    const p1 = c.clone().addScaledVector(n, -rad).addScaledVector(d, press), p2 = p1.clone().addScaledVector(d, j.id.startsWith('finger') ? -0.07 : -0.1);
+    const [a, b] = pair(p1, p2);
+    placeHand(a, p1, n, f, j.grip); placeHand(b, p2, n, f, 'grip');
+  } else if (j.id === 'neck') {
+    const hc = nodeWorld('head', V3([0, 0.08, 0.02]), new THREE.Vector3()), up = nodeDirWorld('head', V3([0, 1, 0]), new THREE.Vector3());
+    const c1 = c.clone().addScaledVector(d, press), c2 = hc.clone().multiplyScalar(2).sub(c);
+    const [a, b] = pair(c1, c2);
+    placeHand(a, c1, hc.clone().sub(c1), up, 'cup'); placeHand(b, c2, hc.clone().sub(c2), up, 'cup');
+  } else {
+    // ひねる（横向き）：片手で骨盤を、もう片手で肩を押さえる
+    const sn = j.side > 0 ? 'L' : 'R', inward = nodeDirWorld('root', V3([-j.side, 0, 0]), new THREE.Vector3());
+    const p1 = c.clone().addScaledVector(d, press);
+    const sh = nodeWorld('shoulder01.' + sn, V3([j.side * 0.05, 0.02, 0]), new THREE.Vector3());
+    const [a, b] = pair(p1, sh);
+    placeHand(a, p1, inward, away, 'press'); placeHand(b, sh, inward, away, 'press');
+  }
+}
+
+// ===== [SEC:SCORE] =====
+function computeRating(c, rec) {
+  let stiffSum = 0, got = 0, extras = 0, best = null, bestV = -1;
+  for (const [id, s] of Object.entries(c.stiff)) if (id !== 'neck' && s >= CONFIG.STIFF_MIN) stiffSum += s;
+  for (const [id, q] of Object.entries(rec.cracked)) {
+    if (id === 'neck') continue; const s = c.stiff[id] || 0;
+    if (s >= CONFIG.MINOR_MIN) { got += s * (0.4 + 0.6 * q); if (s * q > bestV) { bestV = s * q; best = id; } } else extras++;
+  }
+  let score = CONFIG.SCORE_BASE + CONFIG.SCORE_CRACK * Math.min(1.15, got / Math.max(0.5, stiffSum));
+  score -= Math.max(0, extras - CONFIG.FREE_EXTRA) * CONFIG.PEN_EXTRA;
+  score -= rec.pains * CONFIG.PEN_PAIN + rec.discomforts * CONFIG.PEN_DISCOMFORT + Math.max(0, rec.fails - CONFIG.FREE_FAIL) * CONFIG.PEN_FAIL;
+  if (rec.neck) score -= CONFIG.PEN_NECK; else if (c.wantsNeck) score += CONFIG.BONUS_REFUSE_NECK;
+  if (rec.hospital) score = 0;
+  score = Math.max(0, score);
+  const stars = 1 + CONFIG.STAR_TH.filter(t => score >= t).length;
+  const left = Object.entries(c.stiff).filter(([id, s]) => id !== 'neck' && s >= CONFIG.LEFT_MIN && rec.cracked[id] === undefined).sort((a, b) => b[1] - a[1]).map(([id]) => JMAP[id].nm2);
+  return { score, stars, best: best ? JMAP[best].nm2 : null, left, extras };
+}
+function composeReview(c, rec, R) {
+  const lines = [];
+  if (rec.hospital) return rec.neck ? pick(['首をボキッとされた直後に目が回って、救急車で運ばれました。首のボキボキは本当に危ないそうです。', '首を鳴らされたあと気分が悪くなって、そのまま病院へ。もう首は鳴らしません。'])
+    : pick(['痛すぎて動けなくなり、救急車で運ばれました。もう行きません。', '「痛っ！」が3回。最後は担架で運ばれました。']);
+  {
+    let t = pick(REVIEW[R.stars]);
+    const left = R.left[0] || 'こっているところ';
+    t = t.replace('{best}', R.best || '体').replace('{left}', left)
+      .replace('{leftOr}', R.left.length ? `${R.left[0]}はもう少しかな。` : 'また予約します。')
+      .replace('{leftOr3}', R.left.length ? `${R.left[0]}がまだ重いです。` : 'まあ、ふつうでした。');
+    const nCr = Object.keys(rec.cracked).length;
+    if (!R.best && R.stars <= 3) t = nCr ? pick(['音は鳴ったけど、悩みはそのままです。', '鳴らしてほしい所はそこじゃなかったです…。']) : pick(['何度か押されたけど、一度も鳴りませんでした。', '相談したところは、ほとんど変わりませんでした。']);
+    else if (R.stars <= 2 && !R.left.length) t = pick(['うーん、あんまりスッキリしなかったです。', '施術はふつうでしたが、ちょっと不安になりました。']);
+    lines.push(t);
+  }
+  if (rec.neck) lines.push(c.wantsNeck ? '首ボキは撮れたけど、あとで調べたら首を急にひねるのは危ないらしい…。ちょっと怖くなりました。' : '頼んでないのに首をボキッとされた。首は危ないって聞くのに…。');
+  else if (c.wantsNeck) lines.push('首は「危ないのでやりません」とキッパリ。逆に信頼できます。');
+  if (rec.pains > 0) lines.push(rec.pains === 1 ? '途中で一回「痛っ！」ってなりました。' : '何回か本気で痛かったです。');
+  if (R.extras > CONFIG.FREE_EXTRA) lines.push('頼んでないところまで、やたらポキポキされました。');
+  return lines.slice(0, 3).join('');
+}
+function checkout() {
+  if (G.state === 'review' || G.state === 'result') return;
+  const c = G.cust, rec = G.rec; const R = computeRating(c, rec);
+  const text = composeReview(c, rec, R);
+  G.day.reviews.push({ c, stars: R.stars, text, score: R.score });
+  sndRegister();
+  setState('review'); renderReview(c, rec, R, text);
+}
+function rankOf(avg) { for (const [t, n] of RANKS) if (avg >= t) return n; return RANKS[RANKS.length - 1][1]; }
+
+// ===== [SEC:UI] =====
+const starsHTML = n => '<span class="stars">' + '★'.repeat(n) + '<span class="off">' + '★'.repeat(5 - n) + '</span></span>';
+const avaHTML = c => { const h = c.look.shirt, lum = ((h >> 16 & 255) * 0.3 + (h >> 8 & 255) * 0.59 + (h & 255) * 0.11); return `<div class="ava" style="background:#${h.toString(16).padStart(6, '0')};color:${lum > 170 ? '#2b2622' : '#fff'};border:1.5px solid rgba(0,0,0,.12)">${c.name[0]}</div>`; };
+function renderIntake() {
+  const c = G.cust, d = G.day;
+  $('intakeCard').innerHTML = `<div class="log" style="margin-bottom:8px">本日 ${d.idx + 1} / ${d.list.length} 人目のお客さん</div>
+  <div class="cust">${avaHTML(c)}<div><div class="nm">${c.name} さん（${c.age}）</div><div class="job">${c.job}</div></div></div>
+  ${c.lines.map(l => `<div class="say">${l}</div>`).join('')}
+  <div class="row"><button class="btn" id="btnBegin">施術をはじめる</button></div>`;
+  $('btnBegin').onclick = () => { initAudio(); sndTap(); startTreatment(); };
+}
+function startTreatment() { setState('select'); say(pick(['よろしくお願いします。', 'お願いしまーす。']), 1.6); }
+function renderPanel() {
+  const c = G.cust; if (!c) return;
+  $('memo').innerHTML = `<div class="lbl">問診メモ（${c.name}さん）</div>${c.lines.join('<br>')}`;
+  $('custInfo').innerHTML = `<b>${c.name}さん</b><br>本日 ${G.day.idx + 1}/${G.day.list.length}人目・鳴らした ${Object.keys(G.rec.cracked).length}か所${G.rec.pains ? `・痛っ！${G.rec.pains}回` : ''}`;
+  const svg = $('bodymap');
+  let h = `<g fill="#efe6d6" stroke="#d6cab5" stroke-width="2">
+  <circle cx="100" cy="30" r="21"/><rect x="92" y="48" width="16" height="14" rx="4"/>
+  <path d="M64 64 Q100 56 136 64 L132 176 Q100 186 68 176 Z"/>
+  <path d="M64 66 L50 128 L40 200 L50 202 L62 132 L74 92 Z"/><path d="M136 66 L150 128 L160 200 L150 202 L138 132 L126 92 Z"/>
+  <ellipse cx="34" cy="214" rx="9" ry="14"/><ellipse cx="166" cy="214" rx="9" ry="14"/>
+  <path d="M70 176 L66 268 L72 336 L88 336 L92 268 L98 186 Z"/><path d="M130 176 L134 268 L128 336 L112 336 L108 268 L102 186 Z"/>
+  <ellipse cx="80" cy="348" rx="11" ry="8"/><ellipse cx="120" cy="348" rx="11" ry="8"/></g>
+  <path d="M100 64 L100 176" stroke="#d6cab5" stroke-width="2" stroke-dasharray="3 4"/>
+  <text x="18" y="366" font-size="12" fill="#8a8073">左</text><text x="174" y="366" font-size="12" fill="#8a8073">右</text><text x="100" y="366" font-size="10" fill="#8a8073" text-anchor="middle">背中側から見た図</text>`;
+  for (const j of JOINTS) {
+    const [x, y] = MAP_POS[j.id]; const done = G.rec.cracked[j.id] !== undefined;
+    const cls = ['dot', done ? 'done' : '', G.sel === j.id ? 'sel' : '', j.danger ? 'warn' : ''].join(' ');
+    h += `<g class="${cls}" data-id="${j.id}"><circle cx="${x}" cy="${y}" r="14" fill="transparent"/><circle class="v" cx="${x}" cy="${y}" r="${G.sel === j.id ? 8.5 : 7}"/>${done ? `<path d="M${x - 3.5} ${y} l2.5 3 l5 -6" stroke="#fff" stroke-width="2.2" fill="none"/>` : ''}${j.danger ? `<text x="${x + 11}" y="${y + 4}" font-size="11" fill="#d03c2c" font-weight="900">!</text>` : ''}</g>`;
+  }
+  svg.innerHTML = h;
+  svg.querySelectorAll('.dot').forEach(el => el.addEventListener('pointerdown', e => { e.stopPropagation(); selectJoint(el.dataset.id); }));
+  const j = G.sel && JMAP[G.sel];
+  $('selInfo').innerHTML = j ? `<b>${j.name}</b>${G.rec.cracked[j.id] !== undefined ? '（鳴らし済み）' : ''}<br><span class="tech">${j.tech}</span>` : '<span class="tech">図の●をタップして、鳴らす場所を選んでください。</span>';
+  $('btnDo').disabled = !j || G.rec.cracked[j.id] !== undefined;
+}
+function selectJoint(id) { initAudio(); sndTap(); G.sel = id; renderPanel(); }
+function renderReview(c, rec, R, text) {
+  const n = Object.keys(rec.cracked).length; const last = G.day.idx + 1 >= G.day.list.length;
+  const log = Object.entries(rec.cracked).map(([id, q]) => `${JMAP[id].name}${q >= 0.85 ? '（完ぺき）' : q >= 0.65 ? '（いい音）' : ''}`).join('・') || 'なし';
+  $('reviewCard').innerHTML = `<div class="log">お会計ありがとうございました！</div>
+  <div class="cust" style="margin-top:8px">${avaHTML(c)}<div><div class="nm">${c.name} さん</div>${starsHTML(R.stars)}</div></div>
+  <div class="rv">${text}</div>
+  <div class="log">鳴らした場所（${n}か所）：${log}${rec.pains ? `<br>痛っ！：${rec.pains}回` : ''}${rec.fails ? `<br>鳴らなかった：${rec.fails}回` : ''}</div>
+  <div class="row"><button class="btn" id="btnNext">${last ? '本日の口コミを見る' : '次のお客さんへ'}</button></div>`;
+  $('btnNext').onclick = () => { sndTap(); nextCustomer(); };
+}
+// 病院送り（その日の営業はここで終わり）
+function startHospital() {
+  const c = G.cust, rec = G.rec; rec.hospital = true;
+  const R = computeRating(c, rec); G.day.reviews.push({ c, stars: 1, text: composeReview(c, rec, R), score: 0 });
+  setState('hospital'); setFace('sick'); say(rec.neck ? 'う…目が回る…' : 'う…動けない…', 3);
+  G.endT = CONFIG.HOSPITAL_TIME; G.fx.siren = 1; sndSiren(CONFIG.HOSPITAL_TIME);
+  big('救急車を呼んで！', rec.neck ? '首を急にひねった' : '「痛っ！」が3回', true);
+}
+function updateEnding(dt) {
+  const on = G.fx.siren > 0 && Math.sin(G.time * 11) > 0;
+  siren.intensity = G.fx.siren > 0 ? (on ? 9 : 1.5) : 0;
+  $('sirenFx').style.opacity = G.fx.siren > 0 ? (on ? 0.32 : 0.06) : 0;
+  if (G.state !== 'hospital') return;
+  G.endT -= dt;
+  if (G.endT <= 0) { G.fx.siren = 0; showEnding('hospital'); }
+}
+function finishDay() {
+  const rv = G.day.reviews; const avg = rv.reduce((a, r) => a + r.stars, 0) / Math.max(1, rv.length);
+  showEnding(rv.length && rv.every(r => r.stars === 5) ? 'god' : avg < 2 ? 'closed' : 'normal');
+}
+const AMBULANCE = '<svg viewBox="0 0 160 70" width="150"><rect x="6" y="18" width="104" height="36" rx="5" fill="#fff" stroke="#2b2622" stroke-width="3"/><path d="M110 28 h22 l18 14 v12 h-40 z" fill="#fff" stroke="#2b2622" stroke-width="3"/><rect x="6" y="36" width="144" height="7" fill="#e5483a"/><rect x="48" y="8" width="16" height="10" rx="3" fill="#e5483a" stroke="#2b2622" stroke-width="2"/><path d="M52 24 h8 v6 h6 v8 h-6 v6 h-8 v-6 h-6 v-8 h6 z" fill="#e5483a"/><circle cx="34" cy="56" r="9" fill="#2b2622"/><circle cx="124" cy="56" r="9" fill="#2b2622"/></svg>';
+function showEnding(kind) {
+  const E = ENDINGS[kind]; G.ending = kind;
+  const rv = G.day.reviews; const avg = rv.reduce((a, r) => a + r.stars, 0) / Math.max(1, rv.length);
+  const avgS = avg.toFixed(1), rank = rankOf(avg);
+  const share = encodeURIComponent(`ポキポキ整体院【${E.title}】\n本日の口コミ ★${avgS}${kind === 'normal' ? `（${rank}）` : ''}\n#ポキポキ整体院 #NKWorks\n`) + '&url=' + encodeURIComponent(URLS.game);
+  const head = `<div class="endHead ${E.cls}">${kind === 'hospital' ? AMBULANCE : ''}${kind === 'god' ? '<div class="confetti">' + Array.from({ length: 24 }, (_, i) => `<i style="left:${(i * 37) % 100}%;animation-delay:${(i % 8) * 0.18}s;background:${['#f4a52a', '#e76f51', '#2a9d8f', '#4a90d9'][i % 4]}"></i>`).join('') + '</div>' : ''}
+    <div class="endT">${E.title}</div><div class="endS">${E.sub}</div>${kind === 'hospital' ? `<div class="log">本日の営業は、${G.day.idx + 1}人目で終了しました。</div>` : ''}</div>`;
+  $('resultCard').innerHTML = `${head}<div class="shop"><h2>ポキポキ整体院</h2>
+  <div class="avg"><b>${avgS}</b>${starsHTML(Math.round(avg))}<span class="log">口コミ ${rv.length}件</span></div>${kind === 'normal' ? `<div class="rank">${rank}</div>` : ''}</div>
+  ${kind === 'hospital' ? '<div class="warnNote">※首を急にひねる施術や、強すぎる施術は、本当に危険とされています。マネしないでください。</div>' : ''}
+  ${rv.map(r => `<div class="rvItem"><div class="hd">${avaHTML(r.c)}<div><b>${r.c.name[0]}.さん</b>（${r.c.job}）<br>${starsHTML(r.stars)}</div></div><p>${r.text}</p></div>`).join('')}
+  <div class="row"><a class="btn" style="text-decoration:none;text-align:center;background:#111;box-shadow:0 3px 0 #000" href="https://x.com/intent/post?text=${share}" target="_blank" rel="noopener">Xでシェア</a><button class="btn" id="btnAgain">もう一度営業</button></div>
+  <div class="row" style="margin-top:10px"><button class="btn sub" id="btnToTitle">タイトルへ</button></div>
+  <div class="support"><a class="fol" href="${URLS.follow}" target="_blank" rel="noopener">作者をフォロー<small>新作のお知らせ</small></a><a class="ofu" href="${URLS.ofuse}" target="_blank" rel="noopener">作者を応援する<small>100円から送れます（OFUSE）</small></a></div>
+  <div id="adGap"></div><div id="adBox"></div>`;
+  $('btnAgain').onclick = () => { sndTap(); startDay(Date.now() % 1e9); };
+  $('btnToTitle').onclick = () => { sndTap(); goTitle(); };
+  setState('result'); $('result').scrollTop = 0; showAd();
+  if (kind === 'god') sndTone([523, 659, 784, 1047, 1319], 0.7, 'triangle', 0.2, 0.13);
+  else if (kind === 'closed') sndTone([392, 330, 262], 0.8, 'triangle', 0.16, 0.28);
+  else if (kind === 'normal') sndTone([660, 880, 1320], 0.5, 'triangle', 0.15, 0.1);
+}
+function showAd() {
+  const box = $('adBox'); if (!box || box.dataset.done) return; box.dataset.done = '1';
+  box.innerHTML = '<ins class="adsbygoogle" style="display:block;width:100%;height:100px" data-ad-client="ca-pub-2073267239630350" data-ad-slot="6261635446" data-ad-format="horizontal" data-full-width-responsive="false"></ins>';
+  try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { }
+}
+function goTitle() { G.day = null; G.cust = null; G.fx.siren = 0; setState('title'); showTitlePatient(); }
+function showTitlePatient() { loadPerson(CUSTOMERS[0].glb).then(g => { if (G.state === 'title') { buildPatient(CUSTOMERS[0], g); setFace('calm'); } }).catch(() => { }); }
+let toastT = null;
+function toast(msg, warn = false) { const t = $('toast'); t.textContent = msg; t.classList.toggle('warn', warn); t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
+function big(main, sub, pain) { const b = $('big'); b.innerHTML = main + (sub ? `<small>${sub}</small>` : ''); b.classList.toggle('pain', !!pain); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+function say(text, sec = 2.2) { const b = $('bubble'); b.textContent = text; b.classList.remove('hide'); G.fx.bubbleT = sec; }
+function showHint() {
+  if (tech.joint && G.day && G.day.idx === 0 && tech.attempts === 0) { $('hint').textContent = '矢印の向きにゆっくり押して → 息を吐く時に、短くはじく'; $('hint').classList.remove('hide'); }
+}
+function confirmBox(msg, yes) { $('confirmMsg').innerHTML = msg; $('confirm').classList.remove('hide'); G.paused = true; $('confYes').onclick = () => { $('confirm').classList.add('hide'); G.paused = false; yes(); }; $('confNo').onclick = () => { $('confirm').classList.add('hide'); G.paused = false; }; }
+
+// あそび方
+const HOW = [
+  { t: '1. 悩みを聞いて、場所を選ぶ', p: 'お客さんの話がヒントです。こっている場所を、全身19か所の中から自分で選んで鳴らします。', svg: `<svg viewBox="0 0 300 150"><rect x="20" y="20" width="160" height="60" rx="14" fill="#fff" stroke="#2b2622" stroke-width="3"/><text x="100" y="47" font-size="14" text-anchor="middle" font-weight="700">右の腰が重くて…</text><text x="100" y="67" font-size="12" text-anchor="middle" fill="#6d655b">（問診）</text><g transform="translate(215,18)"><circle cx="30" cy="12" r="10" fill="#efe6d6"/><rect x="16" y="24" width="28" height="50" rx="8" fill="#efe6d6"/><rect x="18" y="72" width="10" height="45" rx="5" fill="#efe6d6"/><rect x="32" y="72" width="10" height="45" rx="5" fill="#efe6d6"/><circle cx="38" cy="62" r="6" fill="#e76f51" stroke="#b8533a" stroke-width="2"/></g><text x="150" y="135" font-size="13" text-anchor="middle" fill="#6d655b">●をタップ →「施術する」</text></svg>` },
+  { t: '2. ゆっくり押して、ゆるみを取る', p: '画面を指で押したまま、矢印の向きにゆっくり動かします。手ごたえが重くなって緑の輪になった所が「壁」。プロも、まずここまでゆるみを取ってから突きます。', svg: `<svg viewBox="0 0 300 150"><circle cx="90" cy="75" r="34" fill="none" stroke="#2a9d8f" stroke-width="7"/><path d="M90 75 L200 75" stroke="#2b2622" stroke-width="5" stroke-linecap="round"/><path d="M200 75 l-14 -10 v20 z" fill="#2b2622"/><text x="150" y="125" font-size="14" text-anchor="middle" font-weight="700">ゆっくり → 重くなったら止める</text></svg>` },
+  { t: '3. 息を吐く時に、短くはじく', p: '上の「はー（吐く）」の間は体の力が抜けています。そこで指を矢印の向きに、短く・素早くはじくとポキッ！ 吸っている時や、深く突きすぎると「痛っ！」になります。', svg: `<svg viewBox="0 0 300 150"><rect x="60" y="18" width="180" height="30" rx="15" fill="#fff" stroke="#4a90d9" stroke-width="3"/><text x="150" y="39" font-size="15" text-anchor="middle" font-weight="900" fill="#2f6db0">はー（吐く）</text><path d="M110 95 L165 95" stroke="#e76f51" stroke-width="7" stroke-linecap="round"/><path d="M178 95 l-16 -11 v22 z" fill="#e76f51"/><text x="210" y="102" font-size="22" font-weight="900">ポキッ</text><text x="150" y="138" font-size="13" text-anchor="middle" fill="#6d655b">短く・速く（長く押しこまない）</text></svg>` },
+  { t: '4. 首はやってはいけない', p: '首を急にひねる施術は、首の血管を傷つけるなどの危険があるとされています（厚生労働省も注意しています）。鳴らすとお客さんの具合が悪くなり、救急車で運ばれて「病院送り」に。たのまれても、やらないのがプロです。', svg: `<svg viewBox="0 0 300 150"><circle cx="150" cy="60" r="32" fill="#efe6d6" stroke="#d03c2c" stroke-width="4"/><path d="M128 38 L172 82 M172 38 L128 82" stroke="#d03c2c" stroke-width="6" stroke-linecap="round"/><text x="150" y="125" font-size="14" text-anchor="middle" font-weight="800" fill="#d03c2c">首を鳴らすと病院送り</text></svg>` },
+  { t: '5. お会計で口コミがつく', p: 'こっている場所を上手に鳴らすほど★が増えます。関係ない場所ばかり鳴らすと、逆に減ることも。「痛っ！」を3回出しても病院送りです。5人の口コミで、エンドが決まります（全員★5なら…？）。', svg: `<svg viewBox="0 0 300 150"><rect x="40" y="20" width="220" height="110" rx="14" fill="#fff" stroke="#e3dccf" stroke-width="2"/><text x="60" y="55" font-size="24" fill="#f4a52a">★★★★★</text><text x="60" y="85" font-size="13">右の腰が鳴った瞬間、</text><text x="60" y="105" font-size="13">10年分のコリが抜けました。</text></svg>` },
+];
+let howI = 0;
+function openHow() { howI = 0; renderHow(); $('howto').classList.remove('hide'); G.paused = true; }
+function renderHow() { const h = HOW[howI]; $('howPage').innerHTML = `<h3>${h.t}</h3>${h.svg}<p>${h.p}</p>`; $('howPg').textContent = `${howI + 1} / ${HOW.length}`; $('howPrev').textContent = howI === 0 ? 'とじる' : 'もどる'; $('howNext').textContent = howI === HOW.length - 1 ? 'はじめる' : 'つぎへ'; }
+function closeHow() { $('howto').classList.add('hide'); G.paused = false; try { localStorage.setItem('pokipoki_howto', '1'); } catch (e) { } }
+$('howPrev').onclick = () => { sndTap(); if (howI === 0) closeHow(); else { howI--; renderHow(); } };
+$('howNext').onclick = () => { sndTap(); if (howI === HOW.length - 1) closeHow(); else { howI++; renderHow(); } };
+$('btnHow').onclick = () => { initAudio(); sndTap(); openHow(); };
+$('btnHelp').onclick = () => { sndTap(); openHow(); };
+$('btnHome').onclick = () => { sndTap(); confirmBox('タイトルにもどりますか？<br><span style="font-size:13px;font-weight:600">今日の営業はリセットされます。</span>', goTitle); };
+$('btnStart').onclick = () => { initAudio(); sndTap(); let seen = false; try { seen = !!localStorage.getItem('pokipoki_howto'); } catch (e) { } startDay(Date.now() % 1e9); if (!seen) openHow(); };
+$('btnSound').onclick = () => { SND.on = !SND.on; $('btnSound').textContent = '音：' + (SND.on ? 'ON' : 'OFF'); initAudio(); if (SND.master) SND.master.gain.value = SND.on ? 0.9 : 0; sndTap(); };
+$('btnDo').onclick = () => { if (G.sel) { sndTap(); beginTech(G.sel); } };
+$('btnPay').onclick = () => {
+  sndTap();
+  const n = Object.keys(G.rec.cracked).length;
+  confirmBox(n ? `お会計にしますか？<br><span style="font-size:13px;font-weight:600">鳴らした場所：${n}か所</span>` : 'まだどこも鳴らしていません。<br>このままお会計にしますか？', checkout);
+};
+$('btnQuit').onclick = () => { sndTap(); setState('select'); };
+
+// ===== [SEC:LAYOUT] =====
+let VIEW = { x: 0, y: 0, w: 1, h: 1 };
+function layout() {
+  const W = innerWidth, H = innerHeight; const port = H > W * 1.05;
+  renderer.setSize(W, H, false); camera.aspect = W / H;
+  const panel = $('panel'); panel.classList.toggle('port', port); panel.classList.toggle('land', !port);
+  const top = 54;
+  if (G.state === 'select') VIEW = port ? { x: 0, y: top, w: W, h: H * 0.53 - top } : { x: 0, y: top, w: W - 290, h: H - top };
+  else if (G.state === 'tech') VIEW = { x: 0, y: top, w: W, h: H - top - 70 };
+  else VIEW = { x: 0, y: 0, w: W, h: H };
+  const cx = VIEW.x + VIEW.w / 2, cy = VIEW.y + VIEW.h / 2;
+  camera.setViewOffset(W, H, W / 2 - cx, H / 2 - cy, W, H); camera.updateProjectionMatrix();
+}
+addEventListener('resize', layout);
+
+// ===== [SEC:CAMERA] =====
+function fitDist(radius) {
+  const H = innerHeight, t = Math.tan(THREE.MathUtils.degToRad(CONFIG.FOV / 2));
+  const half = Math.min(Math.atan(t * VIEW.h / H), Math.atan(t * VIEW.w / H));
+  return radius / Math.sin(Math.max(0.05, half));
+}
+function updateCamera(dt) {
+  const port = innerHeight > innerWidth * 1.05;
+  const W = G.cam.wantPos, T = G.cam.wantTgt;
+  if (G.state === 'tech' && tech.joint && P) {
+    contactWorld(T); T.y += 0.02;
+    const dir = port ? new THREE.Vector3(0.55, 1.0, 0.75) : new THREE.Vector3(0.12, 0.95, 1.0);
+    W.copy(T).addScaledVector(dir.normalize(), fitDist(CONFIG.TECH_R));
+  } else if (G.state === 'title') {
+    T.set(-0.05, 0.86, 0); const a = Math.sin(G.time * 0.15) * 0.35;
+    const dir = port ? new THREE.Vector3(1.0, 0.95, 0.35 + a) : new THREE.Vector3(0.35 + a, 0.8, 1.0);
+    W.copy(T).addScaledVector(dir.normalize(), fitDist(CONFIG.OVERVIEW_R) * 1.05);
+  } else {
+    T.set(-0.02, CONFIG.TABLE_TOP + 0.1, 0);
+    const dir = port ? new THREE.Vector3(1.0, 1.15, 0.25) : new THREE.Vector3(0.05, 0.95, 1.0);
+    W.copy(T).addScaledVector(dir.normalize(), fitDist(CONFIG.OVERVIEW_R));
+  }
+  // 壁より外に出さない（部屋の中におさめる）
+  const R = CONFIG.ROOM; W.x = clamp(W.x, R.x0 + 0.2, R.x1 - 0.2); W.z = clamp(W.z, R.z0 + 0.2, R.z1 - 0.2); W.y = clamp(W.y, 0.3, R.h - 0.1);
+  const k = 1 - Math.exp(-CONFIG.CAM_LERP * dt);
+  G.cam.pos.lerp(W, k); G.cam.tgt.lerp(T, k);
+}
+
+// ===== [SEC:INPUT] =====
+canvas.addEventListener('pointerdown', e => { if (G.paused) return; if (G.state === 'tech') { canvas.setPointerCapture(e.pointerId); tech.pid = e.pointerId; techDown(e.clientX, e.clientY, e.timeStamp / 1000); } });
+canvas.addEventListener('pointermove', e => { if (G.paused || e.pointerId !== tech.pid) return; const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; for (const ev of (evs.length ? evs : [e])) techMove(ev.clientX, ev.clientY, ev.timeStamp / 1000); });
+const upH = e => { if (e.pointerId !== tech.pid) return; tech.pid = null; if (!G.paused) techUp(e.clientX, e.clientY, e.timeStamp / 1000); };
+canvas.addEventListener('pointerup', upH); canvas.addEventListener('pointercancel', upH);
+document.addEventListener('visibilitychange', () => { if (document.hidden) { paused = true; if (tech.phase === 'press' || tech.phase === 'thrust') { tech.phase = 'ready'; tech.pid = null; } } else { paused = false; last = performance.now(); } });
+
+// ===== [SEC:OVERLAY] =====
+function updateOverlay() {
+  const ov = $('overlay'); let h = '';
+  if (G.state === 'tech' && tech.joint && P && tech.phase !== 'posing') {
+    const c = contactWorld(new THREE.Vector3()); const a = screenOf(c);
+    const d = tech.phase === 'press' || tech.phase === 'thrust' ? tech.dir : screenDir();
+    const r = tech.r, R = 40 - Math.min(r, 1.2) * 12;
+    const col = r > 1.12 ? '#e5483a' : r >= 0.85 ? '#2a9d8f' : '#ffffff';
+    const w = r >= 0.85 ? 6 : 3;
+    h += `<circle cx="${a.x}" cy="${a.y}" r="${R}" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="${w + 3}"/><circle cx="${a.x}" cy="${a.y}" r="${R}" fill="none" stroke="${col}" stroke-width="${w}"/>`;
+    if (tech.phase === 'ready' || tech.phase === 'press') {
+      const L = 92, x2 = a.x + d.x * L, y2 = a.y + d.y * L, pulse = 0.55 + 0.45 * Math.sin(G.time * 6);
+      const nx = -d.y, ny = d.x;
+      h += `<g opacity="${tech.phase === 'press' ? 0.55 : pulse}"><line x1="${a.x + d.x * (R + 6)}" y1="${a.y + d.y * (R + 6)}" x2="${x2}" y2="${y2}" stroke="#2b2622" stroke-width="7" stroke-linecap="round"/><line x1="${a.x + d.x * (R + 6)}" y1="${a.y + d.y * (R + 6)}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M${x2 + d.x * 16} ${y2 + d.y * 16} L${x2 + nx * 11} ${y2 + ny * 11} L${x2 - nx * 11} ${y2 - ny * 11} Z" fill="#fff" stroke="#2b2622" stroke-width="3" stroke-linejoin="round"/></g>`;
+      const hint = $('hint'); if (!hint.classList.contains('hide')) { hint.style.left = clamp(a.x, 130, innerWidth - 130) + 'px'; hint.style.top = clamp(a.y - R - 46, 60, innerHeight - 110) + 'px'; }
+    }
+  }
+  ov.innerHTML = h;
+  // 吹き出し
+  const b = $('bubble');
+  if (!b.classList.contains('hide') && P) {
+    const p = screenOf(headWorld(new THREE.Vector3()));
+    b.style.left = clamp(p.x, 120, innerWidth - 120) + 'px'; b.style.top = clamp(p.y - 30, 110, innerHeight - 40) + 'px';
+  }
+  // 呼吸
+  if (G.state === 'tech' || G.state === 'select') {
+    const br = $('breath'); br.className = G.inhale ? 'in' : 'out';
+    $('breathTxt').textContent = G.inhale ? 'すー（吸う）' : 'はー（吐く）';
+    $('breathBar').style.width = (G.breathP * 100).toFixed(0) + '%';
+  }
+}
+
+// ===== [SEC:LOOP] =====
+let acc = 0, last = performance.now(), manual = false, paused = false;
+function tick(dt) {
+  if (G.paused) return;
+  G.time += dt;
+  updateBreath(dt);
+  if (G.fx.snap > 0) G.fx.snap = Math.max(0, G.fx.snap - dt * 5);
+  if (G.fx.shake > 0) G.fx.shake = Math.max(0, G.fx.shake - dt * 3);
+  if (G.fx.bubbleT > 0) { G.fx.bubbleT -= dt; if (G.fx.bubbleT <= 0) $('bubble').classList.add('hide'); }
+  updateTech(dt);
+  updateEnding(dt);
+  updateBody(dt);
+  updateCamera(dt);
+}
+function update(frameDt) {
+  acc += Math.min(frameDt, CONFIG.MAX_FRAME);
+  while (acc >= CONFIG.FIXED) { tick(CONFIG.FIXED); acc -= CONFIG.FIXED; }
+}
+function render() {
+  camera.position.copy(G.cam.pos);
+  if (G.fx.shake > 0) camera.position.add(tv1.set((Math.random() - 0.5), (Math.random() - 0.5), 0).multiplyScalar(0.006 * G.fx.shake));
+  camera.lookAt(G.cam.tgt);
+  if (P) { P.group.updateMatrixWorld(true); placeTechHands(); }
+  updateOverlay();
+  renderer.render(scene, camera);
+}
+function frame(now) { if (!paused && !manual) update((now - last) / 1000); last = now; render(); requestAnimationFrame(frame); }
+
+// ===== [SEC:INIT] =====
+buildRoom(); buildTable(); layout();
+$('btnStart').disabled = true; $('btnStart').textContent = '読み込み中…';
+const BOOT = Promise.all([loadHands(), loadRoomAssets(), loadPerson(CUSTOMERS[0].glb)]).then(() => { $('btnStart').disabled = false; $('btnStart').textContent = '営業スタート（5人）'; showTitlePatient(); })
+  .catch(() => { $('btnStart').textContent = '読み込みに失敗しました（再読み込みしてください）'; });
+G.cam.pos.set(0.6, 2.0, 2.6);
+requestAnimationFrame(frame);
+
+// ===== [SEC:TEST] =====
+let synthT = 1000;
+function simulateAttempt(r) {
+  const md = minDim(); const target = 0.45 + ((r * 7.31) % 1) * 0.85, amp = 0.008 + ((r * 13.7) % 1) * 0.14, perpBad = ((r * 3.3) % 1) < 0.1;
+  let x = innerWidth / 2, y = innerHeight / 2; synthT += 1;
+  techDown(x, y, synthT); const d = tech.dir;
+  for (let i = 0; i < 400 && tech.phase === 'press' && tech.r < target; i++) { x += d.x * 1.5; y += d.y * 1.5; synthT += 0.016; techMove(x, y, synthT); }
+  if (tech.phase !== 'press') return;
+  const steps = 4, px = amp * md / steps;
+  for (let i = 0; i < steps && (tech.phase === 'press' || tech.phase === 'thrust'); i++) { x += d.x * px + (perpBad ? -d.y * px * 1.5 : 0); y += d.y * px + (perpBad ? d.x * px * 1.5 : 0); synthT += 0.006; techMove(x, y, synthT); }
+  synthT += 0.01; techUp(x, y, synthT);
+}
+window.__TEST__ = {
+  keys: [],
+  randomInput(r) {
+    if (G.paused) { $('howto').classList.add('hide'); $('confirm').classList.add('hide'); G.paused = false; }
+    if (G.state === 'intake') { startTreatment(); return; }
+    if (G.state === 'review') { nextCustomer(); return; }
+    if (G.state === 'select') { if (r < 0.1) { checkout(); return; } const j = JOINTS[Math.floor(r * 1999) % JOINTS.length]; G.sel = j.id; if (G.rec.cracked[j.id] === undefined) beginTech(j.id); return; }
+    if (G.state === 'tech') { if (tech.phase === 'ready') { if (r < 0.06) setState('select'); else simulateAttempt(r); } }
+  },
+  reset(seed) { manual = true; G.paused = false; $('howto').classList.add('hide'); startDay(seed); },
+  fast: false,
+  step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); if (!this.fast) render(); },
+  state() { return { s: G.state, cust: G.day ? G.day.idx : -1, phase: tech.phase, joint: tech.joint && tech.joint.id, r: +tech.r.toFixed(3), cracked: G.rec ? Object.keys(G.rec.cracked).length : 0, pains: G.rec ? G.rec.pains : 0, over: G.state === 'result' }; },
+  check() {
+    const v = [];
+    if (!P) { if (G.state !== 'loading' && G.state !== 'title') v.push('お客さんの体がない'); return v; }
+    P.group.updateMatrixWorld(true);
+    for (const n of P.info.names) { const p = P.info.byName[n].getWorldPosition(tv1); if (!okNum(p.x) || !okNum(p.y) || !okNum(p.z)) { v.push('体の位置がNaN: ' + n); break; } }
+    for (const k of ['x', 'y', 'z']) if (!okNum(camera.position[k])) v.push('カメラがNaN');
+    const R = CONFIG.ROOM; if (camera.position.x < R.x0 || camera.position.x > R.x1 || camera.position.z < R.z0 || camera.position.z > R.z1 || camera.position.y < 0) v.push('カメラが部屋の外');
+    // 施術台へのめり込み（台の上にある部分だけ）
+    const { lo, who } = lowestSkinned(5);
+    if (lo < CONFIG.TABLE_TOP - 0.025) v.push(`施術台にめり込み ${((CONFIG.TABLE_TOP - lo) * 100).toFixed(1)}cm（${who}・姿勢${P.to.posture}・切替${P.blend.toFixed(2)}）`);
+    if (HANDS.root.visible) for (const s of ['L', 'R']) { const h = HANDS.side[s].root.position; if (!okNum(h.x) || !okNum(h.y) || !okNum(h.z)) v.push('手がNaN'); }
+    if (!okNum(tech.r) || tech.r < 0) v.push('ゆるみの値がおかしい');
+    if (G.day) { for (const r of G.day.reviews) if (r.stars < 1 || r.stars > 5) v.push('★が範囲外'); if (G.day.idx > G.day.list.length) v.push('お客さんの数がおかしい'); }
+    if (G.state === 'tech' && !tech.joint) v.push('施術中なのに場所がない');
+    return v;
+  },
+  dbg: { get P() { return P; }, setFace, CUSTOMERS, computeRating, G, tech, beginTech, techDown, techMove, techUp, setState, checkout, showEnding, finishDay, startHospital, startTreatment, selectJoint, nextCustomer, JOINTS },
+  ready: false,
+};
+BOOT.then(() => { window.__TEST__.ready = true; });
+</script>
+</body>
+</html>
