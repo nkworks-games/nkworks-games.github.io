@@ -233,9 +233,10 @@ const CONFIG = {
   DISCOMFORT_R: 1.13, DISCOMFORT_TIME: 1.2, PAIN_R: 1.26,
   RELAX_SPEED: 1.6,            // 指を離した時に、ゆるみが戻る速さ（r/秒）
   // 突き（短く素早いフリック）
-  THRUST_SPEED: 1.5,           // これより速い動き（短い辺/秒）を「突き」とみなす
+  THRUST_SPEED: 1.25,          // これより速い動き（ものさし/秒）を「突き」とみなす
+  FLICK_UNIT_MAX: 480,         // 指の動きを測るものさし＝画面の短い辺（ただし最大480px。PCでも指・マウスの動きは同じくらいなので）
   THRUST_LOOKBACK: 0.05, THRUST_WINDOW: 0.14,
-  AMP_MIN: 0.022, AMP_MAX: 0.12, // 突きの深さ（短い辺に対する割合）
+  AMP_MIN: 0.03, AMP_MAX: 0.62, // 突きの深さ（ものさしに対する割合）。スマホで約12px〜240px
   INHALE_RELAX: 0.3, EXHALE_EDGE_RELAX: 0.82, CRACK_Q: 0.45,
   // 評価（点数→★）
   SCORE_BASE: 30, SCORE_CRACK: 75, STIFF_MIN: 0.5, MINOR_MIN: 0.25, LEFT_MIN: 0.6,
@@ -849,7 +850,7 @@ function techDown(x, y, ts) {
   if (G.state !== 'tech' || tech.phase !== 'ready') return;
   initAudio();
   tech.phase = 'press'; tech.dir = screenDir(); tech.lastX = x; tech.lastY = y; tech.s = 0; tech.perp = 0;
-  tech.samples = [{ t: ts, s: 0, drag: tech.drag }]; tech.overT = 0; tech.wallBuzz = tech.r >= 0.85;
+  tech.samples = [{ t: ts, s: 0, drag: tech.drag }]; tech.overT = 0; tech.fastT = -9; tech.wallBuzz = tech.r >= 0.85;
   $('hint').classList.add('hide');
 }
 function speedOver(now) {
@@ -861,10 +862,13 @@ function speedOver(now) {
 }
 function techMove(x, y, ts) {
   if (G.state !== 'tech' || (tech.phase !== 'press' && tech.phase !== 'thrust')) return;
-  const md = minDim(); const dx = x - tech.lastX, dy = y - tech.lastY; tech.lastX = x; tech.lastY = y;
+  const md = Math.min(minDim(), CONFIG.FLICK_UNIT_MAX); const dx = x - tech.lastX, dy = y - tech.lastY; tech.lastX = x; tech.lastY = y;
   const along = (dx * tech.dir.x + dy * tech.dir.y) / md, perp = (-dx * tech.dir.y + dy * tech.dir.x) / md;
   tech.s += along;
   const prevDrag = tech.drag;
+  // 指を止めていた後の最初の動き：止まっていたのは「1つ前の瞬間まで」とみなす（止めていた時間で速さを割らない）
+  const lastS = tech.samples[tech.samples.length - 1];
+  if (lastS && ts - lastS.t > 0.035) tech.samples.push({ t: ts - 0.017, s: lastS.s, drag: prevDrag });
   tech.samples.push({ t: ts, s: tech.s, drag: prevDrag });
   while (tech.samples.length > 2 && ts - tech.samples[0].t > 0.25) tech.samples.shift();
   const v = speedOver(ts);
@@ -876,6 +880,7 @@ function techMove(x, y, ts) {
       tech.thrust = { s0: base.s, t0: ts, gt0: G.time, r0: tech.r, vmax: v, amp: tech.s - base.s, perp: 0, inhale: G.inhale, relax: relaxNow() };
       tech.phase = 'thrust';
     } else {
+      if (v > CONFIG.THRUST_SPEED * 0.6) tech.fastT = ts;
       tech.drag = Math.max(0, tech.drag + along); tech.r = dragToR(tech.drag);
       if (tech.r >= 0.85 && !tech.wallBuzz) { tech.wallBuzz = true; vib(18); sndCreak(); }
       if (tech.r < 0.7) tech.wallBuzz = false;
@@ -889,13 +894,13 @@ function techMove(x, y, ts) {
 function techUp(x, y, ts) {
   if (G.state !== 'tech') return;
   if (tech.phase === 'thrust') { if (x !== undefined) techMove(x, y, ts); if (tech.phase === 'thrust') resolveThrust(); }
-  else if (tech.phase === 'press') tech.phase = 'ready';
+  else if (tech.phase === 'press') { tech.phase = 'ready'; if (ts - (tech.fastT || -9) < 0.2) toast('はじきが弱くて伝わらなかった。もう少し速くはじいて'); }
 }
 function resolveThrust() {
   const th = tech.thrust; const j = tech.joint; if (!th) return;
   tech.attempts++;
   const amp = th.amp, pre = th.r0, am = ampMax();
-  if (amp > am) return doPain('突きが深すぎた');
+  if (amp > am) return doPain('はじきが大きすぎた。もっと短く');
   if (th.inhale && amp > am * 0.72) return doPain('息を吸って力が入っている時に、強く突いた');
   if (th.perp > Math.max(0.03, Math.abs(amp) * 1.1)) return doFail('dir');
   let preQ, ampQ, why = null;
