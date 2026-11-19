@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="google-adsense-account" content="ca-pub-2073267239630350">
 <title>地球ツキヌケ</title>
-<meta name="description" content="日本からブラジルへ、フランスからニュージーランドへ。ドリルの向きを決めて、地球の中をまっすぐ一発で掘りぬけるブラウザゲーム。全10問・1000点満点。">
+<meta name="description" content="日本からブラジルへ、フランスからニュージーランドへ。ドリルの向きを決めて、地球の中をまっすぐ一発で掘りぬけるブラウザゲーム。全10問、後半ほど国が小さくなります。">
 <meta name="theme-color" content="#050914">
 <meta property="og:type" content="website">
 <meta property="og:title" content="地球ツキヌケ">
@@ -76,23 +76,28 @@ b{font-weight:900}
 #task small{font-size:.68em;color:var(--sub);font-weight:700}
 
 /* ねらう（下） */
-#aim{position:absolute;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;align-items:center;gap:10px;padding:10px;border-radius:20px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);max-width:560px;margin:0 auto}
-#dia{width:76px;height:76px;flex:none}
+#aim{position:absolute;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:grid;gap:6px;padding:10px 12px;border-radius:20px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);max-width:560px;margin:0 auto}
+.arow{display:flex;align-items:center;gap:10px}
+#dia{width:70px;height:70px;flex:none}
 #read{flex:1;min-width:0;font-size:12px;color:var(--sub);line-height:1.45}
 #read b{color:var(--ink);font-size:16px}
 #read .deep b{font-size:14px;color:var(--orange)}
 #read .dl2{font-size:11px;color:var(--orange);line-height:1.3}
 #read>div{white-space:nowrap}
-#aimBtns{display:flex;flex-direction:column;gap:6px;flex:none}
-#bDig{min-width:108px;padding:0 18px;font-size:20px;animation:pulse 1.8s ease-in-out infinite}
+#bDig{min-width:104px;padding:0 16px;font-size:20px;flex:none;animation:pulse 1.8s ease-in-out infinite}
+.drow{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--sub);white-space:nowrap}
+#depth{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:32px;margin:0;background:transparent;touch-action:none}
+#depth::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:linear-gradient(90deg,#2f6fb0,#a8402a 40%,#ff9a2e 78%,#ffe08a)}
+#depth::-moz-range-track{height:10px;border-radius:999px;background:linear-gradient(90deg,#2f6fb0,#a8402a 40%,#ff9a2e 78%,#ffe08a)}
+#depth::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-10px;border-radius:50%;background:#fff;border:4px solid var(--orange);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#depth::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid var(--orange)}
+#bLook{min-height:36px;padding:0 10px;font-size:12px;flex:none;letter-spacing:0}
+#bLook.on{border-color:var(--aqua);color:var(--aqua);background:rgba(79,224,208,.14)}
 @keyframes pulse{50%{box-shadow:0 6px 30px rgba(255,159,67,.65),inset 0 -3px 0 rgba(0,0,0,.14)}}
-#bBack{min-height:34px;padding:0 10px;font-size:12px;border-radius:999px}
-#bBack.hot{border-color:var(--aqua);color:var(--aqua)}
 
 /* ヒント */
-#hint{position:absolute;transform:translate(-50%,34px);padding:7px 12px;border-radius:12px;background:#fff;color:#1a1a1a;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4);animation:bob 1.2s ease-in-out infinite}
-#hint::after{content:"";position:absolute;left:50%;top:-7px;margin-left:-7px;border:7px solid transparent;border-top:0;border-bottom-color:#fff}
-@keyframes bob{50%{margin-top:-6px}}
+#hint{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 170px);transform:translateX(-50%);padding:8px 14px;border-radius:12px;background:#fff;color:#1a1a1a;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4);animation:bob 1.2s ease-in-out infinite;pointer-events:none}
+@keyframes bob{50%{margin-bottom:6px}}
 
 /* 掘っている時 */
 #dhud{position:absolute;top:calc(env(safe-area-inset-top,0px) + 56px);left:0;right:0;text-align:center;text-shadow:0 2px 10px rgba(0,0,0,.9)}
@@ -136,6 +141,23 @@ b{font-weight:900}
 .acts .btn{min-height:48px;font-size:15px;padding:0 10px}
 .credit{font-size:10.5px;color:var(--dim);line-height:1.6}
 .toTop{background:none;border:1px dashed var(--line);min-height:40px;font-size:13px;border-radius:999px;color:var(--sub)}
+
+#dhud .tap{margin-top:6px;font-size:13px;font-weight:900;color:#fff;animation:blink 1s steps(2) infinite}
+#dhud .tap b{color:var(--gold);font-size:18px;margin-left:4px}
+@keyframes blink{50%{opacity:.5}}
+#hud .stk{color:var(--gold);font-weight:900}
+#task .tier{display:inline-block;margin-left:8px;padding:1px 8px;border:1px solid var(--line);border-radius:999px;font-size:.52em;color:var(--sub);vertical-align:middle;text-shadow:none}
+#banner b{display:block;font-size:clamp(46px,14vw,78px);line-height:1.05}
+#banner small{display:block;margin-top:6px;font-size:clamp(18px,5vw,26px);color:#fff}
+#jh .rk{font-weight:900}
+#jp small{font-size:13px;color:var(--gold);margin-left:6px}
+#jc{display:grid;gap:3px;margin:6px auto 2px;max-width:340px;font-size:14px;text-align:left;background:rgba(255,255,255,.06);border-radius:12px;padding:8px 12px}
+#jc .ans,#jc .you{display:inline-block;min-width:54px;margin-right:8px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:900;text-align:center;color:#111;background:#fff}
+#jc .gap{font-size:12.5px;color:var(--gold2);font-weight:700}
+.chip{flex:none;min-width:66px;text-align:center;font-size:10.5px;font-weight:900;color:#111;border-radius:999px;padding:2px 6px}
+#result #bAgain{width:100%}
+@media (max-height:740px){ #tri{display:none} #judge{padding:10px 14px} #jp{font-size:22px} #jh{font-size:19px} #bNext{margin-top:8px} } /* 背の低い画面では豆知識を出さず、地球を大きく */
+@media not ((min-width:820px) and (min-aspect-ratio:11/10)){ #result{padding-top:calc(env(safe-area-inset-top,0px) + 44vh);background:linear-gradient(180deg,rgba(5,9,20,0) 38vh,rgba(5,9,20,.75) 52vh)} }
 
 /* あそび方 */
 #help{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.6)}
@@ -196,39 +218,40 @@ b{font-weight:900}
     <div id="title" class="pe">
       <div class="kicker">日本の真裏は、本当にブラジル？</div>
       <h1>地球ツキヌケ</h1>
-      <p>ドリルの向きを決めて、地球の中をまっすぐ一発。<br>出発の国から、目的の国まで掘りぬけろ。<br>全10問・1000点満点。</p>
+      <p>ドリルの向きを決めて、地球の中をまっすぐ一発。<br>出発の国から、目的の国まで掘りぬけろ。<br>全10問。後半ほど国が小さくなる。</p>
       <div class="best" id="best"></div>
       <button class="btn main" id="start" disabled>読みこみ中…</button>
       <div class="follow" id="tfollow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
     </div>
 
     <div id="hud" class="hide">
-      <div class="row"><span>第<b id="qno">1</b>問 / 10</span><span class="tot">合計 <b id="tot">0</b>点</span></div>
+      <div class="row"><span>第<b id="qno">1</b>問 / 10</span><span class="tot">合計 <b id="tot">0</b>点</span><span class="stk" id="stk"></span></div>
       <div id="task"></div>
     </div>
 
     <div id="aim" class="hide pe">
-      <canvas id="dia" width="152" height="152"></canvas>
-      <div id="read">
-        <div>方角 <b id="rdH">北</b></div>
-        <div>下へ <b id="rdD">35°</b></div>
-        <div class="deep">最深 <b id="rdZ">-</b></div>
-        <div class="dl2" id="rdL"></div>
-      </div>
-      <div id="aimBtns">
+      <div class="arow">
+        <canvas id="dia" width="140" height="140"></canvas>
+        <div id="read">
+          <div>方角 <b id="rdH">北</b></div>
+          <div>下へ <b id="rdD">35°</b></div>
+          <div class="deep">最深 <b id="rdZ">-</b></div>
+          <div class="dl2" id="rdL"></div>
+        </div>
         <button class="btn main" id="bDig">掘る！</button>
-        <button class="btn sub" id="bBack">⟲ ドリルの所へ</button>
       </div>
+      <div class="drow"><span>浅い</span><input type="range" id="depth" min="2" max="90" step="1" value="35" aria-label="掘る深さ"><span>真裏</span><button class="btn sub" id="bLook">🌏 見回す</button></div>
     </div>
-    <div id="hint" class="hide">赤い玉をドラッグして向きを決めよう</div>
+    <div id="hint" class="hide">地球の上をドラッグで方角、つまみで深さ</div>
 
-    <div id="dhud" class="hide"><div class="dl">深さ</div><div class="dv"><span id="dz">0</span><small>km</small></div><div class="ly" id="dly">地殻</div></div>
+    <div id="dhud" class="hide"><div class="dl">深さ</div><div class="dv"><span id="dz">0</span><small>km</small></div><div class="ly" id="dly">地殻</div><div class="tap">画面を連打で速く掘れる！ <b id="dspd"></b></div></div>
     <div id="banner"></div>
 
     <div id="judge" class="card hide pe">
       <div id="jh"></div>
       <div id="js"></div>
       <div id="jp"></div>
+      <div id="jc"></div>
       <div id="jd"></div>
       <p id="tri"></p>
       <button class="btn main" id="bNext">次の問題へ</button>
@@ -241,9 +264,10 @@ b{font-weight:900}
         <h2>あそび方</h2>
         <ol>
           <li><b class="aq">水色</b>が出発の国、<b class="gd">金色</b>が目的の国。出発の国の首都にドリルが刺さっています。</li>
-          <li>ドリルの<b style="color:#ff6b6b">赤い玉</b>をドラッグして向きを決めます。ドリルは玉と反対がわ（白い矢印の方角）へ掘り進みます。玉を立てるほど深く（真上に立てると地球の真裏まで）、寝かせるほど浅く近くに出ます。</li>
-          <li>ほかの所をドラッグすると地球を回して見回せます（2本指・ホイールで拡大）。「⟲ ドリルの所へ」でもどります。</li>
-          <li>「掘る！」で一発勝負。穴はまっすぐ進みます。目的の国の中に出たら100点、外れたら国までの距離が遠いほど点が減ります。</li>
+          <li>地球の上をドラッグすると、<b>白い矢印</b>がその方角を向きます。下の<b style="color:var(--orange)">つまみ</b>で深さを決めます（右いっぱいで地球の真裏）。地球の中は見えません。頭の中の地球儀が勝負です。</li>
+          <li>「🌏 見回す」を押すと、地球を回して目的の国の場所を確かめられます（2本指・ホイールで拡大）。「🎯 もどる」で出発点にもどります。</li>
+          <li>「掘る！」で一発勝負。掘っている間は画面を連打すると速く掘れます。</li>
+          <li>国の中に出たら<b class="gd">PERFECT</b>、近いほどGREAT・GOOD。PERFECTが続くと連続ボーナス。掘ったあとに正解の穴が見えるので、次の問題に生かそう。</li>
         </ol>
         <button class="btn main" id="helpOk">わかった</button>
       </div>
@@ -264,7 +288,7 @@ b{font-weight:900}
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","d3-geo":"https://cdn.jsdelivr.net/npm/d3-geo@3/+esm","topojson-client":"https://cdn.jsdelivr.net/npm/topojson-client@3/+esm"}}</script>
 <script type="module">
 import * as THREE from 'three';
-import { geoEquirectangular, geoPath, geoContains, geoBounds, geoGraticule10 } from 'd3-geo';
+import { geoEquirectangular, geoPath, geoContains, geoBounds, geoGraticule10, geoArea } from 'd3-geo';
 import { feature } from 'topojson-client';
 
 // ===== [SEC:CONFIG] =====
@@ -279,21 +303,32 @@ const CONFIG = {
   AD_ON: false,                            // バナー広告（審査が通ったら true）
   AD_H: 60, AD_GAP: 75, AD_CLIENT: 'ca-pub-2073267239630350', AD_SLOT: '6261635446',
   MAP_URL: 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json', // 国の形（Natural Earth）
-  ROUNDS: 10,                              // 1回の問題数
-  MAX_SAME: 2,                             // 同じ国から出発（または同じ国が目的）になるのは何回まで
-  SCORE_KM: 1800,                          // 外れた時の点数 = 100 × e^(−距離 ÷ この値)。1800なら 500km で76点・2000km で33点
+  MAX_SAME: 2,                             // 同じ国から出発するのは何回まで（同じ国が目的になるのは1回だけ）
   EARTH_KM: 6371,                          // 地球の半径
   LAYERS: [ // 中心からの距離(km)がこれ以上ならこの層（上から順に）
     { r: 6336, n: '地殻', t: '数百℃' }, { r: 5711, n: '上部マントル', t: '約1,500℃' }, { r: 3480, n: '下部マントル', t: '約3,000℃' },
     { r: 1220, n: '外核', t: '約5,000℃' }, { r: 0, n: '内核', t: '約6,000℃' } ],
   DRILL_LEN: 0.36,                         // ドリルの地上の長さ（地球の半径 = 1）
   DIP_MIN: 2, DIP_START: 35,               // 下向きの角度の最小・はじめの値(度)
-  KNOB_HIT_PX: 54,                         // 赤い玉をつかめる範囲(px)
   TEX_W: 4096,                             // 地球の絵の横幅(px)
   FOV: 36,                                 // カメラの画角
   FIT: 0.9,                                // 地球を画面のどれくらいの大きさに
   AIM_TILT: 0.24,                          // ねらう時、出発点を画面の中央から少し下に
-  TURN_SEC: 1.0, BORE_MIN: 2.0, BORE_MAX: 4.2, EXIT_SEC: 1.2, // 演出の時間(秒)
+  TURN_SEC: 1.0, EXIT_SEC: 1.2,            // 断面へ回る・出口へ回る時間(秒)
+  BORE_SEC: [2.8, 5.6],                    // 掘る時間（短い穴〜真裏まで。連打しない時）
+  TAP_BOOST: 0.5, BOOST_MAX: 3.5, BOOST_DECAY: 1.3, // 連打1回で速さ+50%（最大4.5倍）。手を止めるとだんだん元の速さに
+  RANKS: [ // 出口から目的の国までの距離(km)で決まる。国の中は PERFECT（shake=画面の揺れ、snd=音）
+    { n: 'PERFECT', km: 0, p: 100, c: '#ffd166', shake: .07, snd: 'hit' },
+    { n: 'GREAT', km: 800, p: 70, c: '#7ee081', shake: .045, snd: 'great' },
+    { n: 'GOOD', km: 2000, p: 40, c: '#6cc6ff', shake: .025, snd: 'good' },
+    { n: 'おしい', km: 3500, p: 15, c: '#c3a6ff', shake: .01, snd: 'miss' },
+    { n: 'ざんねん', km: Infinity, p: 0, c: '#8e97a8', shake: 0, snd: 'miss' } ],
+  STREAK_BONUS: 20,                        // PERFECTが2連続で+20、3連続で+40…
+  RESULT_RANKS: [[1300, '地球ツキヌケ名人'], [1000, '地底の天才'], [700, '一流の穴ほり師'], [450, '見習い穴ほり師'], [200, '地底の迷子'], [0, 'マグマで迷子']],
+  TIERS: [3, 4, 3],                        // 大きい国・中くらいの国・小さい国の問題数（この順に出る）
+  TIER_KM2: [2500000, 700000],             // 国の広さ(km²)：これ以上は大きい国、これ以上は中くらい、それより下は小さい国
+  GLASS: 0.34,                             // 答え合わせと結果で、地球を透かす濃さ
+  ARROW_LEN: 0.2,                          // 地面の矢印の長さ
   ROT: 0.0052,                             // ドラッグで地球を回す速さ
   ZOOM_MIN: 0.5, ZOOM_MAX: 2.4,            // 拡大・縮小の範囲
   TITLE_SPIN: 0.14,                        // タイトルで地球が回る速さ
@@ -317,7 +352,7 @@ const PAIRS = ('392-076 392-840 392-036 392-818 392-826 392-032 392-710 392-250 
   '076-392 840-156 840-036 840-356 840-710 840-392 250-554 724-554 826-554 826-036 826-356 826-076 ' +
   '156-032 156-152 156-380 156-840 380-710 380-076 276-356 276-840 124-356 124-076 484-818 484-360 ' +
   '356-840 356-076 643-036 643-076 410-076 410-840 818-484 710-392 036-124 036-826 032-156 554-724 ' +
-  '764-604 360-170 608-076 404-360 792-604 682-604').split(' ').map(s => s.split('-'));
+  '764-604 360-170 608-076 404-360 792-604 682-604 036-643 076-643 840-410 076-410 392-124').split(' ').map(s => s.split('-'));
 const TRIVIA = [
   'まっすぐな穴に飛びこむと、長さに関係なく約42分で出口に着くと言われています（空気や摩擦がない場合）。',
   '人間がじっさいに掘った一番深い穴は、ロシアのコラ半島の約12km。地球の半径の0.2%ほどです。',
@@ -368,7 +403,7 @@ function jaName(f) {
   const a2 = ISO[f.id]; if (a2 && DN) { try { const n = DN.of(a2); if (n && n !== a2) return n; } catch (e) {} }
   return EN_JA[f.properties.name] || f.properties.name;
 }
-let FEATS = [], BYID = {}; // 国番号 → その番号の形ぜんぶ（オーストラリアのように、小さな島が同じ番号で別になっている国がある）
+let FEATS = [], BYID = {}, AREA = {}; // 国番号 → その番号の形ぜんぶ（オーストラリアのように、小さな島が同じ番号で別になっている国がある）
 function vertsOf(f) { // 国の形の点を、地球の上の3Dの点に
   const g = f.geometry, polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates; let n = 0;
   polys.forEach(p => p.forEach(r => n += r.length));
@@ -442,6 +477,7 @@ async function loadMap() {
   const topo = await (await fetch(CONFIG.MAP_URL)).json();
   FEATS = feature(topo, topo.objects.countries).features.filter(f => f.geometry);
   FEATS.forEach(f => { f.ja = jaName(f); f.bb = geoBounds(f); f.vx = vertsOf(f); if (f.id) (BYID[f.id] = BYID[f.id] || []).push(f); });
+  for (const id in BYID) AREA[id] = BYID[id].reduce((s, f) => s + geoArea(f), 0) * CONFIG.EARTH_KM ** 2; // 国の広さ(km²)
   drawBase();
 }
 
@@ -464,6 +500,12 @@ earthTex.colorSpace = THREE.SRGBColorSpace; earthTex.anisotropy = renderer.capab
 const cutPlane = new THREE.Plane(V(0, 0, -1), 100); // 断面を見せる時だけ constant=0（カメラ側の半分を消す）
 const earthMat = new THREE.MeshLambertMaterial({ map: earthTex, clippingPlanes: [cutPlane] });
 const earth = new THREE.Mesh(new THREE.SphereGeometry(1, 160, 80), earthMat); G.add(earth);
+// 透ける地球（答え合わせと結果だけ）：裏がわの面と、うっすら光る核
+const earthBack = new THREE.Mesh(earth.geometry, new THREE.MeshLambertMaterial({ map: earthTex, side: THREE.BackSide, transparent: true, opacity: .16, depthWrite: false }));
+const innerCore = new THREE.Mesh(new THREE.SphereGeometry(3480 / 6371, 48, 24), new THREE.MeshBasicMaterial({ color: 0xff9a2e, transparent: true, opacity: .2, depthWrite: false }));
+earthBack.renderOrder = 1; innerCore.renderOrder = 2; earth.renderOrder = 3; earthBack.visible = innerCore.visible = false; G.add(earthBack, innerCore);
+let glass = false;
+function setGlass(on) { if (glass === on) return; glass = on; earthMat.transparent = on; earthMat.opacity = on ? CONFIG.GLASS : 1; earthMat.depthWrite = !on; earthMat.needsUpdate = true; earthBack.visible = innerCore.visible = on; }
 
 const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.13, 64, 32), new THREE.ShaderMaterial({ // 大気のぼんやりした光
   side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false,
@@ -514,8 +556,7 @@ const sparks = (() => { const n = 60, g = new THREE.BufferGeometry(); g.setAttri
 
 // ===== [SEC:DRILL] =====
 function stripeTex() { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.fillStyle = '#c3cad6'; g.fillRect(0, 0, 64, 64); g.strokeStyle = '#6f7a8c'; g.lineWidth = 9; for (let i = -64; i < 128; i += 22) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 64, 64); g.stroke(); } const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 4); t.colorSpace = THREE.SRGBColorSpace; return t; }
-function ringSprite(color) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); g.strokeStyle = color; g.lineWidth = 10; g.beginPath(); g.arc(64, 64, 52, 0, Math.PI * 2); g.stroke(); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false })); }
-const drill = new THREE.Group(); // 出発点に立つ。+Y が地面の外向き（掘る向きの反対）
+const drill = new THREE.Group(); // 出発点に立つ。+Y が地面の外向き（掘る向きの反対）。かたむきで深さがわかる
 const L = CONFIG.DRILL_LEN;
 const shaftTex = stripeTex();
 {
@@ -527,23 +568,24 @@ const shaftTex = stripeTex();
   band.position.y = L * .74 + .03; drill.add(band);
   const rod = new THREE.Mesh(new THREE.CylinderGeometry(.006, .006, L * .2, 8), new THREE.MeshStandardMaterial({ color: 0x555d6a }));
   rod.position.y = L * .9; drill.add(rod);
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(.03, 20, 14), new THREE.MeshStandardMaterial({ color: 0xff4d4d, emissive: 0x441010, roughness: .35 }));
+  cap.position.y = L; drill.add(cap);
 }
-const knob = new THREE.Mesh(new THREE.SphereGeometry(.036, 24, 16), new THREE.MeshStandardMaterial({ color: 0xff4d4d, emissive: 0x551010, roughness: .35 }));
-knob.position.y = L; drill.add(knob);
-const knobRing = ringSprite('#ffffff'); knobRing.position.y = L; knobRing.scale.setScalar(.15); drill.add(knobRing);
 G.add(drill);
-// 地面の印：輪と、掘る方角の矢印
+// 地面の白い矢印（掘る方角）
 const aimMark = new THREE.Group();
 {
-  const ring = new THREE.Mesh(new THREE.RingGeometry(.022, .032, 40), new THREE.MeshBasicMaterial({ color: 0x4fe0d0, side: THREE.DoubleSide }));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.022, .032, 40), new THREE.MeshBasicMaterial({ color: 0x4fe0d0, side: THREE.DoubleSide, depthTest: false }));
   aimMark.add(ring);
-  const sh = new THREE.Shape(); sh.moveTo(.035, -.008); sh.lineTo(.1, -.008); sh.lineTo(.1, -.02); sh.lineTo(.135, 0); sh.lineTo(.1, .02); sh.lineTo(.1, .008); sh.lineTo(.035, .008); sh.closePath();
-  aimMark.add(new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .85, side: THREE.DoubleSide })));
+  const A = CONFIG.ARROW_LEN, sh = new THREE.Shape();
+  sh.moveTo(.036, -.011); sh.lineTo(A - .05, -.011); sh.lineTo(A - .05, -.032); sh.lineTo(A, 0); sh.lineTo(A - .05, .032); sh.lineTo(A - .05, .011); sh.lineTo(.036, .011); sh.closePath();
+  aimMark.add(new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .95, side: THREE.DoubleSide, depthTest: false })));
+  aimMark.children.forEach(m => m.renderOrder = 10);
 }
 G.add(aimMark);
 const aim = { h: 0, d: CONFIG.DIP_START, D: V(), H: V() };
 let S0 = V(1, 0, 0), FR = frameAt(S0);
-function placeDrill(S) { S0 = S.clone(); FR = frameAt(S0); drill.position.copy(S0); aimMark.position.copy(S0).multiplyScalar(1.002); }
+function placeDrill(S) { S0 = S.clone(); FR = frameAt(S0); drill.position.copy(S0); aimMark.position.copy(S0).multiplyScalar(1.004); }
 function setAim(h, d) {
   aim.h = ((h % 360) + 360) % 360; aim.d = clamp(d, CONFIG.DIP_MIN, 90);
   const { U, N, E } = FR, hr = aim.h * D2R, dr = aim.d * D2R;
@@ -554,41 +596,26 @@ function setAim(h, d) {
   readout();
 }
 const exitOf = () => S0.clone().addScaledVector(aim.D, 2 * Math.sin(aim.d * D2R)); // まっすぐ掘った時の出口
-function aimAt(P) { // テスト用：点Pに向ける
+function dirTo(P) { // 出発点から点Pへまっすぐ掘る時の方角と下向きの角度
   const D = P.clone().sub(S0).normalize(), { U, N, E } = FR;
-  setAim(Math.atan2(D.dot(E), D.dot(N)) * R2D, Math.asin(clamp(-D.dot(U), -1, 1)) * R2D);
+  return { h: ((Math.atan2(D.dot(E), D.dot(N)) * R2D) + 360) % 360, d: Math.asin(clamp(-D.dot(U), -1, 1)) * R2D };
 }
-const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-function aimFromPointer(x, y) { // 赤い玉を指の所へ（ドリルは出発点を中心に回る）
-  const W = canvas.clientWidth, H = canvas.clientHeight; ndc.set(x / W * 2 - 1, -(y / H) * 2 + 1);
-  ray.setFromCamera(ndc, camera);
-  G.updateMatrixWorld(); const inv = G.matrixWorld.clone().invert();
-  const o = ray.ray.origin.clone().applyMatrix4(inv), dir = ray.ray.direction.clone().transformDirection(inv);
-  const { U, N, E } = FR, oc = o.clone().sub(S0), b = oc.dot(dir), disc = b * b - (oc.lengthSq() - L * L), minUp = Math.sin(CONFIG.DIP_MIN * D2R);
-  let v;
-  if (disc >= 0) { // 玉が動ける球に当たった：手前の点。手前が地面の下なら奥の点
-    const k1 = o.clone().addScaledVector(dir, -b - Math.sqrt(disc)).sub(S0), k2 = o.clone().addScaledVector(dir, -b + Math.sqrt(disc)).sub(S0);
-    v = (k1.dot(U) < minUp * L && k2.dot(U) >= minUp * L) ? k2 : k1;
-  } else v = o.clone().addScaledVector(dir, -b).sub(S0); // 外れた：いちばん近い所
-  v.normalize(); let up = v.dot(U);
-  if (up < minUp) { const t = v.clone().addScaledVector(U, -up); if (t.lengthSq() < 1e-8) t.copy(N); t.normalize(); v = t.multiplyScalar(Math.cos(CONFIG.DIP_MIN * D2R)).addScaledVector(U, minUp); }
-  const D = v.negate(), hx = D.dot(E), hy = D.dot(N);
-  setAim(Math.hypot(hx, hy) < 1e-3 ? aim.h : Math.atan2(hx, hy) * R2D, Math.asin(clamp(-D.dot(U), -1, 1)) * R2D);
-}
+function aimAt(P) { const a = dirTo(P); setAim(a.h, a.d); } // テスト用
 function screenOf(local) { const w = local.clone().applyMatrix4(G.matrixWorld), p = w.clone().project(camera); return { x: (p.x + 1) / 2 * canvas.clientWidth, y: (1 - p.y) / 2 * canvas.clientHeight, w }; }
 const visibleOnGlobe = w => w.dot(camera.position) > w.lengthSq() + .01; // 地球の表側にあるか
-function nearKnob(x, y) {
+function headingFromPointer(x, y) { // 指の方へ矢印を向ける（画面の上で見た向き）
   G.updateMatrixWorld();
-  const kp = screenOf(S0.clone().addScaledVector(aim.D, -L));
-  if (!visibleOnGlobe(S0.clone().applyMatrix4(G.matrixWorld))) return false;
-  if (Math.hypot(kp.x - x, kp.y - y) < CONFIG.KNOB_HIT_PX) return true;
-  const sp = screenOf(S0), ax = kp.x - sp.x, ay = kp.y - sp.y, t = clamp(((x - sp.x) * ax + (y - sp.y) * ay) / (ax * ax + ay * ay + 1e-6), .35, 1);
-  return Math.hypot(sp.x + ax * t - x, sp.y + ay * t - y) < 26; // 棒の上半分でもつかめる
+  const s = screenOf(S0), n = screenOf(S0.clone().addScaledVector(FR.N, .05)), e = screenOf(S0.clone().addScaledVector(FR.E, .05));
+  const nx = n.x - s.x, ny = n.y - s.y, ex = e.x - s.x, ey = e.y - s.y, px = x - s.x, py = y - s.y;
+  if (Math.hypot(px, py) < 14) return; // 出発点に近すぎる時は変えない
+  const det = nx * ey - ex * ny; if (Math.abs(det) < 1e-6) return;
+  const a = (px * ey - ex * py) / det, b = (nx * py - ny * px) / det; // 指の向き = a×北 + b×東
+  setAim(Math.atan2(b, a) * R2D, aim.d);
 }
 
 // ===== [SEC:DIAGRAM] =====
 function readout() {
-  $('rdH').textContent = dirName(aim.h); $('rdD').textContent = Math.round(aim.d) + '°';
+  $('rdH').textContent = dirName(aim.h); $('rdD').textContent = Math.round(aim.d) + '°'; $('depth').value = Math.round(aim.d);
   const deep = CONFIG.EARTH_KM * (1 - Math.cos(aim.d * D2R)), ly = layerAt(CONFIG.EARTH_KM * Math.cos(aim.d * D2R));
   $('rdZ').textContent = deep < 1 ? '1km未満' : `${fmt(deep)}km`; $('rdL').textContent = `${ly.n}まで`;
   const c = $('dia'), g = c.getContext('2d'), s = c.width, r = s * .4, cx = s / 2, cy = s / 2 + s * .04;
@@ -613,10 +640,9 @@ const offLabel = (...ids) => ids.forEach(id => LB[id].on = false);
 function tickLabels() {
   for (const k in LB) {
     const l = LB[k]; let vis = l.on;
-    if (vis) { const s = screenOf(l.p); vis = l.always || visibleOnGlobe(s.w); if (vis) l.e.style.transform = `translate(${s.x}px,${s.y}px) translate(${l.ax}%,${l.ay}%)`; }
+    if (vis) { const s = screenOf(l.p); vis = l.always || glass || visibleOnGlobe(s.w); if (vis) l.e.style.transform = `translate(${s.x}px,${s.y}px) translate(${l.ax}%,${l.ay}%)`; }
     const o = vis ? '1' : '0'; if (l.e.style.opacity !== o) l.e.style.opacity = o;
   }
-  if (!$('hint').classList.contains('hide')) { const s = screenOf(S0.clone().addScaledVector(aim.D, -L)); $('hint').style.left = s.x + 'px'; $('hint').style.top = s.y + 'px'; }
 }
 
 // ===== [SEC:CAMERA] =====
@@ -628,6 +654,7 @@ function reserves() { // 画面の上下・右で、パネルがじゃまする�
   ['hud', 'dhud'].forEach(id => { if (vis(id)) top = Math.max(top, $(id).getBoundingClientRect().bottom - appTop); });
   if (!wide) ['aim', 'judge', 'title'].forEach(id => { if (vis(id)) bot = Math.max(bot, H - ($(id).getBoundingClientRect().top - appTop)); });
   if (!wide && vis('title')) bot = Math.min(bot, H * .5);
+  if (!wide && vis('result')) bot = Math.max(bot, H - innerHeight * .44 - 6); // 結果の表は画面の下半分
   let freeW = W, offX = 0;
   if (wide && (vis('aim') || vis('judge') || vis('result'))) { freeW = W - 480; offX = 240; }
   else if (wide && vis('title')) { freeW = W * .55; offX = -W * .15; }
@@ -645,7 +672,7 @@ function applyCamera(dt) {
   const g = camGoal(), k = 1 - Math.exp(-dt * 5);
   if (!Number.isFinite(g.d) || !Number.isFinite(g.off)) return;
   camD += (g.d / userZoom - camD) * k; camOff += (g.off - camOff) * k; view.offX += (g.offX - view.offX) * k;
-  camera.position.set(0, 0, camD + shake.v * (Math.random() - .5)); camera.lookAt(0, 0, 0);
+  camera.position.set(shake.v * (Math.random() - .5), shake.v * (Math.random() - .5), camD); camera.lookAt(0, 0, 0);
   const W = canvas.clientWidth, H = canvas.clientHeight;
   camera.setViewOffset(W, H, view.offX, camOff, W, H); camera.updateProjectionMatrix();
 }
@@ -659,38 +686,48 @@ function tickTween(dt) {
 function rotateBy(dx, dy) { const k = CONFIG.ROT * clamp((camD - 1) / 3, .15, 1.5) * Math.min(1.4, 900 / Math.max(500, canvas.clientHeight)); G.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(dy * k, dx * k, 0))); }
 
 // ===== [SEC:INPUT] =====
-const ptrs = new Map(); let drag = null;
+const ptrs = new Map(); let drag = null, lookMode = false;
 const rel = e => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
 const pinchD = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
 const canLook = () => ['title', 'aim', 'judge', 'result'].includes(state);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
 canvas.addEventListener('pointerdown', e => {
   const p = rel(e); ptrs.set(e.pointerId, p); try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
   ac();
+  if (state === 'dig') { tapBoost(); return; }
   if (ptrs.size === 2) { drag = { type: 'pinch', d0: pinchD(), z0: userZoom }; return; }
-  if (state === 'aim' && !tween && nearKnob(p.x, p.y)) { drag = { type: 'knob' }; $('hint').classList.add('hide'); seenHint = true; aimFromPointer(p.x, p.y); sfx('tick'); return; }
+  if (state === 'aim' && !lookMode && e.button !== 2 && !tween) { drag = { type: 'aim' }; hide('hint'); seenHint = true; headingFromPointer(p.x, p.y); return; }
   if (canLook()) { drag = { type: 'look', x: p.x, y: p.y, vx: 0, vy: 0, t: performance.now() }; tween = null; spinVel.x = spinVel.y = 0; }
 });
 canvas.addEventListener('pointermove', e => {
-  if (!ptrs.has(e.pointerId)) { if (state === 'aim' && e.pointerType === 'mouse') { const p = rel(e); canvas.style.cursor = nearKnob(p.x, p.y) ? 'grab' : 'default'; } return; }
+  if (!ptrs.has(e.pointerId)) return;
   const p = rel(e); ptrs.set(e.pointerId, p); if (!drag) return;
   if (drag.type === 'pinch' && ptrs.size === 2) { userZoom = clamp(drag.z0 * pinchD() / drag.d0, CONFIG.ZOOM_MIN, CONFIG.ZOOM_MAX); return; }
-  if (drag.type === 'knob') { aimFromPointer(p.x, p.y); return; }
+  if (drag.type === 'aim') { headingFromPointer(p.x, p.y); return; }
   if (drag.type === 'look') {
     const dx = p.x - drag.x, dy = p.y - drag.y, now = performance.now(), dt = Math.max(1, now - drag.t);
     rotateBy(dx, dy); drag.vx = dx / dt * 16; drag.vy = dy / dt * 16; drag.x = p.x; drag.y = p.y; drag.t = now;
-    if (state === 'aim') $('bBack').classList.add('hot');
   }
 });
 const endPtr = e => {
   ptrs.delete(e.pointerId);
   if (drag && drag.type === 'look' && performance.now() - drag.t < 80) { spinVel.x = drag.vx; spinVel.y = drag.vy; }
-  if (drag && drag.type === 'knob') sfx('tick');
+  if (drag && drag.type === 'aim') sfx('tick');
   if (ptrs.size === 0 || (drag && drag.type === 'pinch')) drag = null;
 };
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
 canvas.addEventListener('wheel', e => { e.preventDefault(); if (canLook()) userZoom = clamp(userZoom * Math.exp(-e.deltaY * .0012), CONFIG.ZOOM_MIN, CONFIG.ZOOM_MAX); }, { passive: false });
+$('depth').addEventListener('input', () => { setAim(aim.h, +$('depth').value); hide('hint'); seenHint = true; });
+$('depth').addEventListener('change', () => sfx('tick'));
+function setLook(on) { // 「地球を回して見る」の切りかえ。もどる時は出発点の向きにもどす
+  lookMode = on; $('bLook').classList.toggle('on', on); $('bLook').innerHTML = on ? '🎯 もどる' : '🌏 見回す';
+  if (!on && state === 'aim') { userZoom = 1; turnTo(faceQ(S0, CONFIG.AIM_TILT), .7); }
+}
+$('bLook').onclick = () => { sfx('tick'); setLook(!lookMode); };
 addEventListener('keydown', e => {
-  if (state !== 'aim' || !$('help').classList.contains('hide')) return;
+  if (!$('help').classList.contains('hide')) return;
+  if (state === 'dig' && (e.key === ' ' || e.key === 'Enter')) { tapBoost(); e.preventDefault(); return; }
+  if (state !== 'aim') return;
   const k = e.shiftKey ? 5 : 1;
   if (e.key === 'ArrowLeft') setAim(aim.h - k, aim.d); else if (e.key === 'ArrowRight') setAim(aim.h + k, aim.d);
   else if (e.key === 'ArrowUp') setAim(aim.h, aim.d + k); else if (e.key === 'ArrowDown') setAim(aim.h, aim.d - k);
@@ -711,6 +748,8 @@ function sfx(n) {
   if (n === 'tick') tone(900, 700, .04, 'square', .03);
   else if (n === 'pop') { tone(240, 900, .2, 'triangle', .25); tone(1200, 1800, .12, 'sine', .08, .05); }
   else if (n === 'hit') { tone(660, 660, .16, 'triangle', .18); tone(880, 880, .16, 'triangle', .18, .12); tone(1320, 1320, .35, 'triangle', .16, .24); }
+  else if (n === 'great') { tone(660, 660, .14, 'triangle', .18); tone(990, 990, .3, 'triangle', .16, .12); }
+  else if (n === 'good') tone(660, 720, .28, 'triangle', .16);
   else if (n === 'miss') { tone(330, 250, .25, 'triangle', .14); tone(250, 180, .35, 'triangle', .12, .2); }
   else if (n === 'cut') { const a = ac(); if (!a || muted) return; const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = noiseBuf(a, .4); f.type = 'lowpass'; f.frequency.value = 900; g.gain.setValueAtTime(.35, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + .4); s.connect(f).connect(g).connect(a.destination); s.start(); }
 }
@@ -727,105 +766,135 @@ $('bSound').onclick = () => { muted = !muted; store.set('ct-mute', muted ? '1' :
 $('bSound').textContent = muted ? '🔇' : '🔊';
 
 // ===== [SEC:GAME] =====
-let state = 'loading', rounds = [], ri = 0, total = 0, log = [], seenHint = false, dig = null;
+let state = 'loading', rounds = [], ri = 0, total = 0, log = [], seenHint = false, dig = null, streak = 0, maxStreak = 0;
 const show = (...ids) => ids.forEach(id => $(id).classList.remove('hide'));
 const hide = (...ids) => ids.forEach(id => $(id).classList.add('hide'));
-function pickRounds() {
+const tierOf = id => (AREA[id] || 0) >= CONFIG.TIER_KM2[0] ? 0 : (AREA[id] || 0) >= CONFIG.TIER_KM2[1] ? 1 : 2;
+function pickRounds() { // 大きい国 → 中くらい → 小さい国の順に。同じ国が目的になるのは1回まで
   const out = [], cf = {}, ct = {};
-  for (const [a, b] of shuffle(PAIRS.slice())) {
-    if ((cf[a] || 0) >= CONFIG.MAX_SAME || (ct[b] || 0) >= CONFIG.MAX_SAME) continue;
-    cf[a] = (cf[a] || 0) + 1; ct[b] = (ct[b] || 0) + 1; out.push({ from: a, to: b }); if (out.length >= CONFIG.ROUNDS) break;
-  }
+  CONFIG.TIERS.forEach((n, t) => {
+    let k = 0;
+    for (const [a, b] of shuffle(PAIRS.filter(([, b]) => tierOf(b) === t))) {
+      if (k >= n) break;
+      if ((cf[a] || 0) >= CONFIG.MAX_SAME || ct[b] || ct[a + b]) continue;
+      cf[a] = (cf[a] || 0) + 1; ct[b] = 1; out.push({ from: a, to: b }); k++;
+    }
+  });
   return out;
 }
 function toTitle() {
-  state = 'title'; drillOn(false); hide('hud', 'aim', 'judge', 'result', 'dhud', 'hint', 'bHome'); show('title');
-  $('banner').className = ''; offLabel('st', 'tg', 'ex', 'km', 'ly0', 'ly1', 'ly2', 'ly3'); clearExit();
+  state = 'title'; drillOn(false); setLook(false); hide('hud', 'aim', 'judge', 'result', 'dhud', 'hint', 'bHome'); show('title');
+  $('banner').className = ''; offLabel('st', 'tg', 'ex', 'km', 'ly0', 'ly1', 'ly2', 'ly3'); clearExit(); clearHoles(); setGlass(false);
   drill.visible = aimMark.visible = false; paintEarth(null, null); userZoom = 1; view.region = 90;
-  const b = +store.get('ct-best') || 0; $('best').innerHTML = b ? `自己ベスト <b>${b}</b>点` : '';
+  const b = +store.get('ct-best2') || 0; $('best').innerHTML = b ? `自己ベスト <b>${b}</b>点` : '';
   turnTo(faceQ(v3(30, 139), -.05), 1.2);
 }
 function startGame() {
-  ac(); rounds = pickRounds(); ri = 0; total = 0; log = []; hide('title', 'result'); show('bHome'); closePromo(); setupRound();
+  ac(); rounds = pickRounds(); ri = 0; total = 0; log = []; streak = maxStreak = 0; hide('title', 'result'); show('bHome'); closePromo(); setupRound();
 }
 function setupRound() {
-  state = 'aim'; const r = rounds[ri], A = CC[r.from], B = CC[r.to];
+  state = 'aim'; setLook(false); const r = rounds[ri], A = CC[r.from], B = CC[r.to];
   r.S = v3(A[2], A[3]);
-  paintEarth(r.from, r.to); placeDrill(r.S); drill.visible = aimMark.visible = true; clearExit();
+  paintEarth(r.from, r.to); placeDrill(r.S); drill.visible = aimMark.visible = true; clearExit(); clearHoles(); setGlass(false);
   setAim(Math.random() * 360, CONFIG.DIP_START);
   $('qno').textContent = ri + 1; $('tot').textContent = total;
-  $('task').innerHTML = `<b class="aq">${A[1]}</b><small>（${A[0]}）</small> から<br><b class="gd">${B[0]}</b> へ掘りぬけ！`;
+  $('stk').textContent = streak >= 1 ? `🔥×${streak}` : ''; // PERFECTが続いている数
+  $('task').innerHTML = `<b class="aq">${A[1]}</b><small>（${A[0]}）</small> から<br><b class="gd">${B[0]}</b> へ掘りぬけ！<small class="tier">${['大きい国', '中くらいの国', '小さい国'][tierOf(r.to)]}</small>`;
   setLabel('st', A[1], r.S); setLabel('tg', B[0], v3(B[4], B[5]));
-  hide('judge', 'dhud'); show('hud', 'aim'); $('bBack').classList.remove('hot'); $('banner').className = '';
+  hide('judge', 'dhud'); show('hud', 'aim'); $('banner').className = '';
   userZoom = 1; view.region = 90; turnTo(faceQ(r.S, CONFIG.AIM_TILT), ri === 0 ? 1.3 : 1.1, () => { if (!seenHint) show('hint'); });
 }
-$('bBack').onclick = () => { if (state !== 'aim') return; userZoom = 1; $('bBack').classList.remove('hot'); turnTo(faceQ(S0, CONFIG.AIM_TILT), .8); };
 
 function startDig() {
   if (state !== 'aim' || tween) return;
-  state = 'dig'; hide('aim', 'hint', 'hud'); sfx('tick'); ac();
-  const r = rounds[ri], P = exitOf(), m = V().crossVectors(aim.H, FR.U).normalize(); // m：断面の向き（カメラ側）
-  dig = { P, m, len: S0.distanceTo(P), t: 0, phase: 'turn', D: aim.D.clone(), S: S0.clone() };
-  dig.sec = CONFIG.BORE_MIN + (CONFIG.BORE_MAX - CONFIG.BORE_MIN) * dig.len / 2;
+  state = 'dig'; setLook(false); hide('aim', 'hint', 'hud'); sfx('tick'); ac();
+  const P = exitOf(), m = V().crossVectors(aim.H, FR.U).normalize(); // m：断面の向き（カメラ側）
+  const len = S0.distanceTo(P);
+  dig = { P, m, len, u: 0, boost: 0, phase: 'turn', D: aim.D.clone(), S: S0.clone(), sec: CONFIG.BORE_SEC[0] + (CONFIG.BORE_SEC[1] - CONFIG.BORE_SEC[0]) * len / 2 };
   userZoom = 1; view.region = 90;
   offLabel('tg');
   turnTo(basisQ(aim.H, FR.U, m, V(1, 0, 0), V(0, 1, 0), V(0, 0, 1)), CONFIG.TURN_SEC, () => {
     sfx('cut'); cutPlane.constant = 0; cut.visible = true; cut.quaternion.setFromUnitVectors(V(0, 0, 1), m); cut.position.set(0, 0, 0);
     drill.visible = aimMark.visible = false; head.visible = sparks.visible = holeGlow.visible = holeCore.visible = true;
-    // 層の名前（左がわ）
     const left = aim.H.clone().negate(), lab = (id, txt, r) => setLabel(id, txt, left.clone().multiplyScalar(r).addScaledVector(m, .01), -50);
     lab('ly0', 'マントル', .76); lab('ly1', '外核', .37); lab('ly2', '内核', .06);
     setLabel('ly3', 'ふちのうすい皮が地殻', left.clone().multiplyScalar(.62).addScaledVector(FR.U, -.62).addScaledVector(m, .01), -50);
-    show('dhud'); dig.phase = 'bore'; dig.t = 0; drillOn(true);
+    show('dhud'); $('dspd').textContent = ''; dig.phase = 'bore'; drillOn(true);
   });
 }
 $('bDig').onclick = startDig;
+function tapBoost() { // 掘っている間の連打で速くなる
+  if (!dig || dig.phase !== 'bore') return;
+  dig.boost = Math.min(CONFIG.BOOST_MAX, dig.boost + CONFIG.TAP_BOOST); shake.v = Math.max(shake.v, .02);
+  tone(180 + dig.boost * 60, 120, .05, 'square', .05);
+}
 
 function tickDig(dt) {
   if (!dig || dig.phase !== 'bore') return;
-  dig.t += dt; const u = clamp(dig.t / dig.sec, 0, 1), e = u < .08 ? u * u / .16 : (u > .92 ? 1 - (1 - u) * (1 - u) / .16 : u - .04); // はじめと終わりだけゆっくり
+  dig.boost *= Math.exp(-dt * CONFIG.BOOST_DECAY);
+  const mult = 1 + dig.boost; dig.u = Math.min(1, dig.u + dt * mult / dig.sec);
+  const u = dig.u, e = u < .06 ? u * u / .12 : .03 + (u - .06) * .97 / .94; // はじめだけゆっくり
   const X = dig.S.clone().addScaledVector(dig.D, dig.len * clamp(e, 0, 1));
   setHole(holeGlow, dig.S, X, .019, dig.m.clone().multiplyScalar(.004));
   setHole(holeCore, dig.S, X, .011, dig.m.clone().multiplyScalar(.03));
   head.position.copy(X).addScaledVector(dig.m, .06);
-  head.quaternion.setFromUnitVectors(YV, dig.D).multiply(new THREE.Quaternion().setFromAxisAngle(YV, dig.t * 40));
+  head.quaternion.setFromUnitVectors(YV, dig.D).multiply(new THREE.Quaternion().setFromAxisAngle(YV, dig.u * 300));
   const rk = X.length() * CONFIG.EARTH_KM, ly = layerAt(rk);
   $('dz').textContent = fmt(Math.max(0, CONFIG.EARTH_KM - rk)); $('dly').textContent = `${ly.n}（${ly.t}）`;
-  const pos = sparks.geometry.attributes.position; for (let i = 0; i < pos.count; i++) { const s = Math.random() * .06; pos.setXYZ(i, X.x - dig.D.x * s + (Math.random() - .5) * .03 + dig.m.x * .03, X.y - dig.D.y * s + (Math.random() - .5) * .03 + dig.m.y * .03, X.z - dig.D.z * s + (Math.random() - .5) * .03 + dig.m.z * .03); } pos.needsUpdate = true;
-  shake.v = .012 * (1 - u * .5);
+  $('dspd').textContent = mult >= 1.2 ? `×${mult.toFixed(1)}` : '';
+  if (drillSnd) drillSnd.f.frequency.value = 240 + 140 * dig.boost;
+  const pos = sparks.geometry.attributes.position, sp = .03 * (1 + dig.boost * .5);
+  for (let i = 0; i < pos.count; i++) { const s = Math.random() * .06 * (1 + dig.boost * .4); pos.setXYZ(i, X.x - dig.D.x * s + (Math.random() - .5) * sp + dig.m.x * .03, X.y - dig.D.y * s + (Math.random() - .5) * sp + dig.m.y * .03, X.z - dig.D.z * s + (Math.random() - .5) * sp + dig.m.z * .03); }
+  pos.needsUpdate = true;
+  shake.v = Math.max(shake.v * .9, .01 + .006 * dig.boost);
   if (u >= 1) finishDig();
 }
+function judgeView(S, P, T) { // 自分の穴と正解の穴がどちらも見える向き
+  let c = S.clone().add(P).add(T);
+  if (c.length() < .35) { c = V().crossVectors(P.clone().sub(S), T.clone().sub(S)); if (c.length() < 1e-4) c = S.clone(); }
+  return faceQ(c.normalize(), 0);
+}
 function finishDig() {
-  const r = rounds[ri], P = dig.P; dig.phase = 'exit'; shake.v = 0; drillOn(false); sfx('pop');
+  const r = rounds[ri], P = dig.P; dig.phase = 'exit'; drillOn(false); sfx('pop');
   cutPlane.constant = 100; cut.visible = head.visible = sparks.visible = holeGlow.visible = holeCore.visible = false;
   offLabel('ly0', 'ly1', 'ly2', 'ly3'); hide('dhud');
   // 判定
   const [lat, lon] = toLL(P), f = countryAt(lat, lon), hit = !!f && f.id === r.to;
   const near = hit ? { km: 0, v: P.clone() } : BYID[r.to].map(g => nearestOf(g, P)).reduce((a, b) => a.km < b.km ? a : b);
-  const pts = hit ? 100 : Math.min(99, Math.round(100 * Math.exp(-near.km / CONFIG.SCORE_KM))); // 外れは最高99点
+  const rank = hit ? CONFIG.RANKS[0] : CONFIG.RANKS.slice(1).find(x => near.km <= x.km);
+  streak = hit ? streak + 1 : 0; maxStreak = Math.max(maxStreak, streak);
+  const bonus = streak >= 2 ? CONFIG.STREAK_BONUS * (streak - 1) : 0, pts = rank.p + bonus;
   let place, sea = false;
   if (hit) place = CC[r.to][0]; else if (f) place = f.ja; else { place = seaName(lat, lon); sea = true; }
   let landNear = null; if (sea) { let best = null; for (const g of FEATS) { const n = nearestOf(g, P); if (!best || n.km < best.km) best = { km: n.km, f: g }; } landNear = best; }
   const deep = CONFIG.EARTH_KM * (1 - Math.cos(aim.d * D2R)), lyD = layerAt(CONFIG.EARTH_KM * Math.cos(aim.d * D2R));
-  r.res = { hit, place, sea, km: near.km, pts, len: dig.len * CONFIG.EARTH_KM, deep, lyD: lyD.n, landNear };
+  const T = v3(CC[r.to][4], CC[r.to][5]);
+  r.res = { hit, place, sea, km: near.km, rank, bonus, streak, pts, len: dig.len * CONFIG.EARTH_KM, deep, lyD: lyD.n, landNear, S: dig.S.clone(), P: P.clone(), T, ideal: dirTo(T), mine: { h: aim.h, d: aim.d } };
   total += pts; log.push(r);
-  showExit(P, hit ? null : near.v);
-  setLabel('ex', `出口：${place}`, P, 70); // 出口の名前は点の下に（目的の国の名前と重ならないように） setLabel('tg', CC[r.to][0], v3(CC[r.to][4], CC[r.to][5]));
-  const sep = hit ? 0 : Math.acos(clamp(P.dot(near.v), -1, 1)) * R2D;
-  view.region = clamp(sep / 2 + 28, 32, 90); userZoom = 1;
-  const c = hit ? P : P.clone().add(near.v).normalize();
-  turnTo(faceQ(c, .08), CONFIG.EXIT_SEC, () => {
-    $('banner').textContent = hit ? `${place}に到着！` : (sea ? `${place}に出た…` : `${place}に出た！`);
-    $('banner').className = 'on' + (hit ? ' hit' : ''); sfx(hit ? 'hit' : 'miss');
-    setTimeout(() => showJudge(r), 650 / SPEED);
+  // 答え合わせ：地球を透かして、自分の穴（色）と正解の穴（白い点線）を見せる
+  showExit(P, hit ? null : near.v); setGlass(true); clearHoles();
+  addTube(dig.S, P, .012, rank.c, false); addTube(dig.S, T, .007, '#ffffff', true); addDot(T, .02, '#ffd166'); addDot(dig.S, .016, '#4fe0d0');
+  setLabel('ex', `出口：${place}`, P, 70); setLabel('tg', `${CC[r.to][0]}（正解）`, T);
+  view.region = 90; userZoom = 1;
+  turnTo(judgeView(dig.S, P, T), CONFIG.EXIT_SEC, () => {
+    $('banner').innerHTML = `<b style="color:${rank.c}">${rank.n}</b><small>${hit ? `${place}に到着！` : `${place}に出た`}${bonus ? `<br>PERFECT ${streak}連続！ +${bonus}` : ''}</small>`;
+    $('banner').className = 'on'; shake.v = rank.shake; sfx(rank.snd);
+    setTimeout(() => showJudge(r), 900 / SPEED);
   });
+}
+function gapText(x) { // 正解とのずれを言葉に
+  const dh = ((x.mine.h - x.ideal.h + 540) % 360) - 180, dd = x.mine.d - x.ideal.d;
+  const a = x.ideal.d > 84 ? '正解はほぼ真下' : Math.abs(dh) < 3 ? '向きはぴったり' : `向きが${dh > 0 ? '右' : '左'}に${Math.round(Math.abs(dh))}°`;
+  const b = Math.abs(dd) < 2 ? '深さはぴったり' : `${Math.round(Math.abs(dd))}°${dd > 0 ? '深すぎ' : '浅すぎ'}`;
+  return a + '・' + b;
 }
 function showJudge(r) {
   state = 'judge'; const x = r.res, B = CC[r.to][0];
   $('banner').className = '';
-  $('jh').textContent = x.hit ? `🎯 ${B}に到着！` : `${x.place}に出た${x.sea ? '…' : '！'}`; $('jh').className = x.hit ? 'hit' : '';
-  $('js').innerHTML = x.hit ? 'ぴったり！' : `${B}まで あと <b>${fmt(x.km)}</b>km` + (x.landNear && x.landNear.f.ja !== B ? `<br>いちばん近い陸：${x.landNear.f.ja}（${fmt(x.landNear.km)}km）` : '');
-  $('jp').textContent = `+${x.pts}点`;
+  $('jh').innerHTML = `<span class="rk" style="color:${x.rank.c}">${x.rank.n}</span> ${x.hit ? `${B}に到着！` : `${x.place}に出た`}`;
+  $('js').innerHTML = x.hit ? (x.streak >= 2 ? `PERFECT ${x.streak}連続！` : '国の中にぴったり！') : `${B}まで あと <b>${fmt(x.km)}</b>km` + (x.landNear && x.landNear.f.ja !== B ? `<br>いちばん近い陸：${x.landNear.f.ja}（${fmt(x.landNear.km)}km）` : '');
+  $('jp').innerHTML = `+${x.rank.p}点` + (x.bonus ? `<small>＋連続ボーナス ${x.bonus}</small>` : '');
+  $('jc').innerHTML = `<div><span class="ans">正解</span>${dirName(x.ideal.h)}・下へ${Math.round(x.ideal.d)}°</div><div><span class="you" style="background:${x.rank.c}">あなた</span>${dirName(x.mine.h)}・下へ${Math.round(x.mine.d)}°</div><div class="gap">${gapText(x)}</div>`;
   $('jd').textContent = `穴の長さ ${fmt(x.len)}km・最深 ${fmt(x.deep)}km（${x.lyD}）`;
   $('tri').textContent = '💡 ' + TRIVIA[ri % TRIVIA.length];
   $('bNext').textContent = ri + 1 >= rounds.length ? '結果を見る' : '次の問題へ';
@@ -833,7 +902,7 @@ function showJudge(r) {
 }
 $('bNext').onclick = () => { if (state !== 'judge') return; sfx('tick'); offLabel('ex', 'km'); ri++; if (ri >= rounds.length) showResult(); else setupRound(); };
 
-// 出口の印と、目的の国までの線
+// 出口の印と、目的の国までの線（地面の上）
 const exitG = new THREE.Group(); G.add(exitG);
 function clearExit() { exitG.children.slice().forEach(o => { exitG.remove(o); o.geometry && o.geometry.dispose(); }); }
 function showExit(P, Q) {
@@ -842,42 +911,68 @@ function showExit(P, Q) {
   pin.position.copy(U).multiplyScalar(1.07); pin.quaternion.setFromUnitVectors(YV, U); exitG.add(pin);
   const top = new THREE.Mesh(new THREE.SphereGeometry(.026, 18, 12), new THREE.MeshStandardMaterial({ color: 0xff4d4d, emissive: 0x661111 }));
   top.position.copy(U).multiplyScalar(1.15); exitG.add(top);
-  const ring = new THREE.Mesh(new THREE.RingGeometry(.02, .034, 32), new THREE.MeshBasicMaterial({ color: 0xff5d5d, side: THREE.DoubleSide }));
-  ring.position.copy(U).multiplyScalar(1.003); ring.quaternion.setFromUnitVectors(V(0, 0, 1), U); exitG.add(ring);
   if (Q) {
     const pts = [], n = 64, ang = Math.acos(clamp(U.dot(Q), -1, 1));
     for (let i = 0; i <= n; i++) { const t = i / n, s = Math.sin(ang) || 1; pts.push(U.clone().multiplyScalar(Math.sin((1 - t) * ang) / s).addScaledVector(Q, Math.sin(t * ang) / s).normalize().multiplyScalar(1.004 + .02 * Math.sin(Math.PI * t) * Math.min(1, ang * 2))); }
     exitG.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 80, .005, 6), new THREE.MeshBasicMaterial({ color: 0xffd166 })));
-    const dot = new THREE.Mesh(new THREE.SphereGeometry(.014, 14, 10), new THREE.MeshBasicMaterial({ color: 0xffd166 })); dot.position.copy(Q).multiplyScalar(1.004); exitG.add(dot);
-    setLabel('km', `${fmt(rounds[ri].res.km)}km`, pts[n >> 1], -50);
   }
 }
+// 透けて見える穴（答え合わせと結果）
+const holesG = new THREE.Group(); G.add(holesG);
+const CYL = new THREE.CylinderGeometry(1, 1, 1, 10), BALL = new THREE.SphereGeometry(1, 16, 12), MATS = {};
+const matOf = c => MATS[c] || (MATS[c] = new THREE.MeshBasicMaterial({ color: new THREE.Color(c) }));
+function clearHoles() { holesG.clear(); }
+function addTube(a, b, r, c, dashed) {
+  const n = dashed ? 24 : 1;
+  for (let i = 0; i < n; i += dashed ? 2 : 1) { const m = new THREE.Mesh(CYL, matOf(c)); setHole(m, a.clone().lerp(b, i / n), a.clone().lerp(b, (i + 1) / n), r, V()); holesG.add(m); }
+}
+function addDot(p, r, c) { const m = new THREE.Mesh(BALL, matOf(c)); m.position.copy(p); m.scale.setScalar(r); holesG.add(m); }
 
 // ===== [SEC:RESULT] =====
-const RANKS = [[950, '地球ツキヌケ名人'], [800, '地底の天才'], [600, '一流の穴ほり師'], [400, '見習い穴ほり師'], [200, '地底の迷子'], [0, 'マグマで迷子']];
+let lastRank = '';
 function showResult() {
-  state = 'result'; hide('hud', 'judge', 'aim'); drill.visible = aimMark.visible = false; offLabel('st', 'tg', 'ex', 'km'); clearExit();
-  paintEarth(null, null); view.region = 90; userZoom = 1; turnTo(faceQ(v3(10, 140), 0), 1.2);
-  const rank = RANKS.find(([s]) => total >= s)[1], best = +store.get('ct-best') || 0, nb = total > best; if (nb) store.set('ct-best', total);
-  const hits = log.filter(r => r.res.hit).length;
-  const rows = log.map(r => `<li><div class="q">${CC[r.from][0]} → ${CC[r.to][0]}<span>${r.res.hit ? '到着！' : `${r.res.place}に出た（あと${fmt(r.res.km)}km）`}</span></div><div class="p${r.res.hit ? ' h' : ''}">${r.res.pts}</div></li>`).join('');
+  state = 'result'; hide('hud', 'judge', 'aim'); drill.visible = aimMark.visible = false; offLabel('st', 'tg', 'ex', 'km'); clearExit(); clearHoles();
+  paintEarth(null, null); setGlass(true);
+  log.forEach(r => { const x = r.res; addTube(x.S, x.P, .01, x.rank.c, false); addDot(x.S, .015, '#4fe0d0'); addDot(x.P, .018, x.rank.c); }); // 穴だらけの地球
+  view.region = 90; userZoom = 1; turnTo(faceQ(v3(15, 140), 0), 1.2);
+  const rank = CONFIG.RESULT_RANKS.find(([s]) => total >= s)[1], best = +store.get('ct-best2') || 0, nb = total > best; if (nb) store.set('ct-best2', total);
+  lastRank = rank; const perf = log.filter(r => r.res.hit).length;
+  const rows = log.map(r => `<li><span class="chip" style="background:${r.res.rank.c}">${r.res.rank.n}</span><div class="q">${CC[r.from][0]} → ${CC[r.to][0]}<span>${r.res.hit ? '到着！' : `${r.res.place}に出た（あと${fmt(r.res.km)}km）`}</span></div><div class="p">${r.res.pts}</div></li>`).join('');
   $('result').innerHTML = `<div class="rc card">
     <div class="rk">RESULT</div>
-    <div class="rs">${total}<small>/ 1000点</small></div>
+    <div class="rs">${fmt(total)}<small>点</small></div>
     <div class="rr">${rank}</div>
-    <div class="rb">ぴったり到着 ${hits}回 ・ ${nb ? '自己ベスト更新！' : `自己ベスト ${best}点`}</div>
-    <div class="acts"><button class="btn x" id="bShare">𝕏 でシェア</button><button class="btn main" id="bAgain">もう一度</button></div>
+    <div class="rb">PERFECT ${perf}回・最大${maxStreak}連続 ・ ${nb ? '自己ベスト更新！' : `自己ベスト ${fmt(best)}点`}</div>
+    <div class="acts"><button class="btn sub" id="bImg">🖼 画像で保存</button><button class="btn x" id="bShare">𝕏 でシェア</button></div>
+    <button class="btn main" id="bAgain">もう一度</button>
     <ul class="rlist">${rows}</ul>
     <div class="follow"><div><p class="fl">作者をフォロー</p><p class="fs">新作のお知らせをしています</p></div><a class="fbtn" target="_blank" rel="noopener" data-google-vignette="false"></a></div>
     ${CONFIG.TIP_URL ? `<div class="follow tip"><div><p class="fl">作者を応援する</p><p class="fs">100円から送れます</p></div><a class="tbtn" href="${CONFIG.TIP_URL}" target="_blank" rel="noopener" data-google-vignette="false">☕ 応援する</a></div>` : ''}
     <button class="toTop" id="bTop">タイトルにもどる</button>
     <p class="credit">地図データ：Natural Earth（world-atlas）</p>
   </div>`;
-  show('result'); setFollow();
-  $('bShare').onclick = () => { const t = `地球ツキヌケで${total}点（${rank}）でした。\nまっすぐ掘って、ぴったり到着${hits}回。\n${CONFIG.TAG}\n作者→@${CONFIG.FOLLOW_X}`; open('https://x.com/intent/post?text=' + encodeURIComponent(t) + '&url=' + encodeURIComponent(CONFIG.URL), '_blank', 'noopener'); };
+  show('result'); setFollow(); $('result').scrollTop = 0;
+  $('bShare').onclick = () => open('https://x.com/intent/post?text=' + encodeURIComponent(shareText()) + '&url=' + encodeURIComponent(CONFIG.URL), '_blank', 'noopener');
+  $('bImg').onclick = saveImage;
   $('bAgain').onclick = () => { sfx('tick'); startGame(); };
   $('bTop').onclick = () => { sfx('tick'); toTitle(); };
   setTimeout(() => { if (state === 'result') openPromo(); }, CONFIG.APP_AD_DELAY * 1000 / SPEED);
+}
+const shareText = () => `地球ツキヌケで${fmt(total)}点（${lastRank}）でした。\nPERFECT ${log.filter(r => r.res.hit).length}回・最大${maxStreak}連続\n${CONFIG.TAG}\n作者→@${CONFIG.FOLLOW_X}`;
+async function saveImage() { // 穴だらけの地球を画像に（スマホは共有シートへ、パソコンは保存）
+  sfx('tick'); applyCamera(0); G.updateMatrixWorld(); renderer.render(scene, camera);
+  const W = canvas.width, H = canvas.height, o = V(0, 0, 0).project(camera), cx = (o.x + 1) / 2 * W, cy = (1 - o.y) / 2 * H;
+  const rpx = (H / 2) / Math.tan(CONFIG.FOV * D2R / 2) * Math.tan(Math.asin(Math.min(1, 1.12 / camD)));
+  const c = document.createElement('canvas'); c.width = c.height = 1080; const g = c.getContext('2d');
+  g.fillStyle = '#050914'; g.fillRect(0, 0, 1080, 1080);
+  const s = rpx * 1.06; g.drawImage(canvas, cx - s, cy - s, s * 2, s * 2, 170, 180, 740, 740);
+  g.textAlign = 'center'; g.fillStyle = '#ffd166'; g.font = '900 78px "Zen Maru Gothic", sans-serif'; g.fillText('地球ツキヌケ', 540, 120);
+  g.fillStyle = '#fff'; g.font = '900 64px "Zen Maru Gothic", sans-serif'; g.fillText(`${fmt(total)}点　${lastRank}`, 540, 990);
+  g.fillStyle = '#a3b3cb'; g.font = '700 30px "Zen Maru Gothic", sans-serif'; g.fillText(`PERFECT ${log.filter(r => r.res.hit).length}回・最大${maxStreak}連続　nkworks-games.com/chikyu-tsukinuke`, 540, 1045);
+  const blob = await new Promise(r => c.toBlob(r, 'image/png')); if (!blob) return;
+  const file = new File([blob], 'chikyu-tsukinuke.png', { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], text: shareText() + '\n' + CONFIG.URL }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'chikyu-tsukinuke.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 function setFollow() { document.querySelectorAll('.fbtn').forEach(a => { a.href = 'https://x.com/intent/follow?screen_name=' + CONFIG.FOLLOW_X; a.textContent = '𝕏 @' + CONFIG.FOLLOW_X; }); }
 setFollow();
@@ -919,9 +1014,9 @@ function loop(now) {
   requestAnimationFrame(loop); // 先に次のコマを予約（1コマで何かあっても止まらないように）
   const dt = Math.min(.05, (now - last) / 1000) * SPEED; last = now;
   tickTween(dt); tickDig(dt);
-  if (state === 'title' && !tween && !drag) G.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(YV, dt * CONFIG.TITLE_SPIN));
+  if (state !== 'dig') shake.v *= Math.exp(-dt * 4);
+  if ((state === 'title' || state === 'result') && !tween && !drag) G.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(YV, dt * CONFIG.TITLE_SPIN));
   if (!drag && (Math.abs(spinVel.x) + Math.abs(spinVel.y) > .05)) { rotateBy(spinVel.x, spinVel.y); spinVel.x *= .92; spinVel.y *= .92; }
-  const t = now / 1000; knobRing.material.opacity = .45 + .4 * Math.sin(t * 4); knobRing.scale.setScalar(.13 + .025 * Math.sin(t * 4));
   shaftTex.offset.y = state === 'aim' ? 0 : (shaftTex.offset.y + dt * 3) % 1;
   applyCamera(dt); G.updateMatrixWorld(); tickLabels();
   renderer.render(scene, camera);
@@ -929,9 +1024,9 @@ function loop(now) {
 requestAnimationFrame(loop);
 
 // ===== [SEC:TEST] =====
-window.__T = { get state() { return state; }, get total() { return total; }, get log() { return log; }, get rounds() { return rounds; }, setRounds(r) { rounds = r; },
-  aimAtLL(lat, lon) { aimAt(v3(lat, lon)); return { h: aim.h, d: aim.d }; }, setAim, startDig, next: () => $('bNext').click(), start: startGame,
-  exitLL: () => toLL(exitOf()), countryAt: (lat, lon) => { const f = countryAt(lat, lon); return f ? f.ja : seaName(lat, lon); }, knobScreen: () => screenOf(S0.clone().addScaledVector(aim.D, -L)), aimInfo: () => ({ h: aim.h, d: aim.d }) };
+window.__T = { get state() { return state; }, get total() { return total; }, get log() { return log; }, get rounds() { return rounds; }, setRounds(r) { rounds = r; }, get streak() { return streak; },
+  aimAtLL(lat, lon) { aimAt(v3(lat, lon)); return { h: aim.h, d: aim.d }; }, setAim, startDig, tap: tapBoost, next: () => $('bNext').click(), start: startGame, pick: pickRounds, tierOf, area: id => AREA[id],
+  exitLL: () => toLL(exitOf()), countryAt: (lat, lon) => { const f = countryAt(lat, lon); return f ? f.ja : seaName(lat, lon); }, s0Screen: () => screenOf(S0), aimInfo: () => ({ h: aim.h, d: aim.d }) };
 </script>
 </body>
 </html>
