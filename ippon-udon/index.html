@@ -229,6 +229,7 @@ const CONFIG = {
   LIMIT_BASE: 0.75,        // コシ0%の時の「切れる限界」
   LIMIT_KOSHI: 0.25,       // コシ100%で限界に足される分
   START_T: 0.5,            // 始まりの張り（限界に対する割合）
+  START_WAIT: 0.4,         // 伸ばす場面に入る前から押しっぱなしの時、何秒後に引き始めるか
   RISE0: 0.28, RISE_POW: 0.39, // 引いた時に張りが上がる速さ = RISE0 × 長さ^RISE_POW
   FALL0: 0.25, FALL_POW: 0.41, // 離した時に張りが下がる速さ = FALL0 × 長さ^FALL_POW
   TAU: 0.10,               // 張りの動きの重さ（秒。大きいほど行きすぎる）
@@ -824,7 +825,8 @@ function setupPull() {
 }
 function tickPull(dt) {
   const C = CONFIG; g.t += dt;
-  if (!g.started) { if (input.hold && input.presses > g.pressAtStart) g.started = true; else { g.speed = 0; return; } }
+  // 引き始め：新しく押したらすぐ。場面が切りかわる前から押しっぱなしの時も、0.4秒たったら引き始める（足ふみの最後のタップで勝手に始まらないための待ち）
+  if (!g.started) { if (input.hold && (input.presses > g.pressAtStart || g.t > CONFIG.START_WAIT)) g.started = true; else { g.speed = 0; return; } }
   const hold = input.hold;
   if (hold && !g.holdWas) { if (g.relPending) { g.relPending = false; g.carry = 0; g.giriChain = 0; } g.grabT = g.T; } // つかんだ瞬間（ここから上がった分だけ加速する）
   if (!hold && g.holdWas) g.relPending = true;                                                                        // 離した瞬間（この後どこまで上がるかでギリギリを決める）
@@ -1133,6 +1135,8 @@ app.addEventListener('pointerdown', e => {
 const ptrUp = e => input.ptr.delete(e.pointerId);
 window.addEventListener('pointerup', ptrUp); window.addEventListener('pointercancel', ptrUp);
 window.addEventListener('contextmenu', e => { if (!e.target.closest('#rCard')) e.preventDefault(); });
+// スマホの長押しのはたらき（拡大鏡・文字の選択・メニュー）で、押している指が取り消されないようにする（ボタン・リンク・結果のパネルは除く）
+for (const ev of ['touchstart', 'touchmove', 'touchend']) app.addEventListener(ev, e => { if (e.cancelable && !e.target.closest('button,a,.follow,.panel')) e.preventDefault(); }, { passive: false });
 window.addEventListener('keydown', e => {
   if (e.repeat) return; audioInit();
   if (e.code === 'Space') { e.preventDefault(); if (!input.keyHold) input.presses++; input.keyHold = true; }
@@ -1194,6 +1198,7 @@ window.__TEST__ = {
       if (want > 0.03 && tubeClear < 0.005) v.push('判定はまだなのに、見た目はうどんが床についている');
       toScreen(0, C.HAND_H, 0, _sa); toScreen(g.L, C.HAND_H, 0, _sb); if (Math.abs(_sa.nx) > 1 || Math.abs(_sb.nx) > 1) v.push('うどんのはしが画面の外に出た');
       if (pose.x - 0.6 < 0.05) v.push('職人が打ち台に近すぎる');
+      if (!g.started && input.hold && g.t > 0.6) v.push('押し続けているのに引き始めない（伸ばす場面に入って' + g.t.toFixed(2) + '秒）');
     }
     if (s === 'pull' || s === 'end' || s === 'result') { if (noodleMinY < -0.006) v.push('うどんが床にめり込んだ: ' + noodleMinY.toFixed(3)); }
     if (pose.footMin < -0.012) v.push('足が床にめり込んだ: ' + pose.footMin.toFixed(3));
