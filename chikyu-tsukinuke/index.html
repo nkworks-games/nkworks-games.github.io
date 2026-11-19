@@ -302,7 +302,7 @@ const CONFIG = {
 // ===== [SEC:QUESTIONS] =====
 // 国番号: [名前, 出発する都市, 都市の緯度, 経度, 名前を出す所の緯度, 経度]
 const CC = {
-  '392': ['日本', '東京', 35.68, 139.69, 37.5, 138.3], '076': ['ブラジル', 'ブラジリア', -15.79, -47.88, -9, -53], '840': ['アメリカ', 'ワシントンD.C.', 38.9, -77.04, 39.5, -99],
+  '392': ['日本', '東京', 35.68, 139.69, 36.2, 138.2], '076': ['ブラジル', 'ブラジリア', -15.79, -47.88, -9, -53], '840': ['アメリカ', 'ワシントンD.C.', 38.9, -77.04, 39.5, -99],
   '036': ['オーストラリア', 'キャンベラ', -35.28, 149.13, -25, 134], '818': ['エジプト', 'カイロ', 30.04, 31.24, 26.5, 29.5], '826': ['イギリス', 'ロンドン', 51.51, -0.13, 53.5, -1.8],
   '356': ['インド', 'ニューデリー', 28.61, 77.21, 22, 79], '156': ['中国', '北京', 39.9, 116.4, 34, 103], '643': ['ロシア', 'モスクワ', 55.76, 37.62, 62, 95],
   '250': ['フランス', 'パリ', 48.86, 2.35, 46.5, 2.6], '554': ['ニュージーランド', 'ウェリントン', -41.29, 174.78, -42, 172], '724': ['スペイン', 'マドリード', 40.42, -3.7, 39.8, -3.8],
@@ -311,7 +311,7 @@ const CC = {
   '410': ['韓国', 'ソウル', 37.57, 126.98, 36.3, 127.9], '604': ['ペルー', 'リマ', -12.05, -77.04, -9.5, -75], '792': ['トルコ', 'アンカラ', 39.93, 32.86, 39, 35],
   '360': ['インドネシア', 'ジャカルタ', -6.21, 106.85, -1, 114], '764': ['タイ', 'バンコク', 13.76, 100.5, 15.5, 101], '152': ['チリ', 'サンティアゴ', -33.45, -70.67, -28, -70],
   '404': ['ケニア', 'ナイロビ', -1.29, 36.82, 0.6, 38], '682': ['サウジアラビア', 'リヤド', 24.71, 46.68, 23.5, 45], '170': ['コロンビア', 'ボゴタ', 4.71, -74.07, 3.5, -73],
-  '608': ['フィリピン', 'マニラ', 14.6, 120.98, 12.5, 122.5],
+  '608': ['フィリピン', 'マニラ', 14.6, 120.98, 16, 121],
 };
 const PAIRS = ('392-076 392-840 392-036 392-818 392-826 392-032 392-710 392-250 392-356 392-484 ' +
   '076-392 840-156 840-036 840-356 840-710 840-392 250-554 724-554 826-554 826-036 826-356 826-076 ' +
@@ -368,7 +368,7 @@ function jaName(f) {
   const a2 = ISO[f.id]; if (a2 && DN) { try { const n = DN.of(a2); if (n && n !== a2) return n; } catch (e) {} }
   return EN_JA[f.properties.name] || f.properties.name;
 }
-let FEATS = [], BYID = new Map();
+let FEATS = [], BYID = {}; // 国番号 → その番号の形ぜんぶ（オーストラリアのように、小さな島が同じ番号で別になっている国がある）
 function vertsOf(f) { // 国の形の点を、地球の上の3Dの点に
   const g = f.geometry, polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates; let n = 0;
   polys.forEach(p => p.forEach(r => n += r.length));
@@ -383,7 +383,6 @@ function nearestOf(f, p) { // 国の中で点pにいちばん近い点と距離(
 }
 function inBB(f, lat, lon) { const [[w, s], [e, n]] = f.bb; if (lat < s - .01 || lat > n + .01) return false; return w <= e ? (lon >= w - .01 && lon <= e + .01) : (lon >= w || lon <= e); }
 function countryAt(lat, lon) { for (const f of FEATS) if (inBB(f, lat, lon) && geoContains(f, [lon, lat])) return f; return null; }
-function inside(f, v) { const [lat, lon] = toLL(v); return inBB(f, lat, lon) && geoContains(f, [lon, lat]); }
 function seaName(lat, lon) { // 海に出た時の名前（だいたいの範囲）
   const R = (a, b, c, d) => lat >= a && lat <= b && lon >= c && lon <= d;
   if (lat <= -60) return '南極海';
@@ -433,16 +432,16 @@ function drawBase() {
   g.beginPath(); FEATS.forEach(f => path(f)); g.strokeStyle = 'rgba(35,45,35,.42)'; g.lineWidth = 1.5 * k; g.stroke();
   texPath = geoPath(geoEquirectangular().scale(TW / (2 * Math.PI)).translate([TW / 2, TH / 2]).precision(.2), texCtx);
 }
-function paintEarth(fromF, toF) { // 出発の国を水色、目的の国を金色に
+function paintEarth(fromId, toId) { // 出発の国を水色、目的の国を金色に
   const g = texCtx, k = TW / 4096; g.drawImage(baseC, 0, 0); g.lineJoin = 'round';
-  if (toF) { g.beginPath(); texPath(toF); g.fillStyle = '#ffcd45'; g.fill(); g.strokeStyle = '#fff3c4'; g.lineWidth = 4 * k; g.stroke(); }
-  if (fromF) { g.beginPath(); texPath(fromF); g.fillStyle = '#4fe0d0'; g.fill(); g.strokeStyle = '#d8fff9'; g.lineWidth = 3 * k; g.stroke(); }
+  const paint = (id, fill, line, w) => { if (!id) return; g.beginPath(); (BYID[id] || []).forEach(f => texPath(f)); g.fillStyle = fill; g.fill(); g.strokeStyle = line; g.lineWidth = w * k; g.stroke(); };
+  paint(toId, '#ffcd45', '#fff3c4', 4); paint(fromId, '#4fe0d0', '#d8fff9', 3);
   earthTex.needsUpdate = true;
 }
 async function loadMap() {
   const topo = await (await fetch(CONFIG.MAP_URL)).json();
   FEATS = feature(topo, topo.objects.countries).features.filter(f => f.geometry);
-  FEATS.forEach(f => { f.ja = jaName(f); f.bb = geoBounds(f); f.vx = vertsOf(f); if (f.id) BYID.set(f.id, f); });
+  FEATS.forEach(f => { f.ja = jaName(f); f.bb = geoBounds(f); f.vx = vertsOf(f); if (f.id) (BYID[f.id] = BYID[f.id] || []).push(f); });
   drawBase();
 }
 
@@ -642,7 +641,9 @@ function camGoal() { // 見せたい範囲が、空いている所にちょう�
   return { d, off: (bot - top) / 2, offX };
 }
 function applyCamera(dt) {
+  if (canvas.clientWidth < 2 || canvas.clientHeight < 2) return; // 画面が隠れていて大きさ0の時は何もしない（距離がNaNになって止まるのを防ぐ）
   const g = camGoal(), k = 1 - Math.exp(-dt * 5);
+  if (!Number.isFinite(g.d) || !Number.isFinite(g.off)) return;
   camD += (g.d / userZoom - camD) * k; camOff += (g.off - camOff) * k; view.offX += (g.offX - view.offX) * k;
   camera.position.set(0, 0, camD + shake.v * (Math.random() - .5)); camera.lookAt(0, 0, 0);
   const W = canvas.clientWidth, H = canvas.clientHeight;
@@ -749,8 +750,8 @@ function startGame() {
 }
 function setupRound() {
   state = 'aim'; const r = rounds[ri], A = CC[r.from], B = CC[r.to];
-  r.S = v3(A[2], A[3]); r.fromF = BYID.get(r.from); r.toF = BYID.get(r.to);
-  paintEarth(r.fromF, r.toF); placeDrill(r.S); drill.visible = aimMark.visible = true; clearExit();
+  r.S = v3(A[2], A[3]);
+  paintEarth(r.from, r.to); placeDrill(r.S); drill.visible = aimMark.visible = true; clearExit();
   setAim(Math.random() * 360, CONFIG.DIP_START);
   $('qno').textContent = ri + 1; $('tot').textContent = total;
   $('task').innerHTML = `<b class="aq">${A[1]}</b><small>（${A[0]}）</small> から<br><b class="gd">${B[0]}</b> へ掘りぬけ！`;
@@ -799,11 +800,11 @@ function finishDig() {
   cutPlane.constant = 100; cut.visible = head.visible = sparks.visible = holeGlow.visible = holeCore.visible = false;
   offLabel('ly0', 'ly1', 'ly2', 'ly3'); hide('dhud');
   // 判定
-  const [lat, lon] = toLL(P), f = countryAt(lat, lon), hit = f === r.toF || inside(r.toF, P);
-  const near = hit ? { km: 0, v: P.clone() } : nearestOf(r.toF, P);
+  const [lat, lon] = toLL(P), f = countryAt(lat, lon), hit = !!f && f.id === r.to;
+  const near = hit ? { km: 0, v: P.clone() } : BYID[r.to].map(g => nearestOf(g, P)).reduce((a, b) => a.km < b.km ? a : b);
   const pts = hit ? 100 : Math.min(99, Math.round(100 * Math.exp(-near.km / CONFIG.SCORE_KM))); // 外れは最高99点
   let place, sea = false;
-  if (hit) place = r.toF.ja; else if (f) place = f.ja; else { place = seaName(lat, lon); sea = true; }
+  if (hit) place = CC[r.to][0]; else if (f) place = f.ja; else { place = seaName(lat, lon); sea = true; }
   let landNear = null; if (sea) { let best = null; for (const g of FEATS) { const n = nearestOf(g, P); if (!best || n.km < best.km) best = { km: n.km, f: g }; } landNear = best; }
   const deep = CONFIG.EARTH_KM * (1 - Math.cos(aim.d * D2R)), lyD = layerAt(CONFIG.EARTH_KM * Math.cos(aim.d * D2R));
   r.res = { hit, place, sea, km: near.km, pts, len: dig.len * CONFIG.EARTH_KM, deep, lyD: lyD.n, landNear };
@@ -915,6 +916,7 @@ loadMap().then(() => {
 // ===== [SEC:LOOP] =====
 let last = performance.now();
 function loop(now) {
+  requestAnimationFrame(loop); // 先に次のコマを予約（1コマで何かあっても止まらないように）
   const dt = Math.min(.05, (now - last) / 1000) * SPEED; last = now;
   tickTween(dt); tickDig(dt);
   if (state === 'title' && !tween && !drag) G.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(YV, dt * CONFIG.TITLE_SPIN));
@@ -922,7 +924,7 @@ function loop(now) {
   const t = now / 1000; knobRing.material.opacity = .45 + .4 * Math.sin(t * 4); knobRing.scale.setScalar(.13 + .025 * Math.sin(t * 4));
   shaftTex.offset.y = state === 'aim' ? 0 : (shaftTex.offset.y + dt * 3) % 1;
   applyCamera(dt); G.updateMatrixWorld(); tickLabels();
-  renderer.render(scene, camera); requestAnimationFrame(loop);
+  renderer.render(scene, camera);
 }
 requestAnimationFrame(loop);
 
