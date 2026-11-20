@@ -100,6 +100,13 @@ button.link{pointer-events:auto;border:0;background:none;color:#8a6a77;text-deco
 h2{font-size:clamp(22px,6.4vw,28px);font-weight:900;margin:2px 0 10px}
 .mbtns{display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:4px}.mbtns button.big{min-width:230px}
 .mnote{font-size:12px;color:#8a6a77;margin-top:14px}
+#credits{background:rgba(74,46,58,.55)}
+#credits .card{max-height:92vh;overflow:auto;background:#fff}
+.crNote{font-size:13px;color:#6b4c59;margin:4px 0 10px;line-height:1.6}
+#crList{list-style:none;text-align:left;font-size:13px;line-height:1.55;margin:0 0 12px;padding:0}
+#crList li{padding:6px 2px;border-bottom:1px solid #f1e3e7}
+#crList b{color:#4a2e3a}#crList a{color:#e23a6a;word-break:break-all}#crList small{color:#8a6a77}
+button.link.sm{font-size:12px;margin-top:0}
 #help{background:rgba(74,46,58,.55)}
 #help .card{background:#fff}
 #helpClose{position:absolute;top:8px;right:8px;width:38px;height:38px;border-radius:19px;border:0;background:#f7eef0;color:#4a2e3a;font-size:16px;cursor:pointer}
@@ -109,7 +116,7 @@ h2{font-size:clamp(22px,6.4vw,28px);font-weight:900;margin:2px 0 10px}
 #helpTxt li.pcnote{color:#8a6a77;font-size:.88em}
 .dots{display:flex;gap:7px;justify-content:center;margin:8px 0 12px}.dots i{width:8px;height:8px;border-radius:50%;background:#ecd6dc}.dots i.on{background:#ff5c8a}
 button.big.sm{min-width:120px;padding:11px 18px;font-size:clamp(15px,4.4vw,18px)}
-#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f6dcd8;font-weight:800}
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f6dcd8;font-weight:800;padding:24px;text-align:center;line-height:1.7}
 @media (pointer:coarse){.pc{display:none}}
 @media (min-aspect-ratio:11/10){
   #title{align-items:center;justify-content:flex-end;padding-right:max(16px,4vw)}
@@ -159,11 +166,11 @@ button.big.sm{min-width:120px;padding:11px 18px;font-size:clamp(15px,4.4vw,18px)
 <div id="title" class="screen hidden"><div class="card">
   <div class="kicker">どうぶつ専門 フェイスパックサロン</div>
   <h1>その顔、<br><span>パック</span>します。</h1>
-  <p class="lead">お客さんは、ネコからシュモクザメまで。<br>シートの大きさを顔に合わせて、<br>輪郭と目・鼻・口をハサミで切り抜こう。</p>
+  <p class="lead">お客さんは、ネコからアカエイまで15種類。<br>シートの大きさを顔に合わせて、<br>輪郭と目・鼻・口をハサミで切り抜こう。</p>
   <div class="btns"><button class="big" id="startBtn">スタート</button><button class="big sub" id="helpBtn">あそび方</button></div>
   <div class="sups"><a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a></div>
   <div id="titleBest"></div>
-  <div class="foot">1回5匹・1匹100点で、500点満点です<br>N.K. Works</div>
+  <div class="foot">1回5匹・1匹100点で、500点満点です<br>N.K. Works　<button class="link sm" id="crBtn">3Dモデルのクレジット</button></div>
 </div></div>
 <div id="result" class="screen hidden"><div class="card">
   <div class="kicker">本日の施術記録</div>
@@ -174,7 +181,7 @@ button.big.sm{min-width:120px;padding:11px 18px;font-size:clamp(15px,4.4vw,18px)
   <div class="btns"><button class="big" id="shareBtn">Xに投稿</button><button class="big sub" id="saveBtn">画像を保存</button></div>
   <div class="btns" style="margin-top:10px"><button class="big sub" id="retryBtn">もう一度</button></div>
   <div class="sups"><a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a><a class="sup" data-k="ofuse" target="_blank" rel="noopener"><span class="t"><b>作者を応援する</b><small>100円から送れます</small></span><span class="go">応援する</span></a></div>
-  <div class="links"><button class="link" id="homeBtn2">タイトルへ</button><button class="link" id="helpBtn2">あそび方を見る</button></div>
+  <div class="links"><button class="link" id="homeBtn2">タイトルへ</button><button class="link" id="helpBtn2">あそび方を見る</button><button class="link" id="crBtn2">クレジット</button></div>
 </div></div>
 <div id="menu" class="screen hidden"><div class="card">
   <div class="kicker">一時停止中</div>
@@ -191,24 +198,34 @@ button.big.sm{min-width:120px;padding:11px 18px;font-size:clamp(15px,4.4vw,18px)
   <div class="dots" id="helpDots"></div>
   <div class="btns"><button class="big sub sm" id="helpPrev">もどる</button><button class="big sm" id="helpNext">つぎへ</button></div>
 </div></div>
+<div id="credits" class="screen hidden"><div class="card">
+  <div class="kicker">クレジット</div>
+  <h2>お客さんの3Dモデル</h2>
+  <p class="crNote">Sketchfab で公開されている作品をお借りしています。ゲーム用に形を軽くし、向きと色合いを整えています。</p>
+  <ul id="crList"></ul>
+  <div class="btns"><button class="big sm" id="crClose">とじる</button></div>
+</div></div>
 <div id="loading">読みこみ中…</div>
 
 <script type="module">
 import * as THREE from 'three';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 // ===== [SEC:CONFIG] =====
 const CONFIG = {
   FIXED: 1 / 120, MAX_FRAME: 0.1,
   N: 256,              // シートの細かさ（256×256マス）
-  BOX: 2.5, BOX_MARGIN: 1.25, BOX_MIN: 1.5,   // 切る範囲の広さ（いちばん大きい時）と、顔のまわりのゆとり
-  HEAD_Y: 2.0, CUT_DIST: 10,
+  BOX: 2.5, BOX_MARGIN: 1.25,   // 切る範囲の広さ（はじめ）と、顔のまわりのゆとり
+  HEAD_Y: 2.0, CUT_DIST: 10, BACK_Z: -7.5,   // 顔の高さ（はじめ）・正面カメラの距離・奥の壁
+  DEPTH_BIAS: 0.03,    // パックを貼る時「正面から見えている面か」の判定のゆとり（切る範囲に対する割合）
+  HOP: 0.15, BOB: 0.025,   // 来る時のはね・うかぶ魚のゆれ（切る範囲に対する割合）
   TIME: 45,            // 1匹の制限時間（秒）
   CUSTOMERS: 5, LINEUP: [2, 2, 1],   // かんたん・ふつう・むずかしい から何匹ずつ
   SHEET_INIT: 0.36, SHEET_MIN: 0.15, SHEET_ALPHA: 0.6, HANDLE_PX: 34,
   MIN_STROKE_PX: 30, CLOSE_GAP_PX: 70, CLOSE_GAP_RATIO: 0.3, OUTLINE_FRAC: 0.5, SNIP_PX: 34, UNDO_MAX: 30,
-  // 採点：輪郭50点（おおえた割合 COVER_LO→HI で0→満点、はみ出しが顔の OVER_ZERO 倍で0）／穴40点（ひらいた割合 OPEN_LO→HI）／はやさ10点
+  // 採点：輪郭50点（おおえた割合 COVER_LO→HI で0→満点、はみ出しが顔の OVER_ZERO 倍で0）／穴40点（ひらいた割合 OPEN_LO→HI。おおえた割合が COVER_HI より少ないと減る）／はやさ10点
   COVER_LO: 0.45, COVER_HI: 0.93, OVER_ZERO: 0.35, OPEN_LO: 0.2, OPEN_HI: 0.9,
   PTS_FIT: 50, PTS_HOLE: 40, PTS_TIME: 10, STARS: [88, 72, 52, 32],
   ARRIVE_T: 1.0, LEAVE_T: 0.8, REVEAL_FOV: 24, CARD_T: 1.3, NEXT_T: 1.7, SNAP_T: 3.0,
@@ -217,7 +234,8 @@ const CONFIG = {
   FOLLOW_URL: 'https://x.com/intent/follow?screen_name=vyaPudzd1E54661', OFUSE_URL: 'https://ofuse.me/nkworks_games',   // 作者をフォロー（X）／作者を応援する（OFUSE）
   BEST_KEY: 'kao-pack-best', HELP_KEY: 'kao-pack-help', MUTE_KEY: 'kao-pack-mute',
 };
-const N = CONFIG.N, HEAD_Y = CONFIG.HEAD_Y;
+const N = CONFIG.N;
+let HY = CONFIG.HEAD_Y;   // いまのお客さんの顔の高さ
 
 // ===== [SEC:UTIL] =====
 const D2R = Math.PI / 180, R2D = 180 / Math.PI;
@@ -238,11 +256,11 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf2dcd6);
 const cam = new THREE.PerspectiveCamera(20, 1, 0.1, 80);
 const cutCam = new THREE.PerspectiveCamera(20, 1, 0.1, 80);   // 切る時の正面カメラ（シートの位置はこのカメラから見た形で決まる）
-const CUT = { box: CONFIG.BOX, ty: HEAD_Y, fov: 0.1 };          // 動物ごとに、顔がちょうど入る広さにする
+const CUT = { box: CONFIG.BOX, ty: CONFIG.HEAD_Y, fov: 0.1 };          // 動物ごとに、顔がちょうど入る広さにする
 scene.add(new THREE.HemisphereLight(0xfff6f0, 0xcfb4ae, 0.75));
 const key = new THREE.DirectionalLight(0xfff3ea, 2.1);
-key.position.set(3.2, 6.5, 7); key.target.position.set(0, 1.6, 0); key.castShadow = true;
-key.shadow.mapSize.set(1024, 1024); { const s = key.shadow.camera; s.left = -4; s.right = 4; s.top = 5; s.bottom = -3; s.near = 1; s.far = 25; }
+key.position.set(3.2, 7.5, 8); key.target.position.set(0, 1.4, -0.5); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048); { const s = key.shadow.camera; s.left = -7; s.right = 7; s.top = 7; s.bottom = -4; s.near = 1; s.far = 32; }
 key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
 scene.add(key, key.target);
 const fillL = new THREE.DirectionalLight(0xffe2ee, 0.7); fillL.position.set(-6, 2.5, 4); scene.add(fillL);
@@ -252,29 +270,29 @@ function fileTex(url, srgb, rep) { const t = texL.load(url); if (srgb) t.colorSp
 function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
 
 // ===== [SEC:ROOM] =====
-let stool = null;
 function buildRoom() {
   const floorM = new THREE.MeshStandardMaterial({ map: fileTex('assets/floor_color.jpg', true, [5, 5]), normalMap: fileTex('assets/floor_normal.jpg', false, [5, 5]), roughnessMap: fileTex('assets/floor_rough.jpg', false, [5, 5]), color: 0xfff4ee });
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(26, 26), floorM); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
   const wallM = new THREE.MeshStandardMaterial({ color: 0xf6d3cf, roughness: 0.95 });
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(26, 10), wallM); back.position.set(0, 5, -4.2); back.receiveShadow = true; scene.add(back);
-  for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.PlaneGeometry(14, 10), wallM); w.position.set(s * 8, 5, 2.8); w.rotation.y = -s * Math.PI / 2; scene.add(w); }
+  const BZ = CONFIG.BACK_Z;
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(26, 10), wallM); back.position.set(0, 5, BZ); back.receiveShadow = true; scene.add(back);
+  for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.PlaneGeometry(20, 10), wallM); w.position.set(s * 9, 5, 2.5); w.rotation.y = -s * Math.PI / 2; scene.add(w); }
   const whiteM = new THREE.MeshStandardMaterial({ color: 0xfffaf6, roughness: 0.6 });
-  const wain = new THREE.Mesh(new THREE.BoxGeometry(26, 1.1, 0.08), whiteM); wain.position.set(0, 0.55, -4.16); wain.receiveShadow = true; scene.add(wain);
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(26, 0.06, 0.12), new THREE.MeshStandardMaterial({ color: 0xe8b7bf, roughness: 0.5 })); rail.position.set(0, 1.12, -4.12); scene.add(rail);
+  const wain = new THREE.Mesh(new THREE.BoxGeometry(26, 1.1, 0.08), whiteM); wain.position.set(0, 0.55, BZ + 0.04); wain.receiveShadow = true; scene.add(wain);
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(26, 0.06, 0.12), new THREE.MeshStandardMaterial({ color: 0xe8b7bf, roughness: 0.5 })); rail.position.set(0, 1.12, BZ + 0.08); scene.add(rail);
   // 丸い鏡
   const goldM = new THREE.MeshStandardMaterial({ color: 0xe0b46a, metalness: 0.9, roughness: 0.3 });
-  const mir = new THREE.Group(); mir.position.set(3.7, 3.0, -4.12); scene.add(mir);
+  const mir = new THREE.Group(); mir.position.set(3.9, 3.2, BZ + 0.08); scene.add(mir);
   const frame = new THREE.Mesh(new THREE.TorusGeometry(1.1, 0.07, 16, 64), goldM); mir.add(frame);
   const glass = new THREE.Mesh(new THREE.CircleGeometry(1.08, 64), new THREE.MeshStandardMaterial({ color: 0xdfe8ef, metalness: 1, roughness: 0.06 })); glass.position.z = -0.01; mir.add(glass);
   // 棚とボトル
-  const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.07, 0.36), whiteM); shelf.position.set(-3.7, 2.5, -4.0); shelf.castShadow = true; scene.add(shelf);
+  const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.07, 0.36), whiteM); shelf.position.set(-3.9, 2.7, BZ + 0.2); shelf.castShadow = true; scene.add(shelf);
   const bc = [0xffb3c7, 0x9fdcc9, 0xfff0a8, 0xc9b8f2, 0xffc9a3, 0xa8d8ff];
   for (let i = 0; i < 6; i++) {
     const h = 0.28 + (i % 3) * 0.08;
     const b = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.11, h, 24), new THREE.MeshPhysicalMaterial({ color: bc[i], roughness: 0.15, clearcoat: 1 }));
-    b.position.set(-4.65 + i * 0.38, 2.535 + h / 2, -3.95); b.castShadow = true; scene.add(b);
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.08, 16), whiteM); cap.position.set(b.position.x, 2.535 + h + 0.04, -3.95); scene.add(cap);
+    b.position.set(-4.85 + i * 0.38, 2.735 + h / 2, BZ + 0.25); b.castShadow = true; scene.add(b);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.08, 16), whiteM); cap.position.set(b.position.x, 2.735 + h + 0.04, BZ + 0.25); scene.add(cap);
   }
   // 看板
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.9), new THREE.MeshStandardMaterial({ roughness: 0.7, map: canvasTex(1024, 256, (g, w, h) => {
@@ -282,21 +300,15 @@ function buildRoom() {
     g.fillStyle = '#e23a6a'; g.font = '900 92px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('FACE PACK SALON', w / 2, h * 0.42);
     g.fillStyle = '#6b4c59'; g.font = '800 44px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; g.fillText('どうぶつ専門', w / 2, h * 0.78);
   }) }));
-  sign.position.set(0, 5.6, -4.15); scene.add(sign);
-  // 台（タコ・マンボウ用）
-  stool = new THREE.Group(); scene.add(stool);
-  const sm = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.25, clearcoat: 0.8 });
-  const col = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, HEAD_Y - 1.0, 40), sm); col.position.y = (HEAD_Y - 1.0) / 2; col.castShadow = col.receiveShadow = true; stool.add(col);
-  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.08, 48), new THREE.MeshPhysicalMaterial({ color: 0xffc2d1, roughness: 0.4, clearcoat: 0.6 })); top.position.y = HEAD_Y - 1.0; top.castShadow = top.receiveShadow = true; stool.add(top);
-  stool.visible = false;
+  sign.position.set(0, 5.9, BZ + 0.05); scene.add(sign);
 }
 function loadPlant() {
   new GLTFLoader().load('assets/potted_plant_02/potted_plant_02.gltf', g => {
     const p = g.scene; const box = new THREE.Box3().setFromObject(p); const h = box.max.y - box.min.y || 1;
-    const k = 1.5 / h; p.scale.setScalar(k); p.position.set(-3.0, -box.min.y * k, -3.0);
+    const k = 1.5 / h; p.scale.setScalar(k); p.position.set(-3.6, -box.min.y * k, -4.6);
     p.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     scene.add(p);
-    const p2 = p.clone(); p2.position.x = 5.6; p2.position.z = -3.2; p2.rotation.y = 1.3; scene.add(p2);
+    const p2 = p.clone(); p2.position.x = 6.0; p2.position.z = -5.2; p2.rotation.y = 1.3; scene.add(p2);
   }, undefined, () => { });
 }
 function loadEnv() {
@@ -306,215 +318,103 @@ function loadEnv() {
 }
 
 // ===== [SEC:ANIMALS] =====
-const SPH = new THREE.SphereGeometry(1, 48, 32), CYL = new THREE.CylinderGeometry(1, 1, 1, 40), CONE = new THREE.ConeGeometry(1, 1, 40);
-const MC = {};
-const M = {
-  fur(c, sh = 0.8) { const k = 'f' + c + sh; return MC[k] || (MC[k] = new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.82, sheen: sh, sheenRoughness: 0.55, sheenColor: new THREE.Color(c).lerp(new THREE.Color(0xffffff), 0.55) })); },
-  slick(c, r = 0.38) { const k = 's' + c + r; return MC[k] || (MC[k] = new THREE.MeshPhysicalMaterial({ color: c, roughness: r, clearcoat: 0.7, clearcoatRoughness: 0.25 })); },
-  dark(c = 0x3b1f24) { const k = 'd' + c; return MC[k] || (MC[k] = new THREE.MeshStandardMaterial({ color: c, roughness: 0.55 })); },
-  gloss(c = 0x141014) { const k = 'g' + c; return MC[k] || (MC[k] = new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05 })); },
-  hi() { return MC.hi || (MC.hi = new THREE.MeshBasicMaterial({ color: 0xffffff })); },
-  cape(c) { const k = 'c' + c; return MC[k] || (MC[k] = new THREE.MeshStandardMaterial({ color: c, roughness: 0.9, normalMap: fileTex('assets/fabric_normal.jpg', false, [3, 2]), normalScale: new THREE.Vector2(0.6, 0.6) })); },
-};
-// 楕円体（中心 c・半径 r）の正面の表面の z
-function sz(r, x, y, c = [0, 0, 0]) { const u = 1 - ((x - c[0]) / r[0]) ** 2 - ((y - c[1]) / r[1]) ** 2; return c[2] + r[2] * Math.sqrt(Math.max(0, u)); }
-function makeCtx(root) {
-  const feats = [];
-  const c = {
-    root, feats,
-    f(kind, label) { const code = 10 + feats.length; feats.push({ code, kind, label, n: 0, idx: null }); return code; },
-    m(geo, mat, tag, p, s, r, parent) { const o = new THREE.Mesh(geo, mat); o.position.set(p[0], p[1], p[2]); if (s) o.scale.set(s[0], s[1], s[2]); if (r) o.rotation.set(r[0], r[1], r[2]); o.userData.tag = tag; o.castShadow = true; o.receiveShadow = true; (parent || root).add(o); return o; },
-    // 目（黒目だけ／色つきの目＋ひとみ）。部品はすべて同じ穴の番号
-    eye(code, p, r, o = {}) {
-      if (o.ring) c.m(SPH, M.gloss(o.ring), code, [p[0], p[1], p[2] - r * 0.25], [r * 1.25, r * 1.25, r * 0.7]);
-      if (o.iris) {
-        c.m(SPH, M.gloss(o.iris), code, p, [r, r, r * 0.75]);
-        const ps = o.pupil === 'v' ? [r * 0.28, r * 0.72, r * 0.3] : o.pupil === 'h' ? [r * 0.7, r * 0.26, r * 0.3] : [r * 0.5, r * 0.5, r * 0.3];
-        c.m(SPH, M.gloss(0x0c0a0c), code, [p[0], p[1], p[2] + r * 0.58], ps);
-      } else c.m(SPH, M.gloss(o.c || 0x141014), code, p, [r, r, r * 0.78]);
-      c.m(SPH, M.hi(), code, [p[0] + r * 0.32, p[1] + r * 0.34, p[2] + r * 0.72], [r * 0.26, r * 0.26, r * 0.12]);
-    },
-    // 表面にそって玉を並べる（口の線など）
-    beads(mat, tag, pts, r) { for (const q of pts) c.m(SPH, mat, tag, q, [r, r, r * 0.6]); },
-    // 細くなっていく管（ゾウの鼻・タコの足）
-    tube(mat, tag, pts, r0, r1) {
-      const curve = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(p[0], p[1], p[2])));
-      const seg = 48, rad = 16, g = new THREE.TubeGeometry(curve, seg, 1, rad, false), pos = g.attributes.position, v = new THREE.Vector3();
-      for (let i = 0; i <= seg; i++) { const cp = curve.getPointAt(i / seg), rr = lerp(r0, r1, i / seg); for (let j = 0; j <= rad; j++) { const k = i * (rad + 1) + j; v.fromBufferAttribute(pos, k).sub(cp).multiplyScalar(rr).add(cp); pos.setXYZ(k, v.x, v.y, v.z); } }
-      g.computeVertexNormals();
-      const capA = c.m(SPH, mat, tag, pts[pts.length - 1], [r1, r1, r1]);
-      const o = new THREE.Mesh(g, mat); o.userData.tag = tag; o.castShadow = o.receiveShadow = true; root.add(o); return [o, capA];
-    },
-    cape(col) {
-      c.m(new THREE.CylinderGeometry(0.34, 1.05, 1.2, 48), M.cape(col), 'other', [0, -1.35, 0.02]);
-      c.m(new THREE.TorusGeometry(0.36, 0.07, 14, 40), M.fur(0xffffff, 0.4), 'other', [0, -0.76, 0.02], null, [Math.PI / 2, 0, 0]);
-    },
-  };
-  return c;
-}
+// お客さんは本物の3Dモデル（assets/animals/○○.glb）。どれも「正面が手前・いちばん長い辺が4・足もとが y=0」にそろえてある
+// face：顔の輪郭（正面から見た点）、feats：[種類, 名前, 中心x, 中心y, 横半径, 縦半径, 傾き(度)]（どちらもそろえた模型の座標）
+// k：ゲームの中での大きさ、base：floor（床に立つ）/ stool（台の高さ）/ float（顔の高さで浮かぶ）、pot：タコつぼ［ふちの高さ, 半径］、cape：首の布［上の高さ, 上の半径, すその半径］
 const ANIMALS = [
-  { key: 'neko', name: 'ネコ', e: 'にゃ', diff: 0, holes: '目2・鼻・口', build(c) {
-    const H = [0.78, 0.68, 0.66], fur = M.fur(0xf2ad5e), wh = M.fur(0xfff4e8), pink = M.fur(0xff9fb0), dk = M.fur(0xd27f36);
-    c.m(SPH, fur, 'face', [0, 0, 0], H);
-    const eL = c.f('eye', '左目'), eR = c.f('eye', '右目'), no = c.f('nose', '鼻'), mo = c.f('mouth', '口');
-    for (const s of [-1, 1]) {
-      c.m(SPH, fur, 'face', [s * 0.42, -0.24, 0.16], [0.3, 0.22, 0.3]);
-      c.m(CONE, fur, 'other', [s * 0.47, 0.62, -0.06], [0.25, 0.44, 0.14], [0, 0, -s * 0.38]);
-      c.m(CONE, pink, 'other', [s * 0.46, 0.6, 0.02], [0.15, 0.3, 0.06], [0, 0, -s * 0.38]);
-      c.m(SPH, wh, 'face', [s * 0.11, -0.21, sz(H, s * 0.11, -0.21) - 0.06], [0.17, 0.13, 0.12]);
-      c.eye(s < 0 ? eL : eR, [s * 0.27, 0.07, sz(H, s * 0.27, 0.07) - 0.06], 0.1, { iris: 0x9bd35a, pupil: 'v' });
-      for (let k = 0; k < 3; k++) c.m(CYL, M.dark(0x5a4048), 'skip', [s * 0.5, -0.17 - k * 0.06, 0.5], [0.006, 0.42, 0.006], [0, 0, s * (Math.PI / 2 + (k - 1) * 0.16)]);
-    }
-    for (const x of [-0.13, 0, 0.13]) c.m(SPH, dk, 'face', [x, 0.47, sz(H, x, 0.47) - 0.025], [0.035, 0.12, 0.03], [-0.55, 0, 0]);
-    c.m(SPH, wh, 'face', [0, -0.35, 0.5], [0.15, 0.09, 0.12]);
-    c.m(SPH, M.fur(0xff8399, 0.3), no, [0, -0.11, 0.69], [0.075, 0.052, 0.045]);
-    c.m(SPH, M.dark(), mo, [0, -0.31, 0.64], [0.075, 0.05, 0.04]);
-    c.cape(0xf7a8c0);
-  } },
-  { key: 'buta', name: 'ブタ', e: 'ブヒ', diff: 0, holes: '目2・鼻・口', build(c) {
-    const H = [0.78, 0.7, 0.68], fur = M.fur(0xf7b4bd, 0.5);
-    c.m(SPH, fur, 'face', [0, 0, 0], H);
-    const eL = c.f('eye', '左目'), eR = c.f('eye', '右目'), no = c.f('nose', '鼻'), mo = c.f('mouth', '口');
-    for (const s of [-1, 1]) {
-      c.m(CONE, fur, 'other', [s * 0.48, 0.6, 0.1], [0.25, 0.36, 0.08], [0.65, 0, -s * 0.55]);
-      c.eye(s < 0 ? eL : eR, [s * 0.27, 0.17, sz(H, s * 0.27, 0.17) - 0.045], 0.075);
-      c.m(SPH, M.fur(0xff8fa3, 0.3), 'face', [s * 0.43, -0.1, sz(H, s * 0.43, -0.1) - 0.01], [0.12, 0.07, 0.03]);
-      c.m(SPH, M.dark(0x84404e), no, [s * 0.085, -0.14, 0.785], [0.045, 0.07, 0.025]);
-    }
-    c.m(CYL, M.fur(0xf29aa7, 0.4), 'face', [0, -0.14, 0.68], [0.25, 0.2, 0.19], [Math.PI / 2, 0, 0]);
-    c.m(SPH, M.dark(), mo, [0, -0.43, sz(H, 0, -0.43) + 0.01], [0.12, 0.04, 0.035]);
-    c.cape(0x9fdcc9);
-  } },
-  { key: 'panda', name: 'パンダ', e: 'パン', diff: 0, holes: '目2・鼻・口', build(c) {
-    const H = [0.8, 0.72, 0.68], wh = M.fur(0xf6f6f2), bk = M.fur(0x2a2a2e, 0.5);
-    c.m(SPH, wh, 'face', [0, 0, 0], H);
-    const eL = c.f('eye', '左目'), eR = c.f('eye', '右目'), no = c.f('nose', '鼻'), mo = c.f('mouth', '口');
-    for (const s of [-1, 1]) {
-      c.m(SPH, bk, 'other', [s * 0.53, 0.56, -0.05], [0.21, 0.21, 0.14]);
-      c.m(SPH, bk, 'face', [s * 0.27, 0.04, sz(H, s * 0.27, 0.04) - 0.035], [0.16, 0.22, 0.07], [0, 0, s * 0.55]);
-      c.eye(s < 0 ? eL : eR, [s * 0.26, 0.08, sz(H, s * 0.26, 0.08) + 0.005], 0.07, { iris: 0xf2efe6, pupil: 'r' });
-    }
-    c.m(SPH, wh, 'face', [0, -0.2, sz(H, 0, -0.2) - 0.1], [0.27, 0.19, 0.16]);
-    c.m(SPH, bk, no, [0, -0.12, 0.72], [0.1, 0.065, 0.06]);
-    c.m(SPH, M.dark(), mo, [0, -0.3, 0.69], [0.06, 0.035, 0.03]);
-    c.cape(0xc9b8f2);
-  } },
-  { key: 'usagi', name: 'ウサギ', e: 'ぴょん', diff: 0, holes: '目2・鼻・口', build(c) {
-    const H = [0.72, 0.66, 0.64], fur = M.fur(0xf6eee6), pink = M.fur(0xffb3c1, 0.4);
-    c.m(SPH, fur, 'face', [0, 0, 0], H);
-    const eL = c.f('eye', '左目'), eR = c.f('eye', '右目'), no = c.f('nose', '鼻'), mo = c.f('mouth', '口');
-    for (const s of [-1, 1]) {
-      c.m(SPH, fur, 'other', [s * 0.22, 0.98, -0.08], [0.15, 0.55, 0.1], [-0.15, 0, -s * 0.12]);
-      c.m(SPH, pink, 'other', [s * 0.225, 0.98, 0.0], [0.085, 0.42, 0.04], [-0.15, 0, -s * 0.12]);
-      c.m(SPH, fur, 'face', [s * 0.13, -0.22, sz(H, s * 0.13, -0.22) - 0.1], [0.2, 0.16, 0.16]);
-      c.eye(s < 0 ? eL : eR, [s * 0.31, 0.1, sz(H, s * 0.31, 0.1) - 0.05], 0.085, { iris: 0xc8283c, pupil: 'r' });
-    }
-    c.m(SPH, M.fur(0xff7f99, 0.3), no, [0, -0.07, 0.645], [0.055, 0.038, 0.03]);
-    c.m(SPH, M.dark(), mo, [0, -0.33, 0.575], [0.045, 0.03, 0.025]);
-    c.m(SPH, M.fur(0xffffff, 0.2), mo, [0, -0.385, 0.565], [0.04, 0.04, 0.02]);
-    c.cape(0xfff0a8);
-  } },
-  { key: 'kaeru', name: 'カエル', e: 'ケロ', diff: 1, holes: '目2・鼻・口（横に長い）', build(c) {
-    const H = [0.95, 0.58, 0.72], g = M.fur(0x74c34f, 0.4);
-    c.m(SPH, g, 'face', [0, 0, 0], H);
-    const eL = c.f('eye', '左目'), eR = c.f('eye', '右目'), no = c.f('nose', '鼻'), mo = c.f('mouth', '口');
-    for (const s of [-1, 1]) {
-      c.m(SPH, g, 'face', [s * 0.42, 0.42, 0.26], [0.25, 0.25, 0.25]);
-      c.eye(s < 0 ? eL : eR, [s * 0.42, 0.46, 0.42], 0.15, { iris: 0xe9c94a, pupil: 'h' });
-      c.m(SPH, M.dark(0x2e4a22), no, [s * 0.08, 0.14, sz(H, s * 0.08, 0.14)], [0.025, 0.02, 0.015]);
-      c.m(SPH, M.fur(0xff9fb0, 0.3), 'face', [s * 0.62, -0.08, sz(H, s * 0.62, -0.08) - 0.005], [0.1, 0.06, 0.02], [0, s * 0.5, 0]);
-    }
-    const pts = []; for (let x = -0.56; x <= 0.561; x += 0.035) { const y = -0.16 + 0.08 * (x / 0.56) ** 2; pts.push([x, y, sz(H, x, y) + 0.004]); }
-    c.beads(M.dark(0x3a2026), mo, pts, 0.032);
-    c.cape(0xffc9a3);
-  } },
-  { key: 'fugu', name: 'フグ', e: 'プク', diff: 1, holes: '目2・口（小さい）', build(c) {
-    const B = [0.82, 0.76, 0.82], body = M.slick(0xe8cf74, 0.5), belly = M.slick(0xf8f3e6, 0.5);
-    c.m(SPH, body, 'face', [0, 0, 0], B);
-    c.m(SPH, belly, 'face', [0, -0.28, 0.1], [0.74, 0.5, 0.74]);
-    const eL = c.f('eye', '左目'), eR = c.f('eye', '右目'), mo = c.f('mouth', '口');
-    const rnd = mulberry32(7), up = new THREE.Vector3(0, 1, 0);
-    for (let i = 0; i < 70; i++) {
-      const th = rnd() * Math.PI * 2, ph = Math.acos(1 - 2 * rnd());
-      const n = new THREE.Vector3(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th));
-      if (n.z < -0.2) continue;
-      const p = new THREE.Vector3(n.x * B[0], n.y * B[1], n.z * B[2]);
-      const nn = new THREE.Vector3(p.x / B[0] ** 2, p.y / B[1] ** 2, p.z / B[2] ** 2).normalize();
-      if (i < 40) { if (n.y < -0.1) continue; const o = c.m(SPH, M.dark(0x7a6630), 'face', [p.x, p.y, p.z], [0.05, 0.05, 0.012]); o.lookAt(o.position.clone().add(nn)); }
-      else { const o = c.m(CONE, M.slick(0xd9bf62, 0.5), 'skip', [p.x + nn.x * 0.04, p.y + nn.y * 0.04, p.z + nn.z * 0.04], [0.022, 0.09, 0.022]); o.quaternion.setFromUnitVectors(up, nn); }
-    }
-    for (const s of [-1, 1]) {
-      c.eye(s < 0 ? eL : eR, [s * 0.36, 0.2, sz(B, s * 0.36, 0.2) - 0.06], 0.12, { ring: 0xd8a838 });
-      c.m(SPH, M.slick(0xd9bf62, 0.5), 'other', [s * 0.83, -0.05, 0.0], [0.05, 0.2, 0.16], [0, 0, s * 0.3]);
-    }
-    c.m(new THREE.TorusGeometry(1, 0.45, 16, 32), M.slick(0xd6a24c, 0.4), mo, [0, -0.13, 0.82], [0.075, 0.07, 0.07]);
-    c.m(SPH, M.dark(0x2a1414), mo, [0, -0.13, 0.81], [0.05, 0.045, 0.02]);
-    c.cape(0xa8d8ff);
-  } },
-  { key: 'tako', name: 'タコ', e: 'タコ', diff: 1, holes: '目2・口（とがってる）', stool: HEAD_Y - 0.97, build(c) {
-    const red = M.slick(0xe35d4f, 0.55);
-    c.m(SPH, red, 'face', [0, 0.5, -0.2], [0.6, 0.78, 0.6], [-0.4, 0, 0]);
-    const F = [0.58, 0.46, 0.52], Fc = [0, -0.05, 0.08];
-    c.m(SPH, red, 'face', Fc, F);
-    const eL = c.f('eye', '左目'), eR = c.f('eye', '右目'), mo = c.f('mouth', '口');
-    for (const s of [-1, 1]) {
-      c.m(SPH, M.slick(0xfbf6f0, 0.2), s < 0 ? eL : eR, [s * 0.27, 0.06, sz(F, s * 0.27, 0.06, Fc) - 0.03], [0.15, 0.15, 0.11]);
-      c.m(SPH, M.gloss(0x0c0a0c), s < 0 ? eL : eR, [s * 0.27, 0.06, sz(F, s * 0.27, 0.06, Fc) + 0.08], [0.1, 0.04, 0.02]);
-      c.m(SPH, M.hi(), s < 0 ? eL : eR, [s * 0.27 + 0.05, 0.11, sz(F, s * 0.27, 0.06, Fc) + 0.075], [0.035, 0.035, 0.012]);
-    }
-    c.m(CYL, red, mo, [0, -0.25, 0.64], [0.09, 0.34, 0.09], [Math.PI / 2, 0, 0]);
-    c.m(CYL, red, mo, [0, -0.25, 0.8], [0.115, 0.05, 0.115], [Math.PI / 2, 0, 0]);
-    c.m(SPH, M.dark(0x3a1010), mo, [0, -0.25, 0.826], [0.07, 0.07, 0.012]);
-    for (let i = 0; i < 8; i++) {
-      const a = (i + 0.5) / 8 * Math.PI * 2, cx = Math.cos(a), cz = Math.sin(a) * 0.8 + 0.1;
-      c.tube(red, 'other', [[0.25 * cx, -0.38, 0.22 * cz], [0.55 * cx, -0.66, 0.42 * cz], [0.8 * cx, -0.92, 0.6 * cz], [1.0 * cx, -0.95, 0.75 * cz], [1.05 * cx, -0.82, 0.8 * cz]], 0.14, 0.035);
-    }
-  } },
-  { key: 'zou', name: 'ゾウ', e: 'パオ', diff: 2, holes: '目2・鼻（長い）', build(c) {
-    const H = [0.78, 0.72, 0.7], gray = M.fur(0xa4adb9, 0.3);
-    c.m(SPH, gray, 'face', [0, 0, 0], H);
-    const eL = c.f('eye', '左目'), eR = c.f('eye', '右目'), no = c.f('nose', '鼻');
-    for (const s of [-1, 1]) {
-      c.m(SPH, gray, 'other', [s * 0.98, 0.0, -0.14], [0.62, 0.7, 0.07], [0, s * 0.45, s * 0.1]);
-      c.m(SPH, M.fur(0xe7b6bd, 0.3), 'other', [s * 0.95, 0.0, -0.08], [0.46, 0.54, 0.03], [0, s * 0.45, s * 0.1]);
-      c.m(CONE, M.slick(0xfff8ec, 0.3), 'other', [s * 0.21, -0.45, 0.55], [0.055, 0.34, 0.055], [2.45, 0, -s * 0.15]);
-      c.eye(s < 0 ? eL : eR, [s * 0.33, 0.17, sz(H, s * 0.33, 0.17) - 0.035], 0.065);
-    }
-    c.tube(gray, no, [[0, -0.02, 0.56], [0, -0.32, 0.72], [0, -0.62, 0.79], [0, -0.88, 0.78], [0, -1.05, 0.86], [0, -1.12, 0.98], [0, -1.05, 1.08]], 0.2, 0.085);
-    c.m(SPH, gray, no, [0, -0.02, 0.56], [0.2, 0.2, 0.2]);
-    c.cape(0xf7a8c0);
-  } },
-  { key: 'mambou', name: 'マンボウ', e: 'ボウ', diff: 2, holes: '目1・口（ふちにある）', stool: 0.5, float: true, build(c) {
-    const B = [0.88, 0.85, 0.26], body = M.slick(0xa9b3bc, 0.5);
-    c.m(SPH, body, 'face', [0, 0, 0], B);
-    c.m(SPH, M.slick(0xdde2e6, 0.5), 'face', [0.05, -0.3, 0.012], [0.8, 0.55, 0.25]);
-    const e1 = c.f('eye', '目'), mo = c.f('mouth', '口');
-    c.eye(e1, [0.48, 0.13, sz(B, 0.48, 0.13) - 0.045], 0.11, { ring: 0xeef0f2 });
-    c.m(SPH, M.dark(0x2a2026), mo, [0.88, -0.03, 0.0], [0.065, 0.05, 0.065]);
-    c.m(CONE, body, 'other', [-0.15, 0.95, 0], [0.32, 0.9, 0.06], [0, 0, 0.25]);
-    c.m(CONE, M.slick(0xc6ced4, 0.5), 'other', [-0.15, -0.95, 0], [0.32, 0.9, 0.06], [0, 0, Math.PI - 0.25]);
-    c.m(SPH, body, 'other', [-0.86, 0, 0], [0.24, 0.8, 0.08]);
-    c.m(SPH, M.slick(0x8e98a1, 0.5), 'other', [0.2, -0.02, 0.215], [0.12, 0.07, 0.025], [0, 0, 0.3]);
-  } },
-  { key: 'shumoku', name: 'シュモクザメ', e: 'ザメ', diff: 2, holes: '目2（はしっこ）・鼻・口', build(c) {
-    const gray = M.slick(0x8b98a8, 0.55), wh = M.slick(0xe9eef3, 0.55);
-    const Hm = [1.08, 0.18, 0.4], Hc = [0, 0.2, 0.05], Ch = [0.4, 0.34, 0.55], Cc = [0, -0.02, -0.12];
-    c.m(SPH, gray, 'face', Hc, Hm);
-    c.m(SPH, wh, 'face', [0, 0.13, 0.07], [1.0, 0.12, 0.36]);
-    c.m(SPH, wh, 'face', Cc, Ch);
-    c.m(SPH, gray, 'other', [0, -0.12, -1.1], [0.46, 0.44, 1.4]);
-    const eL = c.f('eye', '左目'), eR = c.f('eye', '右目'), no = c.f('nose', '鼻'), mo = c.f('mouth', '口');
-    for (const s of [-1, 1]) {
-      c.eye(s < 0 ? eL : eR, [s * 1.06, 0.2, 0.09], 0.075);
-      c.m(SPH, M.dark(0x2a2e36), no, [s * 0.5, 0.245, sz(Hm, s * 0.5, 0.245, Hc)], [0.11, 0.018, 0.02]);
-      c.m(SPH, gray, 'other', [s * 0.48, -0.42, -0.6], [0.4, 0.035, 0.2], [0, 0, s * 0.45]);
-    }
-    const pts = []; for (let x = -0.22; x <= 0.221; x += 0.025) { const y = -0.04 - 0.07 * (x / 0.22) ** 2; pts.push([x, y, sz(Ch, x, y, Cc) + 0.003]); }
-    c.beads(M.dark(0x3a2a30), mo, pts, 0.026);
-    c.m(CONE, gray, 'other', [0, 0.5, -0.9], [0.05, 0.6, 0.35], [-0.5, 0, 0]);
-    c.cape(0x9fdcc9);
-  } },
+  { key: 'neko', name: 'ネコ', e: 'にゃ', diff: 0, holes: '目2・鼻・口', k: 0.4, base: {stool: 0.8},
+    face: [[-0.587,3.156],[-0.311,3.333],[-0.067,3.422],[0.311,3.333],[0.622,3.044],[0.68,2.756],[0.6,2.489],[0.378,2.267],[0.067,2.156],[-0.244,2.178],[-0.533,2.311],[-0.689,2.533],[-0.711,2.8],[-0.667,3.0]],
+    feats: [["eye","左目",-0.347,2.644,0.16,0.13,-20.0],["eye","右目",0.244,2.867,0.16,0.14,-20.0],["nose","鼻",-0.05,2.43,0.1,0.06,-15.0],["mouth","口",-0.05,2.3,0.13,0.05,-15.0]] },
+  { key: 'buta', name: 'ブタ', e: 'ブヒ', diff: 0, holes: '目2・鼻・口', k: 0.6, base: {floor: 1},
+    face: [[-0.24,2.37],[0.0,2.436],[0.24,2.37],[0.42,2.19],[0.465,1.95],[0.42,1.71],[0.3,1.5],[0.15,1.38],[0.0,1.35],[-0.15,1.38],[-0.3,1.5],[-0.42,1.71],[-0.465,1.95],[-0.42,2.19]],
+    feats: [["eye","左目",-0.315,2.085,0.055,0.055,0.0],["eye","右目",0.315,2.085,0.055,0.055,0.0],["nose","鼻",0.0,1.845,0.17,0.09,0.0],["mouth","口",0.0,1.725,0.12,0.035,0.0]] },
+  { key: 'panda', name: 'パンダ', e: 'パン', diff: 0, holes: '目2・鼻・口', k: 0.86, base: {floor: 1},
+    face: [[-0.347,1.647],[-0.173,1.907],[0.0,1.95],[0.173,1.907],[0.347,1.647],[0.433,1.387],[0.361,1.156],[0.202,0.997],[0.0,0.924],[-0.202,0.997],[-0.361,1.156],[-0.433,1.387]],
+    feats: [["eye","左目",-0.165,1.465,0.07,0.08,0.0],["eye","右目",0.165,1.465,0.07,0.08,0.0],["nose","鼻",0.0,1.141,0.1,0.06,0.0],["mouth","口",0.0,1.011,0.12,0.035,0.0]] },
+  { key: 'usagi', name: 'ウサギ', e: 'ぴょん', diff: 0, holes: '目2・鼻・口', k: 0.5, base: {stool: 0.5},
+    face: [[-0.35,3.52],[0.0,3.56],[0.35,3.52],[0.52,3.35],[0.58,3.1],[0.58,2.85],[0.52,2.65],[0.4,2.52],[0.2,2.47],[0.0,2.46],[-0.2,2.47],[-0.4,2.52],[-0.52,2.65],[-0.58,2.85],[-0.58,3.1],[-0.52,3.35]],
+    feats: [["eye","左目",-0.345,3.12,0.065,0.085,0.0],["eye","右目",0.35,3.12,0.065,0.085,0.0],["nose","鼻",0.0,2.93,0.12,0.07,0.0],["mouth","口",0.0,2.66,0.14,0.06,0.0]] },
+  { key: 'capy', name: 'カピバラ', e: 'キュイ', diff: 0, holes: '目2・鼻・口', k: 0.55, base: {floor: 1},
+    face: [[-0.247,2.661],[-0.202,2.818],[0.0,2.885],[0.202,2.818],[0.258,2.661],[0.247,2.437],[0.202,2.212],[0.179,2.033],[0.09,1.943],[0.0,1.92],[-0.09,1.943],[-0.179,2.033],[-0.202,2.212],[-0.247,2.437]],
+    feats: [["eye","左目",-0.225,2.582,0.05,0.035,0.0],["eye","右目",0.224,2.594,0.05,0.035,0.0],["nose","鼻",0.0,2.336,0.15,0.06,0.0],["mouth","口",0.0,1.985,0.1,0.04,0.0]] },
+  { key: 'kaeru', name: 'カエル', e: 'ケロ', diff: 1, holes: '目2・口（横に長い）', k: 0.5, base: {stool: 1.15},
+    face: [[-0.693,1.383],[-0.587,1.45],[-0.4,1.477],[-0.187,1.517],[0.053,1.583],[0.187,1.629],[0.32,1.61],[0.4,1.517],[0.44,1.357],[0.48,1.17],[0.427,1.063],[0.267,1.023],[0.053,1.023],[-0.133,1.023],[-0.32,0.983],[-0.507,0.93],[-0.667,0.93],[-0.72,1.117],[-0.707,1.277]],
+    feats: [["eye","左目",-0.587,1.237,0.11,0.13,0.0],["eye","右目",0.28,1.437,0.1,0.12,0.0],["mouth","口",-0.093,1.037,0.5,0.045,8.0]] },
+  { key: 'harisen', name: 'ハリセンボン', e: 'プク', diff: 1, holes: '目2・口', k: 0.6, base: {float: 1.9},
+    face: [[-0.493,1.763],[0.0,1.75],[0.507,1.777],[0.667,1.483],[0.72,1.083],[0.64,0.657],[0.4,0.283],[0.0,0.123],[-0.4,0.283],[-0.64,0.657],[-0.693,1.083],[-0.613,1.483]],
+    feats: [["eye","左目",-0.427,1.083,0.07,0.08,0.0],["eye","右目",0.475,1.083,0.07,0.08,0.0],["mouth","口",0.013,0.803,0.24,0.09,0.0]] },
+  { key: 'tako', name: 'タコ', e: 'タコ', diff: 1, holes: '目2・口（とがってる）', k: 1.4, base: {float: 1.95, pot: [3.0, 0.42]},
+    face: [[0.0,3.977],[0.117,3.914],[0.153,3.751],[0.148,3.596],[0.101,3.44],[0.086,3.3],[0.122,3.191],[0.117,3.066],[0.078,3.004],[0.0,2.989],[-0.078,2.996],[-0.233,3.012],[-0.261,3.098],[-0.233,3.199],[-0.194,3.3],[-0.233,3.44],[-0.277,3.611],[-0.267,3.751],[-0.187,3.907],[-0.093,3.961]],
+    feats: [["eye","左目",-0.233,3.098,0.05,0.08,0.0],["eye","右目",0.101,3.129,0.035,0.07,0.0],["mouth","口",-0.031,3.21,0.05,0.13,0.0]] },
+  { key: 'kaba', name: 'カバ', e: 'カバ', diff: 1, holes: '目2・鼻の穴2・口', k: 0.95, base: {floor: 1},
+    face: [[-0.499,1.943],[-0.413,2.021],[-0.258,2.073],[-0.086,2.081],[0.052,2.047],[0.164,1.978],[0.198,1.857],[0.155,1.702],[0.052,1.582],[-0.069,1.478],[-0.207,1.418],[-0.379,1.427],[-0.517,1.496],[-0.577,1.633],[-0.568,1.806]],
+    feats: [["eye","左目",-0.36,1.985,0.045,0.04,0.0],["eye","右目",0.025,1.975,0.045,0.04,0.0],["nose","左の鼻の穴",-0.462,1.878,0.04,0.035,0.0],["nose","右の鼻の穴",-0.233,1.888,0.04,0.035,0.0],["mouth","口",-0.293,1.556,0.22,0.04,-5.0]] },
+  { key: 'anko', name: 'アンコウ', e: 'アン', diff: 1, holes: '目2（小さい）・口（大きい）', k: 0.9, base: {float: 1.9},
+    face: [[-0.604,1.244],[-0.267,1.28],[0.0,1.289],[0.267,1.28],[0.604,1.244],[0.711,1.013],[0.729,0.8],[0.569,0.533],[0.427,0.32],[0.231,0.124],[0.0,0.018],[-0.231,0.124],[-0.427,0.32],[-0.533,0.498],[-0.64,0.8],[-0.631,1.013]],
+    feats: [["eye","左目",-0.228,0.924,0.045,0.05,0.0],["eye","右目",0.315,0.933,0.045,0.05,0.0],["mouth","口",0.004,0.356,0.37,0.24,0.0]] },
+  { key: 'zou', name: 'ゾウ', e: 'パオ', diff: 2, holes: '目2・鼻（長い）', k: 1.15, base: {floor: 1},
+    face: [[-0.342,2.582],[-0.156,2.707],[0.0,2.732],[0.156,2.707],[0.342,2.582],[0.404,2.333],[0.373,2.084],[0.296,1.836],[0.218,1.649],[0.14,1.462],[0.124,1.182],[-0.124,1.182],[-0.14,1.462],[-0.218,1.649],[-0.296,1.836],[-0.373,2.084],[-0.404,2.333]],
+    feats: [["eye","左目",-0.311,2.147,0.05,0.04,0.0],["eye","右目",0.311,2.147,0.05,0.04,0.0],["nose","鼻",0.0,1.587,0.1,0.42,0.0]] },
+  { key: 'mola', name: 'マンボウ', e: 'ボウ', diff: 2, holes: '目1・口（ふちにある）', k: 0.5, base: {float: 1.95},
+    face: [[-1.711,2.4],[-1.556,2.533],[-1.2,2.711],[-0.8,2.836],[-0.311,2.942],[0.089,2.969],[0.356,2.933],[0.667,2.822],[1.067,2.756],[1.067,1.333],[0.756,1.222],[0.311,1.156],[-0.311,1.111],[-0.667,1.156],[-1.111,1.333],[-1.422,1.511],[-1.6,1.778],[-1.667,2.0],[-1.622,2.111]],
+    feats: [["eye","目",-1.244,2.302,0.09,0.09,0.0],["mouth","口",-1.636,2.111,0.08,0.1,0.0]] },
+  { key: 'same', name: 'シュモクザメ', e: 'ザメ', diff: 2, holes: '目2（はしっこ）・口', k: 1.2, base: {float: 1.9},
+    face: [[-0.56,0.5],[-0.4,0.48],[-0.147,0.5],[0.0,0.507],[0.147,0.5],[0.4,0.48],[0.547,0.487],[0.571,0.427],[0.533,0.373],[0.333,0.38],[0.207,0.373],[0.2,0.267],[0.133,0.16],[0.0,0.113],[-0.133,0.16],[-0.2,0.267],[-0.207,0.373],[-0.333,0.387],[-0.52,0.4],[-0.567,0.44]],
+    feats: [["eye","左目",-0.54,0.46,0.035,0.04,0.0],["eye","右目",0.54,0.433,0.035,0.04,0.0],["mouth","口",0.0,0.333,0.14,0.055,0.0]] },
+  { key: 'ei', name: 'アカエイ', e: 'エイ', diff: 2, holes: '鼻の穴2・口（おなか側）', k: 0.45, base: {float: 1.9},
+    face: [[0.0,3.993],[0.367,3.867],[0.833,3.633],[1.167,3.4],[1.4,3.1],[1.493,2.7],[1.4,2.3],[1.2,1.933],[0.9,1.633],[0.5,1.533],[0.0,1.533],[-0.5,1.533],[-0.9,1.633],[-1.2,1.933],[-1.4,2.3],[-1.493,2.7],[-1.4,3.1],[-1.167,3.4],[-0.833,3.633],[-0.367,3.867]],
+    feats: [["nose","左の鼻の穴",-0.15,3.54,0.07,0.11,0.0],["nose","右の鼻の穴",0.177,3.533,0.07,0.11,0.0],["mouth","口",0.007,3.44,0.17,0.07,0.0]] },
+  { key: 'kirin', name: 'キリン', e: 'キリ', diff: 2, holes: '目2（はしっこ）・鼻の穴2・口', k: 0.55, base: {float: 1.95, cape: [0.62, 0.36, 0.8]},
+    face: [[-0.491,2.984],[-0.227,3.041],[0.0,3.079],[0.227,3.041],[0.491,2.984],[0.567,2.644],[0.604,2.342],[0.567,1.964],[0.51,1.624],[0.34,1.454],[0.0,1.36],[-0.34,1.454],[-0.51,1.624],[-0.567,1.964],[-0.604,2.342],[-0.567,2.644]],
+    feats: [["eye","左目",-0.548,2.304,0.08,0.06,0.0],["eye","右目",0.548,2.304,0.08,0.06,0.0],["nose","左の鼻の穴",-0.219,1.757,0.07,0.09,0.0],["nose","右の鼻の穴",0.219,1.757,0.07,0.09,0.0],["mouth","口",0.0,1.435,0.18,0.04,0.0]] },
 ];
+const MODELS = {};
+const gltf = new GLTFLoader(); gltf.setMeshoptDecoder(MeshoptDecoder);
+function loadModel(ai) {
+  const d = ANIMALS[ai];
+  if (!d.load) d.load = new Promise(res => gltf.load('assets/animals/' + d.key + '.glb', g => { MODELS[d.key] = prepModel(d, g.scene); res(true); }, undefined, () => { d.load = null; res(false); }));
+  return d.load;
+}
+const isLoaded = ai => !!MODELS[ANIMALS[ai].key];
+// 読みこんだ模型の下ごしらえ：顔の中心・顔の表面の前後位置・足もとのまん中を測る
+function prepModel(d, sc) {
+  // 材質は「金属っぽさなし・ややマット」の標準材質にそろえる（元の反射の設定で白っぽく光るのを防ぐ）
+  sc.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; o.userData.tag = 'face'; const m = o.material; o.material = new THREE.MeshStandardMaterial({ map: m.map, normalMap: m.normalMap, color: m.color, metalness: 0, roughness: Math.max(m.roughness, 0.65) }); m.dispose(); } });
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  const add = (x, y) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); };
+  for (const [x, y] of d.face) add(x, y);
+  for (const f of d.feats) { const r = Math.max(f[4], f[5]); add(f[2] - r, f[3] - r); add(f[2] + r, f[3] + r); }
+  d.fc = [(x0 + x1) / 2, (y0 + y1) / 2]; d.ext = [x0, x1, y0, y1];
+  sc.updateMatrixWorld(true);
+  const bb = new THREE.Box3().setFromObject(sc); d.bb = bb;
+  const hit = new THREE.Raycaster(new THREE.Vector3(d.fc[0], d.fc[1], bb.max.z + 1), new THREE.Vector3(0, 0, -1)).intersectObject(sc, true)[0];
+  d.fz = hit ? hit.point.z : bb.max.z;
+  // 台・つぼ・布を置く場所（その高さより下にある頂点のまん中）
+  const lim = d.base.pot ? d.base.pot[0] : d.base.cape ? d.base.cape[0] : bb.min.y + 0.15 * (bb.max.y - bb.min.y);
+  let sx = 0, sz = 0, n = 0; const v = new THREE.Vector3();
+  sc.traverse(o => { if (!o.isMesh) return; const pa = o.geometry.attributes.position; for (let i = 0; i < pa.count; i += 3) { v.fromBufferAttribute(pa, i).applyMatrix4(o.matrixWorld); if (v.y <= lim) { sx += v.x; sz += v.z; n++; } } });
+  d.footC = n ? [sx / n, sz / n] : [0, 0];
+  return sc;
+}
+// 台・タコつぼ・ケープ（お客さんといっしょに動く。顔ではないので採点やパックには入らない）
+const PM = {};
+function propMesh(geo, mat, p, parent) { const o = new THREE.Mesh(geo, mat); o.position.set(p[0], p[1], p[2]); o.castShadow = o.receiveShadow = true; o.userData.tag = 'skip'; o.userData.prop = true; parent.add(o); return o; }
+function makeStool(h, r, g) {
+  PM.stool || (PM.stool = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.25, clearcoat: 0.8 }), PM.stoolTop = new THREE.MeshPhysicalMaterial({ color: 0xffc2d1, roughness: 0.4, clearcoat: 0.6 }));
+  propMesh(new THREE.CylinderGeometry(r * 0.62, r * 0.75, h - 0.06, 40), PM.stool, [0, (h - 0.06) / 2, 0], g);
+  propMesh(new THREE.CylinderGeometry(r, r, 0.08, 48), PM.stoolTop, [0, h - 0.04, 0], g);
+}
+function makePot(h, r, g) {
+  PM.pot || (PM.pot = new THREE.MeshStandardMaterial({ color: 0xa65a38, roughness: 0.85, side: THREE.DoubleSide }), PM.potIn = new THREE.MeshBasicMaterial({ color: 0x1d1210 }));
+  const pts = [[0.7, 0], [1.25, 0.18], [1.42, 0.45], [1.3, 0.72], [1.02, 0.9], [0.98, 0.96], [1.1, 0.985], [1.1, 1.0], [0.98, 1.0]].map(([x, y]) => new THREE.Vector2(x * r, y * h));
+  propMesh(new THREE.LatheGeometry(pts, 48), PM.pot, [0, 0, 0], g);
+  const lid = propMesh(new THREE.CircleGeometry(r * 0.99, 40), PM.potIn, [0, h * 0.97, 0], g); lid.rotation.x = -Math.PI / 2; lid.castShadow = false;
+}
+function makeCape(h, r0, r1, g) {
+  PM.cape || (PM.cape = new THREE.MeshStandardMaterial({ color: 0x9fdcc9, roughness: 0.9, side: THREE.DoubleSide, normalMap: fileTex('assets/fabric_normal.jpg', false, [3, 2]), normalScale: new THREE.Vector2(0.6, 0.6) }), PM.collar = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 }));
+  propMesh(new THREE.CylinderGeometry(r0, r1, h, 48, 1, true), PM.cape, [0, h / 2, 0], g);
+  const c = propMesh(new THREE.TorusGeometry(r0, Math.max(0.03, r0 * 0.18), 14, 40), PM.collar, [0, h, 0], g); c.rotation.x = Math.PI / 2;
+}
 
 // ===== [SEC:MASK] =====
 const sheet = new Uint8Array(N * N);          // 1 = シートがある
@@ -536,26 +436,36 @@ const count = a => { let n = 0; for (let k = 0; k < a.length; k++) n += a[k]; re
 // ===== [SEC:IDPASS] =====
 // 正面カメラから「どこが顔・耳・目・鼻・口か」を色分けして描き、マスごとの答えを作る
 const idRT = new THREE.WebGLRenderTarget(N, N, { depthBuffer: true, samples: 0, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, generateMipmaps: false });
+idRT.depthTexture = new THREE.DepthTexture(N, N); idRT.depthTexture.type = THREE.UnsignedIntType;   // パックを「正面から見える面」だけに貼るのに使う
 const idScene = new THREE.Scene(), idBuf = new Uint8Array(N * N * 4), idMats = {};
-const codeOf = t => t === 'face' ? 1 : t === 'other' ? 2 : typeof t === 'number' ? t : 0;
+const codeOf = t => t === 'face' ? 1 : 0;
 function idMat(code) { return idMats[code] || (idMats[code] = new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(code * 8 / 255, 0, 0, THREE.LinearSRGBColorSpace), fog: false, toneMapped: false })); }
 function runIdPass(cu) {
   const root = cu.root, saved = [];
-  root.traverse(o => { if (!o.isMesh || o.userData.isPack) return; const cd = codeOf(o.userData.tag); saved.push([o, o.material, o.visible]); if (!cd) o.visible = false; else o.material = idMat(cd); });
+  root.traverse(o => { if (!o.isMesh || o.userData.isPack) return; saved.push([o, o.material, o.visible]); if (codeOf(o.userData.tag)) o.material = idMat(1); else o.visible = false; });
   const parent = root.parent, P = root.position.clone(), Rr = root.rotation.clone(), S = root.scale.clone();
-  idScene.add(root); root.position.set(0, HEAD_Y, 0); root.rotation.set(0, 0, 0); root.scale.set(1, 1, 1); root.updateMatrixWorld(true);
+  idScene.add(root); root.position.set(0, HY, 0); root.rotation.set(0, 0, 0); root.scale.set(1, 1, 1); root.updateMatrixWorld(true);
   const cc = renderer.getClearColor(new THREE.Color()), ca = renderer.getClearAlpha();
   renderer.setRenderTarget(idRT); renderer.setClearColor(0x000000, 1); renderer.clear(true, true, true);
   renderer.render(idScene, cutCam); renderer.readRenderTargetPixels(idRT, 0, 0, N, N, idBuf);
   renderer.setRenderTarget(null); renderer.setClearColor(cc, ca);
   for (const [o, m, v] of saved) { o.material = m; o.visible = v; }
   if (parent) parent.add(root); root.position.copy(P); root.rotation.copy(Rr); root.scale.copy(S); root.updateMatrixWorld(true);
-  const tag = new Uint8Array(N * N), lists = {};
-  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const k = j * N + i, cd = Math.round(idBuf[((N - 1 - j) * N + i) * 4] / 8); tag[k] = cd; if (cd >= 10) (lists[cd] || (lists[cd] = [])).push(k); }
+  // 写った所を、顔の輪郭・目鼻口の形（模型の座標）とくらべて分ける
+  const d = cu.def, kk = d.k, tag = new Uint8Array(N * N), lists = {};
+  const E = cu.feats.map((f, i) => { const q = d.feats[i], a = (q[6] || 0) * D2R; return { code: f.code, x: q[2], y: q[3], rx: q[4], ry: q[5], c: Math.cos(a), s: Math.sin(a) }; });
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    if (Math.round(idBuf[((N - 1 - j) * N + i) * 4] / 8) !== 1) continue;
+    const k = j * N + i, nx = d.fc[0] + ((i + 0.5) / N - 0.5) * CUT.box / kk, ny = d.fc[1] + (CUT.ty - HY + (0.5 - (j + 0.5) / N) * CUT.box) / kk;
+    let cd = 0; for (const e of E) { const dx = nx - e.x, dy = ny - e.y, u = dx * e.c + dy * e.s, v = -dx * e.s + dy * e.c; if ((u / e.rx) ** 2 + (v / e.ry) ** 2 <= 1) { cd = e.code; break; } }
+    if (!cd) cd = inPoly(d.face, nx, ny) ? 1 : 2;
+    tag[k] = cd; if (cd >= 10) (lists[cd] || (lists[cd] = [])).push(k);
+  }
   cu.tag = tag; cu.faceN = 0; for (let k = 0; k < N * N; k++) if (tag[k] === 1) cu.faceN++;
   for (const f of cu.feats) { const l = lists[f.code] || []; f.idx = Int32Array.from(l); f.n = l.length >= 10 ? l.length : 0; }
   cu.useFeats = cu.feats.filter(f => f.n > 0);
 }
+function inPoly(P, x, y) { let o = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) o = !o; } return o; }
 // お手本（顔だけ・穴は少し大きめ）
 function idealSheet(cu) {
   const out = new Uint8Array(N * N), hole = new Uint8Array(N * N);
@@ -570,27 +480,31 @@ function idealSheet(cu) {
 
 // ===== [SEC:PACK] =====
 // 3Dのパック：正面カメラから見たシートの形を、顔の表面に投影して貼る
-const restMat = new THREE.Matrix4().makeTranslation(0, HEAD_Y, 0);
-const packU = { uMask: { value: maskTex }, uPV: { value: new THREE.Matrix4() }, uRootInv: { value: new THREE.Matrix4() }, uCamG: { value: new THREE.Vector3() }, uFade: { value: 0 } };
+const restMat = new THREE.Matrix4();
+const packU = { uMask: { value: maskTex }, uPV: { value: new THREE.Matrix4() }, uRootInv: { value: new THREE.Matrix4() }, uCamG: { value: new THREE.Vector3() }, uFade: { value: 0 }, uDepth: { value: idRT.depthTexture }, uNF: { value: new THREE.Vector2() }, uDB: { value: 0.05 } };
 function setCut(box, ty) {
   CUT.box = box; CUT.ty = ty; CUT.fov = 2 * Math.atan(box / 2 / CONFIG.CUT_DIST);
   cutCam.fov = CUT.fov * R2D; cutCam.position.set(0, ty, CONFIG.CUT_DIST); cutCam.lookAt(0, ty, 0); cutCam.updateMatrixWorld(true); cutCam.updateProjectionMatrix();
+  restMat.makeTranslation(0, HY, 0);
   packU.uPV.value.multiplyMatrices(cutCam.projectionMatrix, cutCam.matrixWorldInverse).multiply(restMat);
-  packU.uCamG.value.set(0, ty - HEAD_Y, CONFIG.CUT_DIST);
+  packU.uCamG.value.set(0, ty - HY, CONFIG.CUT_DIST); packU.uNF.value.set(cutCam.near, cutCam.far); packU.uDB.value = CONFIG.DEPTH_BIAS * box;
 }
-setCut(CONFIG.BOX, HEAD_Y);
+setCut(CONFIG.BOX, HY);
 const packMat = new THREE.MeshPhysicalMaterial({ color: 0xf3f7fb, roughness: 0.4, clearcoat: 0.6, clearcoatRoughness: 0.25, sheen: 0.5, sheenRoughness: 0.4, sheenColor: new THREE.Color(0xffffff), transparent: true, opacity: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 });
 packMat.onBeforeCompile = sh => {
   Object.assign(sh.uniforms, packU);
   sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform mat4 uRootInv; varying vec3 vGP; varying vec3 vGN;')
     .replace('#include <project_vertex>', '#include <project_vertex>\n  vGP = (uRootInv * modelMatrix * vec4(transformed, 1.0)).xyz;\n  vGN = mat3(uRootInv) * (transpose(inverse(mat3(modelMatrix))) * objectNormal);');
-  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uMask; uniform mat4 uPV; uniform vec3 uCamG; uniform float uFade; varying vec3 vGP; varying vec3 vGN;')
+  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform sampler2D uMask; uniform sampler2D uDepth; uniform mat4 uPV; uniform vec3 uCamG; uniform vec2 uNF; uniform float uFade; uniform float uDB; varying vec3 vGP; varying vec3 vGN;\nfloat linZ(float d) { return uNF.x * uNF.y / (uNF.y - d * (uNF.y - uNF.x)); }')
     .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
   vec4 cpk = uPV * vec4(vGP, 1.0); vec2 puv = cpk.xy / cpk.w * 0.5 + 0.5;
   float inb = step(0.0, puv.x) * step(puv.x, 1.0) * step(0.0, puv.y) * step(puv.y, 1.0);
   float mk = texture2D(uMask, vec2(puv.x, 1.0 - puv.y)).r * inb;
   float facing = dot(normalize(vGN), normalize(uCamG - vGP));
   if (mk < 0.5 || facing < 0.04 || uFade < 0.01) discard;
+  // 正面カメラから見て、ほかの面のうしろにかくれている所には貼らない
+  float dz = 0.0; for (int a = -1; a <= 1; a++) for (int b = -1; b <= 1; b++) dz = max(dz, texture2D(uDepth, puv + vec2(float(a), float(b)) / ${N}.0).r);
+  if (linZ(cpk.z / cpk.w * 0.5 + 0.5) > linZ(dz) + uDB) discard;
   diffuseColor.a *= uFade;`);
 };
 let packMeshes = [];
@@ -654,9 +568,9 @@ function layout() {
 }
 
 // ===== [SEC:CAMERA] =====
-const V = { yaw: 0, pitch: 0, dist: CONFIG.CUT_DIST, fov: 0.25, cx: 0, cy: 0, s: 1, ty: HEAD_Y };
+const V = { yaw: 0, pitch: 0, dist: CONFIG.CUT_DIST, fov: 0.25, cx: 0, cy: 0, s: 1, ty: CONFIG.HEAD_Y };
 function cutView() { const b = L.box; return { yaw: 0, pitch: 0, dist: CONFIG.CUT_DIST, fov: CUT.fov, cx: b.x + b.s / 2, cy: b.y + b.s / 2, s: b.s, ty: CUT.ty }; }
-function showView(r, yaw, pitch) { const fov = CONFIG.REVEAL_FOV * D2R; return { yaw, pitch, dist: 1.22 / Math.tan(fov / 2), fov, cx: r.cx, cy: r.cy, s: r.s, ty: HEAD_Y - 0.12 }; }
+function showView(r, yaw, pitch) { const fov = CONFIG.REVEAL_FOV * D2R; return { yaw, pitch, dist: 0.62 * CUT.box / Math.tan(fov / 2), fov, cx: r.cx, cy: r.cy, s: r.s, ty: CUT.ty - 0.06 * CUT.box }; }
 function mixView(a, b, t) { const o = {}; for (const k in a) o[k] = lerp(a[k], b[k], t); return o; }
 function applyCamera() {
   const v = V, cp = Math.cos(v.pitch);
@@ -679,27 +593,26 @@ let state = 'loading', paused = false, rand = mulberry32((Date.now() ^ 0x5eed) >
 const G = { lineup: [], idx: 0, results: [], t: 0, timeLeft: CONFIG.TIME, cutCount: 0, cust: null, res: null, cardShown: false, resultAt: 0, lastTickSec: 99, undo: [], titleT: 0 };
 let R = { x0: 0, y0: 0, x1: 1, y1: 1 };   // 大きさを合わせる時のシート（マス単位）
 function buildCustomer(ai) {
-  const def = ANIMALS[ai], root = new THREE.Group(); root.position.set(0, HEAD_Y, 0);
-  const c = makeCtx(root); def.build(c);
+  const d = ANIMALS[ai], k = d.k, b = d.base, root = new THREE.Group();
+  HY = b.float !== undefined ? b.float : (b.stool || 0) + d.fc[1] * k;
+  root.position.set(0, HY, 0);
+  const m = MODELS[d.key].clone(); m.scale.setScalar(k); m.position.set(-d.fc[0] * k, -d.fc[1] * k, -d.fz * k); root.add(m);
+  // 台・タコつぼ・ケープは、足もと（首・腕）のまん中の真下に置く
+  const g = new THREE.Group(); g.position.set((d.footC[0] - d.fc[0]) * k, -HY, (d.footC[1] - d.fz) * k); root.add(g);
+  if (b.stool) makeStool(b.stool, Math.max(0.42, 0.3 * k * Math.max(d.bb.max.x - d.bb.min.x, d.bb.max.z - d.bb.min.z)), g);
+  if (b.pot) makePot(HY + (b.pot[0] - d.fc[1]) * k, b.pot[1], g);
+  if (b.cape) makeCape(HY + (b.cape[0] - d.fc[1]) * k, b.cape[1] * k, b.cape[2], g);
   scene.add(root);
-  const cu = { def, ai, root, feats: c.feats, snap: null };
-  // まず広く写して顔の範囲を測り、顔がちょうど入る広さで写し直す
-  setCut(CONFIG.BOX, HEAD_Y); runIdPass(cu);
-  let i0 = N, i1 = -1, j0 = N, j1 = -1;
-  for (let k = 0; k < N * N; k++) { const t = cu.tag[k]; if (t === 1 || t >= 10) { const i = k % N, j = (k / N) | 0; if (i < i0) i0 = i; if (i > i1) i1 = i; if (j < j0) j0 = j; if (j > j1) j1 = j; } }
-  if (i1 >= 0) {
-    const wx = v => (v / N - 0.5) * CONFIG.BOX, wy = v => HEAD_Y + (0.5 - v / N) * CONFIG.BOX;
-    const xMax = Math.max(Math.abs(wx(i0)), Math.abs(wx(i1 + 1))), yTop = wy(j0), yBot = wy(j1 + 1);
-    const box = clamp(2 * Math.max(xMax, (yTop - yBot) / 2) * CONFIG.BOX_MARGIN, CONFIG.BOX_MIN, CONFIG.BOX);
-    const ty = clamp((yTop + yBot) / 2, HEAD_Y - (CONFIG.BOX - box) / 2, HEAD_Y + (CONFIG.BOX - box) / 2);
-    setCut(box, ty); runIdPass(cu);
-  }
-  stool.visible = !!def.stool; if (def.stool) stool.scale.y = def.stool / (HEAD_Y - 1.0);
+  const cu = { def: d, ai, root, feats: d.feats.map((f, i) => ({ code: 10 + i, kind: f[0], label: f[1], n: 0, idx: null })), snap: null, float: b.float !== undefined };
+  // 顔（目鼻口も）がちょうど入る広さで正面カメラを決める
+  const [x0, x1, y0, y1] = d.ext, xm = Math.max(d.fc[0] - x0, x1 - d.fc[0]) * k, hh = (y1 - y0) / 2 * k;
+  setCut(2 * Math.max(xm, hh) * CONFIG.BOX_MARGIN, HY);
+  runIdPass(cu);
   return cu;
 }
 function disposeCustomer() {
   if (!G.cust) return; removePack(); scene.remove(G.cust.root);
-  G.cust.root.traverse(o => { if (o.isMesh && o.geometry !== SPH && o.geometry !== CYL && o.geometry !== CONE) o.geometry.dispose(); });
+  G.cust.root.traverse(o => { if (o.isMesh && o.userData.prop) o.geometry.dispose(); });
   G.cust = null;
 }
 function pickLineup() {
@@ -710,14 +623,20 @@ function pickLineup() {
 function setState(s) { state = s; G.t = 0; updateHud(); }
 function startGame(seed) {
   if (seed !== undefined) rand = mulberry32(seed);
-  hideScreens(); G.lineup = pickLineup(); G.idx = 0; G.results = []; paused = false;
+  hideScreens(); G.lineup = pickLineup(); G.lineup.forEach(loadModel); G.idx = 0; G.results = []; paused = false;
   $('hud').classList.remove('hidden'); layout();
   beginCustomer();
 }
 function beginCustomer() {
   disposeCustomer(); hideCard();
-  G.cust = buildCustomer(G.lineup[G.idx]);
-  G.cust.root.position.set(-5.5, HEAD_Y, 0);
+  const ai = G.lineup[G.idx];
+  if (!isLoaded(ai)) {   // まだ読みこみ中なら待つ（読めなかった時はネコさんに代わってもらう）
+    setState('wait'); toast('準備中…', ANIMALS[ai].name + 'さんが向かっています');
+    loadModel(ai).then(ok => { if (state !== 'wait') return; if (!ok) G.lineup[G.idx] = 0; beginCustomer(); });
+    return;
+  }
+  G.cust = buildCustomer(ai);
+  G.cust.root.position.set(-5.5, HY, 0);
   sheet.fill(0); setMask(sheet);
   G.timeLeft = CONFIG.TIME; G.cutCount = 0; G.undo = []; G.res = null; stroke = null; drag = null; ptrs.clear(); pieces.length = 0;
   setState('arrive'); AU.bell();
@@ -725,7 +644,7 @@ function beginCustomer() {
 }
 function toSize() {
   const s = CONFIG.SHEET_INIT * N; R = { x0: (N - s) / 2, y0: (N - s) / 2, x1: (N + s) / 2, y1: (N + s) / 2 };
-  G.cust.root.position.set(0, HEAD_Y, 0); G.cust.root.rotation.set(0, 0, 0); G.cust.root.scale.set(1, 1, 1);
+  G.cust.root.position.set(0, HY, 0); G.cust.root.rotation.set(0, 0, 0); G.cust.root.scale.set(1, 1, 1);
   setState('size'); layout();
 }
 function toCut() {
@@ -754,7 +673,7 @@ function nextCustomer() {
   hideCard(); AU.ui(); setState('leave');
 }
 function showResult() {
-  disposeCustomer(); stool.visible = false; hideCard();
+  disposeCustomer(); hideCard();
   $('hud').classList.add('hidden');
   const total = G.results.reduce((a, r) => a + r.score, 0);
   const best = +(store.get(CONFIG.BEST_KEY) || 0);
@@ -789,7 +708,8 @@ function scoreSheet(cu, sh, timeLeft) {
   const faceN = Math.max(1, cu.faceN), cover = cov / faceN, overR = over / faceN;
   const fit = CONFIG.PTS_FIT * clamp((cover - CONFIG.COVER_LO) / (CONFIG.COVER_HI - CONFIG.COVER_LO)) * clamp(1 - overR / CONFIG.OVER_ZERO);
   const feats = cu.useFeats.map(f => { const open = 1 - fc[f.code] / f.n; return { kind: f.kind, label: f.label, open, part: clamp((open - CONFIG.OPEN_LO) / (CONFIG.OPEN_HI - CONFIG.OPEN_LO)) }; });
-  const hole = feats.length ? CONFIG.PTS_HOLE * feats.reduce((a, f) => a + f.part, 0) / feats.length : CONFIG.PTS_HOLE;
+  // 穴の点は「顔をおおえているパック」にあいた穴として数える（シートが小さくて顔をおおえていないと、穴の点も減る）
+  const hole = CONFIG.PTS_HOLE * (feats.length ? feats.reduce((a, f) => a + f.part, 0) / feats.length : 1) * clamp(cover / CONFIG.COVER_HI);
   const tpts = CONFIG.PTS_TIME * clamp(timeLeft / CONFIG.TIME) * (fit + hole) / (CONFIG.PTS_FIT + CONFIG.PTS_HOLE);
   const total = clamp(Math.round(fit + hole + tpts), 0, 100);
   const eyesShut = feats.some(f => f.kind === 'eye' && f.open < 0.5), breath = feats.some(f => f.kind !== 'eye' && f.open < 0.5);
@@ -995,7 +915,7 @@ function hideCard() { $('card').classList.add('hidden', 'pre'); }
 function fx(ch, n) {
   const box = $('fx'); for (let i = 0; i < n; i++) { const s = document.createElement('span'); s.textContent = ch; s.style.left = (L.rev.cx + (rand() - 0.5) * L.rev.s * 0.7) + 'px'; s.style.top = (L.rev.cy - L.rev.s * (0.15 + rand() * 0.25)) + 'px'; s.style.animationDelay = (i * 0.12) + 's'; box.appendChild(s); setTimeout(() => s.remove(), 2200); }
 }
-function hideScreens() { for (const id of ['title', 'result', 'menu', 'help']) $(id).classList.add('hidden'); }
+function hideScreens() { for (const id of ['title', 'result', 'menu', 'help', 'credits']) $(id).classList.add('hidden'); }
 $('goBtn').addEventListener('click', () => { AU.init(); if (paused) return; if (state === 'size') toCut(); else if (state === 'cut') finishAnimal(); });
 $('undoBtn').addEventListener('click', () => { if (!paused) undo(); });
 $('nextBtn').addEventListener('click', () => nextCustomer());
@@ -1005,20 +925,20 @@ AU.setMute(AU.muted);
 // ===== [SEC:REACT] =====
 function reactPose(t) {
   const cu = G.cust; if (!cu) return; const r = cu.root;
-  r.position.set(0, HEAD_Y, 0); r.rotation.set(0, 0, 0); r.scale.set(1, 1, 1);
-  const u = t - 0.9; if (u < 0 || !G.res) return;
+  r.position.set(0, HY, 0); r.rotation.set(0, 0, 0); r.scale.set(1, 1, 1);
+  const u = t - 0.9, bx = CUT.box; if (u < 0 || !G.res) return;
   const k = G.res.react;
   if (k === 'bad') { r.rotation.y = 0.2 * Math.sin(u * 16) * Math.exp(-u * 0.7); r.rotation.z = 0.05 * Math.sin(u * 9) * Math.exp(-u); }
-  else if (k === 'great' || k === 'good') { const a = k === 'great' ? 0.14 : 0.08; r.position.y += a * Math.abs(Math.sin(u * 7)) * Math.exp(-u * 0.6); }
+  else if (k === 'great' || k === 'good') { const a = (k === 'great' ? 0.08 : 0.045) * bx; r.position.y += a * Math.abs(Math.sin(u * 7)) * Math.exp(-u * 0.6); }
   else r.rotation.x = 0.07 * Math.sin(u * 5) * Math.exp(-u * 1.2);
-  if (cu.def.float) r.position.y += 0.04 * Math.sin(t * 2.2);
+  if (cu.float) r.position.y += CONFIG.BOB * bx * Math.sin(t * 2.2);
 }
 function capture() {
   const cu = G.cust; if (!cu || cu.snap) return;
   render(true);
   const c = document.createElement('canvas'); c.width = c.height = 360; const g = c.getContext('2d');
   g.fillStyle = '#f2dcd6'; g.fillRect(0, 0, 360, 360);
-  const pr = renderer.getPixelRatio(), s = L.rev.s * 0.86, hp = new THREE.Vector3(0, HEAD_Y - 0.05, 0).project(cam);
+  const pr = renderer.getPixelRatio(), s = L.rev.s * 0.86, hp = new THREE.Vector3(0, CUT.ty - 0.03 * CUT.box, 0).project(cam);
   const hx = (hp.x + 1) / 2 * L.W, hy = (1 - hp.y) / 2 * L.H;
   try { g.drawImage(renderer.domElement, (hx - s / 2) * pr, (hy - s / 2) * pr, s * pr, s * pr, 0, 0, 360, 360); } catch (e) { }
   cu.snap = c;
@@ -1045,6 +965,32 @@ const HELP = [
     li: ['輪郭（顔をおおえたか・はみ出し）50点＋目・鼻・口の穴40点＋はやさ10点', '目や口をふさぐと、お客さんが苦しがります', '1匹45秒。時間切れになると、その時のシートで貼ります', '1回5匹。後のお客さんほど、むずかしい形です'] },
 ];
 let helpPage = 0;
+// 3Dモデルのクレジット（CC BY は作者名・作品名・ライセンスの表示が必要）
+const SKF = 'https://sketchfab.com/models/', BY = '<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>', CC0 = '<a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0</a>';
+const CREDITS = [
+  ['ネコ', 'Kitten', 'dvrkvision', '80e556d652b646ba99123600483de1d2', BY],
+  ['ブタ', 'Piglet', 'sgrosjean', '8343f141936f4c799ed980a3c7c3ae27', BY],
+  ['パンダ', 'Giant Panda', 'GentryHS EAST', '76ce633705f04272b30823c428952a6d', BY],
+  ['ウサギ', 'Rabbit Rigged', 'FourthGreen', 'e7213589744d436b9d96e2dbb31198a5', BY],
+  ['カピバラ', 'Capybara', 'artoire', '56845a31b9ec41f6b4124b9a7ecb64b8', BY],
+  ['カバ', 'Hippopotamus amphibius', 'Stephengury', '0977b07597ea46f4a2f6a7cfacac523a', BY],
+  ['ゾウ', 'African Elephant Animated 3D Model', 'ettapatrick', '18f93ae789a24b329ae8af6550e586a8', BY],
+  ['マンボウ', 'MOLA', 'Naturalis', '12e81c689fe245818e9a32149d62a0cf', BY],
+  ['キリン', 'Giraffe Head Study', 'halenpet', '10f788e4da8842468c68efc1fe3d4890', BY],
+  ['カエル', '', 'ffishAsia and floraZia', 'a9c23391171c4e1abd859b05887e00af', CC0],
+  ['ハリセンボン', '', 'ffishAsia and floraZia', '6e73c83cf10f4c6f8189dff3b4936ff6', CC0],
+  ['タコ', '', 'ffishAsia and floraZia', 'db7cab212b95485d8257deaf951e3706', CC0],
+  ['シュモクザメ', '', 'ffishAsia and floraZia', 'b68fdc989ba74bec9495ac907995739e', CC0],
+  ['アカエイ', '', 'ffishAsia and floraZia', 'f309cd53efd544f4b22b33f0ebd2e07b', CC0],
+  ['アンコウ', '', 'ffishAsia and floraZia', '6538a4e7b31949c2a01449b83b196796', CC0],
+];
+function openCredits() {
+  $('crList').innerHTML = CREDITS.map(([j, t, a, u, l]) => `<li><b>${j}</b>：<a href="${SKF + u}" target="_blank" rel="noopener">${t ? '「' + t + '」' : '作品ページ'}</a> by ${a}<br><small>ライセンス：${l}</small></li>`).join('');
+  $('credits').classList.remove('hidden');
+}
+$('crBtn').addEventListener('click', () => { AU.init(); AU.ui(); openCredits(); });
+$('crBtn2').addEventListener('click', () => { AU.ui(); openCredits(); });
+$('crClose').addEventListener('click', () => { AU.ui(); $('credits').classList.add('hidden'); });
 function openHelp() { helpPage = 0; renderHelp(); $('help').classList.remove('hidden'); store.set(CONFIG.HELP_KEY, '1'); }
 function renderHelp() {
   const h = HELP[helpPage]; $('helpNo').textContent = (helpPage + 1) + ' / ' + HELP.length; $('helpTtl').textContent = h.t; $('helpFig').innerHTML = h.fig;
@@ -1108,11 +1054,11 @@ function tick(dt) {
   G.t += dt;
   const cu = G.cust;
   if (state === 'title') {
-    G.titleT += dt; if (cu) { cu.root.position.set(0, HEAD_Y + (cu.def.float ? 0.04 * Math.sin(G.titleT * 2.2) : 0), 0); }
+    G.titleT += dt; if (cu) { cu.root.position.set(0, HY + (cu.float ? CONFIG.BOB * CUT.box * Math.sin(G.titleT * 2.2) : 0), 0); }
     Object.assign(V, mixView(V, showView(L.show, 0.38 * Math.sin(G.titleT * 0.35) + 0.12, 0.08), 1 - Math.exp(-dt * 3)));
   } else if (state === 'arrive') {
     const u = clamp(G.t / CONFIG.ARRIVE_T), r = cu.root;
-    r.position.set(lerp(-5.5, 0, easeOut(u)), HEAD_Y + 0.25 * Math.abs(Math.sin(u * Math.PI * 3)) * (1 - u), 0); r.rotation.z = 0.12 * Math.sin(u * Math.PI * 6) * (1 - u);
+    r.position.set(lerp(-5.5, 0, easeOut(u)), HY + CONFIG.HOP * CUT.box * Math.abs(Math.sin(u * Math.PI * 3)) * (1 - u), 0); r.rotation.z = 0.12 * Math.sin(u * Math.PI * 6) * (1 - u);
     Object.assign(V, mixView(V, cutView(), 1 - Math.exp(-dt * 6)));
     if (u >= 1) toSize();
   } else if (state === 'size' || state === 'cut') {
@@ -1133,7 +1079,7 @@ function tick(dt) {
   } else if (state === 'leave') {
     const u = clamp(G.t / CONFIG.LEAVE_T), r = cu.root;
     r.rotation.set(0, 0, 0); r.scale.set(1, 1, 1);
-    r.position.set(lerp(0, 6, u * u), HEAD_Y + 0.22 * Math.abs(Math.sin(u * Math.PI * 3)), 0);
+    r.position.set(lerp(0, 6, u * u), HY + CONFIG.HOP * CUT.box * Math.abs(Math.sin(u * Math.PI * 3)), 0);
     Object.assign(V, mixView(V, cutView(), 1 - Math.exp(-dt * 5)));
     if (u >= 1) { G.idx++; if (G.idx < CONFIG.CUSTOMERS) beginCustomer(); else showResult(); }
   } else if (state === 'result') {
@@ -1158,6 +1104,9 @@ window.addEventListener('resize', () => { layout(); if (state === 'size' || stat
 (async function boot() {
   buildRoom(); layout();
   await Promise.race([loadEnv(), new Promise(r => setTimeout(r, 8000))]);
+  // 1匹目（タイトルのネコさん）を読みこんでから始める。自動テストの時は全員先に読む
+  const ok = await (navigator.webdriver ? Promise.all(ANIMALS.map((_, i) => loadModel(i))).then(a => a.every(Boolean)) : loadModel(0));
+  if (!ok) { $('loading').textContent = '読みこみに失敗しました。通信のよい所で、ページを読みこみ直してください。'; return; }
   loadPlant();
   $('loading').classList.add('hidden');
   goTitle();
@@ -1217,7 +1166,7 @@ window.__TEST__ = {
     if (state === 'size' && !(R.x0 >= -0.01 && R.y0 >= -0.01 && R.x1 <= N + 0.01 && R.y1 <= N + 0.01 && R.x1 - R.x0 >= CONFIG.SHEET_MIN * N - 0.01)) v.push('シートが範囲の外');
     if (state === 'cut' && count(sheet) === 0) v.push('切っている途中でシートがなくなった');
     if (state === 'reveal' && !packMeshes.length) v.push('パックが貼られていない');
-    if ((state === 'size' || state === 'cut') && G.cust) { const p = G.cust.root.position; if (Math.abs(p.x) > 1e-6 || Math.abs(p.y - HEAD_Y) > 1e-6) v.push('切る時にお客さんが動いている'); }
+    if ((state === 'size' || state === 'cut') && G.cust) { const p = G.cust.root.position; if (Math.abs(p.x) > 1e-6 || Math.abs(p.y - HY) > 1e-6) v.push('切る時にお客さんが動いている'); }
     if (G.cust && G.cust.faceN < 500) v.push('顔の範囲が小さすぎる（' + G.cust.def.name + '）');
     return v;
   },
