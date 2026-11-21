@@ -29,6 +29,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a2a20;font-family:
 .pill{background:rgba(255,248,232,.93);border:3px solid #3a2412;border-radius:999px;padding:3px 14px;font-weight:800;font-size:clamp(14px,3.8vw,19px);white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.3)}
 .pill b{font-size:1.35em;color:#d9480f;margin:0 2px}
 #snd{position:fixed;top:calc(env(safe-area-inset-top) + 10px);right:calc(env(safe-area-inset-right) + 12px);width:44px;height:44px;border-radius:50%;border:3px solid #3a2412;background:rgba(255,248,232,.93);font-size:20px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.3);z-index:20}
+#pauseBtn{position:fixed;top:calc(env(safe-area-inset-top) + 10px);right:calc(env(safe-area-inset-right) + 64px);width:44px;height:44px;border-radius:50%;border:3px solid #3a2412;background:rgba(255,248,232,.93);color:#3a2412;font-size:13px;letter-spacing:-2px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.3);z-index:20;display:none}
+#pauseBtn.show{display:block}
 #box{position:fixed;left:calc(env(safe-area-inset-left) + 10px);bottom:calc(env(safe-area-inset-bottom) + 10px);width:78px;pointer-events:none;opacity:0;transition:opacity .3s;text-align:center}
 #box svg{display:block;width:78px;height:auto;filter:drop-shadow(0 3px 0 rgba(0,0,0,.3))}
 #box.bump svg{animation:bump .25s ease-out}
@@ -104,6 +106,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a2a20;font-family:
   <div class="pill">のこり<b id="hLeft">175</b>粒</div>
 </div>
 <button id="snd" aria-label="音のオン・オフ">🔊</button>
+<button id="pauseBtn" aria-label="ひと休み（メニュー）">❚❚</button>
 <div id="box">
   <svg viewBox="0 0 64 74">
     <defs><clipPath id="bc"><path d="M8 28 L56 28 L50 72 L14 72 Z"/></clipPath></defs>
@@ -154,9 +157,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a2a20;font-family:
     </div><div>
     <div class="btns"><button class="btn" id="againBtn">もう一回</button>
     <button class="btn x" id="shareBtn">𝕏 でシェア</button></div>
+    <button class="btn sub2" id="titleBtn">タイトルへ</button>
     <div class="best">自己ベスト：<span id="rBest">0</span>点</div>
     <div class="sups"><a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a><a class="sup" data-k="ofuse" target="_blank" rel="noopener"><span class="t"><b>作者を応援する</b><small>100円から送れます</small></span><span class="go">応援する</span></a></div>
   </div></div></div>
+</div>
+
+<div id="pause" class="screen hide">
+  <div class="card">
+    <div class="lbl">ひと休み中</div>
+    <button class="btn" id="resumeBtn">つづける</button>
+    <button class="btn sub2" id="restartBtn">最初からやり直す</button>
+    <button class="btn sub2" id="homeBtn">タイトルに戻る</button>
+  </div>
 </div>
 
 <div id="rank" class="screen hide">
@@ -849,7 +862,7 @@ function findTarget(cx, cy) {
   return best;
 }
 function onTap(cx, cy) {
-  if (state !== 'play') return;
+  if (state !== 'play' || menuPaused) return;
   const p = findTarget(cx, cy);
   if (!p) { ring(cx, cy); return; }
   p.from.copy(p.pos); p.gt = 0; p.s = 1;
@@ -883,12 +896,13 @@ const ui = {
   box() { const b = $('box'); b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); $('boxN').textContent = boxCount; },
   msg(t) { const m = $('msg'); m.textContent = t; m.classList.toggle('show', !!t); },
   play() {
-    $('title').classList.add('hide'); $('result').classList.add('hide'); $('rank').classList.add('hide');
-    $('hud').classList.add('show'); $('box').classList.add('show');
+    menuPaused = false;
+    for (const id of ['title', 'result', 'rank', 'pause']) $(id).classList.add('hide');
+    $('hud').classList.add('show'); $('box').classList.add('show'); $('pauseBtn').classList.add('show');
     this.hud(); this.msg('あたため中…');
   },
   result() {
-    this.msg('');
+    this.msg(''); $('pauseBtn').classList.remove('show');
     const best = Number(store(CONFIG.BEST_KEY)) || 0, played = store(CONFIG.BEST_KEY) !== null;
     const isNew = !played || score > best;
     if (isNew) store(CONFIG.BEST_KEY, score);
@@ -916,6 +930,23 @@ $('shareBtn').addEventListener('click', () => {
   if (!resultReady()) return;
   window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(ui.lastShare) + '&url=' + encodeURIComponent(CONFIG.URL), '_blank', 'noopener');
 });
+// ひと休み（遊んでいる途中のメニュー）・最初からやり直す・タイトルに戻る
+let menuPaused = false;
+function pauseGame() { if (state !== 'play' || menuPaused) return; menuPaused = true; Sound.sizzle(0); $('pause').classList.remove('hide'); }
+function resumeGame() { if (!menuPaused) return; menuPaused = false; $('pause').classList.add('hide'); last = performance.now(); }
+function goTitle() {
+  menuPaused = false; state = 'title'; demoT = 0;
+  clearPops(); clearFx(); resetKernels(); Sound.sizzle(0); ui.msg('');
+  for (const id of ['pause', 'result', 'rank']) $(id).classList.add('hide');
+  for (const id of ['hud', 'box', 'pauseBtn']) $(id).classList.remove('show');
+  ui.title(); Rank.title(); $('title').classList.remove('hide');
+}
+$('pauseBtn').addEventListener('click', pauseGame);
+$('resumeBtn').addEventListener('click', resumeGame);
+$('restartBtn').addEventListener('click', begin);
+$('homeBtn').addEventListener('click', goTitle);
+$('titleBtn').addEventListener('click', () => { if (resultReady()) goTitle(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') (menuPaused ? resumeGame : pauseGame)(); });
 const sndBtn = $('snd');
 sndBtn.textContent = Sound.on ? '🔊' : '🔇';
 sndBtn.addEventListener('click', () => { Sound.init(); Sound.resume(); Sound.setOn(!Sound.on); sndBtn.textContent = Sound.on ? '🔊' : '🔇'; });
@@ -1001,7 +1032,7 @@ function render() {
   renderer.clearDepth(); renderer.render(handScene, camera); // 手はいつも手前
 }
 function frame(now) {
-  if (!paused && !manual) update((now - last) / 1000);
+  if (!paused && !manual && !menuPaused) update((now - last) / 1000);
   last = now; render(); requestAnimationFrame(frame);
 }
 document.addEventListener('visibilitychange', () => {
@@ -1026,7 +1057,7 @@ window.__TEST__ = {
   },
   reset(seed) { manual = true; paused = false; acc = 0; startGame(seed); },
   step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); render(); },
-  tap: onTap, toScreen: pos => toScreen(pos),
+  tap: onTap, toScreen: pos => toScreen(pos), goTitle: () => goTitle(), paused: () => menuPaused,
   view(p, t) { camBase.set(...p); camera.position.copy(camBase); camera.lookAt(...t); camera.updateMatrixWorld(); }, // 宣伝画像を撮る時だけ使うカメラ位置
   pops: () => pops,
   state() {
@@ -1067,6 +1098,8 @@ window.__TEST__ = {
       if (![r.position.x, r.position.y, r.position.z, r.scale.x].every(Number.isFinite)) v.push('手の位置がNaN');
     }
     if (handPairs.length > 40) v.push('手が増えすぎ');
+    if (state === 'title' && pops.some(p => !p.demo)) v.push('タイトルなのにゲームの粒が残っている');
+    if (menuPaused && state !== 'play') v.push('遊んでいないのに一時停止のまま');
     return v;
   },
   ready: true,
