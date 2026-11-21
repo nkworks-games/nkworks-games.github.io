@@ -101,7 +101,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a2a20;font-family:
 <canvas id="c"></canvas>
 <div id="hud">
   <div class="pill">スコア<b id="hScore">0</b></div>
-  <div class="pill">のこり<b id="hLeft">150</b>粒</div>
+  <div class="pill">のこり<b id="hLeft">175</b>粒</div>
 </div>
 <button id="snd" aria-label="音のオン・オフ">🔊</button>
 <div id="box">
@@ -125,7 +125,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a2a20;font-family:
     <div class="rule">
       ・飛んだポップコーンを<b>タップ</b>でつかむ<br>
       ・<b>焦げた</b>ポップコーンは、つかむと<b>−3点</b><br>
-      ・全部（<span id="tTotal">150</span>粒）弾け終わったらおしまい
+      ・全部（<span id="tTotal">175</span>粒）弾け終わったらおしまい
     </div>
     </div><div>
     <button class="btn" id="startBtn">スタート</button>
@@ -176,7 +176,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // ===== [SEC:CONFIG] =====
 const CONFIG = {
-  TOTAL: 150,            // 全部の粒の数
+  TOTAL: 175,            // 全部の粒の数（焦げ以外が150粒以下になるように。ランキングの決まりが「つかんだ数150まで」のため）
   BURNT_RATE: 0.15,      // 焦げの割合
   BURNT_PENALTY: 3,      // 焦げをつかんだ時の減点
   PREHEAT: 2.0,          // スタートから弾き始めるまでの秒数
