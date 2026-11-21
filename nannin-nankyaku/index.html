@@ -28,7 +28,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#a9dcff;font-family:
 #count small{font-size:.55em}
 #info{position:absolute;left:16px;top:calc(62px + env(safe-area-inset-top));font-size:13px;font-weight:700;color:#234;background:rgba(255,255,255,.75);border-radius:8px;padding:3px 8px;line-height:1.5}
 #meters{position:absolute;left:50%;transform:translateX(-50%);top:calc(134px + env(safe-area-inset-top));width:min(330px,86vw)}
-@media (min-width:700px){#meters{top:calc(14px + env(safe-area-inset-top))}}
+@media (min-width:700px),(orientation:landscape) and (min-width:520px){#meters{top:calc(14px + env(safe-area-inset-top))}}
 .meter{background:rgba(255,255,255,.88);border-radius:10px;padding:3px 9px 6px;margin-bottom:5px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
 .lab{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:700;color:#777}
 .lab b{color:#222;font-size:13px}
@@ -40,14 +40,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#a9dcff;font-family:
 .free{position:absolute;inset:0;font-size:10px;text-align:center;line-height:14px;color:#666;background:#eee;font-weight:700}
 #judge{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:clamp(28px,7vw,46px);opacity:0;transition:opacity .15s;white-space:nowrap}
 #judge.good{-webkit-text-stroke-color:#2e7d32}#judge.ok{-webkit-text-stroke-color:#1565c0}#judge.warn{-webkit-text-stroke-color:#e65100}
-#pop{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);font-size:clamp(24px,6vw,40px);opacity:0;transition:opacity .25s;white-space:nowrap;text-align:center}
-#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:4}
-#splash{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%) scale(.4);opacity:0;transition:transform .45s cubic-bezier(.2,1.7,.4,1),opacity .3s;font-size:clamp(34px,9vw,68px);text-align:center;white-space:nowrap;line-height:1.15}
-#splash.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
-#splash .t{display:block;font-size:.5em;color:#fff3c4;-webkit-text-stroke-color:#6a1b9a;margin-top:4px}
-#splash small{display:block;font-size:.4em;-webkit-text-stroke-width:2px;margin-top:4px}
-#count{transition:transform .25s;transform-origin:0 0}#count.bump{transform:scale(1.3)}
+#pop{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);font-size:clamp(22px,min(6vw,8vh),40px);opacity:0;transition:opacity .25s;white-space:nowrap;text-align:center}
 #pop small{font-size:.5em;-webkit-text-stroke-width:2px}
+/* 横向き：メーターはいちばん上、お知らせはメーターとボタンの間、判定はボタンの間 */
+@media (orientation:landscape){#pop{top:47%}#judge{top:82%;font-size:clamp(24px,min(7vw,11vh),46px)}}
 #count.gold{color:#fff3c4;-webkit-text-stroke-color:#b8860b}
 #count.rainbow{color:#fff3c4;-webkit-text-stroke-color:#d81b60}
 #live{position:absolute;right:10px;top:calc(62px + env(safe-area-inset-top));background:#d50000;color:#fff;font-weight:900;border-radius:8px;padding:3px 9px;font-size:13px;display:none;line-height:1.35;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.3)}
@@ -72,6 +68,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#a9dcff;font-family:
 .btn:disabled{opacity:.5}
 #resBig{font-size:clamp(44px,13vw,64px);line-height:1.15;margin:6px 0}
 #resTitle{font-weight:900;font-size:18px;color:#6a1b9a;margin:2px 0}
+#resWhy small{font-size:12.5px;color:#777;font-weight:700}
 #resWhy{font-weight:900;font-size:16px;color:#d84315;margin:4px 0 8px}
 #resInfo{font-size:14px;line-height:1.7}
 /* 作者をフォロー・作者を応援する */
@@ -103,10 +100,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#a9dcff;font-family:
   <div id="live"><i id="liveDot">●</i> LIVE 生中継<br><small>視聴者 <b id="viewers">0</b>人</small></div>
   <div id="judge" class="big"></div>
   <div id="pop" class="big"></div>
-  <div id="splash" class="big"></div>
   <div id="hint">「いち」から歩き出そう！</div>
 </div>
-<div id="flash"></div>
 <div id="pads" style="display:none">
   <div class="pad" id="padL">いち<small>左半分 / F</small></div>
   <div class="pad" id="padR">に<small>右半分 / J</small></div>
@@ -150,8 +145,9 @@ const CONFIG = {
   TOL_START: 0.40,       // 2人の時に許されるずれ（前の一歩との差の割合）
   TOL_DECAY: 0.93,       // 1人増えるごとに許される範囲をこの倍率でせまくする
   TOL_MIN: 0.05,         // いちばんせまい時の許容
-  TOL_STRIDE_MUL: 1.3,   // 歩幅（押す長さ）は合わせにくいので少しゆるく
-  SLACK: 0.015,          // 秒。どんなにせまくても残すゆとり
+  TOL_STRIDE_MUL: 2.0,   // 歩幅（押す長さ）は人の指ではリズムよりばらつくので、ゆるく
+  SLACK: 0.02,           // 秒。リズムで、どんなにせまくても残すゆとり
+  HOLD_SLACK: 0.06,      // 秒。押す長さで、どんなにせまくても残すゆとり
   FIRST_HOLD_MAX: 1.5,   // 1歩目だけ：これ以上押し続けたら転ぶ（秒）
   WOBBLE_FROM: 0.6,      // 許容の何割をこえたら「あぶない！」
   // --- 歩き ---
@@ -170,12 +166,11 @@ const CONFIG = {
   FALL_TIME: 0.6, DOMINO_DELAY: 0.07, FALL_ANGLE_MAX: 1.8, RESULT_WAIT: 1.8,
   SLOW_TIME: 0.9, SLOW_SCALE: 0.3,   // 転んだ瞬間のスローモーション（実時間の秒数・速さの倍率）
   // --- 人数で豪華になる演出（その人数になったら加わる） ---
-  FX_AT: { drum: 5, crowd: 5, clap: 10, confetti: 10, bass: 15, dust: 15, brass: 20, flags: 20, pulse: 20, fireworks: 30, cymbal: 30, harmony: 30, live: 40, bells: 40, lights: 40, choir: 50, balloons: 50, keyUp: 60, blimp: 60, carpet: 60, double: 75, pyro: 75, gold: 100 },
-  FX_MSG: { 5: '♪ 大太鼓と観客の声援が加わった！', 10: '♪ 手拍子と紙吹雪が加わった！', 15: '♪ ベースと土けむりが加わった！', 20: '♪ ブラスバンド登場！ 日がかたむいてきた…', 30: '♪ ハーモニーとシンバル！ 花火が上がる！', 40: '📺 テレビ生中継！ 街がリズムに乗りだした！', 50: '♪ 大合唱！ 風船も飛ぶ！', 60: '♪ 転調！ 飛行船とレッドカーペット！', 75: '🔥 炎の柱とスターマイン！', 100: '伝説の大行進！ 街じゅうが金色に！' },
-  HERO_TIME: 2.8,                    // 節目でカメラが列の正面へ回りこむ時間（秒）
+  FX_AT: { drum: 5, crowd: 5, clap: 10, confetti: 10, bass: 15, dust: 15, brass: 20, flags: 20, fireworks: 30, cymbal: 30, live: 40, choir: 50, balloons: 50, double: 75 },
+  FX_MSG: { 5: '♪ 大太鼓と観客が加わった！', 10: '♪ 手拍子と紙吹雪が加わった！', 15: '♪ ベースと土けむりが加わった！', 20: '♪ ブラスバンドが加わった！ 日がかたむいてきた…', 30: '♪ シンバルと花火が加わった！', 40: '📺 テレビの生中継が来た！', 50: '♪ 大合唱が始まった！ 風船も！', 75: '花火が倍になった！', 100: '伝説の大行進！' },
   NIGHT_FROM: 20, NIGHT_TO: 45,      // この人数の間で、昼→夕方→夜になる
   // --- 称号（その人数になったらもらえる） ---
-  TITLES: [[2, 'ふたりは相棒'], [5, '仲良し班'], [10, 'クラス全員'], [15, '学年まるごと'], [20, '商店街ぐるみ'], [30, '町内会'], [40, '大運動会'], [50, '市民大行進'], [60, '全国生中継'], [75, '県民パレード'], [100, '伝説']],
+  TITLES: [[2, 'ふたりは相棒'], [5, '仲良し班'], [10, 'クラス全員'], [15, '学年まるごと'], [20, '商店街ぐるみ'], [30, '町内会'], [40, '大運動会'], [50, '市民大行進'], [75, '県民パレード'], [100, '伝説']],
   // --- 舞台（その人数になる地点で切り替え） ---
   GATE_N: 10, STREET_N: 20,
   // --- カメラ ---
@@ -555,11 +550,10 @@ function buildCrowd(seg, edge, offs, zc, r) {   // 観客をまとめて描く�
   poseCrowd(seg, 0, 0, false);
 }
 const _cm = new THREE.Matrix4(), _cr = new THREE.Matrix4();
-function poseCrowd(seg, t, amp, flags, beatT = -9) {
+function poseCrowd(seg, t, amp, flags) {
   const { items, body, head, flag } = seg.crowd;
   items.forEach((it, i) => {
-    const u = t - beatT - Math.abs(it.x) * 0.012;   // 一歩に合わせて、真ん中から外へ波のようにジャンプ
-    const j = amp > 0 ? (u >= 0 && u < 0.34 ? Math.sin(u / 0.34 * Math.PI) : 0) * amp * 1.4 + Math.max(0, Math.sin(t * it.sp + it.ph)) * amp * 0.25 : 0;
+    const j = amp > 0 ? Math.max(0, Math.sin(t * it.sp + it.ph)) * amp : 0;
     _cm.makeTranslation(it.x, j, it.z); body.setMatrixAt(i, _cm);
     _cm.makeTranslation(it.x, 1.42 + j, it.z); head.setMatrixAt(i, _cm);
     if (flags) { _cr.makeRotationZ(it.side * (-0.5 + 0.45 * Math.sin(t * 6 + it.ph))); _cr.setPosition(it.x - it.side * 0.25, 1.75 + j, it.z); flag.setMatrixAt(i, _cr); }
@@ -572,26 +566,6 @@ function buildTower(seg, sg, x0, z, r) {
   const geo = uvScaledBox(d, h, l, Math.max(1, Math.round(l / 2.2)), Math.round(h / 3.2));
   const m = new THREE.Mesh(geo, winMats[Math.floor(r() * winMats.length)]); m.position.set(cx, h / 2, z); seg.group.add(m); seg.disposeGeo.push(geo);
   seg.boxes.push(new THREE.Box3(new THREE.Vector3(cx - d / 2, 0, z - l / 2), new THREE.Vector3(cx + d / 2, h, z + l / 2)));
-  if (r() < 0.5) {                        // 街が応援する垂れ幕
-    const n = seg.s + 2, M = [20, 30, 40, 50, 60, 75, 100].find(v => v >= n) || 100, k = r();
-    const txt = k < 0.6 ? `祝${M}人${M + 1}脚` : k < 0.8 ? 'がんばれ何人何脚' : 'そろえていちに';
-    const cells = vCells(txt), hh = 0.95 * cells.length, top = Math.min(h - 0.8, 15);
-    const b = new THREE.Mesh(planeGeo(1.4, hh), vTexMat(txt)); b.position.set(sg * (x0 - 0.04), top - hh / 2, z + (r() - 0.5) * 1.5); b.rotation.y = -sg * Math.PI / 2; seg.group.add(b);
-  }
-}
-const planeGeoCache = new Map();
-function planeGeo(w, h) { const k = w.toFixed(2) + 'x' + h.toFixed(2); let g = planeGeoCache.get(k); if (!g) { g = new THREE.PlaneGeometry(w, h); planeGeoCache.set(k, g); } return g; }
-function vCells(txt) { return txt.match(/[0-9]+|./g); }   // 縦書きの1マスずつ（数字はまとめて1マス）
-const vMatCache = new Map();
-function vTexMat(txt) {
-  let m = vMatCache.get(txt); if (m) return m;
-  const cells = vCells(txt), S = 128;
-  const t = canvasTex(S, S * cells.length, (g, W, H) => {
-    g.fillStyle = '#fffdf3'; g.fillRect(0, 0, W, H); g.strokeStyle = '#c62828'; g.lineWidth = 10; g.strokeRect(5, 5, W - 10, H - 10);
-    g.textAlign = 'center'; g.textBaseline = 'middle';
-    cells.forEach((c, i) => { const big = c === '祝'; g.fillStyle = big || /[0-9]/.test(c) ? '#c62828' : '#222'; g.font = `900 ${Math.floor(S * (c.length > 1 ? 0.92 / c.length + 0.12 : 0.74))}px "Hiragino Mincho ProN","Yu Mincho","Hiragino Maru Gothic ProN",serif`; g.fillText(c, W / 2, S * i + S / 2 + 4, W * 0.86); });
-  });
-  m = new THREE.MeshLambertMaterial({ map: t, side: THREE.DoubleSide }); vMatCache.set(txt, m); return m;
 }
 function buildRoadSign(seg, z, road) {
   const x = road + 0.4;
@@ -633,8 +607,6 @@ function initAudioGraph() {
       const lim = ac.createDynamicsCompressor(); lim.threshold.value = -2; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.12;   // 音が1.0を超えて割れないように
       master.connect(comp).connect(lim).connect(ac.destination);
       noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      crowdGain = ac.createGain(); crowdGain.gain.value = 0; crowdGain.connect(master);           // 観客のざわめき（ずっと流す）
-      for (const [fq, q] of [[520, 0.9], [1150, 1.1]]) { const s = ac.createBufferSource(); s.buffer = noiseBuf; s.loop = true; const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = fq; f.Q.value = q; s.connect(f).connect(crowdGain); s.start(0, fq / 1000); }
 }
 const on = () => !!ac && !muted;
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
@@ -665,8 +637,6 @@ const INST = {
   bass(t, m, dur) { synth(t, m, dur, 0.24, 'sawtooth', 520); },
   brass(t, m, dur, vol) { synth(t, m, dur, vol, 'sawtooth', 2200, [-8, 8], 0.03); },
   choir(t, chord, dur) { for (const m of chord) synth(t, m, dur, 0.055, 'triangle', 1400, [-12, 0, 12], 0.25); },
-  timp(t, vol) { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(58, t + 0.3); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7); o.connect(g).connect(master); o.start(t); o.stop(t + 0.75); },
-  bell(t, m, vol) { tone(mtof(m), 0.7, 'sine', vol, 0, t); tone(mtof(m) * 2.76, 0.25, 'sine', vol * 0.35, 0, t); },
   boom(t, vol) { tone(70, 0.9, 'sine', vol, 0.5, t); noise(0.5, 400, vol * 0.6, 0.7, t); for (let i = 0; i < 6; i++) noise(0.05, 5000, vol * 0.25, 1, t + 0.25 + Math.random() * 0.6, 'highpass'); },
 };
 // 歩くたびに1拍進む行進曲（オリジナル。8小節でくり返す）
@@ -675,23 +645,18 @@ const MUS = {
   roots: [36, 43, 45, 41, 36, 41, 43, 36],
   chords: [[60, 64, 67], [59, 62, 67], [57, 60, 64], [57, 60, 65], [60, 64, 67], [57, 60, 65], [59, 62, 67], [60, 64, 67]],
 };
-const THIRD = { 0: 4, 2: 3, 4: 3, 5: 4, 7: 4, 9: 3, 11: 3 };   // ドレミの3度上（ハーモニー）
 function stepMusic(stepNo, iv, g) {      // 1歩ごとに呼ぶ。人数で楽器が増える
   if (!on()) return;
   const t = audioNow() + 0.01, n = G.N, A = C.FX_AT, beat = (stepNo - 1) % 4, bar = Math.floor((stepNo - 1) / 4) % 8, lv = Math.min(1, n / 40);
-  const key = n >= A.keyUp ? 2 : 0, mel = MUS.mel[bar * 4 + beat];   // 60人で転調（キーが上がる）
   noise(0.09 + 0.1 * lv, 240 - 110 * lv, 0.3 + 0.3 * lv, 1, t);                 // 足音（人数が多いほど重く）
   if (n < A.brass) tone(g === 0 ? 700 : 560, 0.07, 'square', 0.045, 0, t);    // いち・に
   if (n >= A.drum) INST.kick(t, (0.55 + 0.35 * lv) * (beat === 0 ? 1.15 : 1));
   if (n >= A.clap) { const k = Math.min(5, 1 + Math.floor(n / 12)); INST.clap(t, 0.22, k); INST.clap(t + iv / 2, 0.16, k); }
-  if (n >= A.bass) INST.bass(t, MUS.roots[bar] + key + (beat % 2 ? 7 : 0), iv * 0.9);
-  if (n >= A.brass) { INST.brass(t, mel + key, iv * 0.85, 0.11); if (beat % 2 === 1) INST.snare(t, 0.16); }
-  if (n >= A.harmony) INST.brass(t, mel + (THIRD[mel % 12] || 3) + key, iv * 0.85, 0.065);
-  if (n >= A.bells) { INST.bell(t, mel + 12 + key, 0.05); INST.bell(t + iv / 2, MUS.chords[bar][(beat + 1) % 3] + 24 + key, 0.035); }
-  if (n >= A.double && beat % 2 === 0) INST.timp(t, 0.5);
+  if (n >= A.bass) INST.bass(t, MUS.roots[bar] + (beat % 2 ? 7 : 0), iv * 0.9);
+  if (n >= A.brass) { INST.brass(t, MUS.mel[bar * 4 + beat], iv * 0.85, 0.11); if (beat % 2 === 1) INST.snare(t, 0.16); }
   if (n >= A.cymbal && beat === 0) INST.cymbal(t, 0.09);
-  if (n >= A.live && beat === 0) for (const m of MUS.chords[bar]) INST.brass(t, m - 12 + key, iv * 1.8, 0.05);
-  if (n >= A.choir && beat === 0) INST.choir(t, MUS.chords[bar].map(m => m + key), iv * 3.9);
+  if (n >= A.live && beat === 0) for (const m of MUS.chords[bar]) INST.brass(t, m - 12, iv * 1.8, 0.05);
+  if (n >= A.choir && beat === 0) INST.choir(t, MUS.chords[bar], iv * 3.9);
 }
 const SFX = {
   join(n) { const sc = [0, 2, 4, 5, 7, 9, 11, 12], m = 76 + sc[n % 8]; tone(mtof(m), 0.12, 'triangle', 0.18); if (ac) tone(mtof(m + 7), 0.2, 'triangle', 0.15, 0, audioNow() + 0.1); },
@@ -699,13 +664,6 @@ const SFX = {
   trip() { tone(500, 0.35, 'sawtooth', 0.12, 0.3); if (ac && G.N >= C.FX_AT.crowd) for (const d of [0, 0.04, 0.08]) tone(430 - d * 600, 1.1, 'sawtooth', 0.035, 0.45, audioNow() + d); },  // 観客の「あぁ〜」
   domino(i) { noise(0.06, 1100 + (i % 6) * 140, 0.2, 2); },
   title() { if (!on()) return; const t = audioNow(); [72, 76, 79, 84].forEach((m, i) => synth(t + i * 0.09, m, i === 3 ? 0.5 : 0.12, 0.12, 'square', 3000)); },
-  fanfare(n) {                   // 節目のファンファーレ（ジャジャジャジャーン＋シンバル＋ティンパニ）
-    if (!on()) return; const t = audioNow() + 0.02, k = n >= C.FX_AT.keyUp ? 2 : 0;
-    [[60, 64, 67], [65, 69, 72], [67, 71, 74], [72, 76, 79, 84]].forEach((ch, i) => { for (const m of ch) INST.brass(t + i * 0.16, m + k, i === 3 ? 1.0 : 0.14, 0.055); });
-    for (let i = 0; i < 6; i++) INST.timp(t + i * 0.075, 0.18 + i * 0.05);
-    INST.cymbal(t + 0.48, 0.16); noise(1.4, 1100, 0.12, 0.5, t + 0.45, 'bandpass');
-  },
-  applause(sec) { if (!on()) return; const t = audioNow(); for (let i = 0; i < 45; i++) INST.clap(t + Math.random() * sec, 0.1, 1); },
   result() { tone(523, 0.15, 'triangle', 0.15); if (ac) tone(392, 0.25, 'triangle', 0.15, 0, audioNow() + 0.16); },
 };
 let crowdBoost = 0;
@@ -732,9 +690,9 @@ function updateSky(dt) {        // 20人から夕方、45人で夜
   scene.fog.color.copy(sc);
   const w = Math.min(1, skyK * 2);
   hemi.intensity = lerp(2.0, 0.85, skyK); sun.intensity = lerp(1.8, 1.5, skyK); sun.color.setRGB(1, lerp(1, 0.8, w), lerp(1, 0.62, w));
-  const glow = clamp((skyK - 0.35) / 0.4, 0, 1), pk = G.N >= C.FX_AT.lights && G.state === 'play' ? 0.7 + 0.6 * FX.bar : 1;   // 40人からは街の明かりが拍に合わせて明滅
-  for (const m of winMats) m.emissiveIntensity = glow * 0.9 * pk;
-  shopWinMat.emissiveIntensity = glow * 0.8 * pk; lampMat.emissiveIntensity = 0.1 + glow * 1.3 * pk;
+  const glow = clamp((skyK - 0.35) / 0.4, 0, 1);
+  for (const m of winMats) m.emissiveIntensity = glow * 0.9;
+  shopWinMat.emissiveIntensity = glow * 0.8; lampMat.emissiveIntensity = 0.1 + glow * 1.3;
 }
 function makeParticles(max, material) {   // 紙吹雪・土けむり・花火の粒
   const pos = new Float32Array(max * 3), col = new Float32Array(max * 3), vel = new Float32Array(max * 3), base = new Float32Array(max * 3), life = new Float32Array(max), full = new Float32Array(max), grav = new Float32Array(max), drag = new Float32Array(max);
@@ -773,7 +731,7 @@ function lineSpan() { let a = Infinity, b = -Infinity; for (const p of G.members
 function confettiBurst(count) {
   const [a, b] = lineSpan(), gold = G.N >= C.FX_AT.choir;
   for (let i = 0; i < count; i++) {
-    const c = gold && Math.random() < (G.N >= C.FX_AT.gold ? 0.9 : 0.4) ? GOLD : CONF_COLS[Math.floor(Math.random() * CONF_COLS.length)];
+    const c = gold && Math.random() < 0.4 ? GOLD : CONF_COLS[Math.floor(Math.random() * CONF_COLS.length)];
     confetti.spawn(lerp(a - 1.5, b + 1.5, Math.random()), 3 + Math.random() * 3.5, G.lineZ - 2.5 + Math.random() * 4.5, (Math.random() - 0.5) * 3, Math.random() * 2, (Math.random() - 0.5) * 3, c, 3 + Math.random() * 2, -2.5, 1.8);
   }
 }
@@ -787,12 +745,9 @@ function firework(big) {                 // 画面の上の方に花火を開く
   const side = Math.random() < 0.5 ? -1 : 1, center = camera.aspect >= 1 && Math.random() < 0.5;   // 横長の画面は上の真ん中にメーターがあるので、その下か左右に開く
   viewPoint(center ? (Math.random() * 2 - 1) * 0.35 : side * (0.4 + Math.random() * 0.4), center ? 0.3 + Math.random() * 0.25 : 0.4 + Math.random() * 0.45, 110 + Math.random() * 30, _vp);
   if (_vp.y < 16) _vp.y = 16 + Math.random() * 8;
-  const hue = Math.random(), n = big ? 150 : 100, sp = big ? 11 : 9, k = Math.random();
-  const type = G.N >= C.FX_AT.gold ? (k < 0.6 ? 'willow' : 'peony') : G.N >= C.FX_AT.live ? (k < 0.4 ? 'peony' : k < 0.7 ? 'ring' : 'willow') : (k < 0.7 ? 'peony' : 'ring');
+  const hue = Math.random(), n = big ? 150 : 100, sp = big ? 11 : 9;
   for (let i = 0; i < n; i++) {
     const u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2, r = Math.sqrt(1 - u * u), s = sp * (0.85 + Math.random() * 0.3);
-    if (type === 'ring') { const a = i / n * Math.PI * 2; _fc.setHSL(hue, 1, 0.62); sparks.spawn(_vp.x, _vp.y, _vp.z, Math.cos(a) * sp, Math.sin(a) * sp, (Math.random() - 0.5) * 0.6, _fc, 1.3 + Math.random() * 0.4, -2.5, 0.9); continue; }
-    if (type === 'willow') { _fc.setHSL(0.11, 1, 0.55 + Math.random() * 0.1); sparks.spawn(_vp.x, _vp.y, _vp.z, r * Math.cos(th) * s * 0.8, u * s * 0.8, r * Math.sin(th) * s * 0.8, _fc, 2.3 + Math.random() * 0.8, -4, 1.6); continue; }   // しだれ柳
     _fc.setHSL((hue + (Math.random() < 0.3 ? 0.5 : 0)) % 1, 1, 0.6);
     sparks.spawn(_vp.x, _vp.y, _vp.z, r * Math.cos(th) * s, u * s, r * Math.sin(th) * s, _fc, 1.2 + Math.random() * 0.6, -3, 0.9);
   }
@@ -832,93 +787,17 @@ heli.visible = false; scene.add(heli);
 const beamGeo = new THREE.CylinderGeometry(0.25, 3.2, 45, 20, 1, true).translate(0, 22.5, 0);
 const beamMat = new THREE.MeshBasicMaterial({ color: 0xfff3c4, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
 const beams = [0, 1].map(() => { const m = new THREE.Mesh(beamGeo, beamMat); m.visible = false; scene.add(m); return m; });
-const FX = { beatT: -9, bar: 0, pulse: 0, pulseHue: 0, heroT: 0, splashT: 0, flashT: 0, bumpT: 0, fwQueue: [], blimpN: 0 };
-// 近くで使う光の粒（炎の柱・金色のきらきら）
-const embers = makeParticles(1600, new THREE.PointsMaterial({ size: 0.2, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-// 紙テープ
-const STR_MAX = 240;
-const streamers = new THREE.InstancedMesh(new THREE.PlaneGeometry(0.06, 0.8), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }), STR_MAX);
-streamers.frustumCulled = false; scene.add(streamers);
-const strData = [], _sq = new THREE.Quaternion(), _se = new THREE.Euler(), _sp = new THREE.Vector3(), _ss = new THREE.Vector3(1, 1, 1);
-for (let i = 0; i < STR_MAX; i++) { strData.push({ life: 0, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, rx: 0, ry: 0, rz: 0, wx: 0, wz: 0 }); streamers.setColorAt(i, CONF_COLS[i % CONF_COLS.length]); streamers.setMatrixAt(i, _zeroM); }
-let strHead = 0;
-function streamer(x, y, z, vx, vy, vz) { const d = strData[strHead]; strHead = (strHead + 1) % STR_MAX; Object.assign(d, { life: 4 + Math.random() * 2, x, y, z, vx, vy, vz, rx: Math.random() * 6, ry: Math.random() * 6, rz: Math.random() * 6, wx: (Math.random() - 0.5) * 14, wz: (Math.random() - 0.5) * 10 }); }
-function updateStreamers(dt) {
-  for (let i = 0; i < STR_MAX; i++) {
-    const d = strData[i]; if (d.life <= 0) continue; d.life -= dt;
-    if (d.life <= 0) { streamers.setMatrixAt(i, _zeroM); continue; }
-    if (d.y > 0.03) {
-      const dk = Math.exp(-1.6 * dt); d.vx *= dk; d.vz *= dk; d.vy = d.vy * dk - 3 * dt;
-      d.x += d.vx * dt; d.y += d.vy * dt; d.z += d.vz * dt; d.rx += d.wx * dt; d.rz += d.wz * dt;
-      if (d.y <= 0.03) { d.y = 0.03; d.rx = -Math.PI / 2; d.rz = 0; }     // 地面に落ちたら寝かせる
-    }
-    _sq.setFromEuler(_se.set(d.rx, d.ry, d.rz)); _cm.compose(_sp.set(d.x, d.y, d.z), _sq, _ss); streamers.setMatrixAt(i, _cm);
-  }
-  streamers.instanceMatrix.needsUpdate = true;
-}
-function cannon(side, n) {               // 列の端から、紙吹雪と紙テープを打ち上げる
-  const [a, b] = lineSpan(), x = (side < 0 ? a : b) + side * 1.2, z = G.lineZ + 0.3, gold = G.N >= C.FX_AT.gold;
-  for (let i = 0; i < Math.min(170, 40 + n * 2); i++) confetti.spawn(x, 0.6, z, -side * (2 + Math.random() * 5), 7 + Math.random() * 5, (Math.random() - 0.5) * 4, gold ? GOLD : CONF_COLS[Math.floor(Math.random() * CONF_COLS.length)], 4 + Math.random() * 1.5, -2.5, 1.4);
-  for (let i = 0; i < Math.min(30, 8 + n / 3); i++) streamer(x, 0.6, z, -side * (2 + Math.random() * 4), 7 + Math.random() * 5, (Math.random() - 0.5) * 3);
-}
-function pyro() {                        // 炎の柱（列の両側）
-  const [a, b] = lineSpan();
-  for (const sg of [-1, 1]) for (let i = 0; i < 55; i++) { _fc.setHSL(0.05 + Math.random() * 0.07, 1, 0.5 + Math.random() * 0.15); embers.spawn((sg < 0 ? a : b) + sg * 2.4 + (Math.random() - 0.5) * 0.4, 0.2, G.lineZ + (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 0.8, 8 + Math.random() * 4, (Math.random() - 0.5) * 0.8, _fc, 0.5 + Math.random() * 0.35, -9, 0.6); }
-  if (on()) noise(0.6, 900, 0.18, 0.6, audioNow(), 'bandpass');
-  G.shake = Math.min(0.15, G.shake + 0.04);
-}
-const pulseMat = new THREE.MeshBasicMaterial({ color: 0xffe082, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
-const pulseMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1.6).rotateX(-Math.PI / 2), pulseMat); pulseMesh.visible = false; pulseMesh.renderOrder = 5; scene.add(pulseMesh);   // 足元が拍に合わせて光る
-const carpet = new THREE.Group();        // レッドカーペット
-{ const c = new THREE.Mesh(new THREE.PlaneGeometry(1, 46).rotateX(-Math.PI / 2), mat('#9e1b1b')); c.name = 'main'; carpet.add(c);
-  for (const sg of [-1, 1]) { const e = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 46).rotateX(-Math.PI / 2), mat('#ffc107')); e.name = sg < 0 ? 'L' : 'R'; e.position.y = 0.001; carpet.add(e); } }
-carpet.visible = false; scene.add(carpet);
-const blimpCanvas = document.createElement('canvas'); blimpCanvas.width = 1024; blimpCanvas.height = 160;
-const blimpTex = new THREE.CanvasTexture(blimpCanvas); blimpTex.colorSpace = THREE.SRGBColorSpace;
-function setBlimpText(n) {
-  const g = blimpCanvas.getContext('2d'); g.fillStyle = '#111'; g.fillRect(0, 0, 1024, 160);
-  g.fillStyle = '#ffb300'; g.font = '900 92px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText(`何人何脚 生中継 ${n}人${legsOf(n)}脚`, 512, 84, 980); blimpTex.needsUpdate = true; FX.blimpN = n;
-}
-const blimp = new THREE.Group();         // 飛行船（電光掲示板つき）
-{ const body = new THREE.Mesh(new THREE.SphereGeometry(1, 22, 14), mat('#eceff1')); body.scale.set(6, 2.2, 2.2); blimp.add(body);
-  const gon = new THREE.Mesh(new THREE.BoxGeometry(2, 0.6, 1), mat('#90a4ae')); gon.position.y = -2.35; blimp.add(gon);
-  for (const [ry, rz] of [[0, 0], [0, Math.PI / 2]]) { const f = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.6, 0.1), mat('#e53935')); f.position.x = 5.4; f.rotation.set(rz, ry, 0); blimp.add(f); }
-  for (const sz of [-1, 1]) { const led = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.25), new THREE.MeshBasicMaterial({ map: blimpTex, fog: false })); led.position.set(0, 0.2, sz * 2.12); if (sz < 0) led.rotation.y = Math.PI; blimp.add(led); } }
-blimp.visible = false; scene.add(blimp);
-function milestone(n, title, msg) {      // 節目の人数のお祝い（光・大きな文字・キャノン・ファンファーレ・カメラ）
-  const el = $('splash');
-  el.innerHTML = `${n}人${legsOf(n)}脚 突破！${title ? `<span class="t">称号「${title}」</span>` : ''}${msg ? `<small>${msg}</small>` : ''}`;
-  el.classList.add('show'); FX.splashT = 2.8; FX.flashT = 1;
-  cannon(-1, n); cannon(1, n);
-  if (n >= C.FX_AT.fireworks) for (let i = 0; i < Math.min(14, 3 + Math.floor(n / 8)); i++) FX.fwQueue.push({ t: G.gameT + 0.3 + i * 0.2, big: n >= C.FX_AT.double });   // スターマイン
-  if (n >= C.FX_AT.pyro) pyro();
-  if (n >= 10) FX.heroT = C.HERO_TIME;
-  crowdBoost = Math.min(0.32, crowdBoost + 0.22);
-  SFX.fanfare(n);
-}
-function finale() {                      // 崩れた時の最後の打ち上げと拍手
-  const n = G.N; if (n < C.FX_AT.flags) return;
-  cannon(-1, n); cannon(1, n);
-  if (n >= C.FX_AT.fireworks) for (let i = 0; i < Math.min(16, 4 + Math.floor(n / 6)); i++) FX.fwQueue.push({ t: G.gameT + 0.15 + i * 0.16, big: true });
-  SFX.applause(2.8);
-}
-let confAcc = 0, viewersT = 0, goldAcc = 0;
+let confAcc = 0, viewersT = 0;
 function stepFX(stepNo, iv, g) {         // 1歩ごとの演出（音・花火・風船・ゆれ）
   stepMusic(stepNo, iv, g);
   const n = G.N, A = C.FX_AT, beat = (stepNo - 1) % 4;
-  FX.beatT = G.gameT; FX.pulse = beat === 0 ? 1 : 0.6; FX.pulseHue = (stepNo * 0.09) % 1; if (beat === 0) FX.bar = 1;
   if (n >= A.fireworks && (beat === 0 || (n >= A.double && beat === 2))) firework(n >= A.double);
   if (n >= A.balloons && beat === 0) releaseBalloons(n >= A.double ? 3 : 2);
-  if (n >= A.pyro && beat === 0) pyro();
   if (n >= A.dust) G.shake = Math.min(0.12, G.shake + 0.0006 * Math.min(n, 60));
 }
 function joinFX(n) {                      // 仲間が増えた時の演出
-  crowdBoost = Math.min(0.32, crowdBoost + 0.06);
+  crowdBoost = Math.min(0.15, crowdBoost + 0.06);
   if (n >= C.FX_AT.confetti) confettiBurst(Math.min(260, 30 + n * 4));
-  if (n >= C.FX_AT.flags) cannon(n % 2 ? 1 : -1, n * 0.5);
-  if (n >= C.FX_AT.blimp) setBlimpText(n);
-  FX.bumpT = 0.25; $('count').classList.add('bump');
 }
 function tickFX(dt) {                    // ゲームの時間で動かす（スローモーションにも合う）
   const t = G.gameT, n = G.N;
@@ -926,36 +805,13 @@ function tickFX(dt) {                    // ゲームの時間で動かす（ス
     confAcc += dt * (n >= C.FX_AT.choir ? 45 : n >= C.FX_AT.fireworks ? 25 : 12);
     if (confAcc >= 1) { const k = Math.floor(confAcc); confAcc -= k; confettiBurst(k); }
   }
-  if (G.state === 'play' && !G.falling && n >= C.FX_AT.gold) {     // 100人からは金色のきらきら
-    goldAcc += dt * 40; const [a, b] = lineSpan();
-    while (goldAcc >= 1) { goldAcc -= 1; embers.spawn(lerp(a - 1, b + 1, Math.random()), 0.3 + Math.random() * 2.2, G.lineZ + (Math.random() - 0.5) * 2, 0, 0.6 + Math.random() * 0.6, 0, GOLD, 1.2, 0.2, 0.5); }
-  }
-  while (FX.fwQueue.length && FX.fwQueue[0].t <= t) firework(FX.fwQueue.shift().big);
-  FX.pulse = Math.max(0, FX.pulse - dt * 3.5); FX.bar = Math.max(0, FX.bar - dt * 2.5); FX.heroT = Math.max(0, FX.heroT - dt);
-  confetti.update(dt, false, 1.2, 0.01, t); dust.update(dt, false, 0, null, t); sparks.update(dt, true, 0, null, t); embers.update(dt, true, 0, null, t);
-  updateBalloons(dt, t); updateStreamers(dt);
+  confetti.update(dt, false, 1.2, 0.01, t); dust.update(dt, false, 0, null, t); sparks.update(dt, true, 0, null, t);
+  updateBalloons(dt, t);
 }
 function frameFX(dt) {                   // 画面の更新ごと（カメラ基準のもの・観客・HUD）
   const t = G.gameT, n = G.N, live = n >= C.FX_AT.live && G.state !== 'title';
-  confetti.flush(); dust.flush(); sparks.flush(); embers.flush();
+  confetti.flush(); dust.flush(); sparks.flush();
   updateSky(dt); updateCrowdSound(dt);
-  // 節目の大きな文字・光・人数の文字のはね
-  if (FX.splashT > 0) { FX.splashT -= dt; if (FX.splashT <= 0) $('splash').classList.remove('show'); }
-  FX.flashT = Math.max(0, FX.flashT - dt * 2.2); $('flash').style.opacity = (0.6 * FX.flashT * FX.flashT).toFixed(3);
-  if (FX.bumpT > 0) { FX.bumpT -= dt; if (FX.bumpT <= 0) $('count').classList.remove('bump'); }
-  const playing = G.state === 'play' && !G.falling, [la, lb] = lineSpan(), lcx = (la + lb) / 2, lw = lb - la;
-  // 足元の光
-  pulseMesh.visible = playing && n >= C.FX_AT.pulse;
-  if (pulseMesh.visible) { pulseMesh.scale.set(lw + 1.6, 1, 1); pulseMesh.position.set(lcx, 0.016, G.lineZ - 0.1); pulseMat.opacity = 0.42 * FX.pulse; if (n >= C.FX_AT.lights) pulseMat.color.setHSL(FX.pulseHue, 1, 0.6); else pulseMat.color.set(0xffe082); }
-  // レッドカーペット・飛行船
-  carpet.visible = n >= C.FX_AT.carpet && G.state !== 'title';
-  if (carpet.visible) { const cw = lw + 2.2; carpet.getObjectByName('main').scale.set(cw, 1, 1); carpet.getObjectByName('L').position.x = -cw / 2; carpet.getObjectByName('R').position.x = cw / 2; carpet.position.set(lcx, 0.009, G.lineZ + 17); }   // 列の6m先まで（後ろは歩いてきた道）
-  if (n >= C.FX_AT.blimp && G.state !== 'title') {
-    if (FX.blimpN !== n) setBlimpText(n);
-    viewPoint((camera.aspect >= 1 ? -0.55 : -0.25) + 0.05 * Math.sin(t * 0.15), camera.aspect >= 1 ? 0.5 : 0.62, 70, _vp);
-    if (!blimp.visible) { blimp.visible = true; blimp.position.copy(_vp); }
-    blimp.position.lerp(_vp, 1 - Math.exp(-0.6 * dt)); blimp.rotation.set(0, Math.atan2(camera.position.x - blimp.position.x, camera.position.z - blimp.position.z) + Math.PI / 2, 0.03 * Math.sin(t * 0.5));
-  } else blimp.visible = false;
   // ヘリ
   if (live) {
     viewPoint(0.35 + 0.08 * Math.sin(t * 0.25), (camera.aspect >= 1 ? 0.42 : 0.18) + 0.04 * Math.sin(t * 0.6), 26, _vp);
@@ -976,7 +832,7 @@ function frameFX(dt) {                   // 画面の更新ごと（カメラ基
   for (const seg of segs.values()) {      // 観客は列の近くだけ描く（遠くは霧で見えないので省いて軽くする）
     if (!seg.crowd) continue; const dz = seg.crowd.zc - G.lineZ, vis = dz > -30 && dz < 45;
     seg.crowd.body.visible = seg.crowd.head.visible = seg.crowd.flag.visible = vis;
-    if (vis && Math.abs(dz) < 35) poseCrowd(seg, t, amp, flags, FX.beatT);
+    if (vis && Math.abs(dz) < 35) poseCrowd(seg, t, amp, flags);
   }
   // HUD
   $('live').style.display = live && G.state === 'play' ? 'block' : 'none';
@@ -986,10 +842,7 @@ function frameFX(dt) {                   // 画面の更新ごと（カメラ基
   if (live && viewersT <= 0) { viewersT = 0.8; const v = Math.floor(n * n * n * 21 + n * 1000 + Math.random() * n * 300); $('viewers').textContent = v >= 10000 ? (v / 10000).toFixed(1) + '万' : v; }
 }
 function resetFX() {
-  confetti.clear(); dust.clear(); sparks.clear(); embers.clear();
-  for (let i = 0; i < STR_MAX; i++) { strData[i].life = 0; streamers.setMatrixAt(i, _zeroM); } streamers.instanceMatrix.needsUpdate = true;
-  Object.assign(FX, { beatT: -9, bar: 0, pulse: 0, heroT: 0, splashT: 0, flashT: 0, bumpT: 0, fwQueue: [], blimpN: 0 }); goldAcc = 0;
-  blimp.visible = false; carpet.visible = false; pulseMesh.visible = false; $('splash').classList.remove('show'); $('flash').style.opacity = 0; for (let i = 0; i < BAL_MAX; i++) { balData[i].on = false; balloons.setMatrixAt(i, _zeroM); } balloons.instanceMatrix.needsUpdate = true;
+  confetti.clear(); dust.clear(); sparks.clear(); for (let i = 0; i < BAL_MAX; i++) { balData[i].on = false; balloons.setMatrixAt(i, _zeroM); } balloons.instanceMatrix.needsUpdate = true;
   heli.visible = false; skyK = 0; crowdBoost = 0; confAcc = 0;
 }
 let lastDominoSfx = 0;
@@ -1047,12 +900,23 @@ function sortedMembers() { return [...G.members].sort((a, b) => a.x - b.x); }
 
 // ===== [SEC:INPUT] =====
 let manual = false, paused = false, lastUpdateReal = performance.now(), acc = 0;
-function eventTime() { return manual ? G.gameT : G.gameT + acc + clamp((performance.now() - lastUpdateReal) / 1000, 0, C.MAX_FRAME); }
-function press(g) {
+// リズムの判定は本物の時計で、ボタンを押した瞬間の時刻（イベントの時刻）で測る。
+// 画面の処理が一瞬重くなっても、押した時刻がずれて「ずれた」と判定されないようにするため
+let rClock = 0, rBase = performance.now(), simNow = null, legacyClock = false;   // simNow・legacyClock はテスト用
+const nowMs = () => simNow != null ? simNow : performance.now();
+function rNow(ts) {
+  if (manual) return G.gameT;
+  if (legacyClock) return G.gameT + acc + clamp((nowMs() - lastUpdateReal) / 1000, 0, C.MAX_FRAME);   // 前の測り方（テストで比べる用）
+  return rClock + ((ts != null ? ts : nowMs()) - rBase) / 1000;
+}
+function rAdvance(now) { if (!paused && !manual) rClock += Math.min(1, Math.max(0, now - rBase) / 1000); rBase = now; }
+function evTs(e) { const n = nowMs(); return e && e.timeStamp > 0 && Math.abs(e.timeStamp - n) < 1000 ? e.timeStamp : n; }
+function eventTime() { return rNow(); }
+function press(g, ts) {
   if (G.state !== 'play' || G.falling || paused) return;
-  const t = eventTime();
+  const t = rNow(ts);
   if (G.holding && G.holding.g === g) return;
-  if (G.holding) release(G.holding.g, t);
+  if (G.holding) releaseAt(G.holding.g, t);
   if (G.state !== 'play' || G.falling) return;
   audio();
   showHint(false);
@@ -1063,28 +927,28 @@ function press(g) {
     if (G.prevInterval != null) {
       const dev = (iv - G.prevInterval) / G.prevInterval, allowed = tol + C.SLACK / G.prevInterval;
       setMeter(G.meterR, dev, allowed);
-      if (Math.abs(dev) > allowed) { trip(dev < 0 ? 'fast' : 'slow'); return; }
+      if (Math.abs(dev) > allowed) { trip(dev < 0 ? 'fast' : 'slow', { kind: 'リズム', dev, allowed }); return; }
       judge(dev, allowed);
     }
     G.prevInterval = iv;
   }
   const ivNow = G.lastPressT != null ? t - G.lastPressT : null;
   G.lastPressT = t; G.lastGroup = g; G.holding = { g, t0: t }; G.steps++;
-  const f = G.foot[g]; f.phase = 'swing'; f.t0 = t;
+  const f = G.foot[g]; f.phase = 'swing'; f.t0 = G.gameT;   // 足の動き（見た目）はゲームの時計で
   stepFX(G.steps, clamp(ivNow || G.prevInterval || 0.45, 0.15, 1.2), g); setPads(g);
 }
-function release(g, tIn, silent) {
+function release(g, ts) { releaseAt(g, rNow(ts)); }
+function releaseAt(g, t, silent) {
   if (!G.holding || G.holding.g !== g) return;
-  const t = tIn != null ? tIn : eventTime();
   const hold = Math.max(0, t - G.holding.t0);
   G.holding = null; setPads(-1);
   const f = G.foot[g], o = G.foot[1 - g];
   f.phase = 'land'; f.t0 = G.gameT; f.fromZ = f.z; f.fromY = f.y; f.toZ = restZ(o) - strideFor(hold);
   if (G.falling || G.state !== 'play' || silent) return;
   if (G.prevHold != null) {
-    const allowed = tolFor(G.N) * C.TOL_STRIDE_MUL + C.SLACK / G.prevHold, dev = (hold - G.prevHold) / G.prevHold;
+    const allowed = tolFor(G.N) * C.TOL_STRIDE_MUL + C.HOLD_SLACK / G.prevHold, dev = (hold - G.prevHold) / G.prevHold;
     setMeter(G.meterS, dev, allowed);
-    if (Math.abs(dev) > allowed) { trip(dev < 0 ? 'small' : 'big'); return; }
+    if (Math.abs(dev) > allowed) { trip(dev < 0 ? 'small' : 'big', { kind: '歩幅（押す長さ）', dev, allowed }); return; }
     judge(dev, allowed);
   }
   G.prevHold = Math.max(0.03, hold);
@@ -1093,24 +957,24 @@ function restZ(f) { return f.phase === 'land' ? f.toZ : f.z; }   // その足が
 function strideFor(hold) { return clamp(hold * C.STRIDE_PER_SEC, C.STRIDE_MIN, C.STRIDE_MAX); }
 const KEYMAP = { KeyF: 0, KeyJ: 1 };
 addEventListener('keydown', e => {
-  if (e.code in KEYMAP) { e.preventDefault(); if (!e.repeat) press(KEYMAP[e.code]); return; }
+  if (e.code in KEYMAP) { e.preventDefault(); if (!e.repeat) press(KEYMAP[e.code], evTs(e)); return; }
   if ((e.code === 'Space' || e.code === 'Enter') && !e.repeat) {
     if (G.state === 'title') startGame(); else if (G.state === 'result' && resultReady()) startGame(); else if (paused) resume();
   }
 });
-addEventListener('keyup', e => { if (e.code in KEYMAP) release(KEYMAP[e.code]); });
+addEventListener('keyup', e => { if (e.code in KEYMAP) release(KEYMAP[e.code], evTs(e)); });
 const touchEl = $('touch'), pointerG = new Map();
 touchEl.addEventListener('pointerdown', e => {
   e.preventDefault(); const g = e.clientX < innerWidth / 2 ? 0 : 1; pointerG.set(e.pointerId, g);
-  try { touchEl.setPointerCapture(e.pointerId); } catch (_) { } press(g);
+  try { touchEl.setPointerCapture(e.pointerId); } catch (_) { } press(g, evTs(e));
 });
-function pointerEnd(e) { if (!pointerG.has(e.pointerId)) return; const g = pointerG.get(e.pointerId); pointerG.delete(e.pointerId); if (![...pointerG.values()].includes(g)) release(g); }
+function pointerEnd(e) { if (!pointerG.has(e.pointerId)) return; const g = pointerG.get(e.pointerId); pointerG.delete(e.pointerId); if (![...pointerG.values()].includes(g)) release(g, evTs(e)); }
 touchEl.addEventListener('pointerup', pointerEnd); touchEl.addEventListener('pointercancel', pointerEnd);
 addEventListener('contextmenu', e => e.preventDefault());
 $('mute').addEventListener('click', () => { muted = !muted; store.set('nannin-mute', muted ? '1' : '0'); $('mute').textContent = muted ? '🔇' : '🔊'; audio(); if (master) master.gain.value = muted ? 0 : 0.9; });
 function pauseGame() {
   if (G.state !== 'play' || paused || manual) return;
-  if (G.holding) release(G.holding.g, G.gameT, true);
+  if (G.holding) releaseAt(G.holding.g, rNow(), true);
   G.lastPressT = null; G.prevInterval = null;   // 再開後はリズムを取り直せる
   pointerG.clear(); paused = true; $('pause').classList.add('show');
 }
@@ -1127,18 +991,18 @@ function judge(dev, allowed) {
   if (r < 0.3) { el.textContent = 'ぴったり！'; el.className = 'big good'; }
   else if (r < C.WOBBLE_FROM) { el.textContent = 'いいね'; el.className = 'big ok'; }
   else { el.textContent = 'あぶない！'; el.className = 'big warn'; G.wobble = Math.max(G.wobble, r); SFX.warn(); }
-  el.style.opacity = FX.splashT > 0 ? 0 : 1; G.judgeT = 0.5;   // 節目の大きな文字が出ている間は出さない
+  el.style.opacity = 1; G.judgeT = 0.5;
 }
-function trip(reason) {
+function trip(reason, info) {
   if (G.falling) return;
-  G.reason = reason;
+  G.reason = reason; G.tripInfo = info || null;
   if (G.holding) { const f = G.foot[G.holding.g]; f.phase = 'land'; f.t0 = G.gameT; f.fromZ = f.z; f.fromY = f.y; f.toZ = f.z; G.holding = null; }
   const ms = sortedMembers();
   const fi = Math.floor(rng() * ms.length);
   G.falling = { t: 0, order: ms, fi, done: 0, endT: null };
   ms.forEach((p, i) => { p.fallDelay = Math.abs(i - fi) * C.DOMINO_DELAY + (i === fi ? 0 : 0.05); });
   for (const j of G.joiners) j.waving = false;
-  SFX.trip(); setPads(-1); G.slowReal = C.SLOW_TIME; FX.heroT = 0; $('splash').classList.remove('show');
+  SFX.trip(); setPads(-1); G.slowReal = C.SLOW_TIME;
   const el = $('judge'); el.textContent = 'あっ！'; el.className = 'big warn'; el.style.opacity = 1; G.judgeT = 1.2;
 }
 function beginFall(p) {        // よろけて足をそろえる
@@ -1179,8 +1043,10 @@ function joinMember(j) {
   G.N = G.members.length; rebuildRibbons(); setHUDCount();
   spawnJoiner(G.N + 3);
   const newTitle = C.TITLES.find(([k]) => k === G.N), fxMsg = C.FX_MSG[G.N];
-  if (newTitle || fxMsg) milestone(G.N, newTitle ? newTitle[1] : null, fxMsg);   // 節目は大きくお祝い
-  else { popup(`+1人！ ${G.N}人${legsOf(G.N)}脚`); SFX.join(G.N); }
+  let html = newTitle ? `称号「${newTitle[1]}」！<br><small>${G.N}人${legsOf(G.N)}脚</small>` : `+1人！ ${G.N}人${legsOf(G.N)}脚`;
+  if (fxMsg) html += `<br><small>${fxMsg}</small>`;
+  popup(html);
+  if (newTitle || fxMsg) { SFX.title(); G.popT = 2.6; } else SFX.join(G.N);
   joinFX(G.N);
 }
 function popup(text) { const el = $('pop'); el.innerHTML = text; el.style.opacity = 1; G.popT = 1.4; }
@@ -1189,17 +1055,6 @@ function popup(text) { const el = $('pop'); el.innerHTML = text; el.style.opacit
 function tick(dt) {
   G.gameT += dt;
   const t = G.gameT;
-  if (G.state === 'play' && !G.falling) {
-    const tol = tolFor(G.N);
-    if (G.prevInterval != null && G.lastPressT != null) {     // 遅すぎ（押すのを待ちすぎ）
-      const el = t - G.lastPressT, allowedMax = G.prevInterval * (1 + tol) + C.SLACK;
-      if (el > allowedMax) trip('slow');
-    }
-    if (!G.falling && G.holding) {                          // 押し続けすぎ
-      const h = t - G.holding.t0;
-      if (G.prevHold != null ? h > G.prevHold * (1 + tol * C.TOL_STRIDE_MUL) + C.SLACK : h > C.FIRST_HOLD_MAX) trip('big');
-    }
-  }
   // 足
   for (let g = 0; g < 2; g++) {
     const f = G.foot[g], o = G.foot[1 - g];
@@ -1266,7 +1121,7 @@ function tick(dt) {
       p.tilt.rotation.set(-fl.ang, 0, 0);
       p.blob.scale.setScalar(1 - 0.4 * u);
     }
-    if (F.done >= F.order.length && F.endT == null) { F.endT = F.t; $('judge').style.opacity = 0; G.judgeT = 0; popup(`${G.N}人${legsOf(G.N)}脚、崩壊。`); G.popT = C.RESULT_WAIT + 1; finale(); }
+    if (F.done >= F.order.length && F.endT == null) { F.endT = F.t; $('judge').style.opacity = 0; G.judgeT = 0; popup(`${G.N}人${legsOf(G.N)}脚、崩壊。`); G.popT = C.RESULT_WAIT + 1; }
     if (F.endT != null && F.t - F.endT > C.RESULT_WAIT && G.state === 'play') showResult();
   }
   // 結び目のリボン
@@ -1300,14 +1155,7 @@ function cameraGoal(outPos, outLook) {
   const kf = clamp((G.N - 25) / 10, 0, 1);   // 25人からはカメラを低くして前を向き、上の方に空（花火・ヘリ）を見せる
   outPos.set(cx + ox, 1.2 + d * lerp(0.42, 0.25, kf), camZ);
   outLook.set(cx, 0.75 + d * 0.15 * kf, z + 0.4);
-  if (FX.heroT > 0) {                     // 節目：列の正面をぐるっと回って見せる
-    const u = 1 - FX.heroT / C.HERO_TIME, w = Math.sin(u * Math.PI), R = Math.max(8, W * 0.62), th = lerp(-0.7, 0.7, u);
-    const road = stageAtZ(z) > 0 ? halfWidthFor(nAtZ(z)) + 1.0 : 40;
-    _hp.set(clamp(cx + Math.sin(th) * R, -road + 0.6, road - 0.6), 1.7, z - Math.cos(th) * R); _hl.set(cx, 1.0, z);
-    outPos.lerp(_hp, w); outLook.lerp(_hl, w);
-  }
 }
-const _hp = new THREE.Vector3(), _hl = new THREE.Vector3();
 const _gp = new THREE.Vector3(), _gl = new THREE.Vector3();
 function updateCamera(dt) {
   cameraGoal(_gp, _gl);
@@ -1350,7 +1198,7 @@ function updateHUD(dt) {
     G.prevInterval != null ? tol + C.SLACK / G.prevInterval : null, G.lastPressT == null ? 'あと2歩は自由' : 'あと1歩は自由');
   const sLive = !!G.holding && G.prevHold != null;
   drawMeter('s', G.meterS, sLive, sLive ? (t - G.holding.t0 - G.prevHold) / G.prevHold : 0,
-    G.prevHold != null ? tol * C.TOL_STRIDE_MUL + C.SLACK / G.prevHold : null, 'あと1歩は自由');
+    G.prevHold != null ? tol * C.TOL_STRIDE_MUL + C.HOLD_SLACK / G.prevHold : null, 'あと1歩は自由');
   const nx = G.joiners.find(j => j.n === G.N + 1);
   $('nextM').textContent = nx ? Math.max(0, G.lineZ - nx.z).toFixed(1) : '-';
   const nt = nextTitle(G.N), ntText = nt ? `次の称号まで あと<b>${nt[0] - G.N}</b>人` : '称号コンプリート！';
@@ -1372,7 +1220,8 @@ function showResult() {
   if (isNew) { G.best = n; store.set(C.BEST_KEY, String(n)); }
   $('resBig').textContent = `${n}人${legsOf(n)}脚`;
   $('resTitle').textContent = `称号「${titleFor(n)}」`;
-  $('resWhy').textContent = REASONS[G.reason] || '';
+  const ti = G.tripInfo, pc = v => Math.round(v * 100);
+  $('resWhy').innerHTML = (REASONS[G.reason] || '') + (ti ? `<br><small>${ti.kind}のずれ ${ti.dev > 0 ? '+' : ''}${pc(ti.dev)}%（OKは±${pc(ti.allowed)}%まで）</small>` : '');
   $('resNew').style.display = isNew ? 'block' : 'none';
   $('resInfo').innerHTML = `<span>歩いた距離 ${Math.max(0, -G.lineZ).toFixed(1)}m</span><br><span>自己ベスト ${G.best}人${legsOf(G.best)}脚</span>`;
   for (const b of ['againBtn', 'shareBtn', 'titleBtn']) $(b).disabled = true;
@@ -1394,6 +1243,19 @@ $('shareBtn').addEventListener('click', () => {
 });
 
 // ===== [SEC:LOOP] =====
+function checkTiming() {               // 押すのを待ちすぎ・押し続けすぎ（本物の時計で調べる）
+  if (G.state !== 'play' || G.falling || paused) return;
+  const t = rNow(), tol = tolFor(G.N);
+  if (G.prevInterval != null && G.lastPressT != null) {
+    const el = t - G.lastPressT, allowed = tol + C.SLACK / G.prevInterval;
+    if (el > G.prevInterval * (1 + allowed)) { trip('slow', { kind: 'リズム', dev: (el - G.prevInterval) / G.prevInterval, allowed }); return; }
+  }
+  if (G.holding) {
+    const h = t - G.holding.t0;
+    if (G.prevHold != null) { const allowed = tol * C.TOL_STRIDE_MUL + C.HOLD_SLACK / G.prevHold; if (h > G.prevHold * (1 + allowed)) trip('big', { kind: '歩幅（押す長さ）', dev: (h - G.prevHold) / G.prevHold, allowed }); }
+    else if (h > C.FIRST_HOLD_MAX) trip('big');
+  }
+}
 function update(frameDt) {
   acc += Math.min(Math.max(0, frameDt), C.MAX_FRAME);
   while (acc >= C.FIXED) {
@@ -1401,6 +1263,7 @@ function update(frameDt) {
     if (G.slowReal > 0) { G.slowReal = Math.max(0, G.slowReal - C.FIXED); sc = lerp(1, C.SLOW_SCALE, clamp(G.slowReal / 0.3, 0, 1)); }
     tick(C.FIXED * sc); acc -= C.FIXED;
   }
+  checkTiming();
   updateCamera(Math.min(Math.max(0, frameDt), C.MAX_FRAME));
   updateWorld(G.lineZ, false);
   baseMat.color.lerp(STAGE_BASE[G.stage], 0.05);
@@ -1410,7 +1273,9 @@ function update(frameDt) {
 function render() { renderer.render(scene, camera); }
 let lastFrame = performance.now();
 function frame(now) {
+  if (simNow != null) { requestAnimationFrame(frame); return; }   // テストで時間を自分で進めている間
   const dt = (now - lastFrame) / 1000; lastFrame = now;
+  rAdvance(now);
   if (!paused && !manual) { update(dt); lastUpdateReal = now; }
   render(); requestAnimationFrame(frame);
 }
@@ -1452,9 +1317,7 @@ window.__TEST__ = {
     if (G.lineZ > 1e-6) v.push('列が後ろに下がった');
     if (G.slowReal < 0 || G.slowReal > C.SLOW_TIME) v.push('スローの時間がおかしい');
     for (const ps of [confetti, dust, sparks]) for (let i = 0; i < ps.life.length; i += 7) if (ps.life[i] > 0 && !Number.isFinite(ps.pos[i * 3] + ps.pos[i * 3 + 1] + ps.pos[i * 3 + 2])) { v.push('演出の粒がNaN'); break; }
-    if (!Number.isFinite(skyK) || !Number.isFinite(heli.position.x) || !Number.isFinite(blimp.position.x)) v.push('空・ヘリ・飛行船の値がNaN');
-    for (const d of strData) if (d.life > 0 && !Number.isFinite(d.x + d.y + d.z)) { v.push('紙テープがNaN'); break; }
-    if (FX.heroT < 0 || FX.heroT > C.HERO_TIME) v.push('カメラの回りこみ時間がおかしい');
+    if (!Number.isFinite(skyK) || !Number.isFinite(heli.position.x)) v.push('空かヘリの値がNaN');
     return [...new Set(v)];
   },
   // 追加：上手な人の操作（一定のリズム）でn歩進める
@@ -1468,6 +1331,25 @@ window.__TEST__ = {
   setAudio(onOff) { muted = !onOff; if (onOff) audio(); if (master) master.gain.value = muted ? 0 : 0.9; },
   realtime() { manual = false; G.lastPressT = null; G.prevInterval = null; lastUpdateReal = performance.now(); },
   audioState() { return { ctx: !!ac, state: ac && ac.state, muted }; },
+  _press(g) { press(g); }, _release(g) { release(g); },
+  // 追加：本物の時計の代わりに、決まった時刻に押す・離す入力と、ときどき固まる画面の更新をまねて歩く
+  simRun(o) {
+    this.reset(o.seed || 7); while (G.N < o.N && !G.falling) this.walk(1, 0.45, 0.3, 1 / 20);
+    legacyClock = !!o.legacy; manual = false; let now = 100000; simNow = now; rBase = now; lastUpdateReal = now; let lastF = now;
+    G.lastPressT = null; G.prevInterval = null; G.prevHold = null;
+    const r = mulberry32(o.seed || 9), evs = []; let g = G.lastGroup < 0 ? 0 : 1 - G.lastGroup;
+    for (let k = 0; k < o.steps; k++) { const ts = now + 300 + k * o.interval * 1000 + (r() - 0.5) * 2 * o.jit; evs.push({ ts, d: 1, g }); evs.push({ ts: ts + o.hold * 1000 + (r() - 0.5) * 2 * o.jit, d: 0, g }); g = 1 - g; }
+    evs.sort((a, b) => a.ts - b.ts);
+    let i = 0, hitches = 0, worst = 0; const devs = [];
+    while (i < evs.length && !G.falling) {
+      const dt = r() < o.hitchP ? o.hitchMin + r() * (o.hitchMax - o.hitchMin) : 16.7; if (dt > 50) hitches++;
+      now += dt; simNow = now;
+      while (i < evs.length && evs[i].ts <= now) { const e = evs[i++]; if (e.d) press(e.g, e.ts); else release(e.g, e.ts); if (G.meterR.show) worst = Math.max(worst, Math.abs(G.meterR.dev)); }
+      rAdvance(now); update((now - lastF) / 1000); lastUpdateReal = now; lastF = now;
+    }
+    const out = { N: G.N, steps: G.steps, falling: !!G.falling, reason: G.reason, info: G.tripInfo, hitches, worstRhythmDev: +worst.toFixed(3) };
+    simNow = null; legacyClock = false; manual = true; return out;
+  },
   // 録画用：決まった操作で歩き、1コマずつ進める（音は OfflineAudioContext で正確な時間に録る）
   rec: {
     init(o) {
