@@ -28,7 +28,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#a9dcff;font-family:
 #count small{font-size:.55em}
 #info{position:absolute;left:16px;top:calc(62px + env(safe-area-inset-top));font-size:13px;font-weight:700;color:#234;background:rgba(255,255,255,.75);border-radius:8px;padding:3px 8px;line-height:1.5}
 #meters{position:absolute;left:50%;transform:translateX(-50%);top:calc(134px + env(safe-area-inset-top));width:min(330px,86vw)}
-@media (min-width:700px),(orientation:landscape) and (min-width:520px){#meters{top:calc(14px + env(safe-area-inset-top))}}
+@media (min-width:700px){#meters{top:calc(14px + env(safe-area-inset-top))}}
 .meter{background:rgba(255,255,255,.88);border-radius:10px;padding:3px 9px 6px;margin-bottom:5px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
 .lab{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:700;color:#777}
 .lab b{color:#222;font-size:13px}
@@ -40,10 +40,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#a9dcff;font-family:
 .free{position:absolute;inset:0;font-size:10px;text-align:center;line-height:14px;color:#666;background:#eee;font-weight:700}
 #judge{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:clamp(28px,7vw,46px);opacity:0;transition:opacity .15s;white-space:nowrap}
 #judge.good{-webkit-text-stroke-color:#2e7d32}#judge.ok{-webkit-text-stroke-color:#1565c0}#judge.warn{-webkit-text-stroke-color:#e65100}
-#pop{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%);font-size:clamp(22px,min(6vw,8vh),40px);opacity:0;transition:opacity .25s;white-space:nowrap;text-align:center}
+#pop{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);font-size:clamp(24px,6vw,40px);opacity:0;transition:opacity .25s;white-space:nowrap;text-align:center}
 #pop small{font-size:.5em;-webkit-text-stroke-width:2px}
-/* 横向き：メーターはいちばん上、お知らせはメーターとボタンの間、判定はボタンの間 */
-@media (orientation:landscape){#pop{top:47%}#judge{top:82%;font-size:clamp(24px,min(7vw,11vh),46px)}}
 #count.gold{color:#fff3c4;-webkit-text-stroke-color:#b8860b}
 #count.rainbow{color:#fff3c4;-webkit-text-stroke-color:#d81b60}
 #live{position:absolute;right:10px;top:calc(62px + env(safe-area-inset-top));background:#d50000;color:#fff;font-weight:900;border-radius:8px;padding:3px 9px;font-size:13px;display:none;line-height:1.35;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.3)}
@@ -68,7 +66,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#a9dcff;font-family:
 .btn:disabled{opacity:.5}
 #resBig{font-size:clamp(44px,13vw,64px);line-height:1.15;margin:6px 0}
 #resTitle{font-weight:900;font-size:18px;color:#6a1b9a;margin:2px 0}
-#resWhy small{font-size:12.5px;color:#777;font-weight:700}
 #resWhy{font-weight:900;font-size:16px;color:#d84315;margin:4px 0 8px}
 #resInfo{font-size:14px;line-height:1.7}
 /* 作者をフォロー・作者を応援する */
@@ -145,9 +142,8 @@ const CONFIG = {
   TOL_START: 0.40,       // 2人の時に許されるずれ（前の一歩との差の割合）
   TOL_DECAY: 0.93,       // 1人増えるごとに許される範囲をこの倍率でせまくする
   TOL_MIN: 0.05,         // いちばんせまい時の許容
-  TOL_STRIDE_MUL: 2.0,   // 歩幅（押す長さ）は人の指ではリズムよりばらつくので、ゆるく
-  SLACK: 0.02,           // 秒。リズムで、どんなにせまくても残すゆとり
-  HOLD_SLACK: 0.06,      // 秒。押す長さで、どんなにせまくても残すゆとり
+  TOL_STRIDE_MUL: 1.3,   // 歩幅（押す長さ）は合わせにくいので少しゆるく
+  SLACK: 0.015,          // 秒。どんなにせまくても残すゆとり
   FIRST_HOLD_MAX: 1.5,   // 1歩目だけ：これ以上押し続けたら転ぶ（秒）
   WOBBLE_FROM: 0.6,      // 許容の何割をこえたら「あぶない！」
   // --- 歩き ---
@@ -900,23 +896,12 @@ function sortedMembers() { return [...G.members].sort((a, b) => a.x - b.x); }
 
 // ===== [SEC:INPUT] =====
 let manual = false, paused = false, lastUpdateReal = performance.now(), acc = 0;
-// リズムの判定は本物の時計で、ボタンを押した瞬間の時刻（イベントの時刻）で測る。
-// 画面の処理が一瞬重くなっても、押した時刻がずれて「ずれた」と判定されないようにするため
-let rClock = 0, rBase = performance.now(), simNow = null, legacyClock = false;   // simNow・legacyClock はテスト用
-const nowMs = () => simNow != null ? simNow : performance.now();
-function rNow(ts) {
-  if (manual) return G.gameT;
-  if (legacyClock) return G.gameT + acc + clamp((nowMs() - lastUpdateReal) / 1000, 0, C.MAX_FRAME);   // 前の測り方（テストで比べる用）
-  return rClock + ((ts != null ? ts : nowMs()) - rBase) / 1000;
-}
-function rAdvance(now) { if (!paused && !manual) rClock += Math.min(1, Math.max(0, now - rBase) / 1000); rBase = now; }
-function evTs(e) { const n = nowMs(); return e && e.timeStamp > 0 && Math.abs(e.timeStamp - n) < 1000 ? e.timeStamp : n; }
-function eventTime() { return rNow(); }
-function press(g, ts) {
+function eventTime() { return manual ? G.gameT : G.gameT + acc + clamp((performance.now() - lastUpdateReal) / 1000, 0, C.MAX_FRAME); }
+function press(g) {
   if (G.state !== 'play' || G.falling || paused) return;
-  const t = rNow(ts);
+  const t = eventTime();
   if (G.holding && G.holding.g === g) return;
-  if (G.holding) releaseAt(G.holding.g, t);
+  if (G.holding) release(G.holding.g, t);
   if (G.state !== 'play' || G.falling) return;
   audio();
   showHint(false);
@@ -927,28 +912,28 @@ function press(g, ts) {
     if (G.prevInterval != null) {
       const dev = (iv - G.prevInterval) / G.prevInterval, allowed = tol + C.SLACK / G.prevInterval;
       setMeter(G.meterR, dev, allowed);
-      if (Math.abs(dev) > allowed) { trip(dev < 0 ? 'fast' : 'slow', { kind: 'リズム', dev, allowed }); return; }
+      if (Math.abs(dev) > allowed) { trip(dev < 0 ? 'fast' : 'slow'); return; }
       judge(dev, allowed);
     }
     G.prevInterval = iv;
   }
   const ivNow = G.lastPressT != null ? t - G.lastPressT : null;
   G.lastPressT = t; G.lastGroup = g; G.holding = { g, t0: t }; G.steps++;
-  const f = G.foot[g]; f.phase = 'swing'; f.t0 = G.gameT;   // 足の動き（見た目）はゲームの時計で
+  const f = G.foot[g]; f.phase = 'swing'; f.t0 = t;
   stepFX(G.steps, clamp(ivNow || G.prevInterval || 0.45, 0.15, 1.2), g); setPads(g);
 }
-function release(g, ts) { releaseAt(g, rNow(ts)); }
-function releaseAt(g, t, silent) {
+function release(g, tIn, silent) {
   if (!G.holding || G.holding.g !== g) return;
+  const t = tIn != null ? tIn : eventTime();
   const hold = Math.max(0, t - G.holding.t0);
   G.holding = null; setPads(-1);
   const f = G.foot[g], o = G.foot[1 - g];
   f.phase = 'land'; f.t0 = G.gameT; f.fromZ = f.z; f.fromY = f.y; f.toZ = restZ(o) - strideFor(hold);
   if (G.falling || G.state !== 'play' || silent) return;
   if (G.prevHold != null) {
-    const allowed = tolFor(G.N) * C.TOL_STRIDE_MUL + C.HOLD_SLACK / G.prevHold, dev = (hold - G.prevHold) / G.prevHold;
+    const allowed = tolFor(G.N) * C.TOL_STRIDE_MUL + C.SLACK / G.prevHold, dev = (hold - G.prevHold) / G.prevHold;
     setMeter(G.meterS, dev, allowed);
-    if (Math.abs(dev) > allowed) { trip(dev < 0 ? 'small' : 'big', { kind: '歩幅（押す長さ）', dev, allowed }); return; }
+    if (Math.abs(dev) > allowed) { trip(dev < 0 ? 'small' : 'big'); return; }
     judge(dev, allowed);
   }
   G.prevHold = Math.max(0.03, hold);
@@ -957,24 +942,24 @@ function restZ(f) { return f.phase === 'land' ? f.toZ : f.z; }   // その足が
 function strideFor(hold) { return clamp(hold * C.STRIDE_PER_SEC, C.STRIDE_MIN, C.STRIDE_MAX); }
 const KEYMAP = { KeyF: 0, KeyJ: 1 };
 addEventListener('keydown', e => {
-  if (e.code in KEYMAP) { e.preventDefault(); if (!e.repeat) press(KEYMAP[e.code], evTs(e)); return; }
+  if (e.code in KEYMAP) { e.preventDefault(); if (!e.repeat) press(KEYMAP[e.code]); return; }
   if ((e.code === 'Space' || e.code === 'Enter') && !e.repeat) {
     if (G.state === 'title') startGame(); else if (G.state === 'result' && resultReady()) startGame(); else if (paused) resume();
   }
 });
-addEventListener('keyup', e => { if (e.code in KEYMAP) release(KEYMAP[e.code], evTs(e)); });
+addEventListener('keyup', e => { if (e.code in KEYMAP) release(KEYMAP[e.code]); });
 const touchEl = $('touch'), pointerG = new Map();
 touchEl.addEventListener('pointerdown', e => {
   e.preventDefault(); const g = e.clientX < innerWidth / 2 ? 0 : 1; pointerG.set(e.pointerId, g);
-  try { touchEl.setPointerCapture(e.pointerId); } catch (_) { } press(g, evTs(e));
+  try { touchEl.setPointerCapture(e.pointerId); } catch (_) { } press(g);
 });
-function pointerEnd(e) { if (!pointerG.has(e.pointerId)) return; const g = pointerG.get(e.pointerId); pointerG.delete(e.pointerId); if (![...pointerG.values()].includes(g)) release(g, evTs(e)); }
+function pointerEnd(e) { if (!pointerG.has(e.pointerId)) return; const g = pointerG.get(e.pointerId); pointerG.delete(e.pointerId); if (![...pointerG.values()].includes(g)) release(g); }
 touchEl.addEventListener('pointerup', pointerEnd); touchEl.addEventListener('pointercancel', pointerEnd);
 addEventListener('contextmenu', e => e.preventDefault());
 $('mute').addEventListener('click', () => { muted = !muted; store.set('nannin-mute', muted ? '1' : '0'); $('mute').textContent = muted ? '🔇' : '🔊'; audio(); if (master) master.gain.value = muted ? 0 : 0.9; });
 function pauseGame() {
   if (G.state !== 'play' || paused || manual) return;
-  if (G.holding) releaseAt(G.holding.g, rNow(), true);
+  if (G.holding) release(G.holding.g, G.gameT, true);
   G.lastPressT = null; G.prevInterval = null;   // 再開後はリズムを取り直せる
   pointerG.clear(); paused = true; $('pause').classList.add('show');
 }
@@ -993,9 +978,9 @@ function judge(dev, allowed) {
   else { el.textContent = 'あぶない！'; el.className = 'big warn'; G.wobble = Math.max(G.wobble, r); SFX.warn(); }
   el.style.opacity = 1; G.judgeT = 0.5;
 }
-function trip(reason, info) {
+function trip(reason) {
   if (G.falling) return;
-  G.reason = reason; G.tripInfo = info || null;
+  G.reason = reason;
   if (G.holding) { const f = G.foot[G.holding.g]; f.phase = 'land'; f.t0 = G.gameT; f.fromZ = f.z; f.fromY = f.y; f.toZ = f.z; G.holding = null; }
   const ms = sortedMembers();
   const fi = Math.floor(rng() * ms.length);
@@ -1055,6 +1040,17 @@ function popup(text) { const el = $('pop'); el.innerHTML = text; el.style.opacit
 function tick(dt) {
   G.gameT += dt;
   const t = G.gameT;
+  if (G.state === 'play' && !G.falling) {
+    const tol = tolFor(G.N);
+    if (G.prevInterval != null && G.lastPressT != null) {     // 遅すぎ（押すのを待ちすぎ）
+      const el = t - G.lastPressT, allowedMax = G.prevInterval * (1 + tol) + C.SLACK;
+      if (el > allowedMax) trip('slow');
+    }
+    if (!G.falling && G.holding) {                          // 押し続けすぎ
+      const h = t - G.holding.t0;
+      if (G.prevHold != null ? h > G.prevHold * (1 + tol * C.TOL_STRIDE_MUL) + C.SLACK : h > C.FIRST_HOLD_MAX) trip('big');
+    }
+  }
   // 足
   for (let g = 0; g < 2; g++) {
     const f = G.foot[g], o = G.foot[1 - g];
@@ -1198,7 +1194,7 @@ function updateHUD(dt) {
     G.prevInterval != null ? tol + C.SLACK / G.prevInterval : null, G.lastPressT == null ? 'あと2歩は自由' : 'あと1歩は自由');
   const sLive = !!G.holding && G.prevHold != null;
   drawMeter('s', G.meterS, sLive, sLive ? (t - G.holding.t0 - G.prevHold) / G.prevHold : 0,
-    G.prevHold != null ? tol * C.TOL_STRIDE_MUL + C.HOLD_SLACK / G.prevHold : null, 'あと1歩は自由');
+    G.prevHold != null ? tol * C.TOL_STRIDE_MUL + C.SLACK / G.prevHold : null, 'あと1歩は自由');
   const nx = G.joiners.find(j => j.n === G.N + 1);
   $('nextM').textContent = nx ? Math.max(0, G.lineZ - nx.z).toFixed(1) : '-';
   const nt = nextTitle(G.N), ntText = nt ? `次の称号まで あと<b>${nt[0] - G.N}</b>人` : '称号コンプリート！';
@@ -1220,8 +1216,7 @@ function showResult() {
   if (isNew) { G.best = n; store.set(C.BEST_KEY, String(n)); }
   $('resBig').textContent = `${n}人${legsOf(n)}脚`;
   $('resTitle').textContent = `称号「${titleFor(n)}」`;
-  const ti = G.tripInfo, pc = v => Math.round(v * 100);
-  $('resWhy').innerHTML = (REASONS[G.reason] || '') + (ti ? `<br><small>${ti.kind}のずれ ${ti.dev > 0 ? '+' : ''}${pc(ti.dev)}%（OKは±${pc(ti.allowed)}%まで）</small>` : '');
+  $('resWhy').textContent = REASONS[G.reason] || '';
   $('resNew').style.display = isNew ? 'block' : 'none';
   $('resInfo').innerHTML = `<span>歩いた距離 ${Math.max(0, -G.lineZ).toFixed(1)}m</span><br><span>自己ベスト ${G.best}人${legsOf(G.best)}脚</span>`;
   for (const b of ['againBtn', 'shareBtn', 'titleBtn']) $(b).disabled = true;
@@ -1243,19 +1238,6 @@ $('shareBtn').addEventListener('click', () => {
 });
 
 // ===== [SEC:LOOP] =====
-function checkTiming() {               // 押すのを待ちすぎ・押し続けすぎ（本物の時計で調べる）
-  if (G.state !== 'play' || G.falling || paused) return;
-  const t = rNow(), tol = tolFor(G.N);
-  if (G.prevInterval != null && G.lastPressT != null) {
-    const el = t - G.lastPressT, allowed = tol + C.SLACK / G.prevInterval;
-    if (el > G.prevInterval * (1 + allowed)) { trip('slow', { kind: 'リズム', dev: (el - G.prevInterval) / G.prevInterval, allowed }); return; }
-  }
-  if (G.holding) {
-    const h = t - G.holding.t0;
-    if (G.prevHold != null) { const allowed = tol * C.TOL_STRIDE_MUL + C.HOLD_SLACK / G.prevHold; if (h > G.prevHold * (1 + allowed)) trip('big', { kind: '歩幅（押す長さ）', dev: (h - G.prevHold) / G.prevHold, allowed }); }
-    else if (h > C.FIRST_HOLD_MAX) trip('big');
-  }
-}
 function update(frameDt) {
   acc += Math.min(Math.max(0, frameDt), C.MAX_FRAME);
   while (acc >= C.FIXED) {
@@ -1263,7 +1245,6 @@ function update(frameDt) {
     if (G.slowReal > 0) { G.slowReal = Math.max(0, G.slowReal - C.FIXED); sc = lerp(1, C.SLOW_SCALE, clamp(G.slowReal / 0.3, 0, 1)); }
     tick(C.FIXED * sc); acc -= C.FIXED;
   }
-  checkTiming();
   updateCamera(Math.min(Math.max(0, frameDt), C.MAX_FRAME));
   updateWorld(G.lineZ, false);
   baseMat.color.lerp(STAGE_BASE[G.stage], 0.05);
@@ -1273,9 +1254,7 @@ function update(frameDt) {
 function render() { renderer.render(scene, camera); }
 let lastFrame = performance.now();
 function frame(now) {
-  if (simNow != null) { requestAnimationFrame(frame); return; }   // テストで時間を自分で進めている間
   const dt = (now - lastFrame) / 1000; lastFrame = now;
-  rAdvance(now);
   if (!paused && !manual) { update(dt); lastUpdateReal = now; }
   render(); requestAnimationFrame(frame);
 }
@@ -1331,25 +1310,6 @@ window.__TEST__ = {
   setAudio(onOff) { muted = !onOff; if (onOff) audio(); if (master) master.gain.value = muted ? 0 : 0.9; },
   realtime() { manual = false; G.lastPressT = null; G.prevInterval = null; lastUpdateReal = performance.now(); },
   audioState() { return { ctx: !!ac, state: ac && ac.state, muted }; },
-  _press(g) { press(g); }, _release(g) { release(g); },
-  // 追加：本物の時計の代わりに、決まった時刻に押す・離す入力と、ときどき固まる画面の更新をまねて歩く
-  simRun(o) {
-    this.reset(o.seed || 7); while (G.N < o.N && !G.falling) this.walk(1, 0.45, 0.3, 1 / 20);
-    legacyClock = !!o.legacy; manual = false; let now = 100000; simNow = now; rBase = now; lastUpdateReal = now; let lastF = now;
-    G.lastPressT = null; G.prevInterval = null; G.prevHold = null;
-    const r = mulberry32(o.seed || 9), evs = []; let g = G.lastGroup < 0 ? 0 : 1 - G.lastGroup;
-    for (let k = 0; k < o.steps; k++) { const ts = now + 300 + k * o.interval * 1000 + (r() - 0.5) * 2 * o.jit; evs.push({ ts, d: 1, g }); evs.push({ ts: ts + o.hold * 1000 + (r() - 0.5) * 2 * o.jit, d: 0, g }); g = 1 - g; }
-    evs.sort((a, b) => a.ts - b.ts);
-    let i = 0, hitches = 0, worst = 0; const devs = [];
-    while (i < evs.length && !G.falling) {
-      const dt = r() < o.hitchP ? o.hitchMin + r() * (o.hitchMax - o.hitchMin) : 16.7; if (dt > 50) hitches++;
-      now += dt; simNow = now;
-      while (i < evs.length && evs[i].ts <= now) { const e = evs[i++]; if (e.d) press(e.g, e.ts); else release(e.g, e.ts); if (G.meterR.show) worst = Math.max(worst, Math.abs(G.meterR.dev)); }
-      rAdvance(now); update((now - lastF) / 1000); lastUpdateReal = now; lastF = now;
-    }
-    const out = { N: G.N, steps: G.steps, falling: !!G.falling, reason: G.reason, info: G.tripInfo, hitches, worstRhythmDev: +worst.toFixed(3) };
-    simNow = null; legacyClock = false; manual = true; return out;
-  },
   // 録画用：決まった操作で歩き、1コマずつ進める（音は OfflineAudioContext で正確な時間に録る）
   rec: {
     init(o) {
