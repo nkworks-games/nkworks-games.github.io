@@ -64,6 +64,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a2a20;font-family:
 .rows b{font-size:1.2em}
 .badge{margin:10px auto 0;background:#fff;border:3px dashed #f76707;border-radius:14px;padding:6px 10px;font-weight:800;font-size:19px}
 .badge span{display:block;font-size:12px;color:#7a5a3a;font-weight:500}
+/* ランキング */
+.off{display:none!important}
+.btn.sub2{background:#fff;color:#3a2412;font-size:18px;padding:9px}
+.rankNote{font-size:12.5px;color:#7a5a3a;margin-top:5px;font-weight:500}
+.rankBox{margin-top:10px;background:#fff;border:2px solid #e8d9bf;border-radius:12px;padding:8px 10px}
+.rankMsg{font-size:14px;font-weight:800;line-height:1.5}
+.rankMsg.ok{color:#d9480f}.rankMsg.err{color:#c92a2a;font-weight:500;font-size:13px}
+.nameRow{display:flex;gap:6px;margin-top:6px}
+.nameRow input{flex:1;min-width:0;font:inherit;font-size:16px;padding:7px 10px;border:2px solid #3a2412;border-radius:10px;background:#fff;color:#3a2412;user-select:text;-webkit-user-select:text}
+.nameRow button{font:inherit;font-weight:800;font-size:15px;border:2px solid #3a2412;border-radius:10px;background:#f76707;color:#fff;padding:0 12px;cursor:pointer}
+.linkBtn{background:none;border:none;font:inherit;font-size:14px;font-weight:800;color:#d9480f;text-decoration:underline;margin:6px 6px 0;cursor:pointer}
+.rankCard{max-width:420px}
+.rankList{list-style:none;text-align:left;max-height:52vh;overflow:auto;margin-top:8px;border-top:2px solid #e8d9bf}
+.rankList li{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #efe3cc;font-size:15px}
+.rankList li.me{background:#fff3bf}
+.rankList .no{width:2.3em;text-align:right;font-weight:800;color:#7a5a3a;flex:none}
+.rankList li.top .no{color:#d9480f}
+.rankList .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
+.rankList .sc{font-weight:800;color:#d9480f;white-space:nowrap}
+.rankList .rp{font:inherit;font-size:11px;border:1px solid #d8c8a8;background:#fff;border-radius:8px;padding:2px 6px;color:#7a5a3a;cursor:pointer;flex:none}
+.rankList li.empty{justify-content:center;color:#7a5a3a;font-weight:500}
+.rankErr{color:#c92a2a;font-size:13px;line-height:1.5;margin-top:6px}
 /* 作者をフォロー・作者を応援する */
 .sups{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 .sup{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;text-decoration:none;color:#3a2412;background:#fff;border:2px solid #e8d9bf;border-radius:12px;padding:8px 10px 8px 14px}
@@ -71,7 +93,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a2a20;font-family:
 .sup .go{flex:none;background:#111;color:#fff;font-weight:800;font-size:13px;border-radius:999px;padding:7px 14px;white-space:nowrap}
 .sup[data-k="ofuse"] .go{background:#ffd400;color:#3a2a10}
 .btns{display:flex;flex-direction:column}
-@media (max-height:520px){.sups{flex-direction:row;margin-top:6px}.sup{flex:1;padding:5px 8px 5px 10px}.sup small{display:none}.card{padding:10px 16px 10px;max-width:520px}.big{font-size:40px}.badge{margin-top:4px;padding:2px 8px;font-size:16px}.btns{flex-direction:row;gap:10px}.btns .btn{margin-top:8px;padding:8px;font-size:18px}.rule{margin:6px 0 0;font-size:14px;line-height:1.5}.logo .l{font-size:36px}.logo .s{font-size:22px}.best{margin-top:4px}}
+@media (max-height:520px){.card.wide{max-width:760px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:center}.rankBox{margin-top:6px;padding:5px 8px}.rankList{max-height:48vh}.sups{flex-direction:row;margin-top:6px}.cols .sups{flex-direction:column;gap:6px}.sup{flex:1;padding:5px 8px 5px 10px}.sup small{display:none}.card{padding:10px 16px 10px;max-width:520px}.big{font-size:40px}.badge{margin-top:4px;padding:2px 8px;font-size:16px}.btns{flex-direction:row;gap:10px}.btns .btn{margin-top:8px;padding:8px;font-size:18px}.rule{margin:6px 0 0;font-size:14px;line-height:1.5}.logo .l{font-size:36px}.logo .s{font-size:22px}.best{margin-top:4px}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 </head>
@@ -98,21 +120,24 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a2a20;font-family:
 <div id="fx"></div>
 
 <div id="title" class="screen">
-  <div class="card">
+  <div class="card wide"><div class="cols"><div>
     <div class="logo"><span class="s">つかめ！</span><span class="l">ポップコーン</span></div>
     <div class="rule">
-      ・飛び出したポップコーンを<b>タップ</b>でつかむ<br>
+      ・飛んだポップコーンを<b>タップ</b>でつかむ<br>
       ・<b>焦げた</b>ポップコーンは、つかむと<b>−3点</b><br>
       ・全部（<span id="tTotal">150</span>粒）弾け終わったらおしまい
     </div>
+    </div><div>
     <button class="btn" id="startBtn">スタート</button>
+    <button class="btn sub2" id="rankBtnT">🏆 今週のランキング</button>
+    <div class="rankNote" id="rankNoteT"></div>
     <div class="best">自己ベスト：<span id="tBest">−</span></div>
     <div class="sups"><a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a></div>
-  </div>
+  </div></div></div>
 </div>
 
 <div id="result" class="screen hide">
-  <div class="card">
+  <div class="card wide"><div class="cols"><div>
     <div class="lbl">けっか</div>
     <div class="big"><span id="rScore">0</span><small>点</small></div>
     <div id="rNew" class="new">自己ベスト更新！</div>
@@ -121,10 +146,26 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a2a20;font-family:
       焦げをつかんだ <b id="rBurnt">0</b>粒（<span id="rPen">0</span>点）
     </div>
     <div class="badge"><span>称号</span><div id="rTitle"></div></div>
+    <div class="rankBox">
+      <div id="rankMsg" class="rankMsg"></div>
+      <div id="nameRow" class="nameRow off"><input id="nameIn" maxlength="20" placeholder="名前（10文字まで）" autocomplete="off" enterkeyhint="done"><button id="nameBtn">のせる</button></div>
+      <button class="linkBtn" id="rankBtnR">ランキングを見る</button><button class="linkBtn off" id="nameEdit">名前を変える</button>
+    </div>
+    </div><div>
     <div class="btns"><button class="btn" id="againBtn">もう一回</button>
     <button class="btn x" id="shareBtn">𝕏 でシェア</button></div>
     <div class="best">自己ベスト：<span id="rBest">0</span>点</div>
     <div class="sups"><a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a><a class="sup" data-k="ofuse" target="_blank" rel="noopener"><span class="t"><b>作者を応援する</b><small>100円から送れます</small></span><span class="go">応援する</span></a></div>
+  </div></div></div>
+</div>
+
+<div id="rank" class="screen hide">
+  <div class="card rankCard">
+    <div class="lbl">🏆 今週のランキング</div>
+    <div class="rankNote" id="rankPeriod"></div>
+    <div class="rankErr" id="rankErr"></div>
+    <ol class="rankList" id="rankList"></ol>
+    <button class="btn" id="rankClose">とじる</button>
   </div>
 </div>
 
@@ -174,6 +215,17 @@ const CONFIG = {
   FOLLOW_URL: 'https://x.com/intent/follow?screen_name=vyaPudzd1E54661', OFUSE_URL: 'https://ofuse.me/nkworks_games', // 作者をフォロー（X）／作者を応援する（OFUSE）
   RESULT_GUARD: 0.7,     // 結果が出てすぐのタップを受けつけない秒数（つかもうとした指の押しまちがい防止）
   BEST_KEY: 'tsukame-popcorn-best',
+  // ランキング（1週間だけ）
+  RANK_END: Date.UTC(2026, 10, 27, 15),   // 2026/11/28 0:00（日本時間）＝11/27 23:59 まで
+  RANK_END_TEXT: '11/27（金）23:59',
+  RANK_N: 50,             // 表示する人数
+  RANK_CACHE_MS: 60000,   // 一覧を読み直すまでの時間（読む回数を減らして無料枠を守る）
+  NAME_KEY: 'tsukame-popcorn-name',
+  MSG_QUOTA: '今日はランキングの無料枠を使い切ったため、記録できません（夕方5時ごろに戻ります）',
+  MSG_QUOTA_LIST: '今日はランキングの無料枠を使い切ったため、ランキングを表示できません（夕方5時ごろに戻ります）',
+  MSG_NET: '通信できないため、ランキングに記録できませんでした',
+  MSG_NET_LIST: '通信できないため、ランキングを表示できません',
+  MSG_ENDED: 'ランキングは終了しました（11/27まで）',
   SOUND_KEY: 'tsukame-popcorn-sound',
 };
 
@@ -598,6 +650,91 @@ const Sound = {
   end() { [523, 659, 784, 1047].forEach((f, i) => this.tone('triangle', f, f * 1.001, 0.18, 0.2, i * 0.11)); },
 };
 
+// ===== [SEC:NET] =====
+/* 今週のランキング（11/21〜11/27）。一人ひとつ、いちばん良いスコアだけ
+   popcornWeek/{uid}               … n 名前, s スコア, g つかんだ数, b 焦げ, t 時刻, rp 通報数, hd 非表示
+   popcornWeek/{uid}/rep/{通報した人} … 同じ人が2回通報できないようにする */
+const FIREBASE_CONFIG = {"apiKey": "AIzaSyDgzaEzIltyI-UkB_i1LKrcq0fLPtXqel0", "authDomain": "nkworks-games.firebaseapp.com", "projectId": "nkworks-games", "storageBucket": "nkworks-games.firebasestorage.app", "messagingSenderId": "996468697479", "appId": "1:996468697479:web:ccea287b2ddeb1ff234b22"};
+const FB_VER = '10.12.2', COL = 'popcornWeek';
+const NAME_NG = ['ちんこ', 'ちんぽ', 'ちんちん', 'まんこ', 'おっぱい', 'せっくす', 'おなに', 'しゃせい', '射精', '精子', '精液', '勃起', 'ぼっき', '包茎', 'ほうけい', 'どうてい', '童貞', 'しょじょ', '処女', 'ぱいぱん', 'れいぷ', '強姦', '痴漢', 'ちかん', 'ふうぞく', '風俗', 'ぱぱかつ', 'えろい', 'えろ動画', 'えろす',
+  '死ね', '氏ね', 'しねよ', 'しねしね', '殺す', 'ころす', 'ころせ', '消えろ', 'きえろ', 'がいじ', '池沼', 'ばかちょん', '支那', 'しな人', 'にがー', 'きちがい', '気違い', 'かたわ', 'めくら', 'つんぼ', 'ほもやろう', 'れずびあん', 'おかま', 'ひとらー', 'なちす', '部落', '在日',
+  '運営', '公式', 'かんりにん', '管理人',
+  'fuck', 'fuk', 'shit', 'bitch', 'dick', 'cock', 'cunt', 'pussy', 'penis', 'vagina', 'porn', 'sex', 'nigg', 'fag', 'rape', 'whore', 'slut', 'asshole', 'bastard', 'retard', 'hitler', 'nazi', 'admin', 'http', 'www', '.com', '.jp'];
+const kata2hira = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+const normName = s => kata2hira(String(s).normalize('NFKC').toLowerCase()).replace(/[\s　・\-_ー〜~!！?？、。,★☆♪*＊]/g, '');
+function checkName(raw) {
+  const n = String(raw || '').normalize('NFKC').replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim();
+  if (!n) return { ok: false, msg: '名前を入れてください' };
+  if ([...n].length > 10) return { ok: false, msg: '名前は10文字までです' };
+  const k = normName(n);
+  if (!k) return { ok: false, msg: '文字を入れてください' };
+  if (NAME_NG.some(w => k.includes(normName(w)))) return { ok: false, msg: 'その名前は使えません' };
+  if (/\d{6,}/.test(k)) return { ok: false, msg: '数字だけの長い名前は使えません' };
+  return { ok: true, name: n };
+}
+const rankOpen = () => Date.now() < CONFIG.RANK_END;
+const isQuota = e => !!e && (e.code === 'resource-exhausted' || /quota|resource.exhausted/i.test(String(e.message || '')));
+// 手もと・テスト用：この端末の中だけの仮のランキング（?quota を付けると「無料枠切れ」をまねる）
+class MockNet {
+  constructor() { this.uid = 'me'; this.quota = /[?&]quota/.test(location.search); }
+  async init() { return true; }
+  fail() { if (this.quota) { const e = new Error('Quota exceeded.'); e.code = 'resource-exhausted'; throw e; } }
+  db() {
+    let d = null; try { d = JSON.parse(localStorage.getItem('tsukame-popcorn.mock') || 'null'); } catch (e) {}
+    if (!d) { d = { all: {} }; ['ポップ名人', 'つまみ食い', '映画館の主', 'コーン命', 'はじけ隊'].forEach((n, i) => { const s = [96, 88, 71, 54, 33][i], b = [0, 1, 2, 1, 3][i]; d.all['m' + i] = { n, s, g: s + b * 3, b, t: i, rp: 0, hd: false }; }); }
+    return d;
+  }
+  save(d) { try { localStorage.setItem('tsukame-popcorn.mock', JSON.stringify(d)); } catch (e) {} }
+  async submit(n, s, g, b) { this.fail(); const d = this.db(), e = d.all[this.uid]; if (!e || s > e.s) { d.all[this.uid] = { n, s, g, b, t: Date.now(), rp: 0, hd: false }; this.save(d); return { best: true, s }; } e.n = n; this.save(d); return { best: false, s: e.s }; }
+  async list() { this.fail(); return Object.entries(this.db().all).map(([id, v]) => Object.assign({ id, me: id === this.uid }, v)).filter(x => !x.hd || x.me).sort((a, b) => b.s - a.s).slice(0, CONFIG.RANK_N); }
+  async rank(s) { this.fail(); return 1 + Object.values(this.db().all).filter(x => x.s > s).length; }
+  async report(id) { this.fail(); const d = this.db(), e = d.all[id]; if (!e) return false; e.rp = (e.rp || 0) + 1; e.hd = e.rp >= 3; this.save(d); return true; }
+}
+class FireNet {
+  constructor() { this.uid = null; this.cache = null; }
+  async init() {
+    const base = `https://www.gstatic.com/firebasejs/${FB_VER}/`;
+    const [app, auth, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+    this.fs = fs; this.app = app.initializeApp(FIREBASE_CONFIG, 'popcorn'); this.db = fs.getFirestore(this.app);
+    const au = auth.getAuth(this.app); await auth.signInAnonymously(au); this.uid = au.currentUser.uid;
+    return true;
+  }
+  ref(id) { return this.fs.doc(this.db, COL, id); }
+  async submit(n, s, g, b) { // 1回のプレイで 読み1回＋書き1回まで
+    const { getDoc, setDoc, updateDoc, serverTimestamp } = this.fs, ref = this.ref(this.uid), snap = await getDoc(ref);
+    this.cache = null;
+    if (!snap.exists()) { await setDoc(ref, { n, s, g, b, t: serverTimestamp(), rp: 0, hd: false }); return { best: true, s }; }
+    const v = snap.data();
+    if (s > v.s) { await updateDoc(ref, { n, s, g, b, t: serverTimestamp() }); return { best: true, s }; }
+    if (v.n !== n) await updateDoc(ref, { n });
+    return { best: false, s: v.s };
+  }
+  async list() { // 読んだ結果は RANK_CACHE_MS のあいだ使い回す（読む回数＝件数ぶん無料枠を使うので）
+    if (this.cache && Date.now() - this.cache.at < CONFIG.RANK_CACHE_MS) return this.cache.items;
+    const { query, collection, orderBy, limit, getDocs } = this.fs;
+    const q = await getDocs(query(collection(this.db, COL), orderBy('s', 'desc'), limit(CONFIG.RANK_N + 15)));
+    const items = []; q.forEach(d => { const v = d.data(), me = d.id === this.uid; if (!v.hd || me) items.push({ id: d.id, n: v.n, s: v.s, g: v.g, b: v.b, me }); });
+    const out = items.slice(0, CONFIG.RANK_N); this.cache = { at: Date.now(), items: out }; return out;
+  }
+  async rank(s) { const { query, collection, where, getCountFromServer } = this.fs; const c = await getCountFromServer(query(collection(this.db, COL), where('s', '>', s))); return c.data().count + 1; }
+  async report(id) {
+    const { writeBatch, serverTimestamp, getDoc, doc } = this.fs, pr = this.ref(id), snap = await getDoc(pr);
+    if (!snap.exists()) return false;
+    const rp = (snap.data().rp || 0) + 1, bt = writeBatch(this.db);
+    bt.set(doc(pr, 'rep', this.uid), { t: serverTimestamp() }); bt.update(pr, { rp, hd: rp >= 3 });
+    await bt.commit(); this.cache = null; return true;
+  }
+}
+let netP = null;
+function getNet() { // ランキングを使う時に1回だけつなぐ（失敗したら次の時にもう一度）
+  if (!netP) {
+    const mock = !/(^|\.)nkworks-games\.com$/.test(location.hostname) || /[?&]mock/.test(location.search);
+    const n = mock ? new MockNet() : new FireNet();
+    netP = n.init().then(() => n, e => { netP = null; throw e; });
+  }
+  return netP;
+}
+
 // ===== [SEC:GAME] =====
 let state = 'title';           // 'title' | 'play' | 'result'
 let schedule = [], nextIdx = 0, gameTime = 0, endT = 0, heat = 0, sizzleT = 0, demoT = 0;
@@ -746,7 +883,7 @@ const ui = {
   box() { const b = $('box'); b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); $('boxN').textContent = boxCount; },
   msg(t) { const m = $('msg'); m.textContent = t; m.classList.toggle('show', !!t); },
   play() {
-    $('title').classList.add('hide'); $('result').classList.add('hide');
+    $('title').classList.add('hide'); $('result').classList.add('hide'); $('rank').classList.add('hide');
     $('hud').classList.add('show'); $('box').classList.add('show');
     this.hud(); this.msg('あたため中…');
   },
@@ -764,6 +901,7 @@ const ui = {
     $('rBest').textContent = isNew ? score : best;
     this.lastShare = `「つかめ！ポップコーン」で${score}点！\n${CONFIG.TOTAL}粒中${grabbedN}粒つかんだ（焦げ${burntN}粒）\n称号：${title}\n#つかめポップコーン`;
     $('result').classList.remove('hide'); resultShownAt = performance.now();
+    Rank.onResult();
   },
   title() { const b = store(CONFIG.BEST_KEY); $('tBest').textContent = b === null ? '−' : b + '点'; $('tTotal').textContent = CONFIG.TOTAL; },
   lastShare: '',
@@ -782,6 +920,70 @@ const sndBtn = $('snd');
 sndBtn.textContent = Sound.on ? '🔊' : '🔇';
 sndBtn.addEventListener('click', () => { Sound.init(); Sound.resume(); Sound.setOn(!Sound.on); sndBtn.textContent = Sound.on ? '🔊' : '🔇'; });
 ui.title();
+
+// ===== [SEC:RANKUI] =====
+const Rank = {
+  name: store(CONFIG.NAME_KEY) || '',
+  msg(t, cls) { const m = $('rankMsg'); m.textContent = t; m.className = 'rankMsg' + (cls ? ' ' + cls : ''); },
+  title() { $('rankNoteT').textContent = rankOpen() ? `${CONFIG.RANK_END_TEXT}まで開催中` : 'ランキングは終了しました（最終結果を見られます）'; },
+  onResult() {
+    $('nameRow').classList.add('off'); $('nameEdit').classList.add('off'); $('nameIn').value = this.name;
+    if (!rankOpen()) { this.msg(CONFIG.MSG_ENDED); return; }
+    if (score <= 0) { this.msg('1点以上で、今週のランキングにのります'); return; }
+    if (!this.name) { this.msg(`名前を入れると、今週のランキングにのります（${CONFIG.RANK_END_TEXT}まで）`); $('nameRow').classList.remove('off'); return; }
+    this.send(score, grabbedN, burntN);
+  },
+  async send(s, g, b) {
+    const n = this.name; this.msg('ランキングに記録しています…');
+    try {
+      const net = await getNet(), r = await net.submit(n, s, g, b), rk = await net.rank(r.s);
+      this.msg(r.best ? `今週のランキング ${rk}位！（${n}）` : `今週のランキング ${rk}位（${n}の記録 ${r.s}点）`, 'ok');
+      $('nameEdit').classList.remove('off');
+    } catch (e) { this.msg(isQuota(e) ? CONFIG.MSG_QUOTA : CONFIG.MSG_NET, 'err'); }
+  },
+  saveName() {
+    const c = checkName($('nameIn').value);
+    if (!c.ok) { this.msg(c.msg, 'err'); return; }
+    this.name = c.name; store(CONFIG.NAME_KEY, c.name); $('nameRow').classList.add('off'); $('nameIn').blur();
+    if (rankOpen() && score > 0) this.send(score, grabbedN, burntN);
+  },
+  async open() {
+    $('rank').classList.remove('hide');
+    $('rankPeriod').textContent = rankOpen() ? `${CONFIG.RANK_END_TEXT}まで・1人ひとつ、いちばん良いスコア` : CONFIG.MSG_ENDED + '。最終結果です';
+    $('rankErr').textContent = ''; this.rows(null);
+    try { const net = await getNet(); this.rows(await net.list()); }
+    catch (e) { this.rows([]); $('rankErr').textContent = isQuota(e) ? CONFIG.MSG_QUOTA_LIST : CONFIG.MSG_NET_LIST; }
+  },
+  rows(items) { // 名前は textContent で入れる（HTMLとして読まない）
+    const ol = $('rankList'); ol.innerHTML = '';
+    const li = (cls, text) => { const e = document.createElement('li'); e.className = cls; e.textContent = text; ol.appendChild(e); };
+    if (!items) return li('empty', '読みこみ中…');
+    if (!items.length) return $('rankErr').textContent ? null : li('empty', 'まだ記録がありません');
+    let prev = null, no = 0;
+    items.forEach((it, i) => {
+      if (it.s !== prev) { no = i + 1; prev = it.s; }
+      const e = document.createElement('li'); e.className = (it.me ? 'me ' : '') + (no <= 3 ? 'top' : '');
+      const add = (tag, cls, t) => { const x = document.createElement(tag); x.className = cls; x.textContent = t; e.appendChild(x); return x; };
+      add('span', 'no', no + '位'); add('span', 'nm', it.n + (it.me ? '（あなた）' : '')); add('span', 'sc', it.s + '点');
+      if (!it.me) { const b = add('button', 'rp', '通報'); b.dataset.id = it.id; }
+      ol.appendChild(e);
+    });
+  },
+  async report(btn) { // 1回目は「本当に？」、2回目で通報
+    if (btn.dataset.step !== '1') { btn.dataset.step = '1'; btn.textContent = '本当に？'; return; }
+    btn.disabled = true;
+    try { const net = await getNet(); btn.textContent = (await net.report(btn.dataset.id)) ? '通報しました' : '通報できません'; }
+    catch (e) { btn.textContent = isQuota(e) ? '今日は通報できません' : '通報できません'; }
+  },
+};
+$('rankBtnT').addEventListener('click', () => Rank.open());
+$('rankBtnR').addEventListener('click', () => { if (resultReady()) Rank.open(); });
+$('rankClose').addEventListener('click', () => $('rank').classList.add('hide'));
+$('nameBtn').addEventListener('click', () => Rank.saveName());
+$('nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') Rank.saveName(); });
+$('nameEdit').addEventListener('click', () => { $('nameRow').classList.remove('off'); $('nameEdit').classList.add('off'); $('nameIn').value = Rank.name; });
+$('rankList').addEventListener('click', e => { const b = e.target.closest('button.rp'); if (b) Rank.report(b); });
+Rank.title();
 
 // ===== [SEC:LOOP] =====
 let acc = 0, last = performance.now(), manual = false, paused = false;
