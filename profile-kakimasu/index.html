@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>プロフィール、書きます。 | N.K. Works</title>
+<meta name="description" content="15の質問に答えると、あなたのプロフ帳と、XやTikTokのプロフィール欄にそのまま貼れる自己紹介文を書きます。机の上のプロフ帳に、ペンが少しずつ書きこんでいきます。">
+<meta property="og:title" content="プロフィール、書きます。">
+<meta property="og:description" content="15の質問で、あなたのプロフ帳とSNSの自己紹介文を書きます。">
+<meta property="og:url" content="https://nkworks-games.com/profile-kakimasu/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:image" content="https://nkworks-games.com/profile-kakimasu/card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nkworks-games.com/profile-kakimasu/card.png">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/profile-kakimasu/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ===== [SEC:STYLE] ===== */
+:root{
+  --ad-h:0px;      /* 広告バナーの高さ（CONFIG.AD_ON で切りかえ） */
+  --ad-gap:0px;    /* ゲームと広告の間 */
+  --ink:#3a2e28;--paper:#fffaf0;--acc:#ff6f7d;--acc2:#ffb347;--mint:#4fbfa8;--dim:#8a776a;--line:#eadfcd;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#2a211c;color:var(--ink);font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",system-ui,sans-serif;overscroll-behavior:none}
+#app{position:fixed;left:0;right:0;top:0;bottom:calc(var(--ad-h) + var(--ad-gap) + env(safe-area-inset-bottom,0px));overflow:hidden}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hide{display:none!important}
+#mute{position:absolute;z-index:6;top:calc(10px + env(safe-area-inset-top,0px));right:10px;width:40px;height:40px;padding:0;border:none;border-radius:50%;background:rgba(255,250,240,.85);font:inherit;font-size:18px;color:var(--ink);cursor:pointer}
+.ov{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px;pointer-events:none}
+.ov>*{pointer-events:auto}
+/* タイトル */
+#tbox{position:relative;width:100%;max-width:440px;max-height:100%;overflow-y:auto;background:var(--paper);border-radius:22px;padding:20px 20px 14px;box-shadow:0 14px 40px rgba(0,0,0,.45)}
+.tape{position:absolute;top:8px;left:50%;width:110px;height:24px;margin-left:-55px;background:rgba(255,183,77,.7);transform:rotate(-3deg);border-radius:2px}
+.kick{margin:6px 0 0;font-size:13px;font-weight:700;color:var(--acc)}
+h1{margin:2px 0 6px;font-family:"Klee One","Hiragino Mincho ProN",serif;font-weight:600;font-size:34px;line-height:1.22;letter-spacing:.02em}
+.lead{margin:0 0 12px;font-size:13.5px;line-height:1.65;color:#5c4d44}
+.fld{display:block;margin:0 0 10px;font-size:12.5px;font-weight:700;color:#7a675b}
+.fld input{display:block;width:100%;margin-top:4px;padding:10px 11px;border:2px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:16px;color:var(--ink);outline:none}
+.fld input:focus{border-color:var(--acc)}
+.likes{display:flex;gap:6px}.likes input{min-width:0}
+.btn{display:block;width:100%;padding:14px 10px;border:none;border-radius:999px;font:inherit;font-size:17px;font-weight:900;cursor:pointer;text-align:center;text-decoration:none}
+.btn:active{transform:translateY(2px)}
+.btn.main{background:var(--acc);color:#fff;box-shadow:0 4px 0 #d8505e}
+.btn.main:active{box-shadow:0 2px 0 #d8505e}
+.follow{display:block;margin:12px auto 0;text-align:center;font-size:12px;font-weight:700;color:var(--dim);text-decoration:none}
+.fr{margin:0 0 12px;padding:9px 12px;border-radius:12px;background:#fff1c9;font-size:13.5px;line-height:1.55}
+/* 質問 */
+#qcard{width:100%;max-width:520px;background:var(--paper);border-radius:22px;padding:8px 14px 10px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.qhead{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--dim)}
+#backBtn,#swapBtn{border:none;background:none;font:inherit;font-weight:700;color:var(--dim);padding:6px 4px;cursor:pointer}
+.bar{height:6px;border-radius:3px;background:#efe5d5;margin:2px 0 10px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .3s}
+#qtext{margin:0 0 10px;font-size:17px;font-weight:700;line-height:1.5}
+#choices{display:grid;gap:7px}
+.ch{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:2px solid var(--line);border-radius:14px;background:#fff;font:inherit;font-size:15px;font-weight:500;text-align:left;color:var(--ink);cursor:pointer;line-height:1.4}
+.ch b{flex-shrink:0;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;color:#fff;background:var(--c)}
+.ch.pick{border-color:var(--acc);background:#fff0f1}
+@media (hover:hover){.ch:hover{border-color:#f3b9bf}}
+#swapBtn{display:block;margin:4px auto 0;font-size:12.5px;text-decoration:underline}
+/* 清書中 */
+#writing{position:absolute;z-index:3;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:999px;background:rgba(255,250,240,.92);font-size:14px;font-weight:700;white-space:nowrap;text-align:center;line-height:1.35}
+#writing small{display:block;font-size:10.5px;color:var(--dim);font-weight:500}
+/* 結果 */
+#result{position:absolute;inset:0;z-index:4;overflow-y:auto;background:rgba(26,19,15,.86);-webkit-overflow-scrolling:touch;animation:fadeIn .35s}
+.rin{max-width:460px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 14px 24px;display:flex;flex-direction:column;gap:10px}
+.rhead{margin:0;text-align:center;color:#fff3dc;font-weight:900;font-size:17px}
+#cardImg{display:block;width:100%;height:auto;aspect-ratio:4/5;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.5);background:#fff9ef}
+.hint{margin:-4px 0 0;text-align:center;font-size:11px;color:#cbb9a6}
+.btn.sub{background:#fff3dc;color:var(--ink);font-size:15px;padding:11px}
+.biobox{background:var(--paper);border-radius:18px;padding:12px}
+.biobox h2{margin:0 0 8px;font-size:15px;font-weight:900}
+.tabs{display:flex;gap:6px;margin-bottom:8px}
+.tabs button{flex:1;padding:8px 4px;border:2px solid var(--line);border-radius:10px;background:#fff;font:inherit;font-size:13px;font-weight:700;color:var(--dim);cursor:pointer}
+.tabs button.on{border-color:var(--acc);background:#fff0f1;color:var(--acc)}
+#bioText{margin:0;padding:10px 12px;border-radius:12px;background:#fff;border:1px dashed #e2d3bd;font-size:15px;line-height:1.7;white-space:pre-wrap;word-break:break-all;user-select:text;-webkit-user-select:text}
+.bioFoot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+#bioCount{font-size:12px;color:var(--dim)}
+#copyBtn{padding:9px 20px;border:none;border-radius:999px;background:var(--mint);color:#fff;font:inherit;font-size:14px;font-weight:900;cursor:pointer}
+.btn.x{background:#111;color:#fff}
+.btn.img{background:linear-gradient(180deg,#ffd58c,#ffb347);color:#3a2200}
+.btn.ghost{background:transparent;color:#fff3dc;border:2px solid rgba(255,243,220,.5);font-size:15px;padding:11px}
+#toast{position:fixed;left:50%;bottom:calc(var(--ad-h) + 90px);transform:translateX(-50%);z-index:60;padding:9px 16px;border-radius:999px;background:rgba(0,0,0,.82);color:#fff;font-size:14px;pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap}
+#toast.on{opacity:1}
+@keyframes fadeIn{from{opacity:0}}
+/* 横長の画面（PCなど）：カードを右に置き、左にプロフ帳を見せる */
+@media (orientation:landscape) and (min-aspect-ratio:6/5){
+  .ov{align-items:flex-end;justify-content:center;padding-right:24px}
+  #tbox,#qcard{max-width:420px}
+  #qcard{max-height:100%;overflow-y:auto}
+}
+@media (max-height:620px){ #qtext{font-size:15.5px;margin-bottom:8px} .ch{padding:8px 10px;font-size:14px} #choices{gap:5px} h1{font-size:28px} }
+
+/* 広告の帯：高さは いつも同じ（広告が出ない時も）。ゲームの操作は この帯では反応しない */
+#ad-zone{position:fixed;left:0;right:0;bottom:0;z-index:10;height:calc(var(--ad-h) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:#050d17;touch-action:manipulation}
+#ad-banner{width:100%;height:var(--ad-h);max-height:var(--ad-h);overflow:hidden;display:flex;align-items:center;justify-content:center;contain:layout paint}
+#ad-banner ins{max-height:var(--ad-h)!important;overflow:hidden}
+#ad-banner ins.adsbygoogle[data-ad-status="unfilled"]{display:none!important}
+/* アプリの宣伝①：ページを開いた時に1回だけ。×ですぐ閉じられる。開くたびに、CONFIG.APP_ADS のどれか1つが出る */
+#promo{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:calc(14px + env(safe-area-inset-top, 0px)) 14px 14px;box-sizing:border-box;background:rgba(10,4,2,.6);animation:pmFade .2s ease-out}
+#promo.on{display:flex}
+#promo .pcard{position:relative;max-height:100%;box-sizing:border-box;background:#fbf8f3;color:#2a2622;box-shadow:0 18px 50px rgba(0,0,0,.45);animation:pmPop .28s cubic-bezier(.2,1.3,.4,1)}
+#promo p{margin:0}
+#promo .pr{font-size:11px;font-weight:700;color:#7a7065}
+#promo .pr b,.resAd .ra1 b{margin-right:6px;padding:1px 6px;border:1px solid #b9ae9f;border-radius:4px;font-size:10px}
+#promoX{position:absolute;z-index:1;right:-10px;top:-10px;width:38px;height:38px;padding:0;border:none;border-radius:50%;background:#fbf8f3;color:#4a443e;font:inherit;font-size:21px;line-height:38px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)} /* カードの角の外に出して、文字や画像にかぶらないように */
+#promoX:active{background:#e8e1d6}
+@keyframes pmFade{from{opacity:0}} @keyframes pmPop{from{transform:scale(.88);opacity:0}}
+#promo.full #promoApp, #promo.app #promoFull{display:none}
+/* (1) 宣伝画像1枚のカード（一画一会）。画像のどこを押しても App Store へ */
+#promo.full .pcard{display:flex;flex-direction:column;align-items:center;border-radius:20px;padding:8px 8px 10px}
+#promo.full .pr{margin:2px 0 6px}
+#promo .pfull{display:block;width:auto;height:auto;max-width:min(330px,calc(100vw - 44px));max-height:calc(100vh - 90px - env(safe-area-inset-top, 0px));max-height:calc(100dvh - 90px - env(safe-area-inset-top, 0px));border-radius:12px}
+#promoFull:active .pfull{transform:scale(.98)}
+@media (max-height:560px){ #promo.full .pr span{display:none} } /* 横向きはカードが細いので「PR」だけ */
+/* (2) 写真と説明のカード（Sorotta） */
+#promoApp{display:contents}
+#promo.app .pcard{display:grid;grid-template-areas:"pr" "shot" "body";justify-items:center;width:min(330px,100%);overflow-y:auto;border-radius:22px;padding:18px 20px 14px;text-align:center}
+#promo.app .pr{grid-area:pr;margin-bottom:10px}
+#promo.app #promoX{right:8px;top:8px;width:40px;height:40px;line-height:40px;background:rgba(0,0,0,.08);box-shadow:none} /* このカードは中がスクロールするので、×は内側に */
+#promo .pshot{grid-area:shot;display:block;width:min(230px,100%);height:auto;margin-bottom:12px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.28))}
+#promo .pbody{grid-area:body;width:100%}
+#promo .phead{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;text-align:left}
+#promo .picon{display:block;width:46px;height:46px;border-radius:11px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+#promo .pname{font-size:22px;font-weight:900;line-height:1.15}
+#promo .psub{font-size:12px;color:#6b6258}
+#promo .ptext{margin-bottom:14px;font-size:14px;line-height:1.6}
+#promo .pbtn{display:block;padding:13px 10px;border-radius:999px;background:#111;color:#fff;font-size:16px;font-weight:800;text-align:center;text-decoration:none}
+#promo .pbtn:active{transform:translateY(2px)}
+#promo .pnote{margin-top:8px;font-size:11px;color:#8a8076;text-align:center}
+@media (orientation:portrait) and (max-height:680px){ #promo.app .pshot{width:180px;margin-bottom:8px} #promo.app .pr{margin-bottom:6px} }
+@media (orientation:landscape) and (max-height:560px){ /* 横向き：左に画面の写真、右に説明 */
+  #promo.app .pcard{grid-template-areas:"shot ." "shot pr" "shot body" "shot .";grid-template-columns:auto 1fr;grid-template-rows:1fr auto auto 1fr;column-gap:18px;justify-items:start;width:min(560px,100%);padding:12px 18px;text-align:left}
+  #promo .pshot{width:auto;height:230px;height:min(230px,calc(100dvh - 60px));margin:0}
+  #promo.app .pr{margin-bottom:6px} #promo .phead{justify-content:flex-start;margin-bottom:4px} #promo .picon{width:38px;height:38px;border-radius:9px}
+  #promo .pname{font-size:19px} #promo .ptext{font-size:12px;line-height:1.5;margin-bottom:8px} #promo .ptext br{display:none} #promo .pbtn{padding:9px 10px;font-size:14px} #promo .pnote{margin-top:4px} }
+/* アプリの宣伝②：結果画面のいちばん下に小さく */
+.resAd{display:none;align-items:center;gap:10px;width:100%;max-width:360px;box-sizing:border-box;margin-top:4px;padding:6px 8px 6px 8px;background:#fbf8f3;color:#2a2622;border-radius:12px;text-align:left;text-decoration:none;flex-shrink:0}
+.resAd.on{display:flex}
+.resAd img{width:34px;height:34px;border-radius:8px;flex-shrink:0}
+.resAd>div{flex:1;min-width:0}
+.resAd p{margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resAd .ra1{font-size:13px;font-weight:800;line-height:1.35}
+.resAd .ra2{font-size:10px;color:#6b6258;line-height:1.3}
+.resAd .raBtn{flex-shrink:0;padding:6px 10px;border-radius:999px;background:#111;color:#fff;font-size:11px;font-weight:800;white-space:nowrap}
+#result .resAd{max-width:none;margin:2px 0 0}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="c"></canvas>
+  <button id="mute" aria-label="音のオン・オフ">♪</button>
+
+  <div id="title" class="ov">
+    <div id="tbox">
+      <div class="tape"></div>
+      <p class="kick">15の質問に答えるだけ</p>
+      <h1>プロフィール、<br>書きます。</h1>
+      <p class="lead">あなたのプロフ帳と、XやTikTokのプロフィール欄にそのまま貼れる自己紹介文を書きます。</p>
+      <div id="friend" class="fr hide"></div>
+      <label class="fld">ニックネーム<input id="inName" maxlength="10" placeholder="例：たけちか" autocomplete="off"></label>
+      <div class="fld">好きなもの（3つまで・空欄でもOK）
+        <div class="likes"><input class="inLike" maxlength="12" placeholder="例：ラーメン" autocomplete="off"><input class="inLike" maxlength="12" placeholder="例：猫" autocomplete="off"><input class="inLike" maxlength="12" placeholder="例：映画" autocomplete="off"></div>
+      </div>
+      <button id="startBtn" class="btn main">書いてもらう</button>
+      <a id="follow" class="follow" target="_blank" rel="noopener">𝕏 作者をフォロー（新作のお知らせ）</a>
+    </div>
+  </div>
+
+  <div id="quiz" class="ov hide">
+    <div id="qcard">
+      <div class="qhead"><button id="backBtn">‹ もどる</button><span id="qno"></span></div>
+      <div class="bar"><i id="barIn"></i></div>
+      <p id="qtext"></p>
+      <div id="choices"></div>
+      <button id="swapBtn">どれも当てはまらない（ほかの質問にする）</button>
+    </div>
+  </div>
+
+  <div id="writing" class="hide">清書しています…<small>タップでとばせます</small></div>
+
+  <div id="result" class="hide"><div class="rin">
+    <p class="rhead">あなたのプロフィールができました</p>
+    <img id="cardImg" alt="プロフ帳カード">
+    <p class="hint">画像を長押しでも保存できます</p>
+    <button id="rephraseBtn" class="btn sub">↻ 別の言い方にする</button>
+    <div class="biobox">
+      <h2>SNSのプロフィール文</h2>
+      <div class="tabs"><button data-k="x" class="on">X用（160字まで）</button><button data-k="tt">TikTok用（80字まで）</button></div>
+      <p id="bioText"></p>
+      <div class="bioFoot"><span id="bioCount"></span><button id="copyBtn">コピー</button></div>
+    </div>
+    <button id="shareBtn" class="btn x">𝕏 で結果をシェア</button>
+    <button id="saveBtn" class="btn img">カード画像を保存</button>
+    <button id="againBtn" class="btn ghost">もう一度やる</button>
+    <div id="resAdSlot"></div>
+  </div></div>
+</div>
+<div id="toast"></div>
+<div id="promo" role="dialog" aria-modal="true" aria-label="アプリのお知らせ">
+  <div class="pcard">
+    <button id="promoX" aria-label="閉じる">×</button>
+    <p class="pr"><b>PR</b><span>N.K. Works のアプリ</span></p>
+    <!-- (1) 宣伝画像1枚（一画一会） -->
+    <a id="promoFull" target="_blank" rel="noopener" data-google-vignette="false"><img class="pfull" id="promoFullImg" alt="一画一会：部品を組み合わせて、漢字をつくるパズル。App Store で無料" width="720" height="1280"></a>
+    <!-- (2) 写真と説明（Sorotta） -->
+    <div id="promoApp">
+      <img class="pshot" id="promoShot" alt="Sorotta のウィジェット画面" width="560" height="583">
+      <div class="pbody">
+        <div class="phead"><img class="picon" id="promoIcon" alt="" width="46" height="46"><div><p class="pname">Sorotta</p><p class="psub">持ち物チェック</p></div></div>
+        <p class="ptext">曜日ごとの持ち物を登録すると、<br>前の晩や朝に通知でお知らせ。<br>ウィジェットでそのままチェック。</p>
+        <a class="pbtn" id="promoGo" target="_blank" rel="noopener" data-google-vignette="false">App Store で見る</a>
+        <p class="pnote">基本無料 ・ iPhone / iPad</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 広告の帯（ゲームとの間は75pxあける）。広告が出ない時も帯の高さはそのまま。ゲームの操作は この帯の上では反応しない -->
+<div id="ad-zone"><div id="ad-banner"></div></div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+
+// ===== [SEC:CONFIG] =====
+const CONFIG = {
+  URL: 'https://nkworks-games.com/profile-kakimasu/',
+  TAG: '#プロフィール書きます',
+  AUTHOR: '@vyaPudzd1E54661',            // シェア文の最後に「作者→」で入れる
+  FOLLOW_X: 'vyaPudzd1E54661',           // 「作者をフォロー」のXアカウント
+  APP_ADS: [ // 自分のアプリの宣伝（開いた時のカードと結果画面の下）。ページを開くたびに、このどれか1つが同じ確率で出る。消したいアプリは行ごと消す
+    { id: 'ikkaku', NAME: '一画一会', FULL: true, URL: 'https://apps.apple.com/jp/app/%E4%B8%80%E7%94%BB%E4%B8%80%E4%BC%9A/id6815909260', SHOT: '/assets/ikkaku-ichie-ad.webp', ICON: '/assets/ikkaku-ichie-icon.webp', RA1: '一画一会｜漢字をつくるパズル', RA2: '部品を組み合わせて漢字をつくる・無料' },
+    { id: 'sorotta', NAME: 'Sorotta', FULL: false, URL: 'https://apps.apple.com/jp/app/sorotta-%E6%8C%81%E3%81%A1%E7%89%A9%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF/id6830588408', SHOT: '/assets/sorotta-widget.webp', ICON: '', RA1: 'Sorotta｜持ち物チェック', RA2: '曜日ごとの持ち物を通知でお知らせ・基本無料' },
+  ],
+  APP_ADS_ONLY_APPLE: true,              // iPhone・iPad・Mac だけに出す
+  AD_ON: false,                          // AdSenseの審査が通ったら true（ほかの作品と同じく今は止めてある）
+  AD_H: 60, AD_GAP: 75,                  // バナーの高さ・ゲームとの間(px)
+  AD_CLIENT: 'ca-pub-2073267239630350', AD_SLOT: '6261635446',
+  N_Q: 15,                               // 答える質問の数
+  X_MAX: 160, TT_MAX: 80,                // プロフィール文の文字数の上限（X・TikTok）
+  NAME_MAX: 10, LIKE_MAX: 12,            // ニックネーム・好きなもの1つの文字数
+  PEN_MOVE: 0.35,                        // ペンが次の行へ移る時間(秒)
+  PEN_WRITE: 0.8,                        // 1行を書く時間(秒)（文の長さで少し変わる）
+  FINISH_WAIT: 0.7,                      // 書き終わってから結果を出すまで(秒)
+  RESULT_GUARD: 0.6,                     // 結果が出た直後、押しまちがい防止で反応しない時間(秒)
+  FOV: 34,                               // カメラの画角
+  TILT_Q: 0.42, TILT_T: 0.8,             // カメラのかたむき（真上から何ラジアン）質問中・タイトル
+  FIT_MARGIN: 1.08,                      // プロフ帳のまわりの余白
+  CAM_EASE: 3,                           // カメラが追いかける速さ
+  PAGE_SCALE: 0.8,                       // ノートのページの絵の解像度（カードの何倍）
+};
+
+// ===== [SEC:UTIL] =====
+const $ = id => document.getElementById(id);
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+const clen = s => [...s].length;
+const cut = (s, n) => [...(s || '').trim()].slice(0, n).join('');
+const ease = k => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+let toastT = 0;
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1600); }
+
+// ===== [SEC:QUESTIONS] =====
+// 6つの軸：s=人と一緒(+)/ひとり時間(-) p=段取り(+)/行き当たり(-) a=即行動(+)/慎重(-) h=気持ち(+)/理由(-) n=新しもの好き(+)/定番(-) d=のめり込み(+)/広く浅く(-)
+// 1〜15問目が本番、16問目からは「どれも当てはまらない」の予備
+const QS = [
+  { t: '友達との待ち合わせ。相手が20分遅れるらしい。', c: [['近くのお店をぶらぶらして待つ', { n: 1, p: -1 }], ['スマホを見ながら、その場で待つ', { n: -1, s: -1 }], ['「先に入ってるね」とお店に入る', { a: 2 }], ['正直、ちょっとムッとする', { p: 2, h: 1 }]] },
+  { t: '旅行に行くことになった。準備はどうする？', c: [['行きたい所と時間を表にまとめる', { p: 2 }], ['宿と行き帰りだけ決めて、あとは現地で', { p: -2, n: 1 }], ['くわしい人のプランに乗っかる', { s: 1, p: -1 }], ['持ち物リストを作って何度も見直す', { a: -2, p: 1 }]] },
+  { t: '気になっていた新しいお店ができた。', c: [['オープンしてすぐ行く', { n: 2, a: 1 }], ['口コミを見てから、行くか決める', { a: -2 }], ['誰かを誘って一緒に行く', { s: 2 }], ['いつものお店があるので、たぶん行かない', { n: -2 }]] },
+  { t: 'グループで何かをすることになった。気づくと自分はどんな役？', c: [['予定を決めて、みんなを進める役', { p: 2, s: 1 }], ['アイデアをどんどん出す役', { n: 1, a: 1 }], ['みんなの意見を聞いてまとめる役', { h: 2 }], ['自分の担当をきっちり仕上げる役', { d: 1, s: -1 }]] },
+  { t: '友達から「最近ちょっと落ちこんでて」と連絡がきた。', c: [['すぐ電話をかける', { a: 1, h: 1 }], ['まずは話をじっくり聞く', { h: 2 }], ['何があったか聞いて、解決策を一緒に考える', { h: -2 }], ['「気分転換しよう」と外に連れ出す', { s: 2 }]] },
+  { t: '新しく好きなことが見つかった。', c: [['しばらくそればかりやる', { d: 2 }], ['ひと通りやったら、また次へ', { d: -2, n: 1 }], ['同じ趣味の人を探して話す', { s: 1, d: 1 }], ['自分のペースで少しずつ続ける', { n: -1, a: -1 }]] },
+  { t: '休日の朝、予定は何もない。', c: [['前の日にやることを決めてある', { p: 2 }], ['起きてから気分で決める', { p: -2 }], ['誰かに連絡して、遊ぶ予定を作る', { s: 2 }], ['家でゆっくり過ごすと決めている', { s: -2 }]] },
+  { t: '欲しかったものが、思ったより少し高かった。', c: [['その場で買う', { a: 2 }], ['一度帰って、よく考える', { a: -2 }], ['ほかの店やネットの値段を調べる', { h: -1, p: 1 }], ['友達に「どう思う？」と聞いてみる', { s: 1, h: 1 }]] },
+  { t: '話し合いで、自分と反対の意見が出た。', c: [['理由をきちんと説明して話し合う', { h: -2 }], ['相手の気持ちも考えて、ゆずれる所はゆずる', { h: 2 }], ['冗談を言って、空気をやわらげる', { s: 1, a: 1 }], ['その場では言わず、あとでゆっくり考える', { a: -1, s: -1 }]] },
+  { t: '知らない人ばかりの集まりに参加した。', c: [['自分から話しかけにいく', { s: 2, a: 1 }], ['話しかけられたら楽しく話す', { h: 1 }], ['知っている人のそばにいる', { s: -1, n: -1 }], ['ころあいを見て、早めに帰る', { s: -2 }]] },
+  { t: '新しいアプリやゲームを始める時は？', c: [['説明やチュートリアルを全部読む', { a: -2, p: 1 }], ['とりあえずさわってみる', { a: 2, p: -1 }], ['使い方や攻略を調べつくす', { d: 1, h: -1 }], ['人がやっているのを見てから始める', { s: 1, a: -1 }]] },
+  { t: 'ずっと続けていることはある？', c: [['ある。何年も同じことを続けている', { d: 2, n: -1 }], ['好きなことは、わりとよく変わる', { d: -2, n: 1 }], ['いくつかを同時に続けている', { d: -1, p: 1 }], ['毎日同じ時間に、同じことをする習慣がある', { n: -2, p: 1 }]] },
+  { t: '晩ごはん、何にする？', c: [['いつもの好きなメニュー', { n: -2 }], ['食べたことのないものに挑戦', { n: 2 }], ['一緒に食べる人に合わせる', { h: 1, s: 1 }], ['冷蔵庫の中身から考えて決める', { p: 1, h: -1 }]] },
+  { t: '自分の部屋の片づけは？', c: [['物の置き場所が決まっている', { p: 2 }], ['散らかっていても、どこに何があるかはわかる', { p: -1, d: 1 }], ['気分が乗った時に一気にやる', { p: -1, a: 1 }], ['誰かが来る時だけ本気を出す', { s: 1, p: -1 }]] },
+  { t: '何かで失敗してしまった。', c: [['原因を考えて、次に生かす', { h: -1, p: 1 }], ['しばらく引きずる', { h: 2 }], ['誰かに話して笑い話にする', { s: 2 }], ['すぐ切りかえて次へ', { a: 1, d: -1 }]] },
+  // ここから予備
+  { t: 'SNSの使い方に近いのは？', c: [['ほとんど見る専門', { s: -1 }], ['よく投稿する・コメントする', { s: 2 }], ['好きなジャンルだけを深く追いかける', { d: 2 }], ['いろんな話題を広く見る', { d: -1, n: 1 }]] },
+  { t: 'ドラマや漫画の続きが、すごく気になる。', c: [['一気に最後まで見る', { d: 2, a: 1 }], ['1日1話ずつ楽しむ', { p: 1, a: -1 }], ['先に結末を調べてしまう', { h: -1, a: 1 }], ['誰かと感想を言い合いながら見る', { s: 2 }]] },
+  { t: '前から決まっていた予定が、急になくなった。', c: [['ラッキー、好きなことをする', { s: -1, d: 1 }], ['すぐ別の予定を入れる', { s: 1, a: 1 }], ['楽しみにしていたので、ちょっとへこむ', { h: 1, p: 1 }], ['特に気にしない', { p: -2 }]] },
+  { t: '出かけた先で道に迷った。', c: [['地図アプリでルートを調べ直す', { h: -1, p: 1 }], ['近くの人に聞く', { s: 2 }], ['せっかくなので、ぶらぶら歩いてみる', { n: 2, p: -1 }], ['わかる所まで来た道を戻る', { n: -1, a: -1 }]] },
+  { t: '誰かへのプレゼントを選ぶ時は？', c: [['前に欲しがっていたものを覚えておく', { h: 2 }], ['自分が「これいい！」と思ったものを贈る', { n: 1, a: 1 }], ['何がいいか本人に聞く', { h: -1, p: 1 }], ['定番の、外さないものにする', { n: -2 }]] },
+  { t: '何かに集中している時に話しかけられた。', c: [['手を止めて話を聞く', { h: 1, s: 1 }], ['「ちょっと待って」と言って、きりのいい所まで', { d: 1, p: 1 }], ['話しかけられたことに気づかない', { d: 2, s: -1 }], ['作業しながら話す', { d: -2 }]] },
+];
+const CHC = ['#ff7f8f', '#ffb347', '#4fbfa8', '#6f9cf0'];
+
+// ===== [SEC:POLES] ===== 軸の両はしごとの文のパーツ（[0][1][2] は「別の言い方」で入れかわる同じ意味の言い回し）
+const AXES = { s: ['social', 'solo'], p: ['planner', 'improv'], a: ['quick', 'careful'], h: ['empathy', 'logic'], n: ['novelty', 'steady'], d: ['deep', 'broad'] };
+const AX = Object.keys(AXES);
+const AXIS_OF = {}; AX.forEach(k => AXES[k].forEach(p => { AXIS_OF[p] = k; }));
+const POLES = {
+  social: { adj: '人なつっこい', noun: '盛り上げ役', mod: '群れの人気者の', animal: 'イルカ',
+    trait: ['人といると元気', 'にぎやかなのが好き', '誰とでも打ちとける'], good: ['誰とでも仲良くなれる', '場の空気を明るくできる', '人見知りしない'],
+    weak: ['ひとりきりの長い休み', '静かすぎる空間', 'ひとりでの作業'], kuchi: ['「みんなで行こうよ」', '「それ楽しそう！」', '「今なにしてる？」'],
+    friend: ['いるだけで場が明るくなる人', '呼ぶとすぐ来てくれる人', 'みんなの輪の真ん中にいる人'], match: ['話をじっくり聞いてくれる人', '落ち着いた聞き上手な人', 'ひとりの時間も大事にする人'],
+    bio: ['人と話すのが好きです', 'にぎやかなのが好きです', '誰とでもすぐ仲良くなるタイプです'] },
+  solo: { adj: 'マイペースな', noun: '一匹オオカミ', mod: '日なたぼっこ中の', animal: 'ネコ',
+    trait: ['ひとり時間が大事', '自分のペース第一', 'ひとりでも平気'], good: ['ひとりでも楽しめる', '人に流されない', '自分の世界を持っている'],
+    weak: ['大人数の飲み会', '急なお誘い', 'ずっと誰かといること'], kuchi: ['「今日は家にいる」', '「ひとりで行ってくる」', '「また今度ね」'],
+    friend: ['静かなのに話すとおもしろい人', '自分の世界がある人', 'たまに会うとほっとする人'], match: ['ほどよい距離感の人', 'ひとりの時間をわかってくれる人', '無理に誘わない人'],
+    bio: ['ひとりの時間が好きです', 'マイペースに生きてます', 'ひとりでも全然平気なタイプです'] },
+  planner: { adj: '段取り上手な', noun: 'しっかり者', mod: '冬眠前の', animal: 'リス',
+    trait: ['計画してから動く', '予定はきっちり派', '段取りが好き'], good: ['約束は必ず守る', '準備がいつも完璧', '時間に正確'],
+    weak: ['急な予定変更', '行き当たりばったりの旅', 'ノープランの休日'], kuchi: ['「何時に集合？」', '「予定どうする？」', '「メモしとくね」'],
+    friend: ['困った時に頼れる人', '持ち物を全部持っている人', 'スケジュール帳がうまっている人'], match: ['一緒に予定を楽しんでくれる人', '時間を守る人', '段取りに乗ってくれる人'],
+    bio: ['予定を立てるのが好きです', '準備はいつも早めです', '段取りを考えるのが得意です'] },
+  improv: { adj: 'ノリで動く', noun: '自由人', mod: '風まかせの', animal: 'ラッコ',
+    trait: ['気分で決める', '予定は決めない派', '流れにまかせる'], good: ['急な変更にも強い', 'どこでも楽しめる', '思いつきがおもしろい'],
+    weak: ['細かいスケジュール', '決まりごとの多い場所', '何か月も先の予定'], kuchi: ['「なんとかなる」', '「いいね、行こう」', '「その時に決めよう」'],
+    friend: ['何をするかわからない人', '一緒にいると予定外が起きる人', 'どこでも楽しそうな人'], match: ['しっかり計画してくれる人', '段取り上手な人', 'ゆるさを笑ってくれる人'],
+    bio: ['予定はだいたいその場で決めます', 'なんとかなる精神で生きてます', '気分で動くタイプです'] },
+  quick: { adj: '即決の', noun: '行動派', mod: '全力ダッシュ中の', animal: 'チーター',
+    trait: ['思い立ったら即行動', '決めるのが早い', '考えるより先に動く'], good: ['決断が早い', 'フットワークが軽い', 'すぐ行動にうつせる'],
+    weak: ['長い待ち時間', '結論の出ない話し合い', 'じっくり待つこと'], kuchi: ['「とりあえずやってみよう」', '「今から行く」', '「決めた！」'],
+    friend: ['気づいたらもう動いている人', '誘うとすぐ来る人', '話が早い人'], match: ['じっくり考えてくれる人', 'ブレーキ役になってくれる人', '落ち着いた慎重派の人'],
+    bio: ['思い立ったらすぐ動きます', '決めるのは早いほうです', 'フットワークの軽さが取りえです'] },
+  careful: { adj: '慎重な', noun: '慎重派', mod: '様子見中の', animal: 'ハリネズミ',
+    trait: ['考えてから動く', '石橋をたたいて渡る', '調べてから決める'], good: ['失敗が少ない', 'よく考えてから話す', 'うっかりミスが少ない'],
+    weak: ['その場で決めること', '急かされること', 'ぶっつけ本番'], kuchi: ['「ちょっと待って」', '「一回考えさせて」', '「大丈夫かな？」'],
+    friend: ['よく考えて答えてくれる人', 'あぶない時に止めてくれる人', '相談すると安心な人'], match: ['引っぱってくれる人', '背中を押してくれる人', '決断の早い人'],
+    bio: ['考えてから動く慎重派です', '石橋はたたいてから渡ります', '決める前によく調べるタイプです'] },
+  empathy: { adj: '情に厚い', noun: '聞き上手', mod: 'やさしい目をした', animal: 'ゾウ',
+    trait: ['人の気持ちに敏感', 'まわりに気をつかう', '気持ちが顔に出る'], good: ['話を最後まで聞ける', '人の変化によく気づく', '人にやさしくできる'],
+    weak: ['ケンカの空気', '冷たい言い方', '誰かが困っているのを見ること'], kuchi: ['「大丈夫？」', '「わかるー」', '「ありがとう」'],
+    friend: ['相談しやすい人', '話を聞いてくれる人', '一緒に泣いてくれる人'], match: ['気持ちを言葉にしてくれる人', 'やさしい人', '素直な人'],
+    bio: ['人の話を聞くのが好きです', '涙もろいほうです', 'まわりの人を大事にしたいタイプです'] },
+  logic: { adj: '冷静な', noun: '分析家', mod: 'メガネをかけた', animal: 'フクロウ',
+    trait: ['理由で考える', 'いつも落ち着いてる', '順番に考える'], good: ['あわてない', 'わかりやすく説明できる', '公平に考えられる'],
+    weak: ['理由のない決まりごと', '気持ちだけの話し合い', 'なんとなくの判断'], kuchi: ['「なんで？」', '「つまり、どういうこと？」', '「それって本当？」'],
+    friend: ['困った時に冷静な人', '説明がわかりやすい人', '頼りになる参謀'], match: ['気持ちを大事にする人', 'あたたかい人', '感情豊かな人'],
+    bio: ['わりと冷静なほうです', '理由を考えるのが好きです', '落ち着いてるとよく言われます'] },
+  novelty: { adj: '新しもの好きの', noun: '冒険家', mod: '旅に出たばかりの', animal: '渡り鳥',
+    trait: ['新しいことが好き', '知らない場所が好き', '流行にすぐ乗る'], good: ['何でも挑戦できる', '変化を楽しめる', '好奇心が強い'],
+    weak: ['毎日同じことのくり返し', '同じ店ばかり行くこと', '変わらない毎日'], kuchi: ['「それ何？」', '「行ってみたい！」', '「新しいの出たって」'],
+    friend: ['いつも新しい話を持ってくる人', '流行にくわしい人', '誘うと何でも乗ってくれる人'], match: ['落ち着ける場所になってくれる人', '安定感のある人', '変わらずそばにいてくれる人'],
+    bio: ['新しいものに目がないです', '知らない場所に行くのが好きです', '気になったら何でも試します'] },
+  steady: { adj: 'ブレない', noun: '職人', mod: 'いつもの場所にいる', animal: 'カメ',
+    trait: ['お気に入り一筋', 'いつもの安心が好き', '自分流をつらぬく'], good: ['ブレない', '長く続けられる', 'そばにいると安心感がある'],
+    weak: ['急な環境の変化', '流行を追いかけること', '知らないお店'], kuchi: ['「いつもので」', '「やっぱりこれ」', '「前と同じでいいよ」'],
+    friend: ['いつ会っても変わらない人', '安心できる人', '行きつけの店がある人'], match: ['新しい世界を見せてくれる人', '好奇心の強い人', '外へ連れ出してくれる人'],
+    bio: ['好きなものはずっと好きです', 'いつものが一番落ち着きます', 'お気に入りは長く使う派です'] },
+  deep: { adj: '凝り性の', noun: 'のめり込み屋', mod: '夢中で巣を作る', animal: 'ビーバー',
+    trait: ['ハマると一直線', '好きならとことん', '一度ハマると深い'], good: ['集中力がすごい', 'くわしくなるまでやる', 'やりこむ力がある'],
+    weak: ['途中で止められること', '急いで仕上げること', '浅く広くの付き合い'], kuchi: ['「あと少しだけ」', '「これ知ってる？」', '「もう一回」'],
+    friend: ['好きなことになると早口な人', '静かなのにくわしい人', '何かの専門家みたいな人'], match: ['好きなことを聞いてくれる人', '一緒にハマってくれる人', '夢中な時は待ってくれる人'],
+    bio: ['好きなことにはとことんハマります', 'ハマると一直線です', '一度ハマると抜け出せません'] },
+  broad: { adj: '多趣味な', noun: 'なんでも屋', mod: 'あちこち寄り道する', animal: 'カワウソ',
+    trait: ['いろいろ手を出す', '広く浅く楽しむ', '器用に何でもやる'], good: ['話題が広い', '何でも器用にこなす', '切りかえが早い'],
+    weak: ['ひとつのことを長く続けること', '細かすぎる作業', '同じことのくり返し'], kuchi: ['「それもいいね」', '「ちょっとやったことある」', '「次なにしよう」'],
+    friend: ['何を聞いても少し知っている人', '話題が尽きない人', 'なんでも器用な人'], match: ['ひとつのことにくわしい人', 'じっくりタイプの人', '深い話を教えてくれる人'],
+    bio: ['趣味はたくさんあります', '広く浅くいろいろ楽しんでます', '気になったものは一通りやってみます'] },
+};
+const PLACE = { social: ['誰かと', '友達と', '誰かと'], solo: ['ひとりで', 'ひとりで', 'ひとり気ままに'] };
+const ACT = {
+  novelty: ['新しいお店を開拓', '知らない街を散歩', '気になる場所へおでかけ'], steady: ['いつもの場所でまったり', '行きつけのお店でのんびり', 'いつものコースを散歩'],
+  deep: ['趣味に没頭', '好きなことに熱中', 'ひとつのことに集中'], broad: ['気になる所をはしご', 'あれこれ寄り道', 'いろんなことをつまみ食い'],
+};
+
+// ===== [SEC:SCORE] =====
+const player = { name: '', likes: [] };
+function scoreAxes(slots, ans) {
+  // 軸ごとに「4つから適当に選んだ時の平均・ばらつき」とくらべて、どれだけ片方に寄ったかで決める（質問の数が軸ごとにちがっても公平になる）
+  const sum = {}, ex = {}, vari = {}; AX.forEach(k => { sum[k] = 0; ex[k] = 0; vari[k] = 0; });
+  let h = 2166136261;
+  ans.forEach((ci, i) => {
+    const q = QS[slots[i]];
+    AX.forEach(k => { const w = q.c.map(c => c[1][k] || 0), m = w.reduce((a, b) => a + b, 0) / w.length; ex[k] += m; vari[k] += w.reduce((a, b) => a + b * b, 0) / w.length - m * m; });
+    const w = q.c[ci][1]; for (const k in w) sum[k] += w[k];
+    h = Math.imul(h ^ (slots[i] * 7 + ci + 1), 16777619);
+  });
+  h >>>= 0;
+  const v = {}; AX.forEach(k => { v[k] = vari[k] > 0 ? (sum[k] - ex[k]) / Math.sqrt(vari[k]) : 0; });
+  const P = AX.map((k, i) => ({ s: Math.abs(v[k]) + ((h >>> (i * 3)) & 7) * 1e-4, pole: AXES[k][v[k] > 0 || (v[k] === 0 && ((h >>> (20 + i)) & 1)) ? 0 : 1] }))
+    .sort((a, b) => b.s - a.s).map(o => o.pole); // 強く出た順に、軸ごとに1つずつ
+  return { v, P };
+}
+function buildProfile(sc, vr) {
+  const P = sc.P, D = i => POLES[P[i]], poleOf = ax => P.find(p => AXIS_OF[p] === ax);
+  const nd = Math.abs(sc.v.n) >= Math.abs(sc.v.d) ? 'n' : 'd';
+  return {
+    P, vr,
+    name: player.name || 'ななしさん',
+    likes: player.likes.length ? player.likes.join('・') : 'ひみつ',
+    hitokoto: D(0).adj + D(1).noun,
+    trait: D(0).trait[vr] + '。' + D(1).trait[vr],
+    good: D(0).good[vr], weak: D(1).weak[vr], kuchi: D(2).kuchi[vr],
+    hol: PLACE[poleOf('s')][vr] + ACT[poleOf(nd)][vr],
+    friend: D(3).friend[vr], match: D(0).match[vr], animal: D(1).mod + D(0).animal,
+  };
+}
+function fitParts(parts, dropOrder, max) {
+  let a = parts.filter(Boolean);
+  for (const d of dropOrder) { if (clen(a.join('')) <= max) break; a = a.filter(s => s !== d); }
+  let t = a.join('');
+  if (clen(t) > max) t = [...t].slice(0, max - 1).join('') + '…';
+  return t;
+}
+function bios(pr) {
+  const P = pr.P, vr = pr.vr, B = (p, i) => POLES[p].bio[i % 3] + '。', L = player.likes;
+  const Ls = L.length === 2 ? L.join('と') : L.join('・');
+  const likes = L.length ? ['{L}があれば生きていけます。', '好きなものは{L}です。', '{L}の話ならいくらでもできます。'][vr].replace('{L}', Ls) : '';
+  const hol = ['休日は{H}しています。', '休みの日はたいてい{H}。', '休日は{H}するのが定番です。'][vr].replace('{H}', pr.hol);
+  const kuchi = ['口ぐせは{K}。', 'よく言うのは{K}。', '{K}が口ぐせです。'][vr].replace('{K}', pr.kuchi);
+  const b1 = B(P[0], vr), b2 = B(P[1], vr + 1);
+  const x = fitParts([b1, b2, hol, likes, kuchi], [kuchi, hol, b2], CONFIG.X_MAX);
+  const head = `【${pr.hitokoto}】`, tail = L.length ? `好き→${L.join('・')}` : hol;
+  const tt = fitParts([head, b1, tail], [b1, head], CONFIG.TT_MAX);
+  return { x, tt };
+}
+
+// ===== [SEC:CARD] ===== プロフ帳カード（結果の画像とノートのページで同じ絵を使う）
+const CW = 1080, CH = 1350;
+const ROWS = [['trait', '性格'], ['good', '長所'], ['weak', 'ちょっと苦手'], ['kuchi', '口ぐせ'], ['hol', '休日'], ['friend', '友達から見ると'], ['match', '相性のいい人'], ['animal', 'たとえると'], ['likes', '好きなもの']];
+const PILL = ['#ffb3ba', '#ffd59e', '#b5ead7', '#c7ceea', '#e2c2ff', '#ffdac1', '#a8e6cf', '#f9c6d3', '#bde0fe'];
+const HAND = '"Klee One", "Hiragino Mincho ProN", serif', ROUND = '"Zen Maru Gothic", "Hiragino Maru Gothic ProN", sans-serif';
+const LAYOUT = {}; // 各行の文字の位置（ペンが書く場所）
+function rr(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else { g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); } }
+function fitFont(g, text, wt, size, min, fam, maxW) { let s = size; g.font = `${wt} ${s}px ${fam}`; while (s > min && g.measureText(text).width > maxW) { s -= 2; g.font = `${wt} ${s}px ${fam}`; } return s; }
+function pill(g, x, y, text, col) { g.font = `700 26px ${ROUND}`; const w = g.measureText(text).width + 36; rr(g, x, y, w, 48, 24); g.fillStyle = col; g.fill(); g.fillStyle = '#4a3b33'; g.fillText(text, x + 18, y + 34); }
+function star(g, x, y, r, col) { g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr2 = i % 2 ? r * .45 : r; g.lineTo(x + Math.cos(a) * rr2, y + Math.sin(a) * rr2); } g.closePath(); g.fillStyle = col; g.fill(); }
+function tape(g, x, y, w, h, rot, col) { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = col; g.fillRect(-w / 2, -h / 2, w, h); g.fillStyle = 'rgba(255,255,255,.28)'; for (let i = -w / 2 + 8; i < w / 2; i += 22) g.fillRect(i, -h / 2, 8, h); g.restore(); }
+function handText(g, key, text, x, y, size, maxW, align, o) {
+  const s = fitFont(g, text, 600, size, Math.round(size * .58), HAND, maxW), w = g.measureText(text).width, x0 = align === 'center' ? x - w / 2 : x;
+  LAYOUT[key] = { x: x0, y: y - s * .35, w };
+  if (o.show && !o.show.has(key)) return;
+  g.save();
+  if (o.reveal && o.reveal.key === key) { g.beginPath(); g.rect(x0 - 6, y - s * 1.2, (w + 12) * o.reveal.t, s * 1.6); g.clip(); }
+  g.fillStyle = '#3a2e28'; g.textAlign = align; g.fillText(text, x, y); g.restore();
+}
+function drawCard(g, pr, o = {}) { // o.show：書き終わった行（なしなら全部）、o.reveal：今書いている行、o.page：ノート用（とじ穴）
+  g.save(); g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  g.fillStyle = '#fff9ef'; g.fillRect(0, 0, CW, CH);
+  g.fillStyle = '#efe2cc'; for (let y = 30; y < CH; y += 36) for (let x = 30; x < CW; x += 36) g.fillRect(x, y, 3, 3);
+  if (o.page) { g.fillStyle = '#d8ccb6'; for (let i = 0; i < 10; i++) { g.beginPath(); g.arc(30, 135 + i * 120, 10, 0, 7); g.fill(); } }
+  tape(g, 160, 34, 200, 46, -.1, 'rgba(255,183,77,.55)'); tape(g, 920, 36, 190, 44, .12, 'rgba(126,200,227,.5)');
+  g.font = `900 96px ${ROUND}`; let x = 80; const cols = ['#ff7f8f', '#ffb347', '#4fbfa8', '#6f9cf0', '#b48cf2', '#ff7f8f', '#ffb347'];
+  [...'PROFILE'].forEach((c, i) => { g.fillStyle = cols[i]; g.save(); g.translate(x, 172); g.rotate(i % 2 ? .05 : -.04); g.fillText(c, 0, 0); g.restore(); x += g.measureText(c).width + 4; });
+  g.font = `700 26px ${ROUND}`; g.fillStyle = '#a8968a'; g.textAlign = 'right'; g.fillText('わたしのプロフィール', 1010, 166); g.textAlign = 'left';
+  pill(g, 80, 214, 'なまえ', '#ffb3ba');
+  handText(g, 'name', pr.name, 270, 270, 64, 720, 'left', o);
+  g.strokeStyle = '#f4a0aa'; g.lineWidth = 4; g.beginPath(); for (let i = 0; i <= 75; i++) { const xx = 260 + i * 10; g.lineTo(xx, 292 + Math.sin(i * .9) * 4); } g.stroke();
+  rr(g, 70, 318, 940, 128, 26); g.fillStyle = '#fff3b0'; g.fill(); g.setLineDash([12, 10]); g.strokeStyle = '#f2c94c'; g.lineWidth = 3; g.stroke(); g.setLineDash([]);
+  g.font = `700 26px ${ROUND}`; g.fillStyle = '#c99a2e'; g.fillText('ひとことで言うと', 100, 360);
+  if (!o.show || o.show.has('hitokoto') || (o.reveal && o.reveal.key === 'hitokoto')) handText(g, 'hitokoto', pr.hitokoto, 540, 426, 58, 860, 'center', { ...o, show: null });
+  else { handText(g, 'hitokoto', pr.hitokoto, 540, 426, 58, 860, 'center', { show: new Set() }); g.font = `600 50px ${HAND}`; g.fillStyle = 'rgba(201,154,46,.35)'; g.textAlign = 'center'; g.fillText('？？？', 540, 424); g.textAlign = 'left'; }
+  ROWS.forEach(([k, label], i) => {
+    const y = 470 + i * 88;
+    pill(g, 80, y + 16, label, PILL[i]);
+    g.strokeStyle = '#e6d6bd'; g.lineWidth = 2; g.setLineDash([8, 8]); g.beginPath(); g.moveTo(80, y + 82); g.lineTo(1010, y + 82); g.stroke(); g.setLineDash([]);
+    handText(g, k, pr[k], 330, y + 60, 42, 680, 'left', o);
+  });
+  star(g, 1016, 228, 16, '#ffc94d'); star(g, 46, 404, 12, '#ff9fb0'); star(g, 1030, 1236, 10, '#9fd8ff');
+  g.font = `700 28px ${ROUND}`; g.fillStyle = '#e07a8a'; g.fillText(CONFIG.TAG, 80, 1318);
+  g.font = `500 22px ${ROUND}`; g.fillStyle = '#b3a394'; g.textAlign = 'right'; g.fillText('nkworks-games.com/profile-kakimasu', 1010, 1316);
+  g.restore();
+}
+const allText = pr => [pr.name, pr.likes, pr.hitokoto, ...ROWS.map(r => pr[r[0]])].join('');
+const FONT_BASE = JSON.stringify(POLES) + JSON.stringify(PLACE) + JSON.stringify(ACT) + ROWS.map(r => r[1]).join('') + 'なまえひとことで言うとわたしのプロフィール？ななしさんひみつ・' + CONFIG.TAG;
+function loadFonts(text) {
+  if (!document.fonts || !document.fonts.load) return Promise.resolve();
+  const t = text + 'PROFILE';
+  return Promise.race([Promise.all([document.fonts.load(`600 40px "Klee One"`, t), document.fonts.load(`700 26px "Zen Maru Gothic"`, t), document.fonts.load(`900 96px "Zen Maru Gothic"`, 'PROFILE'), document.fonts.load(`500 22px "Zen Maru Gothic"`, 'nkworks-games.com/profile-kakimasu')]).catch(() => {}), new Promise(ok => setTimeout(ok, 3500))]);
+}
+
+// ===== [SEC:SCENE] ===== 3Dの机とプロフ帳
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x2a211c); scene.fog = new THREE.Fog(0x2a211c, 8, 18);
+const camera = new THREE.PerspectiveCamera(CONFIG.FOV, 1, 0.05, 60);
+scene.add(new THREE.HemisphereLight(0xfff3e3, 0x4a3628, 1.05));
+const sun = new THREE.DirectionalLight(0xffeedd, 1.5); sun.position.set(2.2, 5, 1.8); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -3, right: 3, top: 3, bottom: -3, near: 1, far: 12 }); sun.shadow.bias = -0.0006; scene.add(sun);
+const MAXANI = renderer.capabilities.getMaxAnisotropy();
+const std = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: .7, metalness: 0, ...o });
+function mesh(geo, mat, x = 0, y = 0, z = 0, cast = true) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = cast; m.receiveShadow = true; scene.add(m); return m; }
+function woodTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
+  g.fillStyle = '#a97c52'; g.fillRect(0, 0, 512, 512);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 170; i++) { const y = rnd() * 512, h = 1 + rnd() * 3, amp = rnd() * 5; g.fillStyle = `rgba(${rnd() < .55 ? '90,58,32' : '210,165,118'},${.07 + rnd() * .17})`; g.beginPath(); g.moveTo(0, y); for (let x = 0; x <= 512; x += 32) g.lineTo(x, y + Math.sin(x * .012 + i) * amp); for (let x = 512; x >= 0; x -= 32) g.lineTo(x, y + h + Math.sin(x * .012 + i) * amp); g.fill(); }
+  g.fillStyle = 'rgba(60,36,20,.35)'; [0, 170, 341].forEach(y => g.fillRect(0, y, 512, 2));
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 1.4); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = Math.min(8, MAXANI); return t;
+}
+mesh(new THREE.BoxGeometry(9, .4, 6), std(0xffffff, { map: woodTex(), roughness: .8 }), 0, -.2, 0, false);   // 机（上の面が y=0）
+// プロフ帳：表紙・紙の束・ページ（カードの絵）・リング
+const PAGE = { w: 1.6, h: 2.0, y: .0695 };
+mesh(new THREE.BoxGeometry(1.8, .05, 2.2), std(0xff9fb0, { roughness: .6 }), .02, .025, 0);
+mesh(new THREE.BoxGeometry(1.62, .018, 2.02), std(0xf1eadf, { roughness: .95 }), 0, .059, 0, false);
+const pageCv = document.createElement('canvas'); pageCv.width = Math.round(CW * CONFIG.PAGE_SCALE); pageCv.height = Math.round(CH * CONFIG.PAGE_SCALE);
+const pctx = pageCv.getContext('2d');
+const pageTex = new THREE.CanvasTexture(pageCv); pageTex.colorSpace = THREE.SRGBColorSpace; pageTex.anisotropy = Math.min(8, MAXANI);
+const page = mesh(new THREE.PlaneGeometry(PAGE.w, PAGE.h), new THREE.MeshStandardMaterial({ map: pageTex, roughness: .92 }), 0, PAGE.y, 0, false); page.rotation.x = -Math.PI / 2;
+{ const ringMat = std(0xd9dde3, { metalness: .8, roughness: .3 }), ringGeo = new THREE.TorusGeometry(.055, .011, 8, 20);
+  for (let i = 0; i < 10; i++) { const z = (135 + i * 120) / CH * PAGE.h - PAGE.h / 2; mesh(ringGeo, ringMat, -PAGE.w / 2 + .02, .07, z); } }
+// 小物：マグカップ・植木ばち・ふせん・消しゴム・えんぴつ
+{ const mug = std(0xfdfbf7, { roughness: .35 });
+  mesh(new THREE.CylinderGeometry(.24, .22, .5, 28), mug, 1.5, .25, -.7);
+  mesh(new THREE.CylinderGeometry(.205, .205, .01, 28), std(0x4a2c1a, { roughness: .2 }), 1.5, .46, -.7, false);
+  const hd = mesh(new THREE.TorusGeometry(.12, .03, 10, 18, Math.PI), mug, 1.74, .26, -.7); hd.rotation.z = -Math.PI / 2;
+  mesh(new THREE.CylinderGeometry(.17, .13, .28, 20), std(0xc8714a, { roughness: .85 }), -1.5, .14, -.8);
+  const leaf = std(0x5d9a56, { roughness: .8 });
+  [[0, .38, 0, .15], [.09, .5, .03, .11], [-.08, .48, -.04, .12], [.02, .6, -.02, .09]].forEach(([x, y, z, r]) => mesh(new THREE.IcosahedronGeometry(r, 1), leaf, -1.5 + x, y, -.8 + z));
+  [[0xffe680, .1], [0xffb3c6, -.15], [0xb3e0ff, .32]].forEach(([c, r], i) => { const s = mesh(new THREE.BoxGeometry(.48, .006, .48), std(c, { roughness: .9 }), -1.45 + i * .04, .003 + i * .006, .75 - i * .05, false); s.rotation.y = r; });
+  const er = mesh(new THREE.BoxGeometry(.32, .1, .15), std(0xfafafa, { roughness: .9 }), 1.35, .05, .8); er.rotation.y = .4;
+  const sl = mesh(new THREE.BoxGeometry(.2, .104, .154), std(0x3f6fd8, { roughness: .6 }), 1.35 + Math.cos(.4) * .04, .05, .8 - Math.sin(.4) * .04); sl.rotation.y = .4;
+  const pc = new THREE.Group(); const pb = new THREE.Mesh(new THREE.CylinderGeometry(.026, .026, 1, 6), std(0xf5c242, { roughness: .6 })); pb.rotation.z = Math.PI / 2;
+  const pt = new THREE.Mesh(new THREE.ConeGeometry(.026, .1, 6), std(0xe8c9a0)); pt.rotation.z = -Math.PI / 2; pt.position.x = .55;
+  [pb, pt].forEach(m => { m.castShadow = true; pc.add(m); }); pc.position.set(1.25, .027, .1); pc.rotation.y = .9; scene.add(pc);
+}
+
+// ===== [SEC:PEN] ===== ペン（先が原点。行の左から右へ動いて書く）
+const pen = new THREE.Group(), penBody = new THREE.Group();
+{ const add = (geo, mat, y, x = 0, z = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; penBody.add(m); return m; };
+  const tip = add(new THREE.ConeGeometry(.03, .09, 18), std(0xcfd3d8, { metalness: .7, roughness: .3 }), .045); tip.rotation.x = Math.PI;
+  add(new THREE.SphereGeometry(.007, 8, 6), std(0x222222), .003);
+  add(new THREE.CylinderGeometry(.031, .03, .18, 18), std(0x3b3f4a, { roughness: .9 }), .18);
+  add(new THREE.CylinderGeometry(.034, .034, .6, 18), std(0xff6f7d, { roughness: .45 }), .57);
+  add(new THREE.SphereGeometry(.034, 16, 10), std(0xff6f7d, { roughness: .45 }), .87);
+  add(new THREE.BoxGeometry(.014, .26, .02), std(0xd9dde3, { metalness: .8, roughness: .3 }), .72, 0, .04);
+  penBody.rotation.set(.85, 0, -.55); pen.add(penBody); scene.add(pen); }
+const toWorld = (cx, cy) => new THREE.Vector3((cx / CW - .5) * PAGE.w, PAGE.y, (cy / CH - .5) * PAGE.h);
+const REST = new THREE.Vector3(.58, PAGE.y + .16, .86);
+const penPos = REST.clone(); pen.position.copy(penPos);
+let jobs = [], cur = null, reveal = null;
+function tickPen(dt, t) {
+  if (!cur && jobs.length) { cur = jobs.shift(); cur.t = 0; cur.phase = 'move'; cur.from = penPos.clone(); }
+  if (cur) {
+    const L = LAYOUT[cur.key]; if (!L) { cur = null; return; }
+    const a = toWorld(L.x, L.y), b = toWorld(L.x + L.w, L.y);
+    if (cur.phase === 'move') {
+      cur.t = Math.min(1, cur.t + dt / CONFIG.PEN_MOVE); const k = ease(cur.t);
+      penPos.lerpVectors(cur.from, a, k); penPos.y = PAGE.y + (cur.from.y - PAGE.y) * (1 - k) + Math.sin(Math.PI * k) * .12 + .004 * k;
+      if (cur.t >= 1) { cur.phase = 'write'; cur.t = 0; cur.dur = CONFIG.PEN_WRITE * Math.min(1.5, Math.max(.6, L.w / 460)); Sound.scribble(cur.dur); }
+    } else {
+      cur.t = Math.min(1, cur.t + dt / cur.dur); const k = cur.t;
+      penPos.lerpVectors(a, b, k); penPos.z += Math.sin(k * 70) * .012; penPos.y = PAGE.y + .002 + Math.abs(Math.sin(k * 45)) * .012;
+      reveal = { key: cur.key, t: k }; redrawPage();
+      if (cur.t >= 1) { written.add(cur.key); reveal = null; cur = null; redrawPage(); }
+    }
+  } else { penPos.lerp(REST, 1 - Math.exp(-dt * 4)); penPos.y = REST.y + Math.sin(t * 1.6) * .015; }
+  pen.position.copy(penPos);
+}
+
+// ===== [SEC:CAMERA] =====
+let mode = 'title';
+const cam = { d: 7, ox: 0, oy: 0, tilt: CONFIG.TILT_T, az: 0 }, goal = { ...cam };
+let lastW = 0, lastH = 0;
+function computeGoal(t) {
+  const W = canvas.clientWidth, H = canvas.clientHeight; if (W < 2 || H < 2) return;
+  if (W !== lastW || H !== lastH) { renderer.setSize(W, H, false); lastW = W; lastH = H; }
+  const appR = $('app').getBoundingClientRect();
+  let rg = { x: 0, y: 0, w: W, h: H }, pw = 2.0, ph = 2.3, tilt = CONFIG.TILT_Q;
+  const box = mode === 'title' ? $('tbox') : mode === 'quiz' ? $('qcard') : null;
+  if (box) {
+    const b = box.getBoundingClientRect(), side = b.left - appR.left > W * .3;
+    rg = side ? { x: 0, y: 0, w: Math.max(W * .35, b.left - appR.left - 8), h: H } : { x: 0, y: 0, w: W, h: Math.max(H * .26, b.top - appR.top - 6) };
+  }
+  if (mode === 'title') { pw = 3.7; ph = 2.9; tilt = CONFIG.TILT_T; }
+  if (mode === 'writing') rg = { x: 0, y: 50, w: W, h: H - 50 };
+  const tf = Math.tan(THREE.MathUtils.degToRad(CONFIG.FOV) / 2), m = CONFIG.FIT_MARGIN;
+  goal.d = Math.max(ph * Math.cos(tilt) * m / (2 * tf * (rg.h / H)), pw * m / (2 * tf * (W / H) * (rg.w / W)));
+  goal.ox = W / 2 - (rg.x + rg.w / 2); goal.oy = H / 2 - (rg.y + rg.h / 2); goal.tilt = tilt;
+  goal.az = mode === 'title' ? Math.sin(t * .25) * .18 : 0;
+}
+function tickCam(dt) {
+  const k = 1 - Math.exp(-dt * CONFIG.CAM_EASE); for (const key in goal) cam[key] += (goal[key] - cam[key]) * k;
+  const W = lastW, H = lastH; if (!W) return;
+  camera.aspect = W / H;
+  camera.position.set(Math.sin(cam.az) * Math.sin(cam.tilt) * cam.d, PAGE.y + Math.cos(cam.tilt) * cam.d, Math.cos(cam.az) * Math.sin(cam.tilt) * cam.d);
+  camera.lookAt(0, PAGE.y, 0);
+  camera.setViewOffset(W, H, cam.ox, cam.oy, W, H); camera.updateProjectionMatrix();
+}
+
+// ===== [SEC:SOUND] =====
+const Sound = {
+  on: store.get('pk.mute') !== '1', ctx: null, noise: null,
+  init() { if (this.ctx) return; try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); const n = this.ctx.sampleRate, b = this.ctx.createBuffer(1, n, n), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; this.noise = b; } catch (e) {} },
+  resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+  ok() { return this.on && this.ctx; },
+  tap() { if (!this.ok()) return; const c = this.ctx, t = c.currentTime, o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(700, t); o.frequency.exponentialRampToValueAtTime(460, t + .08); g.gain.setValueAtTime(.1, t); g.gain.exponentialRampToValueAtTime(.001, t + .1); o.connect(g).connect(c.destination); o.start(t); o.stop(t + .12); },
+  scribble(dur) { if (!this.ok()) return; const c = this.ctx, t = c.currentTime, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = this.noise; s.loop = true; f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = .9; g.gain.setValueAtTime(0, t);
+    for (let x = 0; x < dur; x += .055) g.gain.linearRampToValueAtTime(.025 + Math.random() * .05, t + x + .02), g.gain.linearRampToValueAtTime(.006, t + x + .05);
+    g.gain.linearRampToValueAtTime(0, t + dur + .03); s.connect(f).connect(g).connect(c.destination); s.start(t); s.stop(t + dur + .05); },
+  done() { if (!this.ok()) return; const c = this.ctx, t = c.currentTime; [784, 1047, 1319].forEach((fq, i) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = fq; g.gain.setValueAtTime(0, t + i * .09); g.gain.linearRampToValueAtTime(.09, t + i * .09 + .02); g.gain.exponentialRampToValueAtTime(.001, t + i * .09 + .5); o.connect(g).connect(c.destination); o.start(t + i * .09); o.stop(t + i * .09 + .55); }); },
+};
+
+// ===== [SEC:GAME] =====
+const FILL = ['trait', 'good', 'weak', 'kuchi', 'hol', 'friend', 'match', 'animal']; // 質問に答えるにつれて上から書かれていく行
+const fillCount = n => Math.floor(n * FILL.length / CONFIG.N_Q);
+let slots = [], answers = [], nextReserve = CONFIG.N_Q, written = new Set(), pagePr = null, finalSc = null, vr = 0, doneAt = 0, resultShownAt = 0, lock = 0;
+const emptySc = () => scoreAxes([], []);
+function redrawPage() {
+  pctx.setTransform(CONFIG.PAGE_SCALE, 0, 0, CONFIG.PAGE_SCALE, 0, 0);
+  drawCard(pctx, pagePr || buildProfile(emptySc(), 0), { show: written, reveal, page: true }); pageTex.needsUpdate = true;
+}
+function queue(key) { if (!written.has(key) && !jobs.some(j => j.key === key) && !(cur && cur.key === key)) jobs.push({ key }); }
+function updateProgress() {
+  pagePr = buildProfile(scoreAxes(slots, answers), 0);
+  const want = ['name', 'likes', ...FILL.slice(0, fillCount(answers.length))];
+  [...written].forEach(k => { if (!want.includes(k)) written.delete(k); });
+  jobs = jobs.filter(j => want.includes(j.key));
+  if (cur && !want.includes(cur.key)) { cur = null; reveal = null; }
+  want.forEach(queue); redrawPage();
+}
+function showQ() {
+  const n = answers.length, q = QS[slots[n]];
+  $('qno').textContent = `${n + 1} / ${CONFIG.N_Q}`; $('barIn').style.width = (n / CONFIG.N_Q * 100) + '%';
+  $('qtext').textContent = q.t;
+  $('choices').innerHTML = q.c.map((c, i) => `<button class="ch" data-a="${i}" style="--c:${CHC[i]}"><b>${'ABCD'[i]}</b><span>${c[0]}</span></button>`).join('');
+  $('swapBtn').classList.toggle('hide', nextReserve >= QS.length);
+}
+function setMode(m) { mode = m; $('title').classList.toggle('hide', m !== 'title'); $('quiz').classList.toggle('hide', m !== 'quiz'); $('writing').classList.toggle('hide', m !== 'writing'); $('result').classList.toggle('hide', m !== 'result'); $('mute').classList.toggle('hide', m === 'result'); }
+function readInputs() {
+  player.name = cut($('inName').value, CONFIG.NAME_MAX);
+  player.likes = [...document.querySelectorAll('.inLike')].map(i => cut(i.value, CONFIG.LIKE_MAX)).filter(Boolean);
+  store.set('pk.name', player.name); store.set('pk.likes', JSON.stringify(player.likes));
+}
+function begin() {
+  readInputs(); if (document.activeElement) document.activeElement.blur();
+  Sound.init(); Sound.resume(); Sound.tap();
+  slots = QS.slice(0, CONFIG.N_Q).map((q, i) => i); answers = []; nextReserve = CONFIG.N_Q;
+  written = new Set(); jobs = []; cur = null; reveal = null; finalSc = null; doneAt = 0;
+  setMode('quiz'); showQ(); updateProgress();
+  loadFonts(player.name + player.likes.join('')).then(redrawPage);
+}
+function choose(i) {
+  if (mode !== 'quiz' || performance.now() < lock) return; lock = performance.now() + 220;
+  const b = document.querySelector(`.ch[data-a="${i}"]`); if (b) b.classList.add('pick');
+  Sound.tap();
+  setTimeout(() => {
+    answers.push(i); updateProgress();
+    if (answers.length >= CONFIG.N_Q) finish(); else showQ();
+  }, 160);
+}
+function back() { if (mode !== 'quiz') return; Sound.tap(); if (!answers.length) { goTitle(); return; } answers.pop(); updateProgress(); showQ(); }
+function swap() { if (mode !== 'quiz' || nextReserve >= QS.length) return; Sound.tap(); slots[answers.length] = nextReserve++; showQ(); }
+function finish() {
+  finalSc = scoreAxes(slots, answers); vr = 0; pagePr = buildProfile(finalSc, vr);
+  $('barIn').style.width = '100%';
+  setMode('writing'); doneAt = 0;
+  ['name', 'likes', ...FILL, 'hitokoto'].forEach(queue); redrawPage();
+}
+function skipWriting() { if (mode !== 'writing') return; jobs = []; cur = null; reveal = null; ['name', 'likes', ...FILL, 'hitokoto'].forEach(k => written.add(k)); redrawPage(); showResult(); }
+function tickFinish(now) {
+  if (mode !== 'writing' || cur || jobs.length) { doneAt = 0; return; }
+  if (!doneAt) doneAt = now; else if (now - doneAt > CONFIG.FINISH_WAIT * 1000) showResult();
+}
+function goTitle() { setMode('title'); written = new Set(); jobs = []; cur = null; reveal = null; pagePr = null; redrawPage(); }
+
+// ===== [SEC:RESULT] =====
+const cardCv = document.createElement('canvas'); cardCv.width = CW; cardCv.height = CH; const cctx = cardCv.getContext('2d');
+let cardURL = '', bio = { x: '', tt: '' }, bioKind = 'x', curPr = null;
+async function showResult() {
+  if (mode === 'result') return;
+  setMode('result'); resultShownAt = performance.now(); Sound.done();
+  $('resAdSlot').innerHTML = resAdHTML();
+  $('result').scrollTop = 0;
+  await renderResult();
+}
+async function renderResult() {
+  curPr = buildProfile(finalSc, vr); pagePr = curPr;
+  await loadFonts(allText(curPr));
+  drawCard(cctx, curPr); redrawPage();
+  cardCv.toBlob(b => { if (!b) return; if (cardURL) URL.revokeObjectURL(cardURL); cardURL = URL.createObjectURL(b); $('cardImg').src = cardURL; }, 'image/png');
+  bio = bios(curPr); paintBio();
+}
+function paintBio() {
+  const t = bio[bioKind], max = bioKind === 'x' ? CONFIG.X_MAX : CONFIG.TT_MAX;
+  $('bioText').textContent = t; $('bioCount').textContent = `${clen(t)} / ${max}字`;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.k === bioKind));
+}
+const resultReady = () => mode === 'result' && performance.now() - resultShownAt > CONFIG.RESULT_GUARD * 1000;
+function rephrase() { if (!resultReady()) return; Sound.tap(); vr = (vr + 1) % 3; renderResult().then(() => toast('言い回しを変えました')); }
+async function copyBio() {
+  if (!resultReady()) return; const t = bio[bioKind];
+  try { await navigator.clipboard.writeText(t); }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e2) {} ta.remove(); }
+  toast('コピーしました');
+}
+
+// ===== [SEC:SHARE] =====
+const shareURL = () => `${CONFIG.URL}t/${curPr.P[0]}-${curPr.P[1]}/`;
+const shareText = () => `わたしをひとことで言うと【${curPr.hitokoto}】でした。15の質問で、プロフ帳と自己紹介文を書いてもらえます。あなたは？\n${CONFIG.TAG}\n作者→${CONFIG.AUTHOR}`;
+function shareX() { if (!resultReady()) return; window.open(`https://x.com/intent/post?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(shareURL())}`, '_blank', 'noopener'); }
+async function saveImage() {
+  if (!resultReady()) return; const blob = await new Promise(ok => cardCv.toBlob(ok, 'image/png')); if (!blob) return;
+  const file = new File([blob], 'profile-kakimasu.png', { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file] }); } catch (e) {} return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+// ===== [SEC:UI] =====
+$('startBtn').addEventListener('click', begin);
+$('againBtn').addEventListener('click', () => { if (resultReady()) { Sound.tap(); goTitle(); } });
+$('choices').addEventListener('click', e => { const b = e.target.closest('.ch'); if (b) choose(+b.dataset.a); });
+$('backBtn').addEventListener('click', back); $('swapBtn').addEventListener('click', swap);
+$('writing').addEventListener('click', skipWriting); canvas.addEventListener('click', skipWriting);
+$('rephraseBtn').addEventListener('click', rephrase); $('copyBtn').addEventListener('click', copyBio);
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { bioKind = b.dataset.k; paintBio(); }));
+$('shareBtn').addEventListener('click', shareX); $('saveBtn').addEventListener('click', saveImage);
+$('follow').href = `https://x.com/intent/follow?screen_name=${CONFIG.FOLLOW_X}`;
+document.querySelectorAll('#tbox input').forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) begin(); }));
+const muteBtn = $('mute'), paintMute = () => { muteBtn.textContent = Sound.on ? '♪' : '×'; muteBtn.style.opacity = Sound.on ? 1 : .6; }; paintMute();
+muteBtn.addEventListener('click', () => { Sound.on = !Sound.on; store.set('pk.mute', Sound.on ? '0' : '1'); paintMute(); if (Sound.on) { Sound.init(); Sound.resume(); Sound.tap(); } });
+{ $('inName').value = store.get('pk.name') || ''; let L = []; try { L = JSON.parse(store.get('pk.likes') || '[]'); } catch (e) {} document.querySelectorAll('.inLike').forEach((i, k) => { i.value = L[k] || ''; }); }
+{ const m = /[?&]t=([a-z]+)-([a-z]+)/.exec(location.search); if (m && POLES[m[1]] && POLES[m[2]] && AXIS_OF[m[1]] !== AXIS_OF[m[2]]) { $('friend').textContent = `友だちをひとことで言うと「${POLES[m[1]].adj}${POLES[m[2]].noun}」でした。あなたは？`; $('friend').classList.remove('hide'); } }
+
+// ===== [SEC:PROMO] =====
+// 自分のアプリの宣伝：①ページを開いた時に1回だけ出るカード（×ですぐ閉じられる。「もう一度やる」では出ない）②結果画面のいちばん下に小さく
+// 開くたびに CONFIG.APP_ADS のどれか1つを選ぶ（①と②は同じアプリ）。FULL:true は宣伝画像1枚、false は写真と説明のカード（今は Sorotta 用）
+const PROMO_ICON = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#3d5a66"/><path d="M38 38q0-14 12-14t12 14" fill="none" stroke="#f4ead8" stroke-width="5" stroke-linecap="round"/><path d="M24 36h52l-5 44H29z" fill="#f4ead8"/><path d="M38 58l9 9 16-18" fill="none" stroke="#e2a33b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+const APP = (() => { const L = CONFIG.APP_ADS.filter(a => a.URL), want = new URLSearchParams(location.search).get('ad'); return L.find(a => a.id === want) || L[Math.floor(Math.random() * L.length)]; })(); // ?ad=sorotta などで指定もできる（確認用）
+const PROMO_OK = !!(APP && (!CONFIG.APP_ADS_ONLY_APPLE || /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent))) && !location.search.includes('card=1');
+function resAdHTML() {
+  if (!PROMO_OK) return '';
+  return `<a class="resAd on" target="_blank" rel="noopener" data-google-vignette="false" href="${APP.URL}"><img src="${APP.ICON || PROMO_ICON}" alt="" width="34" height="34"><div><p class="ra1"><b>PR</b>${APP.RA1}</p><p class="ra2">${APP.RA2}</p></div><span class="raBtn">App Store</span></a>`;
+}
+function initPromo() {
+  if (!PROMO_OK) return; const P = $('promo');
+  P.classList.add(APP.FULL ? 'full' : 'app'); P.setAttribute('aria-label', `アプリ ${APP.NAME} のお知らせ`);
+  if (APP.FULL) { $('promoFullImg').src = APP.SHOT; $('promoFull').href = APP.URL; }
+  else { $('promoIcon').src = APP.ICON || PROMO_ICON; $('promoShot').src = APP.SHOT; $('promoGo').href = APP.URL; }
+  P.classList.add('on');
+}
+const closePromo = () => $('promo').classList.remove('on');
+$('promoX').onclick = closePromo; ['promoGo', 'promoFull'].forEach(id => $(id).addEventListener('click', () => setTimeout(closePromo, 300)));
+$('promo').addEventListener('click', e => { if (e.target.id === 'promo') closePromo(); }); // 外側の暗い所を押しても閉じる
+addEventListener('keydown', e => { if (e.key === 'Escape' && $('promo').classList.contains('on')) closePromo(); });
+initPromo();
+
+// ===== [SEC:ADS] =====
+if (CONFIG.AD_ON) {
+  document.documentElement.style.setProperty('--ad-h', CONFIG.AD_H + 'px'); document.documentElement.style.setProperty('--ad-gap', CONFIG.AD_GAP + 'px');
+  const s = document.createElement('script'); s.async = true; s.crossOrigin = 'anonymous'; s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + CONFIG.AD_CLIENT; document.head.appendChild(s);
+  $('ad-banner').innerHTML = `<ins class="adsbygoogle" style="display:inline-block;width:100%;height:${CONFIG.AD_H}px" data-ad-client="${CONFIG.AD_CLIENT}" data-ad-slot="${CONFIG.AD_SLOT}"></ins>`;
+  try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+}
+// ===== [SEC:LOOP] =====
+redrawPage(); loadFonts(FONT_BASE).then(redrawPage);
+if (document.fonts) document.fonts.addEventListener && document.fonts.addEventListener('loadingdone', () => redrawPage());
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; const t = now / 1000;
+  computeGoal(t); tickCam(dt); tickPen(dt, t); tickFinish(now);
+  renderer.render(scene, camera); requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ===== [SEC:TEST] ===== 自動テスト用（遊ぶ時は使わない）
+window.__pk = { drawCard, CW, CH, QS, POLES, AXES, PLACE, ACT, CONFIG, scoreAxes, buildProfile, bios, player, LAYOUT, state: () => ({ mode, answers: answers.slice(), written: [...written], jobs: jobs.length, cur: cur && cur.key, cam: { ...cam } }), finalSc: () => finalSc, curPr: () => curPr, bio: () => bio, skipWriting };
+</script>
+</body>
+</html>
