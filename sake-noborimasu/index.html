@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>鮭、のぼります。</title>
+<meta name="description" content="鮭になって川をのぼれ！滝・岩・クマ・急流、流れてくる丸太や分かれ道をこえて、ふるさとの産卵場所までのタイムを競う3Dタイムアタック。">
+<meta property="og:title" content="鮭、のぼります。">
+<meta property="og:description" content="滝もクマも丸太もこえて、産卵場所へ。3D川のぼりタイムアタック">
+<meta property="og:url" content="https://nkworks-games.com/sake-noborimasu/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="N.K. Works">
+<meta property="og:image" content="https://nkworks-games.com/sake-noborimasu/card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nkworks-games.com/sake-noborimasu/card.png">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/sake-noborimasu/">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#0b1a24;color:#fff;font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+#touch{position:fixed;inset:0;touch-action:none;z-index:2}
+#spd{position:fixed;inset:-10%;pointer-events:none;z-index:2;opacity:0;background:repeating-conic-gradient(from 0deg at 50% 45%,transparent 0deg 3.2deg,rgba(255,255,255,.6) 3.2deg 3.7deg);-webkit-mask:radial-gradient(circle at 50% 45%,transparent 34%,#000 78%);mask:radial-gradient(circle at 50% 45%,transparent 34%,#000 78%)}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:3}
+.hide{display:none!important}
+#timer{position:absolute;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);font-size:clamp(26px,7vw,40px);font-weight:800;letter-spacing:1px;text-shadow:0 2px 0 #0009,0 0 10px #0006;font-variant-numeric:tabular-nums}
+#prog{position:absolute;top:calc(60px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(66vw,420px);height:8px;border-radius:4px;background:#ffffff45;box-shadow:0 1px 3px #0006}
+#progFill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;background:linear-gradient(90deg,#7fd3ff,#ff8a6a)}
+.pdot{position:absolute;top:50%;left:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid #fff}
+#pFish{background:#ff6b57}
+#pGhost{background:#9fe8ff90;border-color:#dff}
+#progL,#progR{position:absolute;top:12px;font-size:11px;text-shadow:0 1px 2px #000}
+#progL{left:0}#progR{right:0}
+#ghostDiff{position:absolute;top:calc(92px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);font-size:13px;font-weight:700;text-shadow:0 1px 3px #000;white-space:nowrap;color:#bff4ff}
+#bestS{position:absolute;top:calc(64px + env(safe-area-inset-top));right:10px;font-size:11px;text-align:right;text-shadow:0 1px 2px #000;line-height:1.3;opacity:.9}
+#msg{position:absolute;top:31%;left:50%;transform:translate(-50%,-50%);font-size:clamp(24px,7vw,40px);font-weight:900;text-align:center;white-space:nowrap;text-shadow:0 3px 0 #000a,0 0 12px #000a;opacity:0;transition:opacity .15s}
+#msg.on{opacity:1}
+#tip{position:absolute;top:41%;left:50%;transform:translateX(-50%);width:min(88vw,460px);font-size:clamp(14px,4vw,17px);font-weight:700;line-height:1.5;text-align:center;background:#0c2a3ad9;border:2px solid #ffffff55;border-radius:12px;padding:10px 14px;opacity:0;transition:opacity .3s}
+#tip.on{opacity:1}
+#cd{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);font-size:clamp(72px,24vw,140px);font-weight:900;text-shadow:0 5px 0 #000a}
+#gw{position:absolute;right:calc(56px + env(safe-area-inset-right));bottom:calc(168px + env(safe-area-inset-bottom));width:20px;height:150px}
+#gauge{position:absolute;inset:0;border-radius:10px;background:#00000060;border:2px solid #fffa;overflow:hidden}
+#gFill{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,#ffd166,#ff5a3c)}
+#gw.full #gauge{box-shadow:0 0 12px #ffd166}
+#gMark{position:absolute;left:-5px;right:-5px;height:4px;margin-top:-2px;background:#7ff;box-shadow:0 0 6px #7ff;border-radius:2px}
+#gMark::after{content:'滝';position:absolute;right:28px;top:-9px;font-size:13px;font-weight:800;color:#9ff;text-shadow:0 1px 2px #000}
+#jumpBtn{position:absolute;right:calc(16px + env(safe-area-inset-right));bottom:calc(28px + env(safe-area-inset-bottom));width:124px;height:124px;border-radius:50%;border:3px solid #ffffffa8;background:#ffffff22;display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;font-weight:800;line-height:1.35;text-shadow:0 1px 2px #000}
+#jumpBtn.held{background:#ff8a5a66;transform:scale(.94)}
+#steerHint{position:absolute;left:calc(14px + env(safe-area-inset-left));bottom:calc(60px + env(safe-area-inset-bottom));font-size:14px;font-weight:800;padding:12px 16px;border-radius:30px;background:#ffffff1f;border:2px solid #ffffff70;text-shadow:0 1px 2px #000}
+#keyHint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:13px;text-shadow:0 1px 2px #000;white-space:nowrap;opacity:.9}
+#mute{position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:6;width:42px;height:42px;border-radius:50%;border:2px solid #fff8;background:#0007;color:#fff;font-size:18px;cursor:pointer}
+.screen{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(180deg,#0b1a2410,#0b1a24b0)}
+.panel{width:min(94vw,470px);max-height:94vh;overflow:auto;background:#0e2b3be6;border:2px solid #ffffff45;border-radius:18px;padding:18px 18px 16px;text-align:center;box-shadow:0 10px 40px #0009}
+h1{margin:2px 0 6px;font-size:clamp(28px,8.6vw,50px);white-space:nowrap;letter-spacing:2px;text-shadow:0 4px 0 #c8402e,0 6px 14px #0008}
+.sub{font-size:14px;line-height:1.6;opacity:.95;margin-bottom:8px}
+.how{text-align:left;font-size:13.5px;line-height:1.75;background:#ffffff14;border-radius:12px;padding:10px 12px;margin:8px 0}
+.how b{color:#ffd166}
+.btn{display:block;width:100%;margin:10px 0 0;padding:14px;font-size:20px;font-weight:900;border:none;border-radius:14px;color:#fff;background:linear-gradient(180deg,#ff7a5c,#e0452f);box-shadow:0 5px 0 #a02c1c;cursor:pointer;font-family:inherit}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #a02c1c}
+.btn.blue{background:linear-gradient(180deg,#3aa0d8,#2378ad);box-shadow:0 5px 0 #17557c;font-size:17px}
+.btn.x{background:#111;box-shadow:0 5px 0 #000;font-size:17px}
+/* 作者をフォロー（サイトのほかのゲームと同じ形） */
+.sup{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;text-align:left;text-decoration:none;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.28);border-radius:12px;padding:8px 8px 8px 14px}
+.sup b{display:block;font-size:14px}.sup small{display:block;font-size:11.5px;opacity:.75;margin-top:1px;font-weight:500}
+.sup .go{flex:none;background:#111;color:#fff;font-weight:800;font-size:13px;border-radius:999px;padding:7px 14px;white-space:nowrap;border:1px solid rgba(255,255,255,.35)}
+#tBest{font-size:15px;font-weight:800;color:#ffd166;min-height:1.2em}
+.big{font-size:clamp(44px,13vw,64px);font-weight:900;font-variant-numeric:tabular-nums;margin:2px 0}
+.rec{color:#ffd166;font-weight:900;font-size:20px;animation:blink .7s infinite alternate}
+@keyframes blink{to{opacity:.45}}
+.rank{font-size:22px;font-weight:900;margin:6px 0;color:#ffb199}
+.stats{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 14px;font-size:14px;margin:6px 0}
+.foot{font-size:11px;opacity:.6;margin-top:10px}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="spd"></div>
+<div id="touch"></div>
+<div id="hud" class="hide">
+  <div id="timer">0:00.00</div>
+  <div id="prog"><div id="progFill"></div><div id="pGhost" class="pdot hide"></div><div id="pFish" class="pdot"></div><span id="progL">河口</span><span id="progR">産卵場所</span></div>
+  <div id="ghostDiff"></div>
+  <div id="bestS"></div>
+  <div id="msg"></div>
+  <div id="tip"></div>
+  <div id="cd"></div>
+  <div id="gw"><div id="gauge"><div id="gFill"></div></div><div id="gMark" class="hide"></div></div>
+  <div id="jumpBtn">長押しで<br>タメる<br>↓<br>はなして<br>ジャンプ</div>
+  <div id="steerHint">◀ どこでもドラッグで左右 ▶</div>
+  <div id="keyHint">← → で左右　／　スペース長押し → はなしてジャンプ</div>
+</div>
+<button id="mute" aria-label="音">🔊</button>
+<div id="title" class="screen">
+  <div class="panel">
+    <h1>鮭、のぼります。</h1>
+    <div class="sub">ふるさとの川をのぼって、産卵場所まで。<br>どれだけ速くのぼれるか、タイムアタック！</div>
+    <div class="how">
+      <div>🐟 前へは<b>自動で泳ぐ</b>。あやつるのは左右とジャンプ</div>
+      <div id="howTouch">👆 画面を<b>左右にドラッグ</b>：左右に泳ぐ<br>🔴 右下の<b>ジャンプボタンを長押し→はなす</b>：ジャンプ（長いほど高い）</div>
+      <div id="howKey">⌨ <b>← →</b>：左右　<b>スペース長押し→はなす</b>：ジャンプ</div>
+      <div>🌊 <b>滝</b>：ぎりぎりの高さでこえると「ジャスト！」で加速</div>
+      <div>🪨 <b>岩</b>：ぶつかると減速。低い岩はとびこえられる</div>
+      <div>🐻 <b>クマ</b>：赤い範囲は手がとどく所。ふり下ろした後をねらえ</div>
+      <div>💨 <b>急流</b>：白い流れは押し戻される。白くない所を泳げ</div>
+      <div>💠 <b>青い矢印・水の輪</b>：加速！　🪵 <b>丸太</b>：跳び越えよう</div>
+    </div>
+    <div id="tBest"></div>
+    <button class="btn" id="startBtn">スタート</button>
+    <a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a>
+    <div class="foot">N.K. Works</div>
+  </div>
+</div>
+<div id="result" class="screen hide">
+  <div class="panel">
+    <div style="font-size:18px;font-weight:800">産卵場所に到着！</div>
+    <div class="big" id="rTime">0:00.00</div>
+    <div id="rRec" class="rec hide">NEW RECORD!</div>
+    <div id="rBest" style="font-size:14px;opacity:.9"></div>
+    <div class="rank" id="rRank"></div>
+    <div class="stats"><span id="rJust"></span><span id="rRing"></span><span id="rMiss"></span><span id="rHit"></span></div>
+    <button class="btn" id="againBtn">もう一度</button>
+    <button class="btn x" id="shareBtn">𝕏 でシェア</button>
+    <button class="btn blue" id="toTitleBtn">タイトルへ</button>
+    <a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a>
+  </div>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+// ===== [SEC:CONFIG] =====
+const CONFIG = {
+  FIXED: 1/120, MAX_FRAME: 0.1,
+  COURSE_LEN: 1300,          // ゴールまでの距離(m)
+  SWIM_SPEED: 14,            // 自動で泳ぐ速さ(m/秒)
+  ACCEL: 3,                  // 速さが目標に近づく早さ
+  CHARGE_SLOW: 0.6,          // タメ中の速さの倍率（タメすぎは損）
+  CHARGE_TIME: 0.85,         // タメ最大までの秒
+  JUMP_MIN_H: 0.6, JUMP_MAX_H: 3.8,  // ジャンプの高さ(m) 最小・最大
+  JUMP_MIN_VS: 4,            // 止まった状態から跳んでも、これだけは前へ進む(m/秒)
+  GRAVITY: 22,
+  LAT_SPEED: 11, AIR_LAT_MUL: 0.6,   // 左右の最高速、空中の倍率
+  KEY_STEER: 8,              // キーで左右に動く速さ
+  DRAG_GAIN: 11,             // 画面幅いっぱいドラッグで動く距離(m)
+  LIP_TOL: 0.2,              // 滝のふちの判定のゆるさ(m)
+  JUST_MARGIN: 0.7,          // この高さ以内でこえたら「ジャスト」
+  BOOST_TIME: 1.4, BOOST_MUL: 1.3,
+  COMBO_ADD: 0.08, COMBO_MAX: 1.6, COMBO_GAP: 4,  // ジャストを続けると加速が強くなる
+  FLOW_BOOST: 5, BAND_HALF: 1.3,     // 追い流れ（青い矢印の帯）の強さ・半分の幅
+  RING_R: 1.1,               // 水の輪の内側の半径
+  LOG_R: 0.32, LOG_TOP: 0.24,        // 丸太の太さ・水面から上の高さ
+  ISLAND_HW: 5.2,            // 中州の最大の半分の幅
+  WASH_BACK: 8, WASH_TIME: 1.1,      // ミスで流される距離と時間
+  FACE_PUSH: 1.5,            // 泳いで滝にぶつかった時に押し戻される距離
+  ROCK_SLOW: 0.35, HIT_COOLDOWN: 0.5,
+  BEAR_CYCLE: 2.6, BEAR_WINDUP: 0.55, BEAR_SWIPE: 0.3, BEAR_RECOVER: 0.35,
+  BEAR_REACH: 1.9, BEAR_ZONE: [1.5, 2.5], BEAR_TRACK: 1.8, BEAR_WAKE: 30, BEAR_SIDE: 1.4,  // クマは鮭の通り道の横に立つ
+  RAPID_CALM: 1.5, CALM_HALF: 1.7,   // 急流のゆるい所の流れの強さ・半分の幅
+  CAM_BACK: 5.6, CAM_UP: 2.5, CAM_LOOK: 10, FOV_SPEED: 12,  // 速いほど視野が広がる（度）
+  FISH_SCALE: 1.6,
+  GHOST_DT: 0.1,
+  RANKS: [[95,'伝説の鮭'],[105,'ベテラン鮭'],[120,'たくましい鮭'],[150,'がんばった鮭'],[1e9,'まだまだ稚魚']],
+  STORE_KEY: 'sake-noborimasu-v2',
+  URL: 'https://nkworks-games.com/sake-noborimasu/',
+  FOLLOW_URL: 'https://x.com/intent/follow?screen_name=vyaPudzd1E54661',  // 作者をフォロー（X）
+};
+
+// ===== [SEC:UTIL] =====
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+const mix=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+const lin=c=>c.map((v,i)=>i<3?Math.pow(v,2.2):v);
+function rng(seed){let s=(seed>>>0)||1;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};}
+function hash2(x,y){const s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s);}
+function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const u=smooth(xf),v=smooth(yf);
+  return lerp(lerp(hash2(xi,yi),hash2(xi+1,yi),u),lerp(hash2(xi,yi+1),hash2(xi+1,yi+1),u),v);}
+function pw(tab,s){if(s<=tab[0][0])return tab[0][1];for(let i=1;i<tab.length;i++){if(s<=tab[i][0]){const[a,va]=tab[i-1],[b,vb]=tab[i];return lerp(va,vb,smooth((s-a)/(b-a)));}}return tab[tab.length-1][1];}
+function fmtTime(t){if(t==null||!isFinite(t))return'--:--.--';const cs=Math.floor(t*100);const m=Math.floor(cs/6000),s=Math.floor(cs/100)%60,c=cs%100;return m+':'+(s<10?'0':'')+s+'.'+(c<10?'0':'')+c;}
+const $=id=>document.getElementById(id);
+const V=new THREE.Vector3();
+
+// ===== [SEC:COURSE] =====
+const L=CONFIG.COURSE_LEN;
+// 滝：h=高さ、bear=クマの左右位置、step=段々滝
+const FALLS=[{s:120,h:1.0},{s:230,h:1.4},{s:340,h:1.8},{s:460,h:2.2,bear:0},{s:710,h:2.0,bear:-2},{s:810,h:2.6},
+  ...[0,1,2,3,4,5].map(i=>({s:900+i*9,h:0.7,step:1})),
+  {s:1040,h:2.0,bear:1.5},{s:1150,h:3.2,bear:0},{s:1210,h:1.6}];
+{let a=0;for(const f of FALLS){f.h0=a;a+=f.h;f.h1=a;}}
+const RAPIDS=[{s0:260,s1:320,str:8.5,len:42,ph:0},{s0:730,s1:790,str:9,len:36,ph:1.6},{s0:1060,s1:1120,str:9.5,len:30,ph:3.1}];
+const SECTIONS=[{s:0,name:'河口'},{s:330,name:'中流'},{s:800,name:'上流'},{s:1235,name:'産卵場所はもうすぐ！'}];
+function level(s){let y=0;for(const f of FALLS){if(s>=f.s)y=f.h1;else break;}return y;}
+const CX0=5*Math.sin(1.3);
+function cx(s){return 16*Math.sin(s/110)+5*Math.sin(s/41+1.3)-CX0;}
+function dcx(s){return 16/110*Math.cos(s/110)+5/41*Math.cos(s/41+1.3);}
+function wpos(s,u,y,out){const d=dcx(s),l=Math.hypot(d,1);return out.set(cx(s)+u/l,y,-s+u*d/l);}
+function heading(s){const d=dcx(s),l=Math.hypot(d,1);return Math.atan2(-d/l,1/l);}
+const WK=[[-200,70],[-60,60],[-10,11],[300,11],[380,8],[470,8],[500,15],[630,15],[660,8],[790,8],[860,6.2],[1225,6.2],[1250,10],[1400,10]];
+function riverW(s){return pw(WK,s);}
+const KK=[[-200,0.12],[-10,0.15],[40,0.3],[250,0.35],[380,0.85],[760,0.85],[860,1.5],[1225,1.5],[1280,1.1],[1400,1.1]];
+function bankK(s){return pw(KK,s);}
+const SB=[[-200,0],[180,0],[360,1],[770,1],[840,2],[1230,2],[1265,3],[1400,3]];
+function secBlend(s){return pw(SB,s);}
+// 中州（分かれ道）：左＝速い道、右＝安全な道
+const ISLAND={s0:490,s1:640};
+function islandHW(s){if(s<=ISLAND.s0||s>=ISLAND.s1)return 0;return CONFIG.ISLAND_HW*Math.pow(Math.sin(Math.PI*(s-ISLAND.s0)/(ISLAND.s1-ISLAND.s0)),0.7);}
+function islandHWfish(s){return Math.max(islandHW(s-FISH_OFF),islandHW(s),islandHW(s+FISH_OFF));}
+function islandY(s,u){const hw=islandHW(s),lv=level(s);if(hw<=0)return lv-1.3;const x=Math.abs(u)/hw;if(x>=1)return lv-1.3;
+  if(x>0.93)return lerp(lv+0.3,lv-1.3,(x-0.93)/0.07);const k=Math.min(1,hw/3);return lv+0.3+2.4*(1-x*x)*k+(vnoise(s*0.1,u*0.3)-0.5)*0.5*k;}
+// 追い流れ（乗ると速くなる帯）
+const BOOSTS=[{s0:140,s1:200,c:s=>3.5*Math.sin((s-140)/60*Math.PI*1.5)},
+  {s0:505,s1:625,c:s=>-(islandHW(s)+riverW(s))/2+0.8*Math.sin(s/9)},
+  {s0:960,s1:1015,c:s=>2.5*Math.sin((s-960)/18)}];
+function rapidAt(s){for(const r of RAPIDS)if(s>=r.s0&&s<=r.s1)return r;return null;}
+function calmCenter(r,s){return (riverW(s)-2.2)*Math.sin((s-r.s0)/r.len*Math.PI*2+r.ph);}
+// 流れの強さ（プラス＝押し戻される、マイナス＝追い流れ）
+function current(s,u){let v=0;const r=rapidAt(s);
+  if(r){const k=smooth((Math.abs(u-calmCenter(r,s))-CONFIG.CALM_HALF)/0.6);v+=lerp(CONFIG.RAPID_CALM,r.str,k)*Math.min(1,(s-r.s0)/6,(r.s1-s)/6);}
+  for(const b of BOOSTS)if(s>=b.s0&&s<=b.s1){const k=1-smooth((Math.abs(u-b.c(s))-CONFIG.BAND_HALF)/0.5);v-=CONFIG.FLOW_BOOST*k*Math.min(1,(s-b.s0)/5,(b.s1-s)/5);}
+  return v;}
+function nearFall(s){for(const f of FALLS)if(s>f.s-12&&s<f.s+6)return true;return false;}
+function prevFallS(f){const i=FALLS.indexOf(f);return i>0?FALLS[i-1].s:-60;}
+// 水の輪：[s, u(nullなら追い流れの上), 水面からの高さ]
+const RINGS=[[105,0,0.55],[175,null,0.55],[190,null,0.55],[565,10.1,0.55],[655,-2,2.1],[670,1.5,2.3],[685,-1,2.0],[985,null,2.0],[1000,null,0.55],[1180,0,0.55]]
+  .map(([s,u,y])=>{if(u===null)u=BOOSTS.find(b=>s>=b.s0&&s<=b.s1).c(s);return{s,u,y,lv:level(s),got:false};});
+// 流れてくる丸太（区間の上流から下流へ流れ、端で沈んでまた上流から出てくる）
+const LOGZ=[{s0:360,s1:445,spd:3.5,n:5},{s0:515,s1:615,spd:4,n:4,left:true},{s0:822,s1:888,spd:4,n:4}];
+const LOGS=[];
+{const R=rng(21);for(const z of LOGZ){const span=z.s1-z.s0;for(let i=0;i<z.n;i++){const len=z.left?lerp(2.4,3.2,R()):lerp(2.6,4.2,R());
+  const off=span*i/z.n+R()*span/z.n*0.6;let u;
+  if(z.left)u=-10.1+(R()*2-1)*1.5;else{const m=Math.min(riverW(z.s0),riverW(z.s1))-len/2-1.2;u=(R()*2-1)*m;}
+  LOGS.push({z,len,off,u,A:(R()*2-1)*0.35,s:0,a:[0,0],b:[0,0],act:false,sink:0,lv:level(z.s0+1)});}}}
+function updateLogs(t){for(const lg of LOGS){const z=lg.z,span=z.s1-z.s0;lg.s=z.s1-((t*z.spd+lg.off)%span);
+  const e=Math.min(1,(lg.s-z.s0)/4,(z.s1-lg.s)/4);lg.sink=(1-e)*1.4;lg.act=e>0.6;
+  const hs=Math.sin(lg.A)*lg.len/2,hu=Math.cos(lg.A)*lg.len/2;lg.a[0]=lg.s-hs;lg.a[1]=lg.u-hu;lg.b[0]=lg.s+hs;lg.b[1]=lg.u+hu;}}
+updateLogs(0);
+function segClosest(lg,ps,pu){const vx=lg.b[0]-lg.a[0],vu=lg.b[1]-lg.a[1];const t=clamp(((ps-lg.a[0])*vx+(pu-lg.a[1])*vu)/(vx*vx+vu*vu),0,1);return[lg.a[0]+vx*t,lg.a[1]+vu*t];}
+// 岩：{s,u,r(半径),h(水面から上の高さ),lv(水面)}
+const ROCKS=[];
+(function genRocks(){const R=rng(7);
+  const zones=[[30,95,7],[243,256,2],[350,445,5],[468,486,2],[505,625,6,'L'],[642,700,4],[822,890,4],[1015,1032,2],[1125,1142,2],[1160,1205,4]];
+  for(const[a,b,n,side]of zones){let placed=0,tries=0;
+    while(placed<n&&tries<400){tries++;
+      const s=lerp(a,b,R()),W=riverW(s),r=lerp(0.5,1.2,R());
+      let lo,hi;if(side==='L'){lo=-(W-1.6-r);hi=-(islandHW(s)+1.6+r);}else{lo=-(W-1.6-r);hi=W-1.6-r;}
+      if(hi<=lo)continue;
+      const u=lerp(lo,hi,R());const h=R()<0.45?lerp(0.25,0.55,R()):lerp(0.8,1.5,R());
+      if(nearFall(s)||rapidAt(s))continue;
+      if(!side&&islandHW(s)>0&&Math.abs(u)<islandHW(s)+1.6+r)continue;
+      if(RINGS.some(g=>Math.abs(g.s-s)<6))continue;
+      if(BOOSTS.some(bz=>s>=bz.s0-3&&s<=bz.s1+3&&Math.abs(u-bz.c(clamp(s,bz.s0,bz.s1)))<r+(side?0.6:CONFIG.BAND_HALF+0.8)))continue;
+      if(LOGS.some(lg=>s>=lg.z.s0&&s<=lg.z.s1&&Math.abs(u-lg.u)<lg.len/2+r+0.4))continue;
+      let ok=true;for(const q of ROCKS)if(Math.hypot(q.s-s,q.u-u)<q.r+r+1.6){ok=false;break;}
+      if(!ok)continue;ROCKS.push({s,u,r,h,lv:level(s)});placed++;}}
+  ROCKS.sort((a,b)=>a.s-b.s);})();
+// 岩は縦にのびた楕円体。高さybでの半径
+function rockR(rk,yb){const a=(rk.h+1.3)/2,c=rk.lv+rk.h-a;if(yb<=c)return rk.r;const q=(yb-c)/a;return q>=1?0:rk.r*Math.sqrt(1-q*q);}
+
+// ===== [SEC:SCENE] =====
+const canvas=$('c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+const scene=new THREE.Scene();
+const FOG_COL=new THREE.Color(0xcfe6f2);
+scene.fog=new THREE.Fog(FOG_COL,90,460);scene.background=FOG_COL.clone();
+const camera=new THREE.PerspectiveCamera(60,1,0.1,1500);
+scene.add(new THREE.HemisphereLight(0xe4f3ff,0x6b5a3c,1.25));
+const sunL=new THREE.DirectionalLight(0xfff1d8,1.7);sunL.position.set(-80,140,60);scene.add(sunL);
+let baseFov=60;
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;baseFov=w<h?74:60;camera.fov=baseFov;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+const sky=(()=>{const g=new THREE.SphereGeometry(1000,24,14),p=g.attributes.position,c=[];const top=new THREE.Color(0x4a8fd0),hor=new THREE.Color(0xcfe6f2),t=new THREE.Color();
+  for(let i=0;i<p.count;i++){t.copy(hor).lerp(top,clamp(p.getY(i)/1000*1.6,0,1));c.push(t.r,t.g,t.b);}
+  g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}));m.renderOrder=-1;scene.add(m);return m;})();
+
+// ===== [SEC:TEXTURES] =====
+function canvasTex(w,h,draw,repeat=true){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;if(repeat){t.wrapS=t.wrapT=THREE.RepeatWrapping;}return t;}
+const TR=rng(99);
+const waterTex=canvasTex(256,256,(g,w,h)=>{g.fillStyle='#c4c4c4';g.fillRect(0,0,w,h);
+  for(let i=0;i<170;i++){const x=TR()*w,y=TR()*h,rx=8+TR()*26,ry=2+TR()*5;g.fillStyle=TR()<0.7?'rgba(255,255,255,0.22)':'rgba(110,110,110,0.16)';
+    for(const ox of[-w,0,w])for(const oy of[-h,0,h]){g.beginPath();g.ellipse(x+ox,y+oy,rx,ry,0,0,Math.PI*2);g.fill();}}});
+const fallTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#d6ebf5';g.fillRect(0,0,w,h);
+  for(let i=0;i<90;i++){const x=TR()*w,y=TR()*h,l=20+TR()*60,ww=1+TR()*4;g.fillStyle=`rgba(255,255,255,${0.35+TR()*0.5})`;for(const oy of[-h,0,h])g.fillRect(x,y+oy,ww,l);}
+  for(let i=0;i<30;i++){g.fillStyle='rgba(120,170,200,0.25)';g.fillRect(TR()*w,TR()*h,2,30);}});
+const rapidTex=canvasTex(128,128,(g,w,h)=>{g.clearRect(0,0,w,h);
+  for(let i=0;i<70;i++){const x=TR()*w,y=TR()*h,l=14+TR()*40,ww=1.5+TR()*3;g.fillStyle=`rgba(255,255,255,${0.45+TR()*0.5})`;for(const oy of[-h,0,h])g.fillRect(x,y+oy,ww,l);}});
+const dotTex=canvasTex(32,32,(g)=>{const gr=g.createRadialGradient(16,16,0,16,16,16);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.5,'rgba(255,255,255,0.7)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,32,32);},false);
+const warnTex=canvasTex(64,64,(g)=>{g.fillStyle='#e8332a';g.beginPath();g.arc(32,32,29,0,Math.PI*2);g.fill();g.strokeStyle='#fff';g.lineWidth=4;g.stroke();g.fillStyle='#fff';g.font='bold 44px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('!',32,35);},false);
+const signTex=canvasTex(256,110,(g,w,h)=>{g.fillStyle='#8a5a32';g.fillRect(0,0,w,h);g.strokeStyle='#5a3a1e';g.lineWidth=8;g.strokeRect(4,4,w-8,h-8);
+  g.fillStyle='#fff6e0';g.textAlign='center';g.textBaseline='middle';g.font='bold 40px sans-serif';g.fillText('産卵場所',w/2,40);g.font='bold 30px sans-serif';g.fillStyle='#ffd166';g.fillText('ゴール',w/2,82);},false);
+
+const chevTex=canvasTex(64,128,(g,w,h)=>{g.clearRect(0,0,w,h);g.strokeStyle='rgba(255,255,255,0.95)';g.lineWidth=9;g.lineCap='round';g.lineJoin='round';
+  for(const y of[38,102]){g.beginPath();g.moveTo(10,y+18);g.lineTo(32,y-6);g.lineTo(54,y+18);g.stroke();}});
+const islandSignTex=canvasTex(256,96,(g,w,h)=>{g.fillStyle='#8a5a32';g.fillRect(0,0,w,h);g.strokeStyle='#5a3a1e';g.lineWidth=6;g.strokeRect(3,3,w-6,h-6);
+  g.textAlign='center';g.textBaseline='middle';g.font='bold 30px sans-serif';g.fillStyle='#9ff3ff';g.fillText('← 速い道',w*0.27,h/2);g.fillStyle='#fff6e0';g.fillText('安全な道 →',w*0.73,h/2);
+  g.fillStyle='#5a3a1e';g.fillRect(w/2-2,10,4,h-20);},false);
+
+// ===== [SEC:BUILD_WORLD] =====
+// rows: sの配列、cols: 横の点の数、posFn(s,j)→[x,y,z]
+function gridGeo(rows,cols,posFn,colFn,uvFn,flip){const P=[],C=[],U=[],I=[];let cs=3;
+  for(const s of rows)for(let j=0;j<cols;j++){const p=posFn(s,j);P.push(p[0],p[1],p[2]);
+    if(colFn){const c=colFn(s,j,p);cs=c.length;for(const v of c)C.push(v);} if(uvFn){const t=uvFn(s,j,p);U.push(t[0],t[1]);}}
+  for(let r=0;r<rows.length-1;r++)for(let j=0;j<cols-1;j++){const a=r*cols+j,b=a+1,c=a+cols,d=c+1;if(flip)I.push(a,c,b,b,c,d);else I.push(a,b,c,b,d,c);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));
+  if(colFn)g.setAttribute('color',new THREE.Float32BufferAttribute(C,cs));if(uvFn)g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
+  g.setIndex(I);g.computeVertexNormals();return g;}
+function rowsBetween(a,b,step){const r=[];for(let s=a;s<b;s+=step)r.push(s);r.push(b);return r;}
+const P3=(s,u,y)=>{wpos(s,u,y,V);return[V.x,V.y,V.z];};
+const SEGS=[];{const b=[-70,...FALLS.map(f=>f.s),L+40];for(let i=0;i<b.length-1;i++)SEGS.push({s0:b[i],s1:b[i+1],lv:i===0?0:FALLS[i-1].h1});}
+const WATER_COL=[[0.36,0.56,0.56],[0.24,0.55,0.63],[0.2,0.58,0.62],[0.3,0.7,0.68]];
+function blend4(arr,sb){const i=Math.min(arr.length-2,Math.floor(sb));return mix(arr[i],arr[i+1],sb-i);}
+// 水面
+const waterMat=new THREE.MeshPhongMaterial({color:0xffffff,map:waterTex,vertexColors:true,transparent:true,opacity:0.84,shininess:90,specular:0x8fb3c4,depthWrite:false});
+for(const sg of SEGS){const g=gridGeo(rowsBetween(sg.s0,sg.s1,2),3,(s,j)=>{const W=riverW(s)+0.55;return P3(s,(j-1)*W,sg.lv);},
+  (s)=>lin(blend4(WATER_COL,secBlend(s))),(s,j,p)=>[(j-1)*(riverW(s)+0.55)/5,s/7]);
+  const m=new THREE.Mesh(g,waterMat);m.renderOrder=1;scene.add(m);}
+// 海
+{const sea=new THREE.Mesh(new THREE.PlaneGeometry(1400,700),new THREE.MeshPhongMaterial({color:0x2f6f95,shininess:60,specular:0x557788}));
+  sea.rotation.x=-Math.PI/2;sea.position.set(cx(-60),-0.06,60+330);scene.add(sea);}
+// 川底
+const bedMat=new THREE.MeshLambertMaterial({vertexColors:true});
+for(const sg of SEGS){const g=gridGeo(rowsBetween(sg.s0,sg.s1,3),5,(s,j)=>{const W=riverW(s);const u=(j/2-1)*W;
+    const bump=(j===0||j===4)?0:(vnoise(s*0.2,j*3.1)-0.5)*0.5;return P3(s,u,sg.lv-1.3+bump);},
+  (s,j)=>{const sb=secBlend(s);const n=0.85+vnoise(s*0.3,j)*0.3;const c=mix([0.42,0.39,0.33],[0.62,0.58,0.48],clamp(sb-2,0,1));return lin(c.map(v=>v*n));});
+  scene.add(new THREE.Mesh(g,bedMat));}
+// 岸
+const BANK_D=[0,0.6,2.5,6,12,22,40,70];
+const BANK_H=[0,0.35,1.0,2.6,5.5,10,18,30];
+function bankY(s,d,side){const lv=level(s);if(d<=0)return lv-1.3;const base=level(s+5),k=bankK(s);
+  if(d<0.6)return lerp(lv-1.3,base+0.35,d/0.6);
+  let i=1;while(i<BANK_D.length-2&&d>BANK_D[i+1])i++;
+  const t=clamp((d-BANK_D[i])/(BANK_D[i+1]-BANK_D[i]),0,1);
+  const h=0.35+(lerp(BANK_H[i],BANK_H[i+1],t)-0.35)*k;
+  const n=(vnoise(s*0.045+side*37.1,d*0.09)-0.5)*Math.min(d,30)*0.35*k+(vnoise(s*0.012+side*9,d*0.02)-0.5)*Math.max(0,d-20)*0.5*k;
+  return base+h+n;}
+const PAL={sand:[0.83,0.76,0.58],grass:[0.38,0.56,0.25],autumn:[0.56,0.4,0.2],pool:[0.42,0.55,0.26],rock:[0.5,0.48,0.45],wet:[0.33,0.3,0.27],forest:[0.25,0.38,0.2]};
+function bankColor(s,d,side){const sb=secBlend(s);let c;
+  if(d<1.2)c=PAL.wet;
+  else{let g;if(sb<1){const est=d<8?PAL.sand:mix(PAL.sand,PAL.grass,clamp((d-8)/8,0,1));g=mix(est,PAL.grass,sb);}
+    else g=blend4([PAL.sand,PAL.grass,PAL.autumn,PAL.pool],sb);
+    if(sb>1.4&&sb<2.6&&d<30)g=mix(g,PAL.rock,0.55*vnoise(s*0.08+side*5,d*0.15)*clamp((sb-1.4)/0.5,0,1));
+    if(d>30&&sb>=0.6)g=mix(g,PAL.forest,0.5);c=g;}
+  const n=0.9+vnoise(s*0.15+side*3,d*0.3)*0.2;return lin(c.map(v=>v*n));}
+const bankRows=(()=>{const r=rowsBetween(-70,L+46,2.5);for(const f of FALLS)r.push(f.s-0.05,f.s+0.05);return r.sort((a,b)=>a-b);})();
+const bankMat=new THREE.MeshLambertMaterial({vertexColors:true});
+for(const side of[-1,1]){const g=gridGeo(bankRows,BANK_D.length,(s,j)=>P3(s,side*(riverW(s)+BANK_D[j]),bankY(s,BANK_D[j],side)),(s,j)=>bankColor(s,BANK_D[j],side),null,side<0);
+  scene.add(new THREE.Mesh(g,bankMat));}
+// 滝（落ちる水・岩の段・泡）
+const fallMat=new THREE.MeshLambertMaterial({color:0xeef8ff,map:fallTex,transparent:true,opacity:0.9,side:THREE.DoubleSide,emissive:0x1d2a33,depthWrite:false});
+const stepMat=new THREE.MeshLambertMaterial({color:0x4a443c,side:THREE.DoubleSide});
+const foamMat=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x6a7a80,transparent:true,opacity:0.8,depthWrite:false});
+const FOAM=[];
+for(const f of FALLS){const W=riverW(f.s)+0.55;
+  const face=gridGeo([0,0.2,0.45,0.7,1],13,(t,j)=>{const u=(j/6-1)*W;return P3(f.s-0.45*t*t,u,lerp(f.h1+0.03,f.h0-0.2,t));},null,(t,j,p)=>[(j/6-1)*W/3,lerp(f.h1,f.h0,t)/2]);
+  const fm=new THREE.Mesh(face,fallMat);fm.renderOrder=2;scene.add(fm);
+  const st=gridGeo([0,1],2,(t,j)=>P3(f.s+0.02,(j*2-1)*W,lerp(f.h1-0.02,f.h0-1.3,t)),null,null);scene.add(new THREE.Mesh(st,stepMat));
+  for(let k=0;k<20;k++)FOAM.push({s:f.s-0.4-TR()*1.6,u:(TR()*2-1)*(W-0.6),y:f.h0+0.02,sc:0.3+TR()*0.35,ph:TR()*6});}
+const foamIM=new THREE.InstancedMesh(new THREE.SphereGeometry(1,12,8),foamMat,FOAM.length);scene.add(foamIM);
+// 急流の白い流れ
+const rapidMat=new THREE.MeshBasicMaterial({map:rapidTex,vertexColors:true,transparent:true,depthWrite:false});
+const laneMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false});
+for(const r of RAPIDS){const lv=level(r.s0);const g=gridGeo(rowsBetween(r.s0,r.s1,0.7),49,(s,j)=>P3(s,(j/24-1)*riverW(s),lv+0.04),
+    (s,j)=>{const u=(j/24-1)*riverW(s);const a=clamp((current(s,u)-CONFIG.RAPID_CALM)/(r.str-CONFIG.RAPID_CALM),0,1);return[1,1,1,a*0.9];},
+    (s,j)=>[(j/24-1)*riverW(s)/4,s/5]);
+  const m=new THREE.Mesh(g,rapidMat);m.renderOrder=3;scene.add(m);
+  // ゆるい所（通り道）を濃い青で見せる
+  const lane=gridGeo(rowsBetween(r.s0,r.s1,1),3,(s,j)=>P3(s,calmCenter(r,s)+(j-1)*CONFIG.CALM_HALF,lv+0.035),(s,j)=>[0.02,0.2,0.34,(j===1?0.6:0.3)*Math.min(1,(s-r.s0)/6,(r.s1-s)/6)],null);
+  const lm=new THREE.Mesh(lane,laneMat);lm.renderOrder=2;scene.add(lm);}
+// 中州
+{const XS=[-1,-0.93,-0.75,-0.45,0,0.45,0.75,0.93,1];
+  const g=gridGeo(rowsBetween(ISLAND.s0,ISLAND.s1,1.5),XS.length,(s,j)=>{const u=XS[j]*islandHW(s);return P3(s,u,islandY(s,u));},
+    (s,j)=>{const x=Math.abs(XS[j]);const c=x>0.9?PAL.wet:x>0.6?PAL.sand:PAL.grass;const n=0.9+vnoise(s*0.2,j)*0.2;return lin(c.map(v=>v*n));});
+  scene.add(new THREE.Mesh(g,bankMat));
+  const sg=new THREE.Group(),ss=498,sy=islandY(ss,0);wpos(ss,0,sy-0.2,sg.position);sg.rotation.y=heading(ss)+Math.PI;
+  const wood=new THREE.MeshLambertMaterial({color:0x6b4426});for(const x of[-1.1,1.1]){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,2.4,6),wood);p.position.set(x,1.2,0);sg.add(p);}
+  const bd=new THREE.Mesh(new THREE.PlaneGeometry(2.8,1.05),new THREE.MeshLambertMaterial({map:islandSignTex,side:THREE.DoubleSide}));bd.position.set(0,2,-0.1);sg.add(bd);scene.add(sg);}
+// 追い流れ（青い矢印の帯）
+const bandMat=new THREE.MeshBasicMaterial({map:chevTex,color:0xaaf6ff,vertexColors:true,transparent:true,depthWrite:false});
+for(const b of BOOSTS){const lv=level(b.s0+1),fade=s=>Math.min(1,(s-b.s0)/5,(b.s1-s)/5);
+  const glow=gridGeo(rowsBetween(b.s0,b.s1,1),3,(s,j)=>P3(s,b.c(s)+(j-1)*CONFIG.BAND_HALF*1.5,lv+0.04),(s,j)=>[0.25,0.85,1,(j===1?0.32:0)*fade(s)],null);
+  const gm=new THREE.Mesh(glow,laneMat);gm.renderOrder=2;scene.add(gm);
+  const ch=gridGeo(rowsBetween(b.s0,b.s1,1),3,(s,j)=>P3(s,b.c(s)+(j-1)*CONFIG.BAND_HALF,lv+0.05),(s,j)=>[1,1,1,(j===1?0.95:0.15)*fade(s)],(s,j)=>[j/2,s/2.6]);
+  const cm=new THREE.Mesh(ch,bandMat);cm.renderOrder=3;scene.add(cm);}
+// 水の輪
+{const rg1=new THREE.TorusGeometry(CONFIG.RING_R+0.05,0.11,8,28),rg2=new THREE.TorusGeometry(CONFIG.RING_R+0.05,0.28,8,28);
+  const m1=new THREE.MeshBasicMaterial({color:0xc8f9ff,transparent:true,opacity:0.92}),m2=new THREE.MeshBasicMaterial({color:0x5fd8ff,transparent:true,opacity:0.3,depthWrite:false});
+  for(const rg of RINGS){const g=new THREE.Group();wpos(rg.s,rg.u,rg.lv+rg.y,g.position);g.rotation.y=heading(rg.s);g.add(new THREE.Mesh(rg1,m1),new THREE.Mesh(rg2,m2));scene.add(g);rg.g=g;}}
+// 丸太
+{const lg0=new THREE.CylinderGeometry(CONFIG.LOG_R,CONFIG.LOG_R,1,10,1);lg0.rotateZ(Math.PI/2);
+  const bark=new THREE.MeshLambertMaterial({color:0x6b4a2f,flatShading:true}),cap=new THREE.MeshLambertMaterial({color:0xc9a27a});
+  const brG=new THREE.CylinderGeometry(0.05,0.07,0.8,5);
+  for(const lg of LOGS){const g=new THREE.Group();const m=new THREE.Mesh(lg0,[bark,cap,cap]);m.scale.x=lg.len;g.add(m);
+    const br=new THREE.Mesh(brG,bark);br.position.set(lg.len*0.2,0.28,0);br.rotation.z=-0.8;g.add(br);scene.add(g);lg.g=g;lg.m=m;}}
+// 川べりのアシ（近くを流れていく景色）
+{const R=rng(77),N=1600;const g=new THREE.ConeGeometry(0.05,1.1,4);g.translate(0,0.55,0);
+  const im=new THREE.InstancedMesh(g,new THREE.MeshLambertMaterial({flatShading:true}),N);const m=new THREE.Matrix4(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),e=new THREE.Euler(),col=new THREE.Color();
+  for(let i=0;i<N;i++){const s=lerp(-20,L+30,R()),side=R()<0.5?-1:1,d=0.65+R()*2.2;wpos(s,side*(riverW(s)+d),bankY(s,d,side)-0.05,V);
+    e.set((R()-0.5)*0.5,R()*6.28,(R()-0.5)*0.5);q.setFromEuler(e);sc.setScalar(0.7+R()*0.9);m.compose(V,q,sc);im.setMatrixAt(i,m);
+    const c=mix([0.42,0.58,0.24],[0.78,0.64,0.32],clamp(secBlend(s)-1,0,1)*(0.5+R()*0.5));col.setRGB(c[0],c[1],c[2],THREE.SRGBColorSpace);im.setColorAt(i,col);}
+  scene.add(im);}
+// 水面に浮かぶ泡（速さがわかる目印）
+{const R=rng(88),N=1200;const g=new THREE.CircleGeometry(0.13,6);g.rotateX(-Math.PI/2);
+  const im=new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.38,depthWrite:false}),N);im.renderOrder=2;
+  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),e=new THREE.Euler();
+  for(let i=0;i<N;i++){let s=lerp(-30,L+30,R());if(FALLS.some(f=>Math.abs(f.s-s)<1.5))s+=3;let u=(R()*2-1)*(riverW(s)-0.4);const hw=islandHW(s);if(hw>0&&Math.abs(u)<hw+0.4)u=(u<0?-1:1)*(hw+0.4+R()*(riverW(s)-hw-1));
+    wpos(s,u,level(s)+0.03,V);e.set(0,heading(s),0);q.setFromEuler(e);sc.set(0.4+R()*0.5,1,0.8+R()*1.0);m.compose(V,q,sc);im.setMatrixAt(i,m);}
+  scene.add(im);}
+// 岩（ぶつかる岩＋岸の飾りの岩をまとめて1つに）
+const ROCK_BASE=(()=>{const g=new THREE.IcosahedronGeometry(1,1);const p=g.attributes.position;
+  for(let i=0;i<p.count;i++){V.fromBufferAttribute(p,i).normalize();const k=1+0.07*Math.sin(V.x*5.1+V.y*3.3)*Math.cos(V.z*4.7-V.y*2.1);p.setXYZ(i,V.x*k,V.y*k,V.z*k);}
+  g.computeVertexNormals();return g;})();
+const ROCK_VIS_ERR=(()=>{const b=new THREE.Box3().setFromBufferAttribute(ROCK_BASE.attributes.position);return Math.abs((b.max.x-b.min.x+b.max.z-b.min.z)/4-1);})();
+{const geos=[];const RR=rng(11);const m=new THREE.Matrix4(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),e=new THREE.Euler();
+  const add=(s,u,yc,rx,ry,col)=>{const g=ROCK_BASE.clone();e.set(0,RR()*6.28,0);q.setFromEuler(e);wpos(s,u,yc,V);sc.set(rx,ry,rx);m.compose(V,q,sc);g.applyMatrix4(m);
+    const c=lin(col),cc=[];for(let i=0;i<g.attributes.position.count;i++)cc.push(c[0],c[1],c[2]);g.setAttribute('color',new THREE.Float32BufferAttribute(cc,3));geos.push(g);};
+  for(const rk of ROCKS){const a=(rk.h+1.3)/2;const sb=secBlend(rk.s);const n=0.85+RR()*0.3;add(rk.s,rk.u,rk.lv+rk.h-a,rk.r,a,mix([0.5,0.48,0.45],[0.45,0.43,0.38],sb/3).map(v=>v*n));}
+  for(let i=0;i<260;i++){const s=lerp(-30,L+35,RR()),side=RR()<0.5?-1:1,d=1.2+RR()*4,r=0.6+RR()*1.3;const y=bankY(s,d,side);add(s,side*(riverW(s)+d+r*0.3),y,r,r*0.8,[0.48,0.46,0.43].map(v=>v*(0.8+RR()*0.3)));}
+  for(const f of FALLS)for(const side of[-1,1])for(let k=0;k<3;k++){const W=riverW(f.s);add(f.s+(k-1)*1.4,side*(W+0.9+k*0.4),f.h1-0.3,0.9+k*0.2,1.4,[0.42,0.4,0.37]);}
+  const merged=mergeGeometries(geos);scene.add(new THREE.Mesh(merged,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true})));}
+// 木
+{const R=rng(42);const cone=new THREE.ConeGeometry(1.4,4.2,7);cone.translate(0,3.4,0);
+  const ball=new THREE.IcosahedronGeometry(1.7,0);ball.scale(1,0.9,1);ball.translate(0,3.2,0);
+  const trunk=new THREE.CylinderGeometry(0.16,0.24,1.8,5);trunk.translate(0,0.9,0);
+  const NC=330,ND=620,NI=28;const imC=new THREE.InstancedMesh(cone,new THREE.MeshLambertMaterial({flatShading:true}),NC),imD=new THREE.InstancedMesh(ball,new THREE.MeshLambertMaterial({flatShading:true}),ND),imT=new THREE.InstancedMesh(trunk,new THREE.MeshLambertMaterial({color:0x5a4030}),NC+ND);
+  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),sc=new THREE.Vector3(),e=new THREE.Euler(),col=new THREE.Color();let ti=0;
+  const place=(im,i,isCon)=>{let s,side,d,sb;if(!isCon&&i<NI){s=lerp(508,622,R());sb=secBlend(s);const hw=islandHW(s);const u=(R()*2-1)*hw*0.55;wpos(s,u,islandY(s,u)-0.4,V);
+      const k=0.7+R()*0.6;e.set(0,R()*6.28,0);q.setFromEuler(e);sc.set(k,k*(0.85+R()*0.4),k);m.compose(V,q,sc);im.setMatrixAt(i,m);imT.setMatrixAt(ti++,m);
+      const c=[0.3+R()*0.1,0.5+R()*0.1,0.2];col.setRGB(c[0],c[1],c[2],THREE.SRGBColorSpace);im.setColorAt(i,col);return;}
+    for(let t=0;t<30;t++){s=lerp(-40,L+40,R());side=R()<0.5?-1:1;d=2.5+Math.pow(R(),1.6)*55;sb=secBlend(s);if(sb<0.7&&d<14&&R()<0.85)continue;if(Math.abs(s-70)<6&&d<8)continue;break;}
+    const y=bankY(s,d,side)-0.4;wpos(s,side*(riverW(s)+d),y,V);const k=0.7+R()*0.9;e.set(0,R()*6.28,0);q.setFromEuler(e);sc.set(k,k*(0.85+R()*0.4),k);m.compose(V,q,sc);im.setMatrixAt(i,m);imT.setMatrixAt(ti++,m);
+    let c;if(isCon)c=[0.15+R()*0.06,0.29+R()*0.08,0.16+R()*0.05];
+    else if(sb>1.5&&R()<clamp((sb-1.5)*2,0,1)*0.85)c=[[0.78,0.2,0.1],[0.92,0.5,0.12],[0.93,0.76,0.2],[0.66,0.6,0.2],[0.85,0.33,0.12]][Math.floor(R()*5)];
+    else c=[0.28+R()*0.12,0.46+R()*0.12,0.18+R()*0.06];
+    col.setRGB(c[0],c[1],c[2],THREE.SRGBColorSpace);im.setColorAt(i,col);};
+  for(let i=0;i<NC;i++)place(imC,i,true);for(let i=0;i<ND;i++)place(imD,i,false);
+  scene.add(imC,imD,imT);}
+// 山・雲
+{const R=rng(5);for(let i=0;i<46;i++){const s=lerp(-150,L+150,R()),side=R()<0.5?-1:1,h=70+R()*140,r=h*(0.8+R()*0.5),dist=r*1.05+40+R()*140;
+    wpos(s,side*(riverW(s)+dist),level(s)-6,V);const sb=secBlend(s);
+    const mt=new THREE.Mesh(new THREE.ConeGeometry(r,h,9),new THREE.MeshLambertMaterial({color:new THREE.Color().setRGB(...mix([0.33,0.43,0.38],[0.52,0.4,0.3],clamp(sb-1,0,1)*0.6),THREE.SRGBColorSpace),flatShading:true}));
+    mt.position.set(V.x,V.y+h/2,V.z);mt.rotation.y=R()*6;scene.add(mt);
+    if(h>150&&s>450){const cap=new THREE.Mesh(new THREE.ConeGeometry(r*0.3,h*0.3,9),new THREE.MeshLambertMaterial({color:0xf4f8fb,flatShading:true}));cap.position.set(V.x,V.y+h*0.85+0.5,V.z);cap.rotation.y=mt.rotation.y;scene.add(cap);}}
+  const cg=new THREE.SphereGeometry(1,10,8);const im=new THREE.InstancedMesh(cg,new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x8899aa}),70);const m=new THREE.Matrix4(),sc=new THREE.Vector3(),q=new THREE.Quaternion();let k=0;
+  for(let i=0;i<14;i++){const s=lerp(-100,L+200,R()),u=(R()*2-1)*260;wpos(s,u,90+R()*60,V);const bx=V.clone();
+    for(let j=0;j<5;j++){V.set(bx.x+(R()-0.5)*40,bx.y+(R()-0.5)*6,bx.z+(R()-0.5)*14);const r=8+R()*10;sc.set(r*1.6,r*0.7,r);m.compose(V,q,sc);im.setMatrixAt(k++,m);}}
+  im.material.fog=false;scene.add(im);}
+// 橋（s=70）
+{const s=70,W=riverW(s),g=new THREE.Group();wpos(s,0,0,g.position);g.rotation.y=heading(s);
+  const con=new THREE.MeshLambertMaterial({color:0xb9b6ae}),red=new THREE.MeshLambertMaterial({color:0xc8402e});
+  const span=2*(W+9);const deck=new THREE.Mesh(new THREE.BoxGeometry(span,0.7,5),con);deck.position.y=7.35;g.add(deck);
+  for(const z of[-2.3,2.3]){const rail=new THREE.Mesh(new THREE.BoxGeometry(span,0.6,0.2),red);rail.position.set(0,8,z);g.add(rail);}
+  for(const side of[-1,1]){const gy=bankY(s,3.5,side);const hgt=7.35-gy+1;const pil=new THREE.Mesh(new THREE.BoxGeometry(1.4,hgt,4),con);pil.position.set(side*(W+3.5),gy-1+hgt/2,0);g.add(pil);}
+  scene.add(g);}
+// ゴール（看板・旗・行き止まりの岩壁）
+{const s=L,W=riverW(s);const g=new THREE.Group();const gy=bankY(s,2.4,1);wpos(s,W+2.4,gy,g.position);g.rotation.y=heading(s)+Math.PI;
+  const wood=new THREE.MeshLambertMaterial({color:0x6b4426});
+  for(const x of[-1.3,1.3]){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,3.4,6),wood);p.position.set(x,1.7,0);g.add(p);}
+  const bd=new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.4),new THREE.MeshLambertMaterial({map:signTex,side:THREE.DoubleSide}));bd.position.set(0,2.8,-0.12);g.add(bd);scene.add(g);
+  const lv=level(s);const rope=new THREE.Group();wpos(s,0,lv+4.3,rope.position);rope.rotation.y=heading(s);
+  const rp=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,2*(W+2),4),new THREE.MeshLambertMaterial({color:0xeeeeee}));rp.rotation.z=Math.PI/2;rope.add(rp);
+  const fc=[0xff5a3c,0xffd166,0x3aa0d8,0x6ccf6c];const tri=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-0.3,0,0),new THREE.Vector3(0.3,0,0),new THREE.Vector3(0,-0.6,0)]);tri.computeVertexNormals();
+  for(let i=0,n=Math.floor(W*2/1.1);i<=n;i++){const f=new THREE.Mesh(tri,new THREE.MeshLambertMaterial({color:fc[i%4],side:THREE.DoubleSide}));f.position.x=-W+i*1.1;rope.add(f);}
+  scene.add(rope);
+  const wall=new THREE.Group();wpos(L+43,0,lv,wall.position);wall.rotation.y=heading(L+43);
+  const wm=new THREE.Mesh(new THREE.BoxGeometry(2*(riverW(L+43)+8),14,6),new THREE.MeshLambertMaterial({color:0x5e574d,flatShading:true}));wm.position.y=5;wall.add(wm);
+  const sf=new THREE.Mesh(new THREE.PlaneGeometry(3,12),fallMat);sf.position.set(-2,5,3.05);wall.add(sf);scene.add(wall);}
+
+// ===== [SEC:FISH_MODEL] =====
+const TINT_M={back:[0.26,0.33,0.32],flank:[0.9,0.36,0.3],belly:[0.95,0.93,0.9],fin:0x5a4a4e};
+const TINT_F={back:[0.3,0.33,0.33],flank:[0.84,0.5,0.46],belly:[0.95,0.92,0.9],fin:0x6b5458};
+function makeFish(tint){const g=new THREE.Group();
+  const prof=[[0,-0.47],[0.045,-0.44],[0.075,-0.38],[0.12,-0.27],[0.155,-0.12],[0.17,0.05],[0.16,0.2],[0.12,0.34],[0.06,0.42],[0,0.45]];
+  const geo=new THREE.LatheGeometry(prof.map(p=>new THREE.Vector2(p[0],p[1])),16);geo.rotateX(-Math.PI/2);geo.scale(0.72,1,1);
+  const p=geo.attributes.position,cols=[];
+  for(let i=0;i<p.count;i++){const y=p.getY(i)/0.17,z=p.getZ(i);let c;
+    if(y>0.25)c=mix(tint.flank,tint.back,smooth((y-0.25)/0.45));else if(y<-0.3)c=mix(tint.flank,tint.belly,smooth((-y-0.3)/0.4));else c=tint.flank.slice();
+    if(y>-0.35&&y<0.45&&z>-0.25&&z<0.3&&Math.sin(z*28)>0.4)c=c.map((v,k)=>v*0.62+[0.12,0.02,0.1][k]);
+    if(z<-0.3)c=mix(c,tint.back,0.45);cols.push(...lin(c));}
+  geo.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+  const body=new THREE.Mesh(geo,new THREE.MeshPhongMaterial({vertexColors:true,shininess:50,specular:0x555555}));g.add(body);
+  const finMat=new THREE.MeshLambertMaterial({color:tint.fin,side:THREE.DoubleSide});
+  const ts=new THREE.Shape();ts.moveTo(0,0.035);ts.lineTo(0.2,0.19);ts.quadraticCurveTo(0.14,0,0.2,-0.19);ts.lineTo(0,-0.035);ts.lineTo(0,0.035);
+  const tg=new THREE.ShapeGeometry(ts);tg.rotateY(-Math.PI/2);const tailP=new THREE.Group();tailP.position.z=0.43;tailP.add(new THREE.Mesh(tg,finMat));g.add(tailP);
+  const ds=new THREE.Shape();ds.moveTo(-0.1,0);ds.lineTo(0.03,0.13);ds.lineTo(0.09,0);ds.lineTo(-0.1,0);const dg=new THREE.ShapeGeometry(ds);dg.rotateY(-Math.PI/2);
+  const dor=new THREE.Mesh(dg,finMat);dor.position.set(0,0.15,0);g.add(dor);
+  const wm=new THREE.MeshLambertMaterial({color:0xffffff}),bm=new THREE.MeshLambertMaterial({color:0x111111});
+  for(const sx of[-1,1]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.032,8,6),wm);e.position.set(sx*0.08,0.045,-0.31);g.add(e);
+    const pu=new THREE.Mesh(new THREE.SphereGeometry(0.018,6,5),bm);pu.position.set(sx*0.103,0.047,-0.322);g.add(pu);}
+  g.scale.setScalar(CONFIG.FISH_SCALE);g.userData={body,tail:tailP};return g;}
+const fishG=makeFish(TINT_M);scene.add(fishG);
+// 当たり判定の大きさは見た目から測る
+const FISH_BOX=(()=>{fishG.updateMatrixWorld(true);return new THREE.Box3().setFromObject(fishG.userData.body);})();
+const FISH_HALF_WID=(FISH_BOX.max.x-FISH_BOX.min.x)/2,FISH_HALF_LEN=(FISH_BOX.max.z-FISH_BOX.min.z)/2,FISH_HH=(FISH_BOX.max.y-FISH_BOX.min.y)/2;
+const FISH_R=FISH_HALF_WID,FISH_OFF=FISH_HALF_LEN-FISH_R;
+const FISH_PTS=[FISH_OFF,0,-FISH_OFF];
+const ghostG=makeFish(TINT_M);{const gm=new THREE.MeshBasicMaterial({color:0xaef3ff,transparent:true,opacity:0.36,depthWrite:false});ghostG.traverse(o=>{if(o.isMesh)o.material=gm;});ghostG.visible=false;scene.add(ghostG);}
+const mateG=makeFish(TINT_F);mateG.scale.multiplyScalar(0.95);scene.add(mateG);
+const shadowM=new THREE.Mesh(new THREE.CircleGeometry(0.55,16),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.3,depthWrite:false}));shadowM.rotation.x=-Math.PI/2;shadowM.renderOrder=4;scene.add(shadowM);
+
+// ===== [SEC:BEAR] =====
+function makeBear(){const g=new THREE.Group();const fur=new THREE.MeshLambertMaterial({color:0x5b3a22,flatShading:true}),dark=new THREE.MeshLambertMaterial({color:0x22160e}),muz=new THREE.MeshLambertMaterial({color:0xb48a5e,flatShading:true}),wh=new THREE.MeshLambertMaterial({color:0xf2efe6});
+  const sph=new THREE.SphereGeometry(1,12,10);const torso=new THREE.Group();g.add(torso);
+  const body=new THREE.Mesh(sph,fur);body.scale.set(0.72,0.95,0.6);body.position.y=1.15;torso.add(body);
+  const bel=new THREE.Mesh(sph,muz);bel.scale.set(0.45,0.6,0.3);bel.position.set(0,1.05,-0.36);torso.add(bel);
+  const head=new THREE.Group();head.position.set(0,2.15,-0.1);torso.add(head);
+  const hd=new THREE.Mesh(sph,fur);hd.scale.set(0.42,0.38,0.4);head.add(hd);
+  const sn=new THREE.Mesh(sph,muz);sn.scale.set(0.2,0.15,0.2);sn.position.set(0,-0.08,-0.36);head.add(sn);
+  const no=new THREE.Mesh(sph,dark);no.scale.setScalar(0.07);no.position.set(0,-0.02,-0.55);head.add(no);
+  const arms=[];
+  for(const sx of[-1,1]){const ear=new THREE.Mesh(sph,fur);ear.scale.setScalar(0.12);ear.position.set(sx*0.28,0.32,0);head.add(ear);
+    const ey=new THREE.Mesh(sph,dark);ey.scale.setScalar(0.045);ey.position.set(sx*0.15,0.08,-0.34);head.add(ey);
+    const sh=new THREE.Group();sh.position.set(sx*0.62,1.65,-0.1);torso.add(sh);
+    const arm=new THREE.Mesh(new THREE.CapsuleGeometry(0.17,0.75,4,8),fur);arm.position.y=-0.5;sh.add(arm);
+    const paw=new THREE.Mesh(sph,fur);paw.scale.set(0.22,0.2,0.22);paw.position.y=-0.98;sh.add(paw);
+    for(let k=-1;k<=1;k++){const cl=new THREE.Mesh(new THREE.ConeGeometry(0.035,0.14,5),wh);cl.position.set(k*0.08,-1.15,-0.08);cl.rotation.x=Math.PI;sh.add(cl);}
+    arms.push(sh);}
+  const warn=new THREE.Sprite(new THREE.SpriteMaterial({map:warnTex,depthTest:false}));warn.scale.setScalar(0.9);warn.position.y=3.1;warn.renderOrder=9;g.add(warn);
+  g.userData={torso,arms,warn,body};return g;}
+const BEARS=[];
+for(const f of FALLS)if(f.bear!==undefined){const g=makeBear();scene.add(g);BEARS.push({fall:f,u:f.bear,u0:f.bear,off:(f.s*0.37)%CONFIG.BEAR_CYCLE,phase:'idle',pt:0,g});}
+const BEAR_R=(()=>{if(!BEARS.length)return 0.6;const b=BEARS[0].g.userData.body;b.updateMatrixWorld(true);const bx=new THREE.Box3().setFromObject(b);return((bx.max.x-bx.min.x)+(bx.max.z-bx.min.z))/4;})();
+const BEAR_DS=1.2; // 滝のふちからクマまでの距離
+// クマの手がとどく範囲（赤いしま模様。ここに入っている時にふり下ろされると、はたかれる）
+const zoneTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle='rgba(255,50,35,0.4)';g.fillRect(0,0,w,h);g.strokeStyle='rgba(255,120,90,0.55)';g.lineWidth=10;
+  for(let x=-h;x<w;x+=32){g.beginPath();g.moveTo(x,h);g.lineTo(x+h,0);g.stroke();}g.strokeStyle='rgba(255,40,30,1)';g.lineWidth=8;g.strokeRect(4,4,w-8,h-8);},false);
+for(const b of BEARS){const Z=CONFIG.BEAR_ZONE,len=Z[0]+Z[1];const pg=new THREE.BoxGeometry(CONFIG.BEAR_REACH*2,2.1,len);pg.translate(0,0.15,-(Z[1]-Z[0])/2);
+  const zm=new THREE.Mesh(pg,new THREE.MeshBasicMaterial({map:zoneTex,transparent:true,opacity:0.3,depthWrite:false,side:THREE.DoubleSide}));zm.renderOrder=4;
+  const zg=new THREE.Group();zg.add(zm);scene.add(zg);b.zone=zg;b.zoneMat=zm.material;}
+
+// ===== [SEC:PARTICLES] =====
+const PMAX=500,pPos=new Float32Array(PMAX*3),pVel=new Float32Array(PMAX*3),pLife=new Float32Array(PMAX);let pNext=0;
+for(let i=0;i<PMAX;i++)pPos[i*3+1]=-9999;
+const pGeo=new THREE.BufferGeometry();pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+const points=new THREE.Points(pGeo,new THREE.PointsMaterial({size:0.32,map:dotTex,transparent:true,depthWrite:false,opacity:0.9}));points.frustumCulled=false;points.renderOrder=5;scene.add(points);
+function spawnP(s,u,y,n,spd,up){wpos(s,u,y,V);for(let k=0;k<n;k++){const i=pNext;pNext=(pNext+1)%PMAX;
+  pPos[i*3]=V.x+(Math.random()-0.5)*0.5;pPos[i*3+1]=V.y;pPos[i*3+2]=V.z+(Math.random()-0.5)*0.5;
+  const a=Math.random()*6.283,r=Math.random()*spd;pVel[i*3]=Math.cos(a)*r;pVel[i*3+1]=up*(0.5+Math.random()*0.7);pVel[i*3+2]=Math.sin(a)*r;pLife[i]=0.5+Math.random()*0.6;}}
+function updateP(dt){for(let i=0;i<PMAX;i++){if(pLife[i]<=0)continue;pLife[i]-=dt;if(pLife[i]<=0){pPos[i*3+1]=-9999;continue;}
+  pVel[i*3+1]-=12*dt;pPos[i*3]+=pVel[i*3]*dt;pPos[i*3+1]+=pVel[i*3+1]*dt;pPos[i*3+2]+=pVel[i*3+2]*dt;}pGeo.attributes.position.needsUpdate=true;}
+function clearParticles(){pLife.fill(0);for(let i=0;i<PMAX;i++)pPos[i*3+1]=-9999;}
+
+// ===== [SEC:AUDIO] =====
+const AU={ctx:null,master:null,noise:null,ambGain:null,muted:false,
+  init(){if(this.ctx)return;try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C();this.ctx=c;
+    this.master=c.createGain();this.master.gain.value=this.muted?0:0.7;this.master.connect(c.destination);
+    const n=(c.sampleRate*1.5)|0,b=c.createBuffer(1,n,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;this.noise=b;
+    const src=c.createBufferSource();src.buffer=b;src.loop=true;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=650;
+    this.ambGain=c.createGain();this.ambGain.gain.value=0;src.connect(lp).connect(this.ambGain).connect(this.master);src.start();}catch(e){this.ctx=null;}},
+  resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},
+  setMute(m){this.muted=m;if(this.master)this.master.gain.value=m?0:0.7;},
+  nz(f,q,dur,vol,type='bandpass',f2){const c=this.ctx;if(!c)return;const t=c.currentTime,s=c.createBufferSource();s.buffer=this.noise;const fl=c.createBiquadFilter();fl.type=type;fl.frequency.setValueAtTime(f,t);if(f2)fl.frequency.exponentialRampToValueAtTime(f2,t+dur);fl.Q.value=q;
+    const g=c.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);s.connect(fl).connect(g).connect(this.master);s.start(t,Math.random()*0.5);s.stop(t+dur+0.05);},
+  tone(f,f2,dur,vol,type='sine',delay=0){const c=this.ctx;if(!c)return;const t=c.currentTime+delay,o=c.createOscillator();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+    const g=c.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(this.master);o.start(t);o.stop(t+dur+0.05);},
+  splash(v=1){this.nz(1400,0.8,0.35,0.5*v,'bandpass',500);},
+  jump(c){this.nz(900,1,0.25,0.35,'bandpass',2200);this.tone(300+c*300,600+c*500,0.18,0.12,'triangle');},
+  bonk(){this.tone(140,55,0.3,0.5);this.nz(500,0.7,0.4,0.4,'lowpass',200);},
+  rock(){this.tone(110,70,0.15,0.4,'square');this.nz(800,1,0.12,0.3);},
+  swipe(){this.nz(2500,1.5,0.2,0.35,'bandpass',600);},
+  just(){this.tone(880,0,0.12,0.18,'triangle');this.tone(1320,0,0.25,0.18,'triangle',0.08);},
+  ring(){this.tone(990,1980,0.25,0.18,'triangle');this.tone(1480,0,0.2,0.12,'sine',0.06);},
+  whoosh(){this.nz(500,0.7,0.45,0.35,'bandpass',2600);},
+  beep(hi){this.tone(hi?1046:523,0,hi?0.4:0.18,0.2,'square');},
+  fanfare(){[523,659,784,1046].forEach((f,i)=>this.tone(f,0,i===3?0.6:0.16,0.18,'triangle',i*0.13));},
+  amb(v){if(this.ambGain)this.ambGain.gain.setTargetAtTime(v,this.ctx.currentTime,0.2);}};
+
+// ===== [SEC:INPUT] =====
+const input={left:false,right:false,jump:false,jumpTouch:false,dragDU:0};
+const KEYMAP={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',Space:'jump',ArrowUp:'jump',KeyW:'jump'};
+addEventListener('keydown',e=>{const k=KEYMAP[e.code];if(k){input[k]=true;e.preventDefault();}
+  if(!e.repeat&&(e.code==='Enter'||e.code==='Space')&&(state==='title'||state==='result'))startGame();});
+addEventListener('keyup',e=>{const k=KEYMAP[e.code];if(k){input[k]=false;e.preventDefault();}});
+addEventListener('blur',()=>{input.left=input.right=input.jump=input.jumpTouch=false;});
+addEventListener('contextmenu',e=>e.preventDefault());
+const touchEl=$('touch');let steerId=null,steerX=0,jumpId=null;
+touchEl.addEventListener('pointerdown',e=>{e.preventDefault();AU.resume();if(state!=='play'&&state!=='countdown')return;
+  if(inJumpBtn(e.clientX,e.clientY)){if(jumpId===null){jumpId=e.pointerId;input.jumpTouch=true;}}else if(steerId===null){steerId=e.pointerId;steerX=e.clientX;}
+  try{touchEl.setPointerCapture(e.pointerId);}catch(_){}});
+touchEl.addEventListener('pointermove',e=>{if(e.pointerId===steerId){input.dragDU+=(e.clientX-steerX)/innerWidth*CONFIG.DRAG_GAIN;steerX=e.clientX;}});
+const endP=e=>{if(e.pointerId===steerId)steerId=null;if(e.pointerId===jumpId){jumpId=null;input.jumpTouch=false;}};
+for(const ev of['pointerup','pointercancel','lostpointercapture'])touchEl.addEventListener(ev,endP);
+const IS_TOUCH=matchMedia('(pointer:coarse)').matches||('ontouchstart' in window);
+// ジャンプはボタンの丸い枠の中を押した時だけ
+function inJumpBtn(x,y){const b=$('jumpBtn');if(!IS_TOUCH||b.classList.contains('hide'))return false;const r=b.getBoundingClientRect();if(r.width<=0)return false;
+  return Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2))<=r.width/2;}
+
+// ===== [SEC:STATE] =====
+let state='title',clock=0,raceTime=0,finishTime=0,cdT=0,lastBeep=0,goalT=0,lastSec=0,newRec=false;
+const fish={};const stats={just:0,miss:0,hit:0,ring:0,combo:0};
+let ghostData=null,ghostRec=[],ghostAcc=0,tips={};
+function loadStore(){try{const j=JSON.parse(localStorage.getItem(CONFIG.STORE_KEY)||'null');if(j&&(typeof j.best==='number'||j.best===null))return j;}catch(e){}return{best:null,ghost:null,runs:0};}
+function saveStore(){try{localStorage.setItem(CONFIG.STORE_KEY,JSON.stringify(store));}catch(e){}}
+let store=loadStore();
+function resetFish(){Object.assign(fish,{s:0,u:0,y:level(0),vs:0,vy:0,inWater:true,charge:0,charging:false,targetU:0,latV:0,boost:0,slowMul:1,
+  washed:0,washFrom:0,washTo:0,washY0:0,washLv:0,spin:0,hitCD:0,faceCD:0,crossLog:[],boostMul:CONFIG.BOOST_MUL,combo:0,lastJust:-99,cling:false});}
+resetFish();
+function startRun(skipCountdown){resetFish();raceTime=0;finishTime=0;goalT=0;lastSec=0;newRec=false;stats.just=stats.miss=stats.hit=stats.ring=stats.combo=0;for(const rg of RINGS){rg.got=false;rg.g.visible=true;}for(const l of SL)l.s=-999;camShake=0;
+  ghostRec=[[0,0,level(0)]];ghostAcc=0;tips={};ghostData=store.ghost&&store.ghost.length>1?store.ghost:null;
+  for(const b of BEARS)b.u=b.u0;input.left=input.right=input.jump=input.jumpTouch=false;input.dragDU=0;steerId=jumpId=null;
+  clearParticles();msgT=0;tipT=0;$('msg').classList.remove('on');$('tip').classList.remove('on');camInit=false;prevCheckT=0;
+  $('title').classList.add('hide');$('result').classList.add('hide');$('hud').classList.remove('hide');
+  if(skipCountdown){state='play';$('cd').textContent='';}else{state='countdown';cdT=3;lastBeep=4;}}
+function startGame(){AU.init();AU.resume();startRun(false);}
+function toTitle(){state='title';$('hud').classList.add('hide');$('result').classList.add('hide');$('title').classList.remove('hide');resetFish();camInit=false;showTitleBest();}
+function showTitleBest(){$('tBest').textContent=store.best!=null?`ベスト ${fmtTime(store.best)}（ゴーストと競争）`:'';}
+function reachGoal(){state='goal';finishTime=raceTime;ghostRec.push([+fish.s.toFixed(2),+fish.u.toFixed(2),+fish.y.toFixed(2)]);
+  store.runs=(store.runs||0)+1;newRec=store.best==null||finishTime<store.best;if(newRec){store.best=finishTime;store.ghost=ghostRec.slice(0,6000);}saveStore();
+  AU.fanfare();msg('ゴール！','#ffd166',1.8);tipT=0;$('tip').classList.remove('on');}
+function showResult(){state='result';$('hud').classList.add('hide');
+  $('rTime').textContent=fmtTime(finishTime);$('rRec').classList.toggle('hide',!newRec);
+  $('rBest').textContent=newRec?'自己ベスト更新！次はこの走りがゴーストになります':`ベスト ${fmtTime(store.best)}`;
+  $('rRank').textContent='称号：'+rankOf(finishTime);
+  $('rJust').textContent=`ジャスト ${stats.just}回（最大×${Math.max(1,stats.combo)}）`;$('rRing').textContent=`水の輪 ${stats.ring}/${RINGS.length}`;$('rMiss').textContent=`流された ${stats.miss}回`;$('rHit').textContent=`ゴツン ${stats.hit}回`;
+  $('result').classList.remove('hide');}
+function rankOf(t){for(const[lim,n]of CONFIG.RANKS)if(t<lim)return n;return CONFIG.RANKS[CONFIG.RANKS.length-1][1];}
+
+// ===== [SEC:UI_MSG] =====
+let msgT=0,tipT=0,cdHideT=0;
+function msg(text,color='#fff',dur=1){const e=$('msg');e.textContent=text;e.style.color=color;e.classList.add('on');msgT=dur;}
+function tip(text,dur=3.4){const e=$('tip');e.textContent=text;e.classList.add('on');tipT=dur;}
+function uiTimers(dt){if(msgT>0){msgT-=dt;if(msgT<=0)$('msg').classList.remove('on');}if(tipT>0){tipT-=dt;if(tipT<=0)$('tip').classList.remove('on');}
+  if(cdHideT>0){cdHideT-=dt;if(cdHideT<=0)$('cd').textContent='';}}
+function checkTips(){const s=fish.s,first=store.best==null;
+  const T=[[12,'r','岩にぶつかると減速。左右によけよう'],[70,'f',IS_TOUCH?'滝だ！ 右下のジャンプボタンを長押しでタメて、はなしてジャンプ。ゲージの「滝」の線までタメるとちょうどいい':'滝だ！ スペース長押しでタメて、はなしてジャンプ。ゲージの「滝」の線までタメるとちょうどいい'],
+    [132,'a','青く光る矢印の帯に乗ると加速！ 水の輪もくぐろう'],[245,'k','急流！ 白い流れは押し戻される。白くない「すき間」を泳げ'],
+    [352,'l','丸太が流れてくる！ 小さく跳び越えるか、よけよう'],[425,'b','クマだ！ 赤い範囲は手がとどく所。手を上げたら危ない。ふり下ろした直後をねらって跳べ'],
+    [476,'i','分かれ道！ 左は速い道（追い流れ・丸太・岩）、右は安全な道',1],[645,'h','高い水の輪はジャンプでくぐろう'],[872,'c','段々の滝！ 小さく跳び続けて、ジャストでコンボ加速！']];
+  for(const[at,id,t,always]of T)if(s>=at&&!tips[id]&&(first||always)){tips[id]=1;tip(t);}}
+
+// ===== [SEC:PHYSICS] =====
+const vMin=Math.sqrt(2*CONFIG.GRAVITY*CONFIG.JUMP_MIN_H),vMax=Math.sqrt(2*CONFIG.GRAVITY*CONFIG.JUMP_MAX_H);
+function tick(dt){clock+=dt;uiTimers(dt);updateBears(dt);
+  if(state==='countdown'){cdT-=dt;const n=Math.ceil(cdT);if(n!==lastBeep&&n>0){lastBeep=n;$('cd').textContent=n;AU.beep(false);}
+    if(cdT<=0){state='play';$('cd').textContent='GO!';cdHideT=0.7;AU.beep(true);}return;}
+  if(state==='play'){raceTime+=dt;updateLogs(raceTime);stepFish(dt);recordGhost(dt);checkTips();
+    const si=SECTIONS.reduce((a,sc,i)=>fish.s>=sc.s?i:a,0);if(si!==lastSec){lastSec=si;if(si>0)msg(SECTIONS[si].name,'#bff4ff',1.6);}
+    if(fish.s>=L)reachGoal();}
+  else if(state==='goal'){goalT+=dt;fish.vs=lerp(fish.vs,fish.s<L+6?4:0,Math.min(1,2*dt));fish.s+=fish.vs*dt;fish.u=lerp(fish.u,0.2,Math.min(1,dt));fish.inWater=true;fish.vy=0;fish.charge=0;fish.charging=false;fish.y=level(fish.s);fish.latV=0;
+    if(goalT>=2.4)showResult();}}
+function recordGhost(dt){ghostAcc+=dt;while(ghostAcc>=CONFIG.GHOST_DT-1e-9){ghostAcc-=CONFIG.GHOST_DT;ghostRec.push([+fish.s.toFixed(2),+fish.u.toFixed(2),+fish.y.toFixed(2)]);}}
+// 左右に動ける範囲（中州の所は、いる側の水路だけ）
+function uBounds(s,u,tu){const lim=riverW(s)-0.6,hw=islandHWfish(s);if(hw<=0)return[-lim,lim];const need=hw+FISH_R+0.02;return(u<0||(u===0&&tu<=0))?[-lim,-need]:[need,lim];}
+function clampU(){const[lo,hi]=uBounds(fish.s,fish.u,fish.targetU);fish.u=clamp(fish.u,lo,hi);fish.targetU=clamp(fish.targetU,lo,hi);}
+function stepFish(dt){const C=CONFIG;
+  fish.hitCD=Math.max(0,fish.hitCD-dt);fish.faceCD=Math.max(0,fish.faceCD-dt);fish.boost=Math.max(0,fish.boost-dt);
+  fish.slowMul+=(1-fish.slowMul)*Math.min(1,1.6*dt);
+  const held=input.jump||input.jumpTouch;
+  if(fish.washed>0){fish.washed-=dt;const t=clamp(1-fish.washed/C.WASH_TIME,0,1);
+    fish.s=lerp(fish.washFrom,fish.washTo,1-(1-t)*(1-t));fish.y=Math.max(lerp(fish.washY0,fish.washLv,Math.min(1,t*2.5)),level(fish.s));fish.spin+=dt*9;
+    fish.charge=0;fish.charging=false;fish.vs=0;fish.vy=0;fish.inWater=true;input.dragDU=0;
+    if(fish.washed<=0){fish.washed=0;fish.s=fish.washTo;fish.y=level(fish.s);fish.spin=0;fish.targetU=fish.u;resolveRocks(false);}
+    clampU();return;}
+  // 左右
+  const lim=riverW(fish.s)-0.6;
+  fish.targetU=clamp(fish.targetU+input.dragDU+((input.right?1:0)-(input.left?1:0))*C.KEY_STEER*dt,-lim,lim);input.dragDU=0;
+  const ml=C.LAT_SPEED*(fish.inWater?1:C.AIR_LAT_MUL)*dt;const du=clamp(fish.targetU-fish.u,-ml,ml);fish.u+=du;fish.latV=du/dt;
+  // タメ・ジャンプ・泳ぐ速さ
+  if(fish.inWater){
+    if(held){fish.charging=true;fish.charge=Math.min(1,fish.charge+dt/C.CHARGE_TIME);}
+    else if(fish.charging){fish.vy=lerp(vMin,vMax,fish.charge);fish.vs=Math.max(fish.vs,C.JUMP_MIN_VS);fish.cling=false;fish.inWater=false;fish.charging=false;AU.jump(fish.charge);spawnP(fish.s,fish.u,fish.y,14+fish.charge*14,2+fish.charge*2,4);fish.charge=0;}
+    if(fish.inWater){const target=C.SWIM_SPEED*(fish.charging?C.CHARGE_SLOW:1)*(fish.boost>0?fish.boostMul:1)*fish.slowMul-current(fish.s,fish.u);
+      fish.vs+=(target-fish.vs)*Math.min(1,C.ACCEL*dt);fish.y=level(fish.s);}}
+  if(!fish.inWater){fish.vy-=C.GRAVITY*dt;fish.y+=fish.vy*dt;}
+  // 前後の移動（すり抜けないよう細かく分ける）
+  const dist=fish.vs*dt,n=Math.max(1,Math.ceil(Math.abs(dist)/(FISH_R*0.5)));
+  for(let i=0;i<n;i++){if(!moveS(dist/n))break;resolveRocks(true);resolveLogs(true);resolveBears();if(fish.washed>0)break;clampU();}
+  if(fish.washed>0){clampU();return;}
+  const lv=level(fish.s);
+  if(!fish.inWater){if(fish.y<=lv){if(fish.vy<=0)land();else fish.y=lv;}}else fish.y=lv;
+  bearHit();clampU();}
+function land(){camShake=Math.max(camShake,0.05);fish.cling=false;fish.y=level(fish.s);fish.vy=0;fish.inWater=true;spawnP(fish.s,fish.u,fish.y,18,2.5,3.5);AU.splash(0.8);}
+function moveS(ds){const s0=fish.s,s1=s0+ds;
+  if(ds>0){for(const f of FALLS){if(s0<f.s&&s1>=f.s){
+      if(fish.y<f.h1-CONFIG.LIP_TOL){if(fish.inWater){faceBlock(f);return false;}
+        // まだ上昇中で、このまま上がればふちに届く高さなら、滝にそってのぼり続ける（近くから跳んでも高さが足りていれば成功）
+        const apex=fish.y+(fish.vy>0?fish.vy*fish.vy/(2*CONFIG.GRAVITY):0);
+        if(fish.vy>0&&apex>=f.h1-CONFIG.LIP_TOL+0.02){fish.s=f.s-0.01;fish.cling=true;return false;}
+        bonk(f,'face');return false;}
+      fish.crossLog.push(fish.y-f.h1+CONFIG.LIP_TOL);
+      if(!fish.inWater&&fish.y-f.h1<CONFIG.JUST_MARGIN&&!fish.cling)justBoost();fish.cling=false;}}
+    for(const rg of RINGS)if(!rg.got&&s0<rg.s&&s1>=rg.s&&Math.hypot(fish.u-rg.u,fish.y-(rg.lv+rg.y))<CONFIG.RING_R-0.1)ringPass(rg);}
+  else if(ds<0){for(const f of FALLS)if(s0>=f.s&&s1<f.s&&fish.inWater){fish.inWater=false;fish.vy=0;}}
+  fish.s=s1;return true;}
+function faceBlock(f){fish.s=f.s-CONFIG.FACE_PUSH;fish.vs=0;fish.y=level(fish.s);spawnP(fish.s,fish.u,fish.y,6,1.5,2);
+  if(fish.faceCD<=0){fish.faceCD=2;msg('滝はジャンプでこえよう！','#bff4ff',1.2);AU.splash(0.5);}}
+function justBoost(){const C=CONFIG;fish.combo=(clock-fish.lastJust<C.COMBO_GAP)?fish.combo+1:1;fish.lastJust=clock;stats.combo=Math.max(stats.combo,fish.combo);
+  fish.boostMul=Math.min(C.COMBO_MAX,C.BOOST_MUL+C.COMBO_ADD*(fish.combo-1));fish.boost=C.BOOST_TIME;fish.vs=Math.max(fish.vs,C.SWIM_SPEED*1.05);stats.just++;
+  msg(fish.combo>1?`ジャスト×${fish.combo}！`:'ジャスト！','#ffd166',0.9);AU.just();if(fish.combo>1){AU.whoosh();camShake=Math.max(camShake,0.08);}}
+function ringPass(rg){rg.got=true;rg.g.visible=false;if(fish.boost<=0)fish.boostMul=CONFIG.BOOST_MUL;fish.boost=CONFIG.BOOST_TIME;fish.vs=Math.max(fish.vs,CONFIG.SWIM_SPEED*1.05);
+  stats.ring++;msg('ナイス！','#9ff3ff',0.8);AU.ring();AU.whoosh();spawnP(rg.s,rg.u,rg.lv+rg.y,24,3,3);}
+function bonk(f,kind){fish.washed=CONFIG.WASH_TIME;fish.washFrom=fish.s;fish.washTo=Math.max(f.s-CONFIG.WASH_BACK,prevFallS(f)+1);fish.washY0=fish.y;fish.washLv=f.h0;
+  fish.vs=0;fish.vy=0;fish.charge=0;fish.charging=false;fish.inWater=true;stats.miss++;fish.combo=0;fish.boost=0;camShake=0.25;
+  spawnP(fish.s,fish.u,fish.y,30,3,4);AU.bonk();AU.splash(1);
+  if(kind==='bear'){msg('バシッ！ クマにはたかれた','#ffb3a0',1.3);AU.swipe();}else msg('とどかない！ 流された…','#ffb3a0',1.3);}
+function exitT(ds,du,ns,nu,R){const b=ds*ns+du*nu,c=ds*ds+du*du-R*R;return -b+Math.sqrt(Math.max(0,b*b-c))+1e-4;}
+// 鮭の当たり判定の点(off)を、(cs,cu)の円（半径R）の外へ押し出す。押したらtrue
+function pushPoint(off,cs,cu,R){const ds=fish.s+off-cs,du=fish.u-cu,RR=R+FISH_R,d2=ds*ds+du*du;if(d2>=RR*RR)return false;
+  const d=Math.sqrt(d2);let ns,nu;if(d<1e-6){ns=-1;nu=0;}else{ns=ds/d;nu=du/d;}
+  if(Math.abs(nu)<0.5){const sg=du!==0?Math.sign(du):(cu>0?-1:1);nu=sg*0.5;ns=(ns>0?1:-1)*Math.sqrt(1-nu*nu);}
+  let t=exitT(ds,du,ns,nu,RR);const[lo,hi]=uBounds(fish.s,fish.u,fish.targetU);
+  if(fish.u+nu*t>hi||fish.u+nu*t<lo){nu=-nu;t=exitT(ds,du,ns,nu,RR);}
+  fish.s+=ns*t;fish.u+=nu*t;fish.targetU+=nu*t;return true;}
+function pushCircle(cs,cu,R){let p=false;for(const off of FISH_PTS)if(pushPoint(off,cs,cu,R))p=true;return p;}
+// 丸太から押し出す：丸太の中ほどなら、鮭の中心がいる側へ体ごと押す（前と後ろで逆に押し合わないように）。端なら丸い端から押す
+function pushLog(lg,R){const RR=R+FISH_R;let pushed=false;
+  for(let it=0;it<4;it++){let best=null;
+    for(const off of FISH_PTS){const q=segClosest(lg,fish.s+off,fish.u);const pen=RR-Math.hypot(fish.s+off-q[0],fish.u-q[1]);if(pen>0&&(!best||pen>best.pen))best={off,q,pen};}
+    if(!best)break;pushed=true;
+    const vx=lg.b[0]-lg.a[0],vu=lg.b[1]-lg.a[1],ln=Math.hypot(vx,vu);const tp=((fish.s-lg.a[0])*vx+(fish.u-lg.a[1])*vu)/(ln*ln);
+    if(tp>0.02&&tp<0.98){let ns=-vu/ln,nu=vx/ln;const side=Math.sign((fish.s-lg.a[0])*ns+(fish.u-lg.a[1])*nu)||-1;ns*=side;nu*=side;
+      let mn=1e9;for(const off of FISH_PTS){const q=segClosest(lg,fish.s+off,fish.u);if(Math.hypot(fish.s+off-q[0],fish.u-q[1])>=RR)continue;mn=Math.min(mn,(fish.s+off-lg.a[0])*ns+(fish.u-lg.a[1])*nu);}
+      const t=RR-mn+1e-4;if(t>0&&mn<1e8){fish.s+=ns*t;fish.u+=nu*t;fish.targetU+=nu*t;}}
+    else pushPoint(best.off,best.q[0],best.q[1],R);}
+  return pushed;}
+function resolveLogs(withFx){const yb=fish.y-FISH_HH;
+  for(let pass=0;pass<3;pass++){let any=false;
+    for(const lg of LOGS){if(!lg.act||Math.abs(lg.s-fish.s)>lg.len/2+2||yb>=lg.lv+CONFIG.LOG_TOP-lg.sink)continue;if(pushLog(lg,CONFIG.LOG_R)){any=true;if(withFx)rockHit();}}
+    if(!any)break;}}
+function resolveRocks(withFx){const yb=fish.y-FISH_HH;
+  for(let pass=0;pass<3;pass++){let any=false;
+    for(const rk of ROCKS){if(Math.abs(rk.s-fish.s)>rk.r+2)continue;const R=rockR(rk,yb);if(R<=0)continue;if(pushCircle(rk.s,rk.u,R)){any=true;if(withFx)rockHit();}}
+    if(!any)break;}}
+function rockHit(){fish.vs=Math.min(fish.vs,CONFIG.SWIM_SPEED*CONFIG.ROCK_SLOW);if(fish.hitCD>0)return;
+  fish.hitCD=CONFIG.HIT_COOLDOWN;fish.slowMul=CONFIG.ROCK_SLOW;stats.hit++;msg('ゴツン！','#ffcdbf',0.6);AU.rock();spawnP(fish.s,fish.u,fish.y,8,1.5,2.5);}
+function bearBodyActive(b){const f=b.fall;return fish.y>f.h1-0.9&&fish.y<f.h1+1.9;}
+function resolveBears(){for(const b of BEARS){if(Math.abs(b.fall.s+BEAR_DS-fish.s)>BEAR_R+2||!bearBodyActive(b))continue;if(pushCircle(b.fall.s+BEAR_DS,b.u,BEAR_R)){if(fish.s<b.fall.s){bonk(b.fall,'bear');return;}rockHit();}}}
+function bearHit(){for(const b of BEARS){if(b.phase!=='swipe')continue;const f=b.fall;
+  if(fish.s>f.s-CONFIG.BEAR_ZONE[0]&&fish.s<f.s+CONFIG.BEAR_ZONE[1]&&Math.abs(fish.u-b.u)<CONFIG.BEAR_REACH&&fish.y>f.h1-0.9){bonk(f,'bear');return;}}}
+function updateBears(dt){const C=CONFIG,idle=C.BEAR_CYCLE-C.BEAR_WINDUP-C.BEAR_SWIPE-C.BEAR_RECOVER;
+  for(const b of BEARS){const f=b.fall,W=riverW(f.s+BEAR_DS),ahead=f.s-fish.s;
+    if(state==='play'&&ahead>-3&&ahead<C.BEAR_WAKE){let sd=b.u>=fish.u?1:-1,tg=fish.u+sd*C.BEAR_SIDE;if(Math.abs(tg)>W-1.4)tg=fish.u-sd*C.BEAR_SIDE;tg=clamp(tg,-(W-1.4),W-1.4);b.u+=clamp(tg-b.u,-C.BEAR_TRACK*dt,C.BEAR_TRACK*dt);}
+    const t=(clock+b.off)%C.BEAR_CYCLE;const prev=b.phase;
+    b.phase=t<idle?'idle':t<idle+C.BEAR_WINDUP?'windup':t<idle+C.BEAR_WINDUP+C.BEAR_SWIPE?'swipe':'recover';
+    b.pt=b.phase==='idle'?t:b.phase==='windup'?t-idle:b.phase==='swipe'?t-idle-C.BEAR_WINDUP:t-idle-C.BEAR_WINDUP-C.BEAR_SWIPE;
+    if(prev!=='swipe'&&b.phase==='swipe'&&state==='play'&&Math.abs(ahead)<20)AU.swipe();}}
+
+// ===== [SEC:GHOST] =====
+function ghostAt(t){const g=ghostData;if(!g||g.length<2)return null;const x=t/CONFIG.GHOST_DT;
+  if(x>=g.length-1){const e=g[g.length-1];return{s:e[0],u:e[1],y:e[2],vy:0,vs:0,end:true};}
+  const i=Math.floor(x),fr=x-i,a=g[i],b=g[i+1];return{s:lerp(a[0],b[0],fr),u:lerp(a[1],b[1],fr),y:lerp(a[2],b[2],fr),vy:(b[2]-a[2])/CONFIG.GHOST_DT,vs:(b[0]-a[0])/CONFIG.GHOST_DT};}
+
+// ===== [SEC:RENDER] =====
+const camPos=new THREE.Vector3(),camLook=new THREE.Vector3(),tV=new THREE.Vector3(),tL=new THREE.Vector3();let camInit=false,lastRC=0,sprayAcc=0;
+const fM=new THREE.Matrix4(),fQ=new THREE.Quaternion(),fS=new THREE.Vector3(),slQ=new THREE.Quaternion(),UPV=new THREE.Vector3(0,1,0);
+let camShake=0,camRoll=0,wakeAcc=0,spdOp=-1;const spdEl=$('spd');
+// スピード線（鮭のまわりの空中に浮かぶ細い線。速いほど長く濃い）
+const SL_N=70,SL=[];const slIM=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.3,depthWrite:false}),SL_N);
+slIM.frustumCulled=false;slIM.renderOrder=6;scene.add(slIM);for(let i=0;i<SL_N;i++)SL.push({s:-999,u:0,h:0});
+function updateSpeedLines(){const spd=(state==='play'||state==='goal')?Math.max(0,fish.vs):0;const vis=clamp((spd-7)/12,0,1)*(fish.washed>0?0:1);
+  slIM.visible=vis>0.02;if(!slIM.visible)return;slIM.material.opacity=Math.min(0.75,0.15+0.45*vis+(fish.boost>0?0.15:0));const len=0.5+spd*0.14;
+  for(let i=0;i<SL_N;i++){const l=SL[i];if(l.s<fish.s-CONFIG.CAM_BACK-1||l.s>fish.s+75){l.s=(l.s<-900?fish.s-3:fish.s+30)+Math.random()*42;l.u=(Math.random()*2-1)*(riverW(l.s)+1.5);l.h=0.5+Math.random()*3.2;}
+    wpos(l.s,l.u,level(l.s)+l.h,V);slQ.setFromAxisAngle(UPV,heading(l.s));fS.set(0.03,0.03,len);fM.compose(V,slQ,fS);slIM.setMatrixAt(i,fM);}
+  slIM.instanceMatrix.needsUpdate=true;}
+function logT(){return(state==='play'||state==='goal'||state==='result')?raceTime:clock;}
+function updateLogVisuals(){if(state!=='play')updateLogs(logT());
+  for(const lg of LOGS){wpos(lg.s,lg.u,lg.lv-0.08-lg.sink,lg.g.position);lg.g.rotation.set(0,heading(lg.s)+lg.A,0);lg.m.rotation.x=clock*0.7;lg.g.visible=lg.sink<1.3;}}
+function updateRings(){for(const rg of RINGS){if(rg.got)continue;rg.g.children[0].rotation.z=clock*1.5;rg.g.scale.setScalar(1+Math.sin(clock*4+rg.s)*0.05);}}
+function updateCamera(dt){
+  if(state==='title'){const a=clock*0.12;wpos(-12+3*Math.sin(a),5*Math.sin(a*0.7),4.2,tV);wpos(30,0,2.2,tL);}
+  else if(state==='result'){const a=clock*0.25;wpos(fish.s-5.5*Math.cos(a),clamp(4.5*Math.sin(a),-7,7),level(fish.s)+3,tV);wpos(fish.s,fish.u,fish.y+0.3,tL);}
+  else{const fs=fish.s,cs=fs-CONFIG.CAM_BACK,W=riverW(cs);const kU=camera.aspect<1?0.88:0.6;let cu=clamp(fish.u*kU,-(W-1),W-1);const lvF=level(fs);
+    const hw=Math.max(islandHW(cs),islandHW(cs+3),islandHW(fs));if(hw>0)cu=fish.u<0?clamp(cu,-(W-1),-(hw+0.9)):clamp(cu,hw+0.9,W-1);
+    wpos(cs,cu,Math.max(level(cs),lerp(lvF,fish.y,0.5))+CONFIG.CAM_UP,tV);
+    wpos(fs+CONFIG.CAM_LOOK,fish.u*Math.max(0.7,kU),Math.max(level(fs+CONFIG.CAM_LOOK*0.6),lerp(lvF,fish.y,0.6))+0.8,tL);}
+  if(!camInit){camPos.copy(tV);camLook.copy(tL);camInit=true;}else{camPos.lerp(tV,1-Math.exp(-6*dt));camLook.lerp(tL,1-Math.exp(-8*dt));}
+  camera.position.copy(camPos);
+  if(camShake>0){camShake=Math.max(0,camShake-dt*1.2);camera.position.x+=(Math.random()-0.5)*camShake;camera.position.y+=(Math.random()-0.5)*camShake;}
+  camera.lookAt(camLook);
+  const play=state==='play'||state==='goal';camRoll=lerp(camRoll,play?clamp(-fish.latV*0.003,-0.04,0.04):0,1-Math.exp(-5*dt));camera.rotateZ(camRoll);
+  const spd=play?Math.max(0,fish.vs):0;const tf=baseFov+clamp((spd-8)/14,0,1)*CONFIG.FOV_SPEED+(fish.boost>0&&state==='play'?3:0);
+  const nf=lerp(camera.fov,tf,1-Math.exp(-4*dt));if(Math.abs(nf-camera.fov)>0.01){camera.fov=nf;camera.updateProjectionMatrix();}}
+function updateFishVisual(){let y=fish.y;if(fish.inWater&&fish.washed<=0)y=fish.y-0.02+Math.sin(clock*6)*0.025;
+  wpos(fish.s,fish.u,y,fishG.position);if(fish.charging){fishG.position.x+=(Math.random()-0.5)*0.04*fish.charge;}
+  const yaw=heading(fish.s)-clamp(fish.latV/Math.max(5,Math.abs(fish.vs)),-0.7,0.7)*0.7;
+  let pitch=0;if(!fish.inWater)pitch=clamp(Math.atan2(fish.vy,Math.max(5,fish.vs)),-0.95,0.95);else if(fish.charging)pitch=0.1+fish.charge*0.12;
+  fishG.rotation.set(pitch,yaw,fish.washed>0?fish.spin:Math.sin(clock*3)*0.05,'YXZ');
+  fishG.userData.tail.rotation.y=Math.sin(clock*(fish.inWater?16:7))*(fish.charging?0.7:0.45);
+  fishG.userData.body.scale.z=fish.charging?1-fish.charge*0.1:1;
+  const lv=level(fish.s),hh=Math.max(0,fish.y-lv);wpos(fish.s,fish.u,lv+0.03,shadowM.position);shadowM.scale.setScalar(1/(1+hh*0.35));shadowM.material.opacity=0.32/(1+hh*0.4);
+  shadowM.visible=state!=='title'&&hh>0.05;
+  // ゴースト
+  const g=(state==='play'||state==='goal')?ghostAt(raceTime):null;ghostG.visible=!!g&&!g.end;
+  if(g&&!g.end){wpos(g.s,g.u,g.y-0.06,ghostG.position);ghostG.rotation.set(clamp(Math.atan2(g.vy,Math.max(5,g.vs)),-1.1,1.1)*(g.y>level(g.s)+0.05?1:0),heading(g.s),0,'YXZ');ghostG.userData.tail.rotation.y=Math.sin(clock*15)*0.45;}
+  // 待っている鮭
+  wpos(L+7,0.9,level(L+7)-0.06+Math.sin(clock*2)*0.03,mateG.position);mateG.rotation.set(0,heading(L+7)+Math.PI*0.8,0,'YXZ');mateG.userData.tail.rotation.y=Math.sin(clock*5)*0.35;}
+function updateBearVisuals(){for(const b of BEARS){const f=b.fall,g=b.g,C=CONFIG;wpos(f.s+BEAR_DS,b.u,f.h1-0.55,g.position);g.rotation.y=heading(f.s)+Math.PI;
+  let a=0.35+Math.sin(clock*2+b.off)*0.08,lean=0;
+  if(b.phase==='windup'){const k=smooth(b.pt/C.BEAR_WINDUP);a=lerp(0.35,2.7,k);lean=-0.15*k;}
+  else if(b.phase==='swipe'){const k=b.pt/C.BEAR_SWIPE;a=lerp(2.7,-0.2,k);lean=lerp(-0.15,0.35,k);}
+  else if(b.phase==='recover'){const k=b.pt/C.BEAR_RECOVER;a=lerp(-0.2,0.35,k);lean=lerp(0.35,0,k);}
+  for(const arm of g.userData.arms)arm.rotation.x=a;g.userData.torso.rotation.x=lean;g.userData.warn.visible=b.phase==='windup';
+  wpos(f.s,b.u,f.h1-0.25,b.zone.position);b.zone.rotation.y=heading(f.s);
+  b.zoneMat.opacity=b.phase==='swipe'?0.75:b.phase==='windup'?0.4+0.2*Math.sin(clock*30):b.phase==='recover'?0.32:0.2;}}
+function updateFoam(){for(let i=0;i<FOAM.length;i++){const f=FOAM[i];const k=1+Math.sin(clock*4+f.ph)*0.18;wpos(f.s,f.u,f.y,V);fS.set(f.sc*k,0.22*k,f.sc*k);fM.compose(V,fQ,fS);foamIM.setMatrixAt(i,fM);}foamIM.instanceMatrix.needsUpdate=true;}
+function render(){const rdt=Math.min(0.1,Math.max(0,clock-lastRC));lastRC=clock;
+  waterTex.offset.y=clock*0.3;fallTex.offset.y=clock*1.6;rapidTex.offset.y=clock*1.9;chevTex.offset.y=-clock*1.3;
+  updateFishVisual();updateBearVisuals();updateFoam();updateLogVisuals();updateRings();updateCamera(rdt);updateSpeedLines();
+  if(state==='play'&&fish.inWater&&fish.washed<=0&&fish.vs>5){wakeAcc+=rdt*fish.vs*2.5;while(wakeAcc>=1){wakeAcc-=1;spawnP(fish.s-0.75,fish.u+(Math.random()-0.5)*0.5,fish.y+0.05,1,0.9,1.8);}}
+  const sp=state==='play'?clamp((fish.vs-15)/7,0,1)*0.45+(fish.boost>0?0.3:0):0;if(Math.abs(sp-spdOp)>0.02){spdOp=sp;spdEl.style.opacity=sp.toFixed(2);}
+  if(sp>0)spdEl.style.transform=`rotate(${(Math.random()*4).toFixed(1)}deg)`;
+  sprayAcc+=rdt*16;while(sprayAcc>=1){sprayAcc-=1;for(const f of FALLS)if(Math.abs(f.s-fish.s)<60){const W=riverW(f.s);spawnP(f.s-0.7,(Math.random()*2-1)*(W-0.5),f.h0+0.1,1,1.4,3.2);}}
+  updateP(rdt);updateHUD();
+  let near=99;for(const f of FALLS)near=Math.min(near,Math.abs(f.s-fish.s));AU.amb(state==='title'?0.04:0.05+0.2*Math.exp(-near/20));
+  sky.position.copy(camera.position);renderer.render(scene,camera);}
+
+// ===== [SEC:HUD] =====
+const H={};for(const id of['timer','progFill','pFish','pGhost','ghostDiff','bestS','gFill','gMark','gw','jumpBtn','steerHint','keyHint'])H[id]=$(id);
+const hc={};function setT(k,v){if(hc[k]!==v){hc[k]=v;H[k].textContent=v;}}function setS(k,p,v){const key=k+p;if(hc[key]!==v){hc[key]=v;H[k].style[p]=v;}}
+function updateHUD(){if(state!=='play'&&state!=='countdown'&&state!=='goal')return;
+  setT('timer',fmtTime(state==='goal'?finishTime:raceTime));
+  const p=clamp(fish.s/L,0,1);setS('progFill','width',(p*100).toFixed(1)+'%');setS('pFish','left',(p*100).toFixed(1)+'%');
+  const g=ghostData?ghostAt(raceTime):null;H.pGhost.classList.toggle('hide',!g);
+  if(g&&state!=='goal'){setS('pGhost','left',(clamp(g.s/L,0,1)*100).toFixed(1)+'%');const d=g.s-fish.s;setT('ghostDiff',Math.abs(d)<1?'ゴーストと横ならび！':d>0?`ゴーストが ${Math.round(d)}m 先`:`ゴーストより ${Math.round(-d)}m 前！`);}
+  else setT('ghostDiff','');
+  setT('bestS',store.best!=null?'ベスト '+fmtTime(store.best):'');
+  setS('gFill','height',(fish.charge*100).toFixed(0)+'%');H.gw.classList.toggle('full',fish.charge>=1);
+  let nf=null;for(const f of FALLS)if(f.s>fish.s){nf=f;break;}
+  if(nf&&nf.s-fish.s<45&&fish.washed<=0){const need=clamp((Math.sqrt(2*CONFIG.GRAVITY*(nf.h+0.3))-vMin)/(vMax-vMin),0,1);H.gMark.classList.remove('hide');setS('gMark','top',((1-need)*150).toFixed(0)+'px');}
+  else H.gMark.classList.add('hide');
+  H.jumpBtn.classList.toggle('held',input.jumpTouch||input.jump);}
+H.jumpBtn.classList.toggle('hide',!IS_TOUCH);H.steerHint.classList.toggle('hide',!IS_TOUCH);H.keyHint.classList.toggle('hide',IS_TOUCH);
+$('howTouch').classList.toggle('hide',!IS_TOUCH);$('howKey').classList.toggle('hide',IS_TOUCH);
+$('startBtn').addEventListener('click',startGame);$('againBtn').addEventListener('click',startGame);
+$('toTitleBtn').addEventListener('click',toTitle);
+document.querySelectorAll('a.sup').forEach(a=>{a.href=CONFIG.FOLLOW_URL;});
+$('shareBtn').addEventListener('click',()=>{const text=`『鮭、のぼります。』\n産卵場所まで ${fmtTime(finishTime)} でのぼりきった！【${rankOf(finishTime)}】\n#鮭のぼります`;
+  const url=CONFIG.URL;window.open('https://x.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url),'_blank');});
+{let m=false;try{m=localStorage.getItem('sake-noborimasu-mute')==='1';}catch(e){}AU.setMute(m);$('mute').textContent=m?'🔇':'🔊';
+  $('mute').addEventListener('click',e=>{e.stopPropagation();AU.init();AU.setMute(!AU.muted);$('mute').textContent=AU.muted?'🔇':'🔊';try{localStorage.setItem('sake-noborimasu-mute',AU.muted?'1':'0');}catch(_){}});}
+showTitleBest();
+
+// ===== [SEC:LOOP] =====
+let acc=0,last=performance.now(),manual=false,paused=false;
+function update(frameDt){acc+=Math.min(frameDt,CONFIG.MAX_FRAME);while(acc>=CONFIG.FIXED){tick(CONFIG.FIXED);acc-=CONFIG.FIXED;}}
+function frame(now){if(!paused&&!manual){update((now-last)/1000);render();}last=now;requestAnimationFrame(frame);}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){paused=true;if(AU.ctx)AU.ctx.suspend();}else{paused=false;last=performance.now();if(AU.ctx)AU.ctx.resume();}});
+requestAnimationFrame(frame);
+
+// ===== [SEC:TEST] =====
+let prevCheckT=0;
+window.__TEST__={
+  keys:['ArrowLeft','ArrowRight','Space'],
+  randomInput(r){},
+  reset(seed){manual=true;store=loadStore();startRun(true);},
+  step(sec,frameDt,noRender){for(let t=0;t<sec-1e-9;t+=frameDt)update(frameDt);if(!noRender)render();},
+  render(){camInit=false;render();},
+  state(){return{st:state,s:+fish.s.toFixed(2),u:+fish.u.toFixed(2),y:+fish.y.toFixed(2),vs:+fish.vs.toFixed(2),t:+raceTime.toFixed(2),miss:stats.miss,hit:stats.hit,just:stats.just,ring:stats.ring,combo:stats.combo,over:state==='goal'||state==='result'};},
+  check(){const v=[],f=fish;
+    for(const k of['s','u','y','vs','vy','charge','targetU'])if(!Number.isFinite(f[k]))v.push('fish.'+k+' がNaN/Infinity');
+    for(const b of BEARS)if(!Number.isFinite(b.u))v.push('クマの位置がNaN');
+    if(state==='play'||state==='goal'){const lv=level(f.s);
+      if(f.y<lv-0.05)v.push(`水面より下 y=${f.y.toFixed(2)} 水面=${lv}`);
+      const lim=riverW(f.s)-0.6;if(Math.abs(f.u)>lim+0.02)v.push(`川の外 u=${f.u.toFixed(2)} 限界=${lim.toFixed(2)}`);
+      if(f.washed<=0){const yb=f.y-FISH_HH;
+        for(const rk of ROCKS){const R=rockR(rk,yb);if(R<=0)continue;for(const off of FISH_PTS){const pen=R+FISH_R-Math.hypot(f.s+off-rk.s,f.u-rk.u);if(pen>0.02)v.push(`岩にめり込み ${pen.toFixed(3)}m（岩 s=${rk.s.toFixed(1)}）`);}}
+        for(const b of BEARS){if(!bearBodyActive(b))continue;for(const off of FISH_PTS){const pen=BEAR_R+FISH_R-Math.hypot(f.s+off-b.fall.s-BEAR_DS,f.u-b.u);if(pen>0.02)v.push(`クマにめり込み ${pen.toFixed(3)}m`);}}
+        for(const lg of LOGS){if(!lg.act||yb>=lg.lv+CONFIG.LOG_TOP-lg.sink)continue;for(const off of FISH_PTS){const q=segClosest(lg,f.s+off,f.u);const pen=CONFIG.LOG_R+FISH_R-Math.hypot(f.s+off-q[0],f.u-q[1]);if(pen>0.02)v.push(`丸太にめり込み ${pen.toFixed(3)}m（s=${lg.s.toFixed(1)}）`);}}
+        for(const off of FISH_PTS){const hw=islandHW(f.s+off);if(hw>0&&Math.abs(f.u)<hw+FISH_R-0.02)v.push(`中州にめり込み u=${f.u.toFixed(2)} 中州の半分の幅=${hw.toFixed(2)}`);}}
+      for(const c of f.crossLog)if(c<-1e-6)v.push('滝をすり抜け '+c.toFixed(3));
+      if(Math.abs(f.vs)>(CONFIG.SWIM_SPEED*CONFIG.COMBO_MAX+CONFIG.FLOW_BOOST)*1.3)v.push('速すぎ vs='+f.vs.toFixed(2));
+      if(raceTime<prevCheckT-1e-9)v.push('タイムが減った');
+      if(!fishG.parent)v.push('鮭がいない');}
+    f.crossLog.length=0;prevCheckT=raceTime;
+    if(Math.abs(FISH_OFF+FISH_R-FISH_HALF_LEN)/FISH_HALF_LEN>0.1)v.push('鮭の当たり判定（長さ）が見た目とずれている');
+    if(Math.abs(FISH_R-FISH_HALF_WID)/FISH_HALF_WID>0.1)v.push('鮭の当たり判定（幅）が見た目とずれている');
+    if(ROCK_VIS_ERR>0.1)v.push('岩の見た目と当たり判定がずれている '+ROCK_VIS_ERR.toFixed(3));
+    return v;},
+  setInput(o){input.left=!!o.left;input.right=!!o.right;input.jump=!!o.jump;},
+  peek(){return{fish,FALLS,ROCKS,RAPIDS,BEARS,LOGS,RINGS,BOOSTS,ISLAND,islandHW,segClosest,CONFIG,level,riverW,calmCenter,rapidAt,current,vMin,vMax,FISH_R,FISH_HH,BEAR_R,get state(){return state;},get raceTime(){return raceTime;},get store(){return store;},showResultNow(){goalT=99;}};},
+  ready:true,
+};
+</script>
+</body>
+</html>
