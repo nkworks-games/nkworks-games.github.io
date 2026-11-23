@@ -35,9 +35,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0b1a24;color:#fff;fon
 #progL{left:0}#progR{right:0}
 #ghostDiff{position:absolute;top:calc(92px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);font-size:13px;font-weight:700;text-shadow:0 1px 3px #000;white-space:nowrap;color:#bff4ff}
 #bestS{position:absolute;top:calc(64px + env(safe-area-inset-top));right:10px;font-size:11px;text-align:right;text-shadow:0 1px 2px #000;line-height:1.3;opacity:.9}
-#msg{position:absolute;top:31%;left:50%;transform:translate(-50%,-50%);font-size:clamp(24px,7vw,40px);font-weight:900;text-align:center;white-space:nowrap;text-shadow:0 3px 0 #000a,0 0 12px #000a;opacity:0;transition:opacity .15s}
+#msg{position:absolute;top:max(25%,calc(190px + env(safe-area-inset-top)));left:50%;transform:translate(-50%,-50%);font-size:clamp(18px,5.2vw,30px);font-weight:900;text-align:center;white-space:nowrap;text-shadow:0 3px 0 #000a,0 0 12px #000a;opacity:0;transition:opacity .15s}
 #msg.on{opacity:1}
-#tip{position:absolute;top:41%;left:50%;transform:translateX(-50%);width:min(88vw,460px);font-size:clamp(14px,4vw,17px);font-weight:700;line-height:1.5;text-align:center;background:#0c2a3ad9;border:2px solid #ffffff55;border-radius:12px;padding:10px 14px;opacity:0;transition:opacity .3s}
+#tip{position:absolute;top:calc(114px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(82vw,420px);font-size:clamp(12px,3.4vw,14px);font-weight:700;line-height:1.45;text-align:center;background:#0c2a3aa6;border:1px solid #ffffff40;border-radius:10px;padding:6px 10px;text-wrap:balance;opacity:0;transition:opacity .3s}
 #tip.on{opacity:1}
 #cd{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);font-size:clamp(72px,24vw,140px);font-weight:900;text-shadow:0 5px 0 #000a}
 #gw{position:absolute;right:calc(56px + env(safe-area-inset-right));bottom:calc(168px + env(safe-area-inset-bottom));width:20px;height:150px}
@@ -51,6 +51,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0b1a24;color:#fff;fon
 #steerHint{position:absolute;left:calc(14px + env(safe-area-inset-left));bottom:calc(60px + env(safe-area-inset-bottom));font-size:14px;font-weight:800;padding:12px 16px;border-radius:30px;background:#ffffff1f;border:2px solid #ffffff70;text-shadow:0 1px 2px #000}
 #keyHint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:13px;text-shadow:0 1px 2px #000;white-space:nowrap;opacity:.9}
 #mute{position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:6;width:42px;height:42px;border-radius:50%;border:2px solid #fff8;background:#0007;color:#fff;font-size:18px;cursor:pointer}
+#pauseBtn{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;width:42px;height:42px;border-radius:50%;border:2px solid #fff8;background:#0007;color:#fff;font-size:16px;font-weight:900;cursor:pointer;pointer-events:auto}
+#jumpBtn small{display:block;font-size:11px;font-weight:700;opacity:.85;margin-top:2px}
 .screen{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(180deg,#0b1a2410,#0b1a24b0)}
 .panel{width:min(94vw,470px);max-height:94vh;overflow:auto;background:#0e2b3be6;border:2px solid #ffffff45;border-radius:18px;padding:18px 18px 16px;text-align:center;box-shadow:0 10px 40px #0009}
 h1{margin:2px 0 6px;font-size:clamp(28px,8.6vw,50px);white-space:nowrap;letter-spacing:2px;text-shadow:0 4px 0 #c8402e,0 6px 14px #0008}
@@ -88,7 +90,8 @@ h1{margin:2px 0 6px;font-size:clamp(28px,8.6vw,50px);white-space:nowrap;letter-s
   <div id="tip"></div>
   <div id="cd"></div>
   <div id="gw"><div id="gauge"><div id="gFill"></div></div><div id="gMark" class="hide"></div></div>
-  <div id="jumpBtn">長押しで<br>タメる<br>↓<br>はなして<br>ジャンプ</div>
+  <div id="jumpBtn"><div>ジャンプ<small>長押し→はなす</small></div></div>
+  <button id="pauseBtn" aria-label="一時停止">II</button>
   <div id="steerHint">◀ どこでもドラッグで左右 ▶</div>
   <div id="keyHint">← → で左右　／　スペース長押し → はなしてジャンプ</div>
 </div>
@@ -111,6 +114,15 @@ h1{margin:2px 0 6px;font-size:clamp(28px,8.6vw,50px);white-space:nowrap;letter-s
     <button class="btn" id="startBtn">スタート</button>
     <a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a>
     <div class="foot">N.K. Works</div>
+  </div>
+</div>
+<div id="pause" class="screen hide">
+  <div class="panel">
+    <div style="font-size:22px;font-weight:900">ひと休み中</div>
+    <div class="sub">タイマーも止まっています</div>
+    <button class="btn" id="resumeBtn">つづける</button>
+    <button class="btn blue" id="restartBtn">最初からやり直す</button>
+    <button class="btn blue" id="homeBtn">ホームにもどる</button>
   </div>
 </div>
 <div id="result" class="screen hide">
@@ -582,7 +594,7 @@ const touchEl=$('touch');let steerId=null,steerX=0,jumpId=null;
 touchEl.addEventListener('pointerdown',e=>{e.preventDefault();AU.resume();if(state!=='play'&&state!=='countdown')return;
   if(inJumpBtn(e.clientX,e.clientY)){if(jumpId===null){jumpId=e.pointerId;input.jumpTouch=true;}}else if(steerId===null){steerId=e.pointerId;steerX=e.clientX;}
   try{touchEl.setPointerCapture(e.pointerId);}catch(_){}});
-touchEl.addEventListener('pointermove',e=>{if(e.pointerId===steerId){input.dragDU+=(e.clientX-steerX)/innerWidth*CONFIG.DRAG_GAIN;steerX=e.clientX;}});
+touchEl.addEventListener('pointermove',e=>{if(e.pointerId===steerId){hideHints();input.dragDU+=(e.clientX-steerX)/innerWidth*CONFIG.DRAG_GAIN;steerX=e.clientX;}});
 const endP=e=>{if(e.pointerId===steerId)steerId=null;if(e.pointerId===jumpId){jumpId=null;input.jumpTouch=false;}};
 for(const ev of['pointerup','pointercancel','lostpointercapture'])touchEl.addEventListener(ev,endP);
 const IS_TOUCH=matchMedia('(pointer:coarse)').matches||('ontouchstart' in window);
@@ -623,7 +635,7 @@ function rankOf(t){for(const[lim,n]of CONFIG.RANKS)if(t<lim)return n;return CONF
 // ===== [SEC:UI_MSG] =====
 let msgT=0,tipT=0,cdHideT=0;
 function msg(text,color='#fff',dur=1){const e=$('msg');e.textContent=text;e.style.color=color;e.classList.add('on');msgT=dur;}
-function tip(text,dur=3.4){const e=$('tip');e.textContent=text;e.classList.add('on');tipT=dur;}
+function tip(text,dur=3){const e=$('tip');e.textContent=text;e.classList.add('on');tipT=dur;}
 function uiTimers(dt){if(msgT>0){msgT-=dt;if(msgT<=0)$('msg').classList.remove('on');}if(tipT>0){tipT-=dt;if(tipT<=0)$('tip').classList.remove('on');}
   if(cdHideT>0){cdHideT-=dt;if(cdHideT<=0)$('cd').textContent='';}}
 function checkTips(){const s=fish.s,first=store.best==null;
@@ -638,7 +650,7 @@ const vMin=Math.sqrt(2*CONFIG.GRAVITY*CONFIG.JUMP_MIN_H),vMax=Math.sqrt(2*CONFIG
 function tick(dt){clock+=dt;uiTimers(dt);updateBears(dt);
   if(state==='countdown'){cdT-=dt;const n=Math.ceil(cdT);if(n!==lastBeep&&n>0){lastBeep=n;$('cd').textContent=n;AU.beep(false);}
     if(cdT<=0){state='play';$('cd').textContent='GO!';cdHideT=0.7;AU.beep(true);}return;}
-  if(state==='play'){raceTime+=dt;updateLogs(raceTime);stepFish(dt);recordGhost(dt);checkTips();
+  if(state==='play'){raceTime+=dt;if(raceTime>8)hideHints();updateLogs(raceTime);stepFish(dt);recordGhost(dt);checkTips();
     const si=SECTIONS.reduce((a,sc,i)=>fish.s>=sc.s?i:a,0);if(si!==lastSec){lastSec=si;if(si>0)msg(SECTIONS[si].name,'#bff4ff',1.6);}
     if(fish.s>=L)reachGoal();}
   else if(state==='goal'){goalT+=dt;fish.vs=lerp(fish.vs,fish.s<L+6?4:0,Math.min(1,2*dt));fish.s+=fish.vs*dt;fish.u=lerp(fish.u,0.2,Math.min(1,dt));fish.inWater=true;fish.vy=0;fish.charge=0;fish.charging=false;fish.y=level(fish.s);fish.latV=0;
@@ -838,7 +850,17 @@ showTitleBest();
 // ===== [SEC:LOOP] =====
 let acc=0,last=performance.now(),manual=false,paused=false;
 function update(frameDt){acc+=Math.min(frameDt,CONFIG.MAX_FRAME);while(acc>=CONFIG.FIXED){tick(CONFIG.FIXED);acc-=CONFIG.FIXED;}}
-function frame(now){if(!paused&&!manual){update((now-last)/1000);render();}last=now;requestAnimationFrame(frame);}
+function frame(now){if(!paused&&!manual&&!menuOpen){update((now-last)/1000);render();}last=now;requestAnimationFrame(frame);}
+// ===== [SEC:PAUSE] =====
+let menuOpen=false,hintsOff=false;
+function hideHints(){if(hintsOff)return;hintsOff=true;$('steerHint').classList.add('hide');$('keyHint').classList.add('hide');}
+function openPause(){if(state!=='play'&&state!=='countdown')return;menuOpen=true;input.left=input.right=input.jump=input.jumpTouch=false;input.dragDU=0;steerId=jumpId=null;$('pause').classList.remove('hide');AU.amb(0.02);}
+function closePause(){$('pause').classList.add('hide');menuOpen=false;last=performance.now();}
+$('pauseBtn').addEventListener('click',e=>{e.stopPropagation();openPause();});
+$('resumeBtn').addEventListener('click',closePause);
+$('restartBtn').addEventListener('click',()=>{closePause();startGame();});
+$('homeBtn').addEventListener('click',()=>{closePause();toTitle();});
+addEventListener('keydown',e=>{if(e.code==='Escape'||e.code==='KeyP'){if(menuOpen)closePause();else openPause();}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){paused=true;if(AU.ctx)AU.ctx.suspend();}else{paused=false;last=performance.now();if(AU.ctx)AU.ctx.resume();}});
 requestAnimationFrame(frame);
 
