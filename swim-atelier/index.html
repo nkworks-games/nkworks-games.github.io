@@ -825,6 +825,7 @@ var BODY_CORE = (function () {
 const PI = Math.PI;
 // 変形の調整値
 const CFG = {
+  rib: { amp: 0.7, wave: 3.0, drop: 5, diff: [4, 13] }, // 肋骨（女性）：うき出る高さ[cm]・肋骨の間かく[cm]・横から前へ下がる量[cm]・バストとアンダーの差[cm]（この間で、小さいほど強く出る）
   dsR0: 8, dsR1: 16, dsPasses: 24,      // 肩まわりのならし範囲[cm]・回数
   bkPasses: 40, bkX: [9, 15],            // 背中の上（肩甲骨〜首の付け根）をならす回数・横の範囲[cm]（この間でだんだん弱く）
   armRot0: -2, armRot1: 12,              // 腕を開く時に曲げ始める/終える位置[cm]
@@ -2649,6 +2650,28 @@ function muscleApply(B, Pn, Pin, G) {
   const h = musPrep(B), n = normalsFromFaces(Pn, B.I, B.nv);
   for (let q = 0; q < B.nv; q++) { const d = h[q] * k; if (d) { Pn[q * 3] += n[q * 3] * d; Pn[q * 3 + 1] += n[q * 3 + 1] * d; Pn[q * 3 + 2] += n[q * 3 + 2] * d; } }
 }
+function ribPrep(B) { // 肋骨の凹凸（標準体型の上で1回だけ作る）：胸の下〜わき腹。横が高く、前へ下がる線。まん中・背中・胸のふくらみには出さない
+  if (B.ribH) return B.ribH;
+  const nv = B.nv, P = B.pos, N = B.nor, L = B.L0, lab = B.lab, h = new Float32Array(nv), R = CFG.rib;
+  const sm = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }, lerp1 = (a, b, t) => a + (b - a) * t;
+  for (let q = 0; q < Math.min(nv, B.nv0 || nv); q++) {
+    if (lab[q] !== 0) continue;
+    const x = Math.abs(P[q * 3]), y = P[q * 3 + 1], th = Math.atan2(Math.abs(N[q * 3]), N[q * 3 + 2]) / (Math.PI / 2); // 面の向き：0 前・1 横・2 後ろ
+    if (th > 1.45) continue;
+    const yr = y + R.drop * (1 - th), top = L.underY - 0.5 + R.drop; // 前ではアンダーの線まで、横ではわきの下の近くまで
+    const low = lerp1(lerp1(L.underY - 3, L.waistY + 2.5, sm(0, 11, x)), L.waistY + 2.5, sm(0.5, 0.9, th)); // いちばん下の肋骨（前はまん中ほど高い「ハの字」）
+    const w = sm(low, low + 1.5, y) * (1 - sm(top - 1.5, top, yr)) * (1 - sm(1.15, 1.45, th)) * sm(1.8, 3.8, x) * (0.6 + 0.4 * Math.min(1, th));
+    if (w > 0) { const c = 0.5 + 0.5 * Math.cos(2 * Math.PI * yr / R.wave); h[q] = w * (2 * Math.pow(c, 0.55) - 1.15); } // 幅の広い山（骨）と細いみぞ（骨の間）
+  }
+  const deg = B.deg, adj = B.adj, T = new Float32Array(nv); // 1回だけならす（網目の段々を見せない）
+  for (let q = 0; q < nv; q++) { let a = h[q] * 2, n = 2; for (let j = deg[q]; j < deg[q + 1]; j++) { a += h[adj[j]]; n++; } T[q] = a / n; } h.set(T);
+  return B.ribH = h;
+}
+function ribApply(B, Pn, Pin, G) { // 肋骨（女性）：バストとアンダーの差が小さいほど、うっすら浮き出る。測る前に入れるので寸法は入力どおり
+  B.ribOn = false; if (G !== 'f') return; const R = CFG.rib, d = (+Pin.bust || 0) - (+Pin.under || 0), k = clamp((R.diff[1] - d) / (R.diff[1] - R.diff[0]), 0, 1); if (!(k > 0)) return;
+  const h = ribPrep(B), n = normalsFromFaces(Pn, B.I, B.nv), D = B.ribD || (B.ribD = new Float32Array(B.nv * 3)); D.fill(0); B.ribOn = true;
+  for (let q = 0; q < B.nv; q++) { if (!h[q]) continue; const v = h[q] * k * R.amp; for (let e = 0; e < 3; e++) { D[q * 3 + e] = n[q * 3 + e] * v; Pn[q * 3 + e] += D[q * 3 + e]; } } // D：足した量（光の向きにも使う）
+}
 function computeBody(req) {
   const t0 = Date.now();
   const Pin = req.params, G = req.gender, P0 = req.defaults;
@@ -2671,7 +2694,7 @@ function computeBody(req) {
   let it = 0;
   for (; it < iters; it++) {
     mp = makeMap(B, P, F);
-    applyMap(B, mp, G === 'f' ? F.w : 1, Pn); muscleApply(B, Pn, Pin, G); // 筋肉も入れてから測る（寸法は入力どおり）
+    applyMap(B, mp, G === 'f' ? F.w : 1, Pn); muscleApply(B, Pn, Pin, G); ribApply(B, Pn, Pin, G); // 筋肉・肋骨も入れてから測る（寸法は入力どおり）
     m = measureDeformed(B, Pn, mp, F, false);
     let err = 0;
     let errO = 0;
@@ -2719,7 +2742,7 @@ function computeBody(req) {
     } else F.dAng = 0;
   }
   // 寸法が合って腕の角度も変わらなければ、最後の形をそのまま使う（同じ計算をくり返さない）
-  if (!(conv && F.dAng === ang0 && mp)) { mp = makeMap(B, P, F); applyMap(B, mp, G === 'f' ? F.w : 1, Pn); muscleApply(B, Pn, Pin, G); }
+  if (!(conv && F.dAng === ang0 && mp)) { mp = makeMap(B, P, F); applyMap(B, mp, G === 'f' ? F.w : 1, Pn); muscleApply(B, Pn, Pin, G); ribApply(B, Pn, Pin, G); }
   symV(B, Pn); // できた形を左右対称に（ならす計算の小さな左右差も消す）
   faceApply(B, Pn, Pin, G); // 顔の形（区切り UI-FACE）
   const meas = measureDeformed(B, Pn, mp, F, true);
@@ -2740,6 +2763,14 @@ function computeBody(req) {
         const l = Math.hypot(x, y, z) || 1; T[k * 3] = x / l; T[k * 3 + 1] = y / l; T[k * 3 + 2] = z / l; }
       for (let k = 0; k < n; k++) { const q = V[k]; N[q * 3] = T[k * 3]; N[q * 3 + 1] = T[k * 3 + 1]; N[q * 3 + 2] = T[k * 3 + 2]; }
     }
+  }
+  if (B.ribOn && G === 'f') { // 肋骨（胸のまわりをならした後で）：細かい凹凸はならした向きでは消えるので、肋骨で変わった分の向きだけを足す
+    const P2 = Pn.slice(), D = B.ribD; for (let i = 0; i < P2.length; i++) P2[i] -= D[i];
+    const nA = normalsFromFaces(Pn, B.I, B.nv), nB = normalsFromFaces(P2, B.I, B.nv), dl = new Float32Array(B.nv * 3), t2 = new Float32Array(B.nv * 3), deg = B.deg, adj = B.adj;
+    for (let i = 0; i < dl.length; i++) dl[i] = nA[i] - nB[i];
+    for (let it = 0; it < 1; it++) { for (let q = 0; q < B.nv; q++) for (let e = 0; e < 3; e++) { let a = dl[q * 3 + e] * 2, c = 2; for (let j = deg[q]; j < deg[q + 1]; j++) { a += dl[adj[j] * 3 + e]; c++; } t2[q * 3 + e] = a / c; } dl.set(t2); } // 網目の三角のムラを消す
+    for (let q = 0; q < B.nv; q++) { if (!D[q * 3] && !D[q * 3 + 1] && !D[q * 3 + 2]) continue; const o = q * 3;
+      const x = N[o] + dl[o], y = N[o + 1] + dl[o + 1], z = N[o + 2] + dl[o + 2], l = Math.hypot(x, y, z) || 1; N[o] = x / l; N[o + 1] = y / l; N[o + 2] = z / l; }
   }
   symV(B, N, true); // 面の向きも左右対称に
   const t2 = Date.now();
