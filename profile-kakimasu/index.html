@@ -265,136 +265,165 @@ let toastT = 0;
 function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1600); }
 
 // ===== [SEC:QUESTIONS] =====
-// 6つの軸：s=人と一緒(+)/ひとり時間(-) p=段取り(+)/行き当たり(-) a=即行動(+)/慎重(-) h=気持ち(+)/理由(-) n=新しもの好き(+)/定番(-) d=のめり込み(+)/広く浅く(-)
-// 1〜15問目が本番、16問目からは「どれも当てはまらない」の予備
+// ものさしはビッグファイブ（E=外向性 A=協調性 C=勤勉性 N=神経症傾向 O=開放性）。1問が下の15項目（fc）の1つを測る
+// 答えの数字：+2〜-2（そのものさしの「＋」側にどれだけ寄っているか）。4つの答えは、どれも同じくらい「アリ」な答えにそろえてある
+// 1〜15問目が本番。16問目からは「どれも当てはまらない」で入れ替わる予備（同じものさしの予備から出る）
 const QS = [
-  { t: '友達との待ち合わせ。相手が20分遅れるらしい。', c: [['近くのお店をぶらぶらして待つ', { n: 1, p: -1 }], ['スマホを見ながら、その場で待つ', { n: -1, s: -1 }], ['「先に入ってるね」とお店に入る', { a: 2 }], ['正直、ちょっとムッとする', { p: 2, h: 1 }]] },
-  { t: '旅行に行くことになった。準備はどうする？', c: [['行きたい所と時間を表にまとめる', { p: 2 }], ['宿と行き帰りだけ決めて、あとは現地で', { p: -2, n: 1 }], ['くわしい人のプランに乗っかる', { s: 1, p: -1 }], ['持ち物リストを作って何度も見直す', { a: -2, p: 1 }]] },
-  { t: '気になっていた新しいお店ができた。', c: [['オープンしてすぐ行く', { n: 2, a: 1 }], ['口コミを見てから、行くか決める', { a: -2 }], ['誰かを誘って一緒に行く', { s: 2 }], ['いつものお店があるので、たぶん行かない', { n: -2 }]] },
-  { t: 'グループで何かをすることになった。気づくと自分はどんな役？', c: [['予定を決めて、みんなを進める役', { p: 2, s: 1 }], ['アイデアをどんどん出す役', { n: 1, a: 1 }], ['みんなの意見を聞いてまとめる役', { h: 2 }], ['自分の担当をきっちり仕上げる役', { d: 1, s: -1 }]] },
-  { t: '友達から「最近ちょっと落ちこんでて」と連絡がきた。', c: [['すぐ電話をかける', { a: 1, h: 1 }], ['まずは話をじっくり聞く', { h: 2 }], ['何があったか聞いて、解決策を一緒に考える', { h: -2 }], ['「気分転換しよう」と外に連れ出す', { s: 2 }]] },
-  { t: '新しく好きなことが見つかった。', c: [['しばらくそればかりやる', { d: 2 }], ['ひと通りやったら、また次へ', { d: -2, n: 1 }], ['同じ趣味の人を探して話す', { s: 1, d: 1 }], ['自分のペースで少しずつ続ける', { n: -1, a: -1 }]] },
-  { t: '休日の朝、予定は何もない。', c: [['前の日にやることを決めてある', { p: 2 }], ['起きてから気分で決める', { p: -2 }], ['誰かに連絡して、遊ぶ予定を作る', { s: 2 }], ['家でゆっくり過ごすと決めている', { s: -2 }]] },
-  { t: '欲しかったものが、思ったより少し高かった。', c: [['その場で買う', { a: 2 }], ['一度帰って、よく考える', { a: -2 }], ['ほかの店やネットの値段を調べる', { h: -1, p: 1 }], ['友達に「どう思う？」と聞いてみる', { s: 1, h: 1 }]] },
-  { t: '話し合いで、自分と反対の意見が出た。', c: [['理由をきちんと説明して話し合う', { h: -2 }], ['相手の気持ちも考えて、ゆずれる所はゆずる', { h: 2 }], ['冗談を言って、空気をやわらげる', { s: 1, a: 1 }], ['その場では言わず、あとでゆっくり考える', { a: -1, s: -1 }]] },
-  { t: '知らない人ばかりの集まりに参加した。', c: [['自分から話しかけにいく', { s: 2, a: 1 }], ['話しかけられたら楽しく話す', { h: 1 }], ['知っている人のそばにいる', { s: -1, n: -1 }], ['ころあいを見て、早めに帰る', { s: -2 }]] },
-  { t: '新しいアプリやゲームを始める時は？', c: [['説明やチュートリアルを全部読む', { a: -2, p: 1 }], ['とりあえずさわってみる', { a: 2, p: -1 }], ['使い方や攻略を調べつくす', { d: 1, h: -1 }], ['人がやっているのを見てから始める', { s: 1, a: -1 }]] },
-  { t: 'ずっと続けていることはある？', c: [['ある。何年も同じことを続けている', { d: 2, n: -1 }], ['好きなことは、わりとよく変わる', { d: -2, n: 1 }], ['いくつかを同時に続けている', { d: -1, p: 1 }], ['毎日同じ時間に、同じことをする習慣がある', { n: -2, p: 1 }]] },
-  { t: '晩ごはん、何にする？', c: [['いつもの好きなメニュー', { n: -2 }], ['食べたことのないものに挑戦', { n: 2 }], ['一緒に食べる人に合わせる', { h: 1, s: 1 }], ['冷蔵庫の中身から考えて決める', { p: 1, h: -1 }]] },
-  { t: '自分の部屋の片づけは？', c: [['物の置き場所が決まっている', { p: 2 }], ['散らかっていても、どこに何があるかはわかる', { p: -1, d: 1 }], ['気分が乗った時に一気にやる', { p: -1, a: 1 }], ['誰かが来る時だけ本気を出す', { s: 1, p: -1 }]] },
-  { t: '何かで失敗してしまった。', c: [['原因を考えて、次に生かす', { h: -1, p: 1 }], ['しばらく引きずる', { h: 2 }], ['誰かに話して笑い話にする', { s: 2 }], ['すぐ切りかえて次へ', { a: 1, d: -1 }]] },
-  // ここから予備
-  { t: 'SNSの使い方に近いのは？', c: [['ほとんど見る専門', { s: -1 }], ['よく投稿する・コメントする', { s: 2 }], ['好きなジャンルだけを深く追いかける', { d: 2 }], ['いろんな話題を広く見る', { d: -1, n: 1 }]] },
-  { t: 'ドラマや漫画の続きが、すごく気になる。', c: [['一気に最後まで見る', { d: 2, a: 1 }], ['1日1話ずつ楽しむ', { p: 1, a: -1 }], ['先に結末を調べてしまう', { h: -1, a: 1 }], ['誰かと感想を言い合いながら見る', { s: 2 }]] },
-  { t: '前から決まっていた予定が、急になくなった。', c: [['ラッキー、好きなことをする', { s: -1, d: 1 }], ['すぐ別の予定を入れる', { s: 1, a: 1 }], ['楽しみにしていたので、ちょっとへこむ', { h: 1, p: 1 }], ['特に気にしない', { p: -2 }]] },
-  { t: '出かけた先で道に迷った。', c: [['地図アプリでルートを調べ直す', { h: -1, p: 1 }], ['近くの人に聞く', { s: 2 }], ['せっかくなので、ぶらぶら歩いてみる', { n: 2, p: -1 }], ['わかる所まで来た道を戻る', { n: -1, a: -1 }]] },
-  { t: '誰かへのプレゼントを選ぶ時は？', c: [['前に欲しがっていたものを覚えておく', { h: 2 }], ['自分が「これいい！」と思ったものを贈る', { n: 1, a: 1 }], ['何がいいか本人に聞く', { h: -1, p: 1 }], ['定番の、外さないものにする', { n: -2 }]] },
-  { t: '何かに集中している時に話しかけられた。', c: [['手を止めて話を聞く', { h: 1, s: 1 }], ['「ちょっと待って」と言って、きりのいい所まで', { d: 1, p: 1 }], ['話しかけられたことに気づかない', { d: 2, s: -1 }], ['作業しながら話す', { d: -2 }]] },
+  { f: 'E', fc: 'soc', t: '金曜の夜、予定が空いた。', c: [['誰かを誘ってごはんに行く', 2], ['近所をひとりでぶらっと歩く', -1], ['誘われたら行く。自分からは誘わない', 1], ['家でゆっくり好きなことをする', -2]] },
+  { f: 'A', fc: 'comp', t: '友達が「最近ちょっと落ちこんでて」と言ってきた。', c: [['「何があった？」と聞いて、解決策を一緒に考える', -1], ['時間をとって、じっくり話を聞く', 2], ['あえていつも通りに接する', -2], ['好きそうなお菓子をそっと渡す', 1]] },
+  { f: 'C', fc: 'org', t: '自分の部屋や机の上は？', c: [['だいたい片づいている', 1], ['使うものが手の届く所にある、が一番', -2], ['物の置き場所が決まっている', 2], ['散らかっていても、どこに何があるかはわかる', -1]] },
+  { f: 'N', fc: 'anx', t: '明日、大事な発表がある。前の日の夜は？', c: [['なんとかなると、わりと平気', -1], ['何度も練習して、それでも少し不安', 2], ['いつも通りぐっすり眠れる', -2], ['ちょっとドキドキするけど、早めに寝る', 1]] },
+  { f: 'O', fc: 'cur', t: '会話の中で、知らない言葉が出てきた。', c: [['あとで調べようとメモする', 1], ['その場ですぐ調べて、関係あることまで読む', 2], ['意味がわかればいいので、その場で聞く', -1], ['話の流れでなんとなくわかれば十分', -2]] },
+  { f: 'E', fc: 'ast', t: 'みんなで行き先を決めることになった。', c: [['いくつか候補をしぼって、みんなに聞く', 1], ['意見が出そろってから、ひとこと言う', -1], ['「ここどう？」と自分から案を出す', 2], ['どこでも楽しめるので、決まった所についていく', -2]] },
+  { f: 'A', fc: 'resp', t: '話し合いで、自分と反対の意見が出た。', c: [['ちがうと思ったら、はっきりそう言う', -1], ['相手の考えのいいところを先に言う', 2], ['納得いくまで、とことん話し合う', -2], ['言い方に気をつけながら、自分の意見も言う', 1]] },
+  { f: 'C', fc: 'prod', t: 'やらなきゃいけないことが3つある日。', c: [['気分が乗るまで、ちょっと待つ', -1], ['1つずつ、休みながら進める', 1], ['しめきりが近いものから、短時間で集中', -2], ['朝のうちに全部片づける', 2]] },
+  { f: 'N', fc: 'dep', t: '何かで失敗してしまった。', c: [['その日は少しへこむ', 1], ['寝たらだいたい忘れている', -2], ['しばらく思い出しては落ちこむ', 2], ['原因を考えたら、次に切りかえる', -1]] },
+  { f: 'O', fc: 'aes', t: '帰り道、きれいな夕焼けが見えた。', c: [['「きれいだな」と思いながら歩く', -1], ['立ち止まって、しばらく見る', 2], ['写真を撮っておく', 1], ['それより今日の晩ごはんが気になる', -2]] },
+  { f: 'E', fc: 'eng', t: '休みの日の過ごし方に近いのは？', c: [['1日に1つ予定があればじゅうぶん', -1], ['朝から予定をつめこんで動き回る', 2], ['家でエネルギーをためる日にする', -2], ['午前中だけ出かけて、午後はのんびり', 1]] },
+  { f: 'A', fc: 'trust', t: '初めて会った人に、ちょっとしたお願いをされた。', c: [['できる範囲なら手伝う', 1], ['内容をよく確かめてから決める', -2], ['気持ちよく引き受ける', 2], ['どんな人か、少し様子を見てから決める', -1]] },
+  { f: 'C', fc: 'res', t: '頼まれた係の仕事。', c: [['大事な所だけおさえて、あとはゆるく', -2], ['言われたことを確実にこなす', 1], ['まわりと相談しながら、できる所までやる', -1], ['言われた以上にきっちり仕上げる', 2]] },
+  { f: 'N', fc: 'vol', t: 'ちょっとイラッとすることがあった。', c: [['少したてば落ち着く', -1], ['しばらく気持ちがおさまらない', 2], ['あまり気にならない', -2], ['顔に出てしまうことがある', 1]] },
+  { f: 'O', fc: 'img', t: 'ひまな時間、頭の中では？', c: [['今日やることを整理している', -1], ['ありえない「もしも」を想像している', 2], ['特に何も考えず、ぼーっとする', -2], ['やってみたいことを考えている', 1]] },
+  // ここから予備（同じものさしの質問と入れ替わる）
+  { f: 'E', fc: 'soc', t: '知らない人ばかりの集まりに参加した。', c: [['話しかけられたら楽しく話す', 1], ['まわりの様子をのんびり眺めている', -2], ['近くの人に自分から話しかける', 2], ['知っている人のそばにいる', -1]] },
+  { f: 'E', fc: 'eng', t: '友達と遊んだ帰り道、どんな気分？', c: [['楽しかったけど、早く家で休みたい', -1], ['まだまだ遊べる。もう1軒行きたい', 2], ['ひとりの時間で充電したい', -2], ['楽しかった。ちょうどいい疲れ', 1]] },
+  { f: 'A', fc: 'comp', t: '友達の誕生日。', c: [['メッセージを送る', -1], ['前に欲しがっていたものを覚えておいて贈る', 2], ['会った時に「おめでとう」と言う', -2], ['一緒にごはんに行ってお祝いする', 1]] },
+  { f: 'A', fc: 'trust', t: '友達が、待ち合わせに少し遅れてきた。', c: [['「何かあった？」と心配する', 1], ['時間はきっちり守ってほしいと伝える', -2], ['「大丈夫だよ」と気にしない', 2], ['「次は連絡してね」と伝える', -1]] },
+  { f: 'C', fc: 'org', t: '旅行の準備は？', c: [['宿と行き帰りだけ決めておく', 1], ['ほぼノープランで行く', -2], ['行きたい所と時間を表にまとめる', 2], ['行きたい所だけメモして、あとは現地で', -1]] },
+  { f: 'C', fc: 'prod', t: '長い休みの課題は？', c: [['後半にまとめてやる', -1], ['毎日少しずつ進める', 1], ['最終日に一気に集中してやる', -2], ['最初の数日で終わらせる', 2]] },
+  { f: 'N', fc: 'anx', t: '送ったメッセージに、半日返事がない。', c: [['忙しいんだろうなと思う', -1], ['ちょっと気になるけど待つ', 1], ['そもそも気にしていない', -2], ['何か変なこと言ったかなと気になる', 2]] },
+  { f: 'N', fc: 'dep', t: '人から、ちょっと注意された。', c: [['言ってもらえてよかったと思う', -1], ['その日はずっと頭から離れない', 2], ['あまり気にせず、すぐ忘れる', -2], ['少し落ちこむけど、次は気をつけようと思う', 1]] },
+  { f: 'O', fc: 'cur', t: '新しいアプリやゲームが出た。', c: [['まわりで流行ったら試す', -1], ['すぐに試してみる', 2], ['使いなれたものが一番', -2], ['評判を見てから試す', 1]] },
+  { f: 'O', fc: 'cur', t: '晩ごはん、何にする？', c: [['好きなメニューの中から選ぶ', -1], ['食べたことのないものに挑戦', 2], ['いつもの定番メニュー', -2], ['気になっていたお店に行ってみる', 1]] },
 ];
 const CHC = ['#ff7f8f', '#ffb347', '#4fbfa8', '#6f9cf0'];
 
-// ===== [SEC:POLES] ===== 軸の両はしごとの文のパーツ（[0][1][2] は「別の言い方」で入れかわる同じ意味の言い回し）
-const AXES = { s: ['social', 'solo'], p: ['planner', 'improv'], a: ['quick', 'careful'], h: ['empathy', 'logic'], n: ['novelty', 'steady'], d: ['deep', 'broad'] };
-const AX = Object.keys(AXES);
-const AXIS_OF = {}; AX.forEach(k => AXES[k].forEach(p => { AXIS_OF[p] = k; }));
+// ===== [SEC:POLES] ===== ものさしの両はしごとの文のパーツ（[0][1][2] は「別の言い方」で入れかわる同じ意味の言い回し）
+const FACTORS = { E: ['social', 'quiet'], A: ['kind', 'frank'], C: ['planner', 'free'], N: ['sensitive', 'calm'], O: ['curious', 'classic'] };
+const FX = Object.keys(FACTORS);
+const FACETS = { E: ['soc', 'ast', 'eng'], A: ['comp', 'resp', 'trust'], C: ['org', 'prod', 'res'], N: ['anx', 'dep', 'vol'], O: ['cur', 'aes', 'img'] };
+const AXIS_OF = {}; FX.forEach(k => FACTORS[k].forEach(p => { AXIS_OF[p] = k; }));
+const TH = 0.4; // これより真ん中に近いものさしは「どっちも」として書く
 const POLES = {
   social: { adj: '人なつっこい', noun: '盛り上げ役', mod: '群れの人気者の', animal: 'イルカ',
-    trait: ['人といると元気', 'にぎやかなのが好き', '誰とでも打ちとける'], good: ['誰とでも仲良くなれる', '場の空気を明るくできる', '人見知りしない'],
-    weak: ['ひとりきりの長い休み', '静かすぎる空間', 'ひとりでの作業'], kuchi: ['「みんなで行こうよ」', '「それ楽しそう！」', '「今なにしてる？」'],
-    friend: ['いるだけで場が明るくなる人', '呼ぶとすぐ来てくれる人', 'みんなの輪の真ん中にいる人'], match: ['話をじっくり聞いてくれる人', '落ち着いた聞き上手な人', 'ひとりの時間も大事にする人'],
-    bio: ['人と話すのが好きです', 'にぎやかなのが好きです', '誰とでもすぐ仲良くなるタイプです'] },
-  solo: { adj: 'マイペースな', noun: '一匹オオカミ', mod: '日なたぼっこ中の', animal: 'ネコ',
-    trait: ['ひとり時間が大事', '自分のペース第一', 'ひとりでも平気'], good: ['ひとりでも楽しめる', '人に流されない', '自分の世界を持っている'],
-    weak: ['大人数の飲み会', '急なお誘い', 'ずっと誰かといること'], kuchi: ['「今日は家にいる」', '「ひとりで行ってくる」', '「また今度ね」'],
-    friend: ['静かなのに話すとおもしろい人', '自分の世界がある人', 'たまに会うとほっとする人'], match: ['ほどよい距離感の人', 'ひとりの時間をわかってくれる人', '無理に誘わない人'],
-    bio: ['ひとりの時間が好きです', 'マイペースに生きてます', 'ひとりでも全然平気なタイプです'] },
-  planner: { adj: '段取り上手な', noun: 'しっかり者', mod: '冬眠前の', animal: 'リス',
-    trait: ['計画してから動く', '予定はきっちり派', '段取りが好き'], good: ['約束は必ず守る', '準備がいつも完璧', '時間に正確'],
-    weak: ['急な予定変更', '行き当たりばったりの旅', 'ノープランの休日'], kuchi: ['「何時に集合？」', '「予定どうする？」', '「メモしとくね」'],
-    friend: ['困った時に頼れる人', '持ち物を全部持っている人', 'スケジュール帳がうまっている人'], match: ['一緒に予定を楽しんでくれる人', '時間を守る人', '段取りに乗ってくれる人'],
-    bio: ['予定を立てるのが好きです', '準備はいつも早めです', '段取りを考えるのが得意です'] },
-  improv: { adj: 'ノリで動く', noun: '自由人', mod: '風まかせの', animal: 'ラッコ',
-    trait: ['気分で決める', '予定は決めない派', '流れにまかせる'], good: ['急な変更にも強い', 'どこでも楽しめる', '思いつきがおもしろい'],
-    weak: ['細かいスケジュール', '決まりごとの多い場所', '何か月も先の予定'], kuchi: ['「なんとかなる」', '「いいね、行こう」', '「その時に決めよう」'],
-    friend: ['何をするかわからない人', '一緒にいると予定外が起きる人', 'どこでも楽しそうな人'], match: ['しっかり計画してくれる人', '段取り上手な人', 'ゆるさを笑ってくれる人'],
-    bio: ['予定はだいたいその場で決めます', 'なんとかなる精神で生きてます', '気分で動くタイプです'] },
-  quick: { adj: '即決の', noun: '行動派', mod: '全力ダッシュ中の', animal: 'チーター',
-    trait: ['思い立ったら即行動', '決めるのが早い', '考えるより先に動く'], good: ['決断が早い', 'フットワークが軽い', 'すぐ行動にうつせる'],
-    weak: ['長い待ち時間', '結論の出ない話し合い', 'じっくり待つこと'], kuchi: ['「とりあえずやってみよう」', '「今から行く」', '「決めた！」'],
-    friend: ['気づいたらもう動いている人', '誘うとすぐ来る人', '話が早い人'], match: ['じっくり考えてくれる人', 'ブレーキ役になってくれる人', '落ち着いた慎重派の人'],
-    bio: ['思い立ったらすぐ動きます', '決めるのは早いほうです', 'フットワークの軽さが取りえです'] },
-  careful: { adj: '慎重な', noun: '慎重派', mod: '様子見中の', animal: 'ハリネズミ',
-    trait: ['考えてから動く', '石橋をたたいて渡る', '調べてから決める'], good: ['失敗が少ない', 'よく考えてから話す', 'うっかりミスが少ない'],
-    weak: ['その場で決めること', '急かされること', 'ぶっつけ本番'], kuchi: ['「ちょっと待って」', '「一回考えさせて」', '「大丈夫かな？」'],
-    friend: ['よく考えて答えてくれる人', 'あぶない時に止めてくれる人', '相談すると安心な人'], match: ['引っぱってくれる人', '背中を押してくれる人', '決断の早い人'],
-    bio: ['考えてから動く慎重派です', '石橋はたたいてから渡ります', '決める前によく調べるタイプです'] },
-  empathy: { adj: '情に厚い', noun: '聞き上手', mod: 'やさしい目をした', animal: 'ゾウ',
-    trait: ['人の気持ちに敏感', 'まわりに気をつかう', '気持ちが顔に出る'], good: ['話を最後まで聞ける', '人の変化によく気づく', '人にやさしくできる'],
-    weak: ['ケンカの空気', '冷たい言い方', '誰かが困っているのを見ること'], kuchi: ['「大丈夫？」', '「わかるー」', '「ありがとう」'],
-    friend: ['相談しやすい人', '話を聞いてくれる人', '一緒に泣いてくれる人'], match: ['気持ちを言葉にしてくれる人', 'やさしい人', '素直な人'],
+    good: ['誰とでも仲良くなれる', '場の空気を明るくできる', '人見知りしない'], weak: ['ひとりきりの長い休み', '静かすぎる空間', 'ずっとひとりでの作業'],
+    kuchi: ['「みんなで行こうよ」', '「それ楽しそう！」', '「今なにしてる？」'], match: ['一緒にはしゃげる人', 'ノリが近い人', 'にぎやかなのが好きな人'],
+    friend: ['思っているより、みんなの元気のもと', '思っている以上に頼られている', 'いないと、ちょっとさみしい人'],
+    bio: ['人と話すのが好きです', 'にぎやかな場所が好きです', '誰とでもすぐ仲良くなるほうです'] },
+  quiet: { adj: 'マイペースな', noun: '一匹オオカミ', mod: '日なたぼっこ中の', animal: 'ネコ',
+    good: ['ひとりでも楽しめる', '人に流されない', '落ち着いて人の話を聞ける'], weak: ['大人数の飲み会', 'いきなりの自己紹介', '急なお誘い'],
+    kuchi: ['「今日は家にいる」', '「また今度ね」', '「ひとりで行ってくる」'], match: ['沈黙も気にならない人', 'ひとり時間を大事にする人', 'ペースがゆっくりな人'],
+    friend: ['思っているより話しやすい人', '静かなのに、話すとおもしろい人', '思っているより、一緒にいて落ち着く人'],
+    bio: ['人見知りですが、仲良くなるとよくしゃべります', 'ひとりの時間も好きなマイペースです', '静かなほうですが、話すのは好きです'] },
+  kind: { adj: 'やさしい', noun: '聞き上手', mod: 'やさしい目をした', animal: 'ゾウ',
+    good: ['人の気持ちに寄りそえる', '誰にでもやさしくできる', '話を最後まで聞ける'], weak: ['頼まれごとをことわること', 'ケンカの空気', '冷たい言い方'],
+    kuchi: ['「大丈夫？」', '「わかるー」', '「ありがとう」'], match: ['やさしさのツボが同じ人', '気づかいが似ている人', '人を大事にする人'],
+    friend: ['思っている以上に感謝されている', '相談すると安心する人', '思っているより、みんなの支え'],
     bio: ['人の話を聞くのが好きです', '涙もろいほうです', 'まわりの人を大事にしたいタイプです'] },
-  logic: { adj: '冷静な', noun: '分析家', mod: 'メガネをかけた', animal: 'フクロウ',
-    trait: ['理由で考える', 'いつも落ち着いてる', '順番に考える'], good: ['あわてない', 'わかりやすく説明できる', '公平に考えられる'],
-    weak: ['理由のない決まりごと', '気持ちだけの話し合い', 'なんとなくの判断'], kuchi: ['「なんで？」', '「つまり、どういうこと？」', '「それって本当？」'],
-    friend: ['困った時に冷静な人', '説明がわかりやすい人', '頼りになる参謀'], match: ['気持ちを大事にする人', 'あたたかい人', '感情豊かな人'],
-    bio: ['わりと冷静なほうです', '理由を考えるのが好きです', '落ち着いてるとよく言われます'] },
-  novelty: { adj: '新しもの好きの', noun: '冒険家', mod: '旅に出たばかりの', animal: '渡り鳥',
-    trait: ['新しいことが好き', '知らない場所が好き', '流行にすぐ乗る'], good: ['何でも挑戦できる', '変化を楽しめる', '好奇心が強い'],
-    weak: ['毎日同じことのくり返し', '同じ店ばかり行くこと', '変わらない毎日'], kuchi: ['「それ何？」', '「行ってみたい！」', '「新しいの出たって」'],
-    friend: ['いつも新しい話を持ってくる人', '流行にくわしい人', '誘うと何でも乗ってくれる人'], match: ['落ち着ける場所になってくれる人', '安定感のある人', '変わらずそばにいてくれる人'],
-    bio: ['新しいものに目がないです', '知らない場所に行くのが好きです', '気になったら何でも試します'] },
-  steady: { adj: 'ブレない', noun: '職人', mod: 'いつもの場所にいる', animal: 'カメ',
-    trait: ['お気に入り一筋', 'いつもの安心が好き', '自分流をつらぬく'], good: ['ブレない', '長く続けられる', 'そばにいると安心感がある'],
-    weak: ['急な環境の変化', '流行を追いかけること', '知らないお店'], kuchi: ['「いつもので」', '「やっぱりこれ」', '「前と同じでいいよ」'],
-    friend: ['いつ会っても変わらない人', '安心できる人', '行きつけの店がある人'], match: ['新しい世界を見せてくれる人', '好奇心の強い人', '外へ連れ出してくれる人'],
+  frank: { adj: 'まっすぐな', noun: '正直者', mod: 'まっすぐ飛ぶ', animal: 'タカ',
+    good: ['裏表がない', '言いにくいことも言える', '公平に考えられる'], weak: ['お世辞を言うこと', '遠回しな言い方', '空気を読んで黙ること'],
+    kuchi: ['「正直に言うとね」', '「それって本当？」', '「なんで？」'], match: ['本音で話せる人', 'はっきり言い合える人', '裏表のない人'],
+    friend: ['思っているより信頼されている', '本音で話せる、貴重な人', '思っている以上に頼もしい人'],
+    bio: ['思ったことは、わりと正直に言うほうです', '本音で話せる関係が好きです', '裏表はないほうだと思います'] },
+  planner: { adj: '段取り上手な', noun: 'しっかり者', mod: '冬眠前の', animal: 'リス',
+    good: ['約束は必ず守る', '準備がいつも早い', '最後までやりとげる'], weak: ['急な予定変更', 'ノープランの旅', '時間ギリギリの行動'],
+    kuchi: ['「何時に集合？」', '「メモしとくね」', '「予定どうする？」'], match: ['時間の感覚が同じ人', '予定を一緒に立てられる人', 'きちんとしている人'],
+    friend: ['思っている以上に頼りにされている', '困った時に、まず思い浮かぶ人', '思っているより、安心感のある人'],
+    bio: ['予定を立てるのが好きです', '準備はいつも早めです', '段取りを考えるのがわりと得意です'] },
+  free: { adj: 'おおらかな', noun: '自由人', mod: '風まかせの', animal: 'ラッコ',
+    good: ['急な変更にも強い', 'どこでも楽しめる', '細かいことで怒らない'], weak: ['細かいスケジュール', 'きっちりした決まりごと', '早起き'],
+    kuchi: ['「なんとかなる」', '「その時に決めよう」', '「いいね、行こう」'], match: ['ゆるさが似ている人', 'ノープランを楽しめる人', '細かいことを気にしない人'],
+    friend: ['思っているより、一緒にいて楽な人', 'いるだけで空気がゆるむ人', '思っている以上に話しかけやすい人'],
+    bio: ['予定はだいたいその場で決めます', 'なんとかなる精神で生きてます', '気分で動くタイプです'] },
+  sensitive: { adj: '繊細な', noun: '気配り屋', mod: '耳をすませた', animal: 'ウサギ',
+    good: ['人の変化によく気づく', '準備をおこたらない', '人の痛みがわかる'], weak: ['人前での発表', '返事の来ないメッセージ', 'ピリピリした空気'],
+    kuchi: ['「大丈夫かな？」', '「ごめんね」', '「ちょっと確認していい？」'], match: ['気持ちをわかり合える人', '同じことで笑って泣ける人', 'こまやかな人'],
+    friend: ['思っているより、気づかいに感謝されている', 'こまかい所に気がつく人', '思っている以上に頼りにされている'],
+    bio: ['わりと心配性です', '細かいことによく気がつくほうです', '気にしいですが、そのぶん気づかいはできるほうです'] },
+  calm: { adj: '動じない', noun: 'のんびり屋', mod: 'のんびり泳ぐ', animal: 'カピバラ',
+    good: ['いざという時あわてない', '切りかえが早い', 'いつも機嫌が安定している'], weak: ['ピリピリした空気', 'ずっと気をはる場面', '先の心配ばかりの話'],
+    kuchi: ['「まあいっか」', '「気にしない気にしない」', '「のんびりいこう」'], match: ['のんびりペースが合う人', 'おだやかな人', '一緒にいて力が抜ける人'],
+    friend: ['思っているより、まわりを安心させている', 'そばにいると落ち着く人', '思っている以上に頼もしい人'],
+    bio: ['のんびりしたほうです', 'あまり悩まないタイプです', 'いつもマイペースに機嫌よくいます'] },
+  curious: { adj: '好奇心旺盛な', noun: '冒険家', mod: '旅に出たばかりの', animal: '渡り鳥',
+    good: ['何でも楽しめる', 'アイデアが豊か', '好奇心が強い'], weak: ['毎日同じことのくり返し', '単調な作業', '決まりきった答え'],
+    kuchi: ['「それ何？」', '「行ってみたい！」', '「おもしろそう」'], match: ['おもしろがるツボが同じ人', '新しいこと好きな人', '一緒に冒険できる人'],
+    friend: ['思っているより、話がおもしろい人', 'いつも新しい話を持ってくる人', '思っている以上に、刺激をくれる人'],
+    bio: ['新しいものに目がないです', '気になったら何でも調べます', '知らない場所に行くのが好きです'] },
+  classic: { adj: 'ブレない', noun: '職人', mod: 'いつもの場所にいる', animal: 'カメ',
+    good: ['ブレない', '長く続けられる', '現実的に考えられる'], weak: ['急な環境の変化', '流行を追いかけること', '知らないお店に入ること'],
+    kuchi: ['「いつもので」', '「やっぱりこれ」', '「前と同じでいいよ」'], match: ['好きなものが同じ人', '変わらない良さがわかる人', '行きつけが似ている人'],
+    friend: ['思っているより、安心感のある人', 'いつ会っても変わらない人', '思っている以上に頼られている'],
     bio: ['好きなものはずっと好きです', 'いつものが一番落ち着きます', 'お気に入りは長く使う派です'] },
-  deep: { adj: '凝り性の', noun: 'のめり込み屋', mod: '夢中で巣を作る', animal: 'ビーバー',
-    trait: ['ハマると一直線', '好きならとことん', '一度ハマると深い'], good: ['集中力がすごい', 'くわしくなるまでやる', 'やりこむ力がある'],
-    weak: ['途中で止められること', '急いで仕上げること', '浅く広くの付き合い'], kuchi: ['「あと少しだけ」', '「これ知ってる？」', '「もう一回」'],
-    friend: ['好きなことになると早口な人', '静かなのにくわしい人', '何かの専門家みたいな人'], match: ['好きなことを聞いてくれる人', '一緒にハマってくれる人', '夢中な時は待ってくれる人'],
-    bio: ['好きなことにはとことんハマります', 'ハマると一直線です', '一度ハマると抜け出せません'] },
-  broad: { adj: '多趣味な', noun: 'なんでも屋', mod: 'あちこち寄り道する', animal: 'カワウソ',
-    trait: ['いろいろ手を出す', '広く浅く楽しむ', '器用に何でもやる'], good: ['話題が広い', '何でも器用にこなす', '切りかえが早い'],
-    weak: ['ひとつのことを長く続けること', '細かすぎる作業', '同じことのくり返し'], kuchi: ['「それもいいね」', '「ちょっとやったことある」', '「次なにしよう」'],
-    friend: ['何を聞いても少し知っている人', '話題が尽きない人', 'なんでも器用な人'], match: ['ひとつのことにくわしい人', 'じっくりタイプの人', '深い話を教えてくれる人'],
-    bio: ['趣味はたくさんあります', '広く浅くいろいろ楽しんでます', '気になったものは一通りやってみます'] },
 };
-const PLACE = { social: ['誰かと', '友達と', '誰かと'], solo: ['ひとりで', 'ひとりで', 'ひとり気ままに'] };
+// 性格の欄：「〜の時は〜する」の形。15項目それぞれの＋側・－側
+const FACET_TXT = {
+  soc: { '+': ['人が集まる場所だと元気になる', 'にぎやかな場にいると楽しい', '誘われると、つい行きたくなる'], '-': ['大勢の場だと少し静かになる', 'にぎやかな場は、たまでいい', '少人数のほうが話しやすい'] },
+  ast: { '+': ['話し合いでは自分から案を出す', '迷っている時は、つい仕切りたくなる', '思ったことは、わりと口に出す'], '-': ['決める時は、まわりに合わせがち', '話し合いでは聞き役にまわる', '前に出るより、うしろで支えたい'] },
+  eng: { '+': ['休みの日もじっとしていられない', '予定がつまっているほど元気', '思い立ったら、すぐ出かける'], '-': ['出かけたあとは、ひとりで充電', '1日1つの予定でじゅうぶん', 'エネルギーはこまめにためたい'] },
+  comp: { '+': ['困っている人を放っておけない', '落ちこんだ人の話は最後まで聞く', '人の気持ちの変化によく気づく'], '-': ['相談されたら、まず解決策を考える', 'なぐさめるより、一緒に動きたい', 'べったりより、ほどよい距離が好き'] },
+  resp: { '+': ['反対の意見にも、まず耳をかたむける', '言い方にはいつも気をつけている', 'ぶつかりそうな時は、言葉を選ぶ'], '-': ['ちがうと思ったら、はっきり言う', '本音で話せる関係が好き', '納得いくまで話し合いたい'] },
+  trust: { '+': ['人のことは、まず信じてみる', '頼まれると、気持ちよく引き受ける', '初対面でも、わりとすぐ打ちとける'], '-': ['人を信じるまでに少し時間がかかる', '大事なことは自分で確かめたい', 'うまい話は、まず疑ってみる'] },
+  org: { '+': ['物の置き場所が決まっている', '予定はきっちり決めておきたい', '準備は早めにすませたい'], '-': ['散らかっていても困らない', '予定はざっくりでいい', '細かいことは気にしない'] },
+  prod: { '+': ['やることは早めに片づけたい', 'やり始めると止まらない', 'しめきりより前に終わらせる'], '-': ['気分が乗るまで、少し待つ', 'しめきり前に本気を出す', 'のんびり進めるのが性に合う'] },
+  res: { '+': ['引き受けたことは最後までやる', '約束の時間はきっちり守る', '任されると、つい本気になる'], '-': ['大事な所だけ、おさえれば十分', '完ぺきより、ほどほどが好き', 'がんばりすぎないのがモットー'] },
+  anx: { '+': ['大事な日の前は、何度も確認する', '先のことを考えて、早めに備える', '心配ごとがあると、ちょっと眠れない'], '-': ['本番の前でも、わりと眠れる', '「なんとかなる」と思える', '先のことは、その時に考える'] },
+  dep: { '+': ['失敗すると、しばらく引きずる', '言われた一言を、あとで思い出す', '落ちこむと、浮上に時間がかかる'], '-': ['寝たら、だいたい忘れている', '失敗しても、すぐ切りかえられる', '落ちこんでも、浮上が早い'] },
+  vol: { '+': ['気持ちがすぐ顔に出る', 'うれしい時も悲しい時も全力', '気分の波がわりと大きい'], '-': ['イラッとしても、すぐ落ち着く', '気分の波が小さい', 'いつも同じテンションでいられる'] },
+  cur: { '+': ['気になったら、すぐ調べる', '知らない話を聞くとワクワクする', '「なんで？」が止まらない'], '-': ['必要なことから覚えたい', '調べるのは、必要になってから', 'やってみて覚えるほうが早い'] },
+  aes: { '+': ['きれいな景色に、つい足を止める', '好きな音楽にじっくりひたる', 'ちょっとした色や形にこだわる'], '-': ['見た目より使いやすさが大事', '飾るより、すっきりが好き', '景色より、誰と行くかが大事'] },
+  img: { '+': ['ありえない「もしも」をよく考える', 'ひまな時は、頭の中で物語を作る', '人とちがうアイデアを出すのが好き'], '-': ['考えるより、まず手を動かす', '今やるべきことに集中できる', '地に足のついた考え方をする'] },
+};
+// じつは：内面（神経症傾向の3項目）から。自分のほうが友達よりよく知っている面
+const JITSU = {
+  anx: { '+': ['平気そうに見えて、心配性', '見えない所で何度も確認している', '大事な日の前は、かなり緊張している'], '-': ['本番に強いタイプ', '緊張しても、すぐ慣れる', '前の日もぐっすり眠れる'] },
+  dep: { '+': ['ひとりで反省会をしがち', '言われた一言をよく思い出している', '落ちこむと、浮上に時間がかかる'], '-': ['失敗しても、寝たら回復している', '反省は短め、切りかえは早め', '落ちこんでも、浮上は早い'] },
+  vol: { '+': ['気持ちがすぐ顔に出ている', 'うれしい時は誰より喜んでいる', '感情の振れ幅がわりと大きい'], '-': ['顔に出ないだけで、ちゃんと感じている', 'イラッとしても、すぐ落ち着いている', '気分の波がほとんどない'] },
+};
+const FRIEND_BOTH = ['思っているより好かれている人', '思っている以上に話しやすい人', '思っているより頼りにされている人'];
+const PLACE = { social: ['誰かと', '友達と', '誰かと'], quiet: ['ひとりで', 'ひとりで', 'ひとり気ままに'], both: ['気分しだいで', 'その日の気分で', '日によって'] };
 const ACT = {
-  novelty: ['新しいお店を開拓', '知らない街を散歩', '気になる場所へおでかけ'], steady: ['いつもの場所でまったり', '行きつけのお店でのんびり', 'いつものコースを散歩'],
-  deep: ['趣味に没頭', '好きなことに熱中', 'ひとつのことに集中'], broad: ['気になる所をはしご', 'あれこれ寄り道', 'いろんなことをつまみ食い'],
+  curious: ['新しいお店を開拓', '知らない街を散歩', '気になる場所へおでかけ'], classic: ['いつもの場所でまったり', '行きつけのお店でのんびり', 'いつものコースを散歩'],
+  both: ['行きつけも新しいお店もはしご', '定番も気になる所もはしご', '気になる所をあちこちはしご'],
 };
 
 // ===== [SEC:SCORE] =====
 const player = { name: '', likes: [] };
+const VAR1 = 2.5; // 1問ぶんの答え（+2,+1,-1,-2）のばらつき。4つから適当に選んだ時とくらべて、どれだけ寄っているかで決める
 function scoreAxes(slots, ans) {
-  // 軸ごとに「4つから適当に選んだ時の平均・ばらつき」とくらべて、どれだけ片方に寄ったかで決める（質問の数が軸ごとにちがっても公平になる）
-  const sum = {}, ex = {}, vari = {}; AX.forEach(k => { sum[k] = 0; ex[k] = 0; vari[k] = 0; });
+  const sum = {}, n = {}, fs = {}, fn = {}; FX.forEach(k => { sum[k] = 0; n[k] = 0; });
   let h = 2166136261;
   ans.forEach((ci, i) => {
-    const q = QS[slots[i]];
-    AX.forEach(k => { const w = q.c.map(c => c[1][k] || 0), m = w.reduce((a, b) => a + b, 0) / w.length; ex[k] += m; vari[k] += w.reduce((a, b) => a + b * b, 0) / w.length - m * m; });
-    const w = q.c[ci][1]; for (const k in w) sum[k] += w[k];
+    const q = QS[slots[i]], val = q.c[ci][1];
+    sum[q.f] += val; n[q.f]++; fs[q.fc] = (fs[q.fc] || 0) + val; fn[q.fc] = (fn[q.fc] || 0) + 1;
     h = Math.imul(h ^ (slots[i] * 7 + ci + 1), 16777619);
   });
   h >>>= 0;
-  const v = {}; AX.forEach(k => { v[k] = vari[k] > 0 ? (sum[k] - ex[k]) / Math.sqrt(vari[k]) : 0; });
-  const P = AX.map((k, i) => ({ s: Math.abs(v[k]) + ((h >>> (i * 3)) & 7) * 1e-4, pole: AXES[k][v[k] > 0 || (v[k] === 0 && ((h >>> (20 + i)) & 1)) ? 0 : 1] }))
-    .sort((a, b) => b.s - a.s).map(o => o.pole); // 強く出た順に、軸ごとに1つずつ
-  return { v, P };
+  const z = {}, fv = {}; FX.forEach(k => { z[k] = n[k] ? sum[k] / Math.sqrt(n[k] * VAR1) : 0; });
+  for (const k in fs) fv[k] = fs[k] / fn[k];
+  const P = FX.map((k, i) => ({ s: Math.abs(z[k]) + ((h >>> (i * 3)) & 7) * 1e-4, pole: FACTORS[k][z[k] > 0 || (z[k] === 0 && ((h >>> (20 + i)) & 1)) ? 0 : 1] }))
+    .sort((a, b) => b.s - a.s).map(o => o.pole); // 強く出た順に、ものさしごとに1つずつ
+  return { z, fv, P, h };
 }
+function facetPick(sc, f, skip = []) { // そのものさしの3項目のうち、いちばんはっきり答えた項目（skip の項目はのぞく）
+  const L = FACETS[f].filter(fc => sc.fv[fc] !== undefined && !skip.includes(fc)); if (!L.length) return null;
+  let best = L[0], bs = -1; L.forEach((fc, i) => { const s = Math.abs(sc.fv[fc]) + ((sc.h >>> (i * 5)) & 3) * 1e-3; if (s > bs) { bs = s; best = fc; } });
+  const v = sc.fv[best]; return { fc: best, sign: v > 0 || (v === 0 && sc.z[f] >= 0) ? '+' : '-' };
+}
+const ftxt = (pk, table, vr) => pk ? table[pk.fc][pk.sign][vr] : '';
 function buildProfile(sc, vr) {
-  const P = sc.P, D = i => POLES[P[i]], poleOf = ax => P.find(p => AXIS_OF[p] === ax);
-  const nd = Math.abs(sc.v.n) >= Math.abs(sc.v.d) ? 'n' : 'd';
+  const P = sc.P, D = i => POLES[P[i]], poleOf = f => P.find(p => AXIS_OF[p] === f), mid = f => Math.abs(sc.z[f]) < TH;
+  const obs = ['E', 'A', 'C'].sort((a, b) => Math.abs(sc.z[b]) - Math.abs(sc.z[a]))[0]; // 外から見えやすい3つのうち、いちばん強いもの
+  const t0 = facetPick(sc, AXIS_OF[P[0]]), t1 = facetPick(sc, AXIS_OF[P[1]]), jt = facetPick(sc, 'N', [t0, t1].filter(Boolean).map(t => t.fc)); // じつはは性格の欄と同じ項目を使わない
   return {
     P, vr,
     name: player.name || 'ななしさん',
     likes: player.likes.length ? player.likes.join('・') : 'ひみつ',
-    hitokoto: D(0).adj + D(1).noun,
-    trait: D(0).trait[vr] + '。' + D(1).trait[vr],
-    good: D(0).good[vr], weak: D(1).weak[vr], kuchi: D(2).kuchi[vr],
-    hol: PLACE[poleOf('s')][vr] + ACT[poleOf(nd)][vr],
-    friend: D(3).friend[vr], match: D(0).match[vr], animal: D(1).mod + D(0).animal,
+    hitokoto: (mid(AXIS_OF[P[0]]) ? 'バランスのいい' : D(0).adj) + D(1).noun,
+    trait: ftxt(t0, FACET_TXT, vr), trait2: ftxt(t1, FACET_TXT, vr),
+    good: D(0).good[vr], weak: D(1).weak[vr], jitsu: ftxt(jt, JITSU, vr), kuchi: D(2).kuchi[vr],
+    hol: PLACE[mid('E') ? 'both' : poleOf('E')][vr] + ACT[mid('O') ? 'both' : poleOf('O')][vr],
+    friend: mid(obs) ? FRIEND_BOTH[vr] : POLES[poleOf(obs)].friend[vr], match: D(0).match[vr], animal: D(1).mod + D(0).animal,
   };
 }
 function fitParts(parts, dropOrder, max) {
@@ -404,14 +433,15 @@ function fitParts(parts, dropOrder, max) {
   if (clen(t) > max) t = [...t].slice(0, max - 1).join('') + '…';
   return t;
 }
-function bios(pr) {
+function bios(pr) { // 謙遜ぎみに、具体的に。ちょっと苦手なことも一言入れる
   const P = pr.P, vr = pr.vr, B = (p, i) => POLES[p].bio[i % 3] + '。', L = player.likes;
   const Ls = L.length === 2 ? L.join('と') : L.join('・');
-  const likes = L.length ? ['{L}があれば生きていけます。', '好きなものは{L}です。', '{L}の話ならいくらでもできます。'][vr].replace('{L}', Ls) : '';
+  const likes = L.length ? ['{L}があれば機嫌がいいです。', '好きなものは{L}です。', '{L}の話ならいくらでもできます。'][vr].replace('{L}', Ls) : '';
   const hol = ['休日は{H}しています。', '休みの日はたいてい{H}。', '休日は{H}するのが定番です。'][vr].replace('{H}', pr.hol);
-  const kuchi = ['口ぐせは{K}。', 'よく言うのは{K}。', '{K}が口ぐせです。'][vr].replace('{K}', pr.kuchi);
+  const weak = ['{W}はちょっと苦手です。', '{W}が少し苦手です。', 'じつは{W}がちょっと苦手。'][vr].replace('{W}', pr.weak);
+  const close = ['気軽に話しかけてください。', '仲良くしてもらえるとうれしいです。', 'よろしくお願いします。'][vr];
   const b1 = B(P[0], vr), b2 = B(P[1], vr + 1);
-  const x = fitParts([b1, b2, hol, likes, kuchi], [kuchi, hol, b2], CONFIG.X_MAX);
+  const x = fitParts([b1, b2, hol, likes, weak, close], [close, weak, hol, b2], CONFIG.X_MAX);
   const head = `【${pr.hitokoto}】`, tail = L.length ? `好き→${L.join('・')}` : hol;
   const tt = fitParts([head, b1, tail], [b1, head], CONFIG.TT_MAX);
   return { x, tt };
@@ -419,8 +449,8 @@ function bios(pr) {
 
 // ===== [SEC:CARD] ===== プロフ帳カード（結果の画像とノートのページで同じ絵を使う）
 const CW = 1080, CH = 1350;
-const ROWS = [['trait', '性格'], ['good', '長所'], ['weak', 'ちょっと苦手'], ['kuchi', '口ぐせ'], ['hol', '休日'], ['friend', '友達から見ると'], ['match', '相性のいい人'], ['animal', 'たとえると'], ['likes', '好きなもの']];
-const PILL = ['#ffb3ba', '#ffd59e', '#b5ead7', '#c7ceea', '#e2c2ff', '#ffdac1', '#a8e6cf', '#f9c6d3', '#bde0fe'];
+const ROWS = [['trait', '性格'], ['good', '長所'], ['weak', 'ちょっと苦手'], ['jitsu', 'じつは'], ['kuchi', '口ぐせ'], ['hol', '休日'], ['friend', '友達から見ると'], ['match', '相性のいい人'], ['animal', 'たとえると'], ['likes', '好きなもの']]; // 性格は2行（trait・trait2）
+const PILL = ['#ffb3ba', '#ffd59e', '#b5ead7', '#cdeef0', '#c7ceea', '#e2c2ff', '#ffdac1', '#a8e6cf', '#f9c6d3', '#bde0fe'];
 const HAND = '"Klee One", "Hiragino Mincho ProN", serif', ROUND = '"Zen Maru Gothic", "Hiragino Maru Gothic ProN", sans-serif';
 const LAYOUT = {}; // 各行の文字の位置（ペンが書く場所）
 function rr(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else { g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); } }
@@ -436,10 +466,15 @@ function handText(g, key, text, x, y, size, maxW, align, o) {
   if (o.reveal && o.reveal.key === key) { g.beginPath(); g.rect(x0 - 6, y - s * 1.2, (w + 12) * o.reveal.t, s * 1.6); g.clip(); }
   g.fillStyle = '#3a2e28'; g.textAlign = align; g.fillText(text, x, y); g.restore();
 }
+let PAPER = null;
+function paperLayer() { // 紙と点の模様は毎回描かず、1回だけ作って使い回す
+  if (PAPER) return PAPER; PAPER = document.createElement('canvas'); PAPER.width = CW; PAPER.height = CH; const g = PAPER.getContext('2d');
+  g.fillStyle = '#fff9ef'; g.fillRect(0, 0, CW, CH); g.fillStyle = '#efe2cc'; for (let y = 30; y < CH; y += 36) for (let x = 30; x < CW; x += 36) g.fillRect(x, y, 3, 3);
+  return PAPER;
+}
 function drawCard(g, pr, o = {}) { // o.show：書き終わった行（なしなら全部）、o.reveal：今書いている行、o.page：ノート用（とじ穴）
   g.save(); g.textAlign = 'left'; g.textBaseline = 'alphabetic';
-  g.fillStyle = '#fff9ef'; g.fillRect(0, 0, CW, CH);
-  g.fillStyle = '#efe2cc'; for (let y = 30; y < CH; y += 36) for (let x = 30; x < CW; x += 36) g.fillRect(x, y, 3, 3);
+  g.drawImage(paperLayer(), 0, 0, CW, CH);
   if (o.page) { g.fillStyle = '#d8ccb6'; for (let i = 0; i < 10; i++) { g.beginPath(); g.arc(30, 135 + i * 120, 10, 0, 7); g.fill(); } }
   tape(g, 160, 34, 200, 46, -.1, 'rgba(255,183,77,.55)'); tape(g, 920, 36, 190, 44, .12, 'rgba(126,200,227,.5)');
   g.font = `900 96px ${ROUND}`; let x = 80; const cols = ['#ff7f8f', '#ffb347', '#4fbfa8', '#6f9cf0', '#b48cf2', '#ff7f8f', '#ffb347'];
@@ -452,19 +487,21 @@ function drawCard(g, pr, o = {}) { // o.show：書き終わった行（なしな
   g.font = `700 26px ${ROUND}`; g.fillStyle = '#c99a2e'; g.fillText('ひとことで言うと', 100, 360);
   if (!o.show || o.show.has('hitokoto') || (o.reveal && o.reveal.key === 'hitokoto')) handText(g, 'hitokoto', pr.hitokoto, 540, 426, 58, 860, 'center', { ...o, show: null });
   else { handText(g, 'hitokoto', pr.hitokoto, 540, 426, 58, 860, 'center', { show: new Set() }); g.font = `600 50px ${HAND}`; g.fillStyle = 'rgba(201,154,46,.35)'; g.textAlign = 'center'; g.fillText('？？？', 540, 424); g.textAlign = 'left'; }
+  let y = 458;
+  const dash = yy => { g.strokeStyle = '#e6d6bd'; g.lineWidth = 2; g.setLineDash([8, 8]); g.beginPath(); g.moveTo(80, yy); g.lineTo(1010, yy); g.stroke(); g.setLineDash([]); };
   ROWS.forEach(([k, label], i) => {
-    const y = 470 + i * 88;
-    pill(g, 80, y + 16, label, PILL[i]);
-    g.strokeStyle = '#e6d6bd'; g.lineWidth = 2; g.setLineDash([8, 8]); g.beginPath(); g.moveTo(80, y + 82); g.lineTo(1010, y + 82); g.stroke(); g.setLineDash([]);
-    handText(g, k, pr[k], 330, y + 60, 42, 680, 'left', o);
+    pill(g, 80, y + 12, label, PILL[i]);
+    handText(g, k, pr[k], 330, y + 52, 40, 680, 'left', o); dash(y + 72);
+    if (k === 'trait') { handText(g, 'trait2', pr.trait2, 330, y + 96, 40, 680, 'left', o); dash(y + 116); y += 40; }
+    y += 78;
   });
   star(g, 1016, 228, 16, '#ffc94d'); star(g, 46, 404, 12, '#ff9fb0'); star(g, 1030, 1236, 10, '#9fd8ff');
   g.font = `700 28px ${ROUND}`; g.fillStyle = '#e07a8a'; g.fillText(CONFIG.TAG, 80, 1318);
   g.font = `500 22px ${ROUND}`; g.fillStyle = '#b3a394'; g.textAlign = 'right'; g.fillText('nkworks-games.com/profile-kakimasu', 1010, 1316);
   g.restore();
 }
-const allText = pr => [pr.name, pr.likes, pr.hitokoto, ...ROWS.map(r => pr[r[0]])].join('');
-const FONT_BASE = JSON.stringify(POLES) + JSON.stringify(PLACE) + JSON.stringify(ACT) + ROWS.map(r => r[1]).join('') + 'なまえひとことで言うとわたしのプロフィール？ななしさんひみつ・' + CONFIG.TAG;
+const allText = pr => [pr.name, pr.likes, pr.hitokoto, pr.trait2, ...ROWS.map(r => pr[r[0]])].join('');
+const FONT_BASE = JSON.stringify(POLES) + JSON.stringify(FACET_TXT) + JSON.stringify(JITSU) + FRIEND_BOTH.join('') + JSON.stringify(PLACE) + JSON.stringify(ACT) + 'バランスのいい' + ROWS.map(r => r[1]).join('') + 'なまえひとことで言うとわたしのプロフィール？ななしさんひみつ・' + CONFIG.TAG;
 function loadFonts(text) {
   if (!document.fonts || !document.fonts.load) return Promise.resolve();
   const t = text + 'PROFILE';
@@ -597,9 +634,9 @@ const Sound = {
 };
 
 // ===== [SEC:GAME] =====
-const FILL = ['trait', 'good', 'weak', 'kuchi', 'hol', 'friend', 'match', 'animal']; // 質問に答えるにつれて上から書かれていく行
+const FILL = ['trait', 'trait2', 'good', 'weak', 'jitsu', 'kuchi', 'hol', 'friend', 'match', 'animal']; // 質問に答えるにつれて上から書かれていく行
 const fillCount = n => Math.floor(n * FILL.length / CONFIG.N_Q);
-let slots = [], answers = [], nextReserve = CONFIG.N_Q, written = new Set(), pagePr = null, finalSc = null, vr = 0, doneAt = 0, resultShownAt = 0, lock = 0;
+let slots = [], answers = [], usedR = new Set(), written = new Set(), pagePr = null, finalSc = null, vr = 0, doneAt = 0, resultShownAt = 0, lock = 0;
 const emptySc = () => scoreAxes([], []);
 function redrawPage() {
   pctx.setTransform(CONFIG.PAGE_SCALE, 0, 0, CONFIG.PAGE_SCALE, 0, 0);
@@ -619,7 +656,7 @@ function showQ() {
   $('qno').textContent = `${n + 1} / ${CONFIG.N_Q}`; $('barIn').style.width = (n / CONFIG.N_Q * 100) + '%';
   $('qtext').textContent = q.t;
   $('choices').innerHTML = q.c.map((c, i) => `<button class="ch" data-a="${i}" style="--c:${CHC[i]}"><b>${'ABCD'[i]}</b><span>${c[0]}</span></button>`).join('');
-  $('swapBtn').classList.toggle('hide', nextReserve >= QS.length);
+  $('swapBtn').classList.toggle('hide', nextSwap() < 0);
 }
 function setMode(m) { mode = m; $('title').classList.toggle('hide', m !== 'title'); $('quiz').classList.toggle('hide', m !== 'quiz'); $('writing').classList.toggle('hide', m !== 'writing'); $('result').classList.toggle('hide', m !== 'result'); $('mute').classList.toggle('hide', m === 'result'); }
 function readInputs() {
@@ -630,7 +667,7 @@ function readInputs() {
 function begin() {
   readInputs(); if (document.activeElement) document.activeElement.blur();
   Sound.init(); Sound.resume(); Sound.tap();
-  slots = QS.slice(0, CONFIG.N_Q).map((q, i) => i); answers = []; nextReserve = CONFIG.N_Q;
+  slots = QS.slice(0, CONFIG.N_Q).map((q, i) => i); answers = []; usedR = new Set();
   written = new Set(); jobs = []; cur = null; reveal = null; finalSc = null; doneAt = 0;
   setMode('quiz'); showQ(); updateProgress();
   loadFonts(player.name + player.likes.join('')).then(redrawPage);
@@ -645,7 +682,8 @@ function choose(i) {
   }, 160);
 }
 function back() { if (mode !== 'quiz') return; Sound.tap(); if (!answers.length) { goTitle(); return; } answers.pop(); updateProgress(); showQ(); }
-function swap() { if (mode !== 'quiz' || nextReserve >= QS.length) return; Sound.tap(); slots[answers.length] = nextReserve++; showQ(); }
+function nextSwap() { const f = QS[slots[answers.length]].f; return QS.findIndex((q, i) => i >= CONFIG.N_Q && q.f === f && !usedR.has(i)); } // 同じものさしの予備
+function swap() { const i = nextSwap(); if (mode !== 'quiz' || i < 0) return; Sound.tap(); usedR.add(i); slots[answers.length] = i; showQ(); }
 function finish() {
   finalSc = scoreAxes(slots, answers); vr = 0; pagePr = buildProfile(finalSc, vr);
   $('barIn').style.width = '100%';
@@ -691,7 +729,7 @@ async function copyBio() {
 }
 
 // ===== [SEC:SHARE] =====
-const shareURL = () => `${CONFIG.URL}t/${curPr.P[0]}-${curPr.P[1]}/`;
+const shareURL = () => `${CONFIG.URL}t/${curPr.hitokoto.startsWith('バランスのいい') ? 'balance' : curPr.P[0]}-${curPr.P[1]}/`;
 const shareText = () => `わたしをひとことで言うと【${curPr.hitokoto}】でした。15の質問で、プロフ帳と自己紹介文を書いてもらえます。あなたは？\n${CONFIG.TAG}\n作者→${CONFIG.AUTHOR}`;
 function shareX() { if (!resultReady()) return; window.open(`https://x.com/intent/post?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(shareURL())}`, '_blank', 'noopener'); }
 async function saveImage() {
@@ -715,7 +753,7 @@ document.querySelectorAll('#tbox input').forEach(i => i.addEventListener('keydow
 const muteBtn = $('mute'), paintMute = () => { muteBtn.textContent = Sound.on ? '♪' : '×'; muteBtn.style.opacity = Sound.on ? 1 : .6; }; paintMute();
 muteBtn.addEventListener('click', () => { Sound.on = !Sound.on; store.set('pk.mute', Sound.on ? '0' : '1'); paintMute(); if (Sound.on) { Sound.init(); Sound.resume(); Sound.tap(); } });
 { $('inName').value = store.get('pk.name') || ''; let L = []; try { L = JSON.parse(store.get('pk.likes') || '[]'); } catch (e) {} document.querySelectorAll('.inLike').forEach((i, k) => { i.value = L[k] || ''; }); }
-{ const m = /[?&]t=([a-z]+)-([a-z]+)/.exec(location.search); if (m && POLES[m[1]] && POLES[m[2]] && AXIS_OF[m[1]] !== AXIS_OF[m[2]]) { $('friend').textContent = `友だちをひとことで言うと「${POLES[m[1]].adj}${POLES[m[2]].noun}」でした。あなたは？`; $('friend').classList.remove('hide'); } }
+{ const m = /[?&]t=([a-z]+)-([a-z]+)/.exec(location.search); if (m && (POLES[m[1]] || m[1] === 'balance') && POLES[m[2]] && AXIS_OF[m[1]] !== AXIS_OF[m[2]]) { $('friend').textContent = `友だちをひとことで言うと「${m[1] === 'balance' ? 'バランスのいい' : POLES[m[1]].adj}${POLES[m[2]].noun}」でした。あなたは？`; $('friend').classList.remove('hide'); } }
 
 // ===== [SEC:PROMO] =====
 // 自分のアプリの宣伝：①ページを開いた時に1回だけ出るカード（×ですぐ閉じられる。「もう一度やる」では出ない）②結果画面のいちばん下に小さく
@@ -759,7 +797,7 @@ function loop(now) {
 requestAnimationFrame(loop);
 
 // ===== [SEC:TEST] ===== 自動テスト用（遊ぶ時は使わない）
-window.__pk = { drawCard, CW, CH, QS, POLES, AXES, PLACE, ACT, CONFIG, scoreAxes, buildProfile, bios, player, LAYOUT, state: () => ({ mode, answers: answers.slice(), written: [...written], jobs: jobs.length, cur: cur && cur.key, cam: { ...cam } }), finalSc: () => finalSc, curPr: () => curPr, bio: () => bio, skipWriting };
+window.__pk = { drawCard, CW, CH, QS, POLES, FACTORS, FACETS, FACET_TXT, JITSU, FRIEND_BOTH, PLACE, ACT, TH, AXIS_OF, CONFIG, scoreAxes, buildProfile, bios, player, LAYOUT, state: () => ({ mode, answers: answers.slice(), written: [...written], jobs: jobs.length, cur: cur && cur.key, cam: { ...cam } }), finalSc: () => finalSc, curPr: () => curPr, bio: () => bio, skipWriting };
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "747b6a03970a41c9aae7804501eb411a"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
