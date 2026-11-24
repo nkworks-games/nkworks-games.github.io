@@ -31,12 +31,14 @@ button{font:inherit;color:inherit;cursor:pointer}
 .screen>*{pointer-events:auto}
 .hide{display:none!important}
 /* タイトル */
-#title{flex-direction:column;align-items:center;justify-content:center;padding:calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(7,11,20,.62),rgba(7,11,20,.7) 55%,rgba(7,11,20,.9))}
-.ttl{writing-mode:vertical-rl;font-weight:900;font-size:min(13vw,8.6vh,84px);line-height:1.22;letter-spacing:.1em;color:#f8f1e1;text-shadow:0 2px 0 rgba(0,0,0,.45),0 0 26px rgba(0,0,0,.6);margin:0;white-space:nowrap}
+#title{flex-direction:column;align-items:center;justify-content:space-between;padding:calc(60px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(7,11,20,.88),rgba(7,11,20,.3) 22%,rgba(7,11,20,0) 34%,rgba(7,11,20,0) 60%,rgba(7,11,20,.82) 74%,rgba(7,11,20,.95))}
+.tcol{display:contents}.tbot{display:flex;flex-direction:column;align-items:center}
+.ttl{font-weight:900;font-size:min(8.8vw,46px);line-height:1.25;letter-spacing:.06em;color:#f8f1e1;text-shadow:0 2px 0 rgba(0,0,0,.45),0 0 26px rgba(0,0,0,.6);margin:0;white-space:nowrap;text-align:center}
+.ttl small{display:block;margin-top:8px;font-size:.38em;font-weight:700;letter-spacing:.22em;color:#ffd58a}
 .ttl em{font-style:normal;color:#ffd58a}
-.lead{color:#e8dfcb;font-size:15px;line-height:1.7;text-align:center;margin:18px 0 0}
+.lead{color:#e8dfcb;font-size:15px;line-height:1.7;text-align:center;margin:0}
 .friend{margin-top:12px;padding:7px 14px;border:1px solid rgba(201,164,92,.7);border-radius:999px;color:#ffe3ae;font-size:14px;background:rgba(0,0,0,.28)}
-.go{margin-top:20px;min-width:220px;padding:15px 28px;border:2px solid var(--kin);border-radius:6px;background:var(--shu);color:#fff7e6;font-weight:900;font-size:22px;letter-spacing:.3em;text-indent:.3em;box-shadow:0 6px 0 #7d2110,0 14px 24px rgba(0,0,0,.4)}
+.go{margin-top:14px;min-width:220px;padding:15px 28px;border:2px solid var(--kin);border-radius:6px;background:var(--shu);color:#fff7e6;font-weight:900;font-size:22px;letter-spacing:.3em;text-indent:.3em;box-shadow:0 6px 0 #7d2110,0 14px 24px rgba(0,0,0,.4)}
 .go:active{transform:translateY(4px);box-shadow:0 2px 0 #7d2110}
 .mini{margin-top:14px;color:#b9b19f;font-size:12.5px}
 .corner{position:fixed;top:calc(10px + env(safe-area-inset-top));left:12px;z-index:5;width:40px;height:40px;border-radius:50%;border:1px solid rgba(243,236,221,.45);background:rgba(0,0,0,.3);color:#f3ecdd;font-size:17px;pointer-events:auto}
@@ -65,6 +67,26 @@ button{font:inherit;color:inherit;cursor:pointer}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 /* 結果発表 */
 #reveal{flex-direction:column;align-items:center;justify-content:space-between;padding:calc(64px + env(safe-area-inset-top)) 16px calc(26px + env(safe-area-inset-bottom));pointer-events:auto}
+/* 自分の一字を封じる画面 */
+#pick{align-items:flex-end;justify-content:center;background:rgba(7,11,20,.5)}
+.psheet{width:100%;max-width:560px;max-height:93%;display:flex;flex-direction:column;background:var(--washi);background-image:radial-gradient(rgba(120,96,60,.08) 1px,transparent 1.2px),linear-gradient(180deg,#f7f1e4,#efe6d2);background-size:7px 7px,100% 100%;border-radius:18px 18px 0 0;border-top:3px solid var(--shu);padding:14px 14px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(0,0,0,.45)}
+.psheet h2{margin:0;font-size:20px;font-weight:900}.psheet p{margin:6px 0 10px;font-size:13.5px;line-height:1.6;color:#4d4233}
+.kgrid{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;padding:2px;align-content:start}
+.kg{aspect-ratio:1;min-width:0;min-height:0;overflow:hidden;line-height:1;padding:0;border:1px solid #cbbfa3;border-radius:6px;background:#fffaf0;font-size:min(5.4vw,25px);font-weight:700;display:grid;place-items:center}
+.kg.sel{background:var(--shu);border-color:var(--shu);color:#fff}
+.pfoot{display:flex;gap:10px;align-items:center;margin-top:10px}.pfoot .btn{flex:1;font-size:min(16.5px,4.3vw);white-space:nowrap;padding:13px 6px}.pfoot .btn:disabled{background:#b9ad93;box-shadow:0 4px 0 #9a8f78;color:#f3ecdd}.pfoot .lnk{flex:none}
+#fuu{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:4;width:40px;height:40px;border-radius:6px;background:var(--shu);color:#fff7e6;font-weight:900;font-size:21px;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.5);transform:rotate(5deg);pointer-events:none}
+/* 封を開けて勝負 */
+#duel{position:absolute;left:0;right:0;bottom:calc(78px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:16px;pointer-events:none}
+.dcard{background:var(--washi);border-radius:6px;padding:6px 8px 8px;box-shadow:0 8px 26px rgba(0,0,0,.6);text-align:center;animation:flip .5s ease both}
+.dcard small{display:block;font-size:11px;color:#6b5e49;font-weight:700;margin-bottom:2px}.dcard canvas{width:112px;height:112px;display:block}
+@keyframes flip{from{transform:rotateY(90deg) scale(.8);opacity:0}to{transform:none;opacity:1}}
+#verdict{min-width:7em;padding:6px 12px 9px;border-radius:12px;background:rgba(7,11,20,.6);font-weight:900;color:#fff7e6;text-shadow:0 2px 10px #000;font-size:15px;line-height:1.5;opacity:0;transform:scale(1.7);transition:opacity .22s,transform .22s}
+#verdict.on{opacity:1;transform:none}#verdict b{display:block;font-size:46px;line-height:1.15;color:#ffd58a;letter-spacing:.08em}#verdict.hit b{color:#ff7a55}
+.cf{position:absolute;top:-12px;width:9px;height:14px;pointer-events:none;animation:cf 2.6s linear forwards}@keyframes cf{to{transform:translateY(105vh) rotate(720deg)}}
+.vhead{margin:0 0 9px;font-size:22px;font-weight:900;color:var(--shu);line-height:1.4}.vhead span{display:inline-block}
+.dvs{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px}.dvs div{text-align:center;font-size:11.5px;font-weight:700;color:#6b5e49}.dvs canvas{width:86px;height:86px;display:block;background:#fffaf0;border:1px solid #d9cdb3;border-radius:8px;margin-bottom:3px}.dvs b{font-size:22px}
+@media (orientation:portrait) and (max-height:640px){.dcard canvas{width:84px;height:84px}#duel{bottom:calc(50px + env(safe-area-inset-bottom));gap:10px}#verdict b{font-size:36px}.lead{font-size:13.5px}}
 #seen{color:#f8f1e1;font-size:26px;font-weight:900;letter-spacing:.3em;text-shadow:0 2px 10px #000;transition:opacity .5s}
 #skip{color:#cfc6b2;font-size:12.5px;letter-spacing:.2em;opacity:.8}
 #paper2d{max-width:min(86vw,60vh);border-radius:4px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
@@ -118,8 +140,12 @@ button{font:inherit;color:inherit;cursor:pointer}
   .qtext{font-size:17px;min-height:0;margin:6px 0 2px}.qsub{min-height:0;margin-bottom:4px}
   .ch{min-height:40px;padding:5px 10px;font-size:14.5px}.choices{gap:6px}.qfoot{margin-top:4px}
   #remain{right:47%}
-  .ttl{font-size:min(9vh,60px)}.lead{margin-top:8px;font-size:13px}.go{margin-top:10px;padding:10px 24px;font-size:19px}.mini{margin-top:8px}
-  #title{flex-direction:row;gap:28px}
+  .ttl{font-size:min(8.6vh,38px)}.lead{font-size:13px}.go{margin-top:10px;padding:10px 24px;font-size:19px}.mini{margin-top:8px}
+  #title{flex-direction:row;justify-content:flex-end;align-items:center;padding:12px 3% 12px 12px;background:linear-gradient(90deg,rgba(7,11,20,0),rgba(7,11,20,0) 46%,rgba(7,11,20,.88) 60%)}
+  .tcol{display:flex;flex-direction:column;align-items:center;gap:16px;width:44%}
+  .psheet{max-width:780px;max-height:96%;padding:10px 14px 8px}.psheet p{margin:3px 0 6px;font-size:12.5px}.kgrid{grid-template-columns:repeat(15,minmax(0,1fr))}.pfoot .btn{font-size:16.5px}.kg{font-size:min(3vw,22px)}
+  #fuu{right:auto;left:60px}
+  #duel{left:auto;right:3%;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column}
   .rin{max-width:820px;display:grid;grid-template-columns:minmax(0,300px) 1fr;align-items:start}
   .rin>#card{grid-row:1 / span 8;position:sticky;top:12px}
 }
@@ -131,14 +157,26 @@ button{font:inherit;color:inherit;cursor:pointer}
 <button class="corner" id="mute" aria-label="音のオン・オフ">♪</button>
 
 <div id="title" class="screen">
-  <h1 class="ttl">今年の<em>一字</em>、<br>当てます</h1>
-  <div style="display:flex;flex-direction:column;align-items:center">
-    <p class="lead">15の質問に答えると、<br>あなたの<span id="yr">2026</span>年を漢字一字で当てます。</p>
-    <div id="friend" class="friend hide"></div>
-    <button class="go" id="startBtn">はじめる</button>
-    <div class="mini">15問・約2分　／　N.K. Works</div>
+  <div class="tcol">
+    <h1 class="ttl">今年の<em>一字</em>、当てます<small id="demoCap">筆が、あなたの一年を一字にします</small></h1>
+    <div class="tbot">
+      <p class="lead">15の質問に答えると、<br>あなたの<span id="yr">2026</span>年を漢字一字で当てます。</p>
+      <div id="friend" class="friend hide"></div>
+      <button class="go" id="startBtn">はじめる</button>
+      <div class="mini">15問・約2分　／　N.K. Works</div>
+    </div>
   </div>
 </div>
+
+<div id="pick" class="screen hide">
+  <div class="psheet">
+    <h2>まず、あなたの一字を封じます</h2>
+    <p>今年の自分を一字で表すなら、どれですか。150字から1つ選んでください。15問のあと、筆が書く字と勝負します。</p>
+    <div class="kgrid" id="kgrid"></div>
+    <div class="pfoot"><button class="lnk" id="pickSkip">決めずに始める</button><button class="btn" id="pickOk" disabled>字を選んでください</button></div>
+  </div>
+</div>
+<div id="fuu" class="hide" aria-label="一字を封じてあります">封</div>
 
 <div id="remain" class="hide"><span>のこり<b id="remN">150</b>字</span></div>
 <div id="ask" class="screen hide">
@@ -156,17 +194,19 @@ button{font:inherit;color:inherit;cursor:pointer}
 <div id="reveal" class="screen hide">
   <div id="seen">見えました。</div>
   <canvas id="paper2d" class="hide" width="1024" height="1024"></canvas>
+  <div id="duel" class="hide"><div class="dcard"><small>あなたが封じた一字</small><canvas id="duelCv" width="300" height="300"></canvas></div><div id="verdict"></div></div>
   <div id="skip">タップで早送り</div>
 </div>
 
 <div id="result" class="screen hide">
   <div class="rin">
     <canvas id="card" width="1080" height="1350"></canvas>
+    <div class="box hide" id="rDuel"><h3>封じた一字との勝負</h3><p class="vhead" id="rVerdict"></p><div class="dvs"><div><canvas id="rvA" width="172" height="172"></canvas>筆が書いた字</div><b id="rvX">×</b><div><canvas id="rvB" width="172" height="172"></canvas>あなたが封じた字</div></div><p class="pick" id="rMine" style="margin-top:0"></p></div>
     <div class="box"><h3>あなたの一年の形</h3><div class="shape" id="rShape"></div><p class="legend">15問すべての答えを、ふつうの人とくらべて出しています。</p></div>
     <div class="box"><h3>なぜこの字か</h3><p class="cnt" id="rLead"></p><ul class="keys core" id="rCore"></ul><p class="why" id="rWhy"></p><p class="pick" id="rPick"></p><p class="rare" id="rRare"></p></div>
     <div class="box"><h3>15問の答えと、この字</h3><p class="cnt" id="rCnt"></p><ul class="keys" id="rKeys"></ul><p class="legend">◎ 強くこの字を指した　○ 指した　・ どちらでもない　△ 反対を指した</p></div>
     <div class="box"><h3>次点の字</h3><div class="nexts" id="rNext"></div></div>
-    <div class="box"><h3>当たっていましたか？</h3>
+    <div class="box" id="judgeBox"><h3>当たっていましたか？</h3>
       <div class="judge"><button class="jb" data-j="hit">当たり</button><button class="jb" data-j="near">おしい</button><button class="jb" data-j="miss">ちがう</button></div>
       <div class="mine hide" id="mine"><span>自分で選ぶなら</span><input id="mineIn" maxlength="2" inputmode="text" autocomplete="off" enterkeyhint="done" aria-label="自分で選ぶ一字"><button id="mineBtn">決定</button></div>
       <p class="jmsg" id="jmsg"></p>
@@ -289,6 +329,8 @@ const CONFIG = {
   KEEP: [150, 128, 108, 90, 75, 62, 51, 42, 34, 27, 21, 16, 12, 8, 5, 3], // 答えた数ごとの「のこりの字数」
   NEXT_WAIT: 0.42,                             // 答えてから次の質問が出るまで（秒）
   T_GATHER: 1.6, T_MOVE: 1.5, WRITE_MIN: 3.2, WRITE_MAX: 6.5, T_SEAL: 0.5, T_SHOW: 1.2, // 結果発表の流れ（秒）
+  T_OPEN: 1.3, T_VERDICT: 2.0,                  // 封を開けるまで／判定を見せておく時間（秒）
+  DEMO: ['挑', '旅', '眠', '推', '笑', '変', '食', '続'], DEMO_HOLD: 1.8, // タイトルで筆が書いて見せる字と、書き終えてから見せておく時間（秒）
   RESULT_GUARD: 0.6,                           // 結果が出た直後の押しまちがい防止（秒）
   INK: '#17130f', PAPER: '#f3ecdd',
   PAPER_POS: [0, 2.05, -2.2], PAPER_SIZE: 3.0, // 紙の中心と一辺（m）
@@ -598,7 +640,9 @@ function makeScorer(TAGS, P, V, KANJI, parseW, AXES, TAG_AXIS, CFG) {
   const why = (ki, picks) => picks.map(p => ({ q: p.q, v: G(p).g[p.a][ki] / SD[ki] }));
   // 一年の形：軸ごとに、ふつうの人とくらべてどちらへどれだけ寄っているか
   const shape = picks => AXES.map((_, d) => { let s = 0, v = 0; for (const p of picks) { const st = Xs(p)[d]; s += C(p).x[d] - st[0]; v += st[1]; } return s / Math.sqrt(v + 1e-9); });
-  return { rank, why, shape, core, K, ZMAX };
+  // その字の中心の特徴のうち、じかの根拠が足りないもの。特徴ごとに「いつもの15問のどの答えを選べば根拠になるか」（[質問, 答え] の列）を返す
+  const missing = (ki, picks) => { const e = evidence(picks); return CORE[ki].tags.filter(t => e[t] < 1).map(t => { const out = []; P.forEach((q, qi) => q.c.forEach((_, a) => { if (RP[qi][a][t] >= 1) out.push([qi, a]); })); return out; }); };
+  return { rank, why, shape, core, missing, K, ZMAX };
 }
 const S = makeScorer(TAGS, P, V, KANJI, parseW, AXES, TAG_AXIS, CONFIG), NK = KANJI.length;
 const seedOf = i => KANJI[i].c.codePointAt(0);
@@ -622,7 +666,7 @@ const paperCv = $('paper2d'), pctx = paperCv.getContext('2d');
 function clearPaper() { pctx.setTransform(1, 0, 0, 1, 0, 0); pctx.shadowBlur = 0; pctx.drawImage(paperBg, 0, 0); markPaper(); }
 let markPaper = () => {};
 function wrapText(ctx, text, maxW) { const n = Math.ceil(ctx.measureText(text).width / maxW); if (n > 1) maxW = Math.min(maxW, ctx.measureText(text).width / n + ctx.measureText('あ').width * 1.2); const out = []; let line = ''; for (const ch of text) { if (ctx.measureText(line + ch).width > maxW && line) { if ('、。」'.includes(ch)) { line += ch; continue; } out.push(line); line = ch; } else line += ch; } if (line) out.push(line); return out; }
-function drawCard(cv, ki, mine) { // 結果カード（シェア画像と同じもの）
+function drawCard(cv, ki, mine, hit) { // 結果カード（シェア画像と同じもの）。mine＝字の下に足す一行、hit＝「的中」の朱印を押す
   const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, k = KANJI[ki], F = '"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif';
   washi(ctx, W, H, 11); ctx.strokeStyle = '#17130f'; ctx.lineWidth = 3; ctx.strokeRect(34, 34, W - 68, H - 68); ctx.lineWidth = 1; ctx.strokeRect(46, 46, W - 92, H - 92);
   ctx.fillStyle = '#17130f'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `700 40px ${F}`; ctx.fillText(`${CONFIG.YEAR}年　わたしの今年の一字`, W / 2, 124);
@@ -630,7 +674,8 @@ function drawCard(cv, ki, mine) { // 結果カード（シェア画像と同じ�
   Brush.draw(ctx, STROKES[k.c], (W - 740) / 2, 196, 740, { seed: seedOf(ki), bleed: 1.4, paper: CONFIG.PAPER, color: CONFIG.INK });
   ctx.fillStyle = '#17130f'; ctx.font = `700 42px ${F}`; ctx.fillText(k.y, W / 2, 990);
   ctx.font = `500 31px ${F}`; const lines = wrapText(ctx, k.s, W - 250).slice(0, 3); lines.forEach((l, i) => ctx.fillText(l, W / 2, 1066 + i * 46));
-  if (mine) { ctx.fillStyle = '#6b5e49'; ctx.font = `700 28px ${F}`; ctx.fillText(`自分で選ぶなら「${mine}」`, W / 2, 1066 + lines.length * 46 + 6); }
+  if (mine) { ctx.fillStyle = '#6b5e49'; ctx.font = `700 28px ${F}`; ctx.fillText(mine, W / 2, 1066 + lines.length * 46 + 6); }
+  if (hit) { ctx.save(); ctx.translate(W - 190, 300); ctx.rotate(-0.2); ctx.strokeStyle = '#c3391f'; ctx.fillStyle = '#c3391f'; ctx.lineWidth = 9; ctx.beginPath(); ctx.arc(0, 0, 92, 0, 6.2832); ctx.stroke(); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 78, 0, 6.2832); ctx.stroke(); ctx.font = `900 74px ${F}`; ctx.fillText('的中', 0, 4); ctx.restore(); }
   seal(ctx, W - 196, H - 204, 116);
   ctx.fillStyle = '#4d4233'; ctx.textAlign = 'left'; ctx.font = `700 27px ${F}`; ctx.fillText('今年の一字、当てます', 76, H - 112); ctx.font = `500 23px ${F}`; ctx.fillText('nkworks-games.com/kotoshi-no-ichiji', 76, H - 76);
 }
@@ -703,6 +748,7 @@ function resize() {
 function layoutCamera(snap) { // 画面の状態に合わせて、カメラの向かう先を決める
   const [px, py, pz] = CONFIG.PAPER_POS, vHalf = Math.tan(cam.fov * Math.PI / 360), hHalf = vHalf * view.aspect;
   if (state === 'result' || state === 'reveal' && rv && rv.t >= CONFIG.T_GATHER * 0.75) { const d = Math.max(1.75 / hHalf, 1.95 / vHalf); cam.tPos.set(0, py + 0.05, pz + d); cam.tLook.set(px, py, pz); cam.tShiftX = cam.tShiftY = 0; }
+  else if (state === 'title' || state === 'pick') { const d = Math.max(1.75 / hHalf, 1.95 / vHalf) * (view.land ? 1.2 : 1.55); cam.tPos.set(0, py + 0.05, pz + d); cam.tLook.set(px, py, pz); cam.tShiftX = view.land ? 0.23 : 0; cam.tShiftY = view.land ? 0 : 0.03; } // タイトル：筆が書くところが見えるよう紙に寄る
   else { cam.tPos.set(0, 2.5, 8.6); cam.tLook.set(0, 2.35, -0.5); const sheet = document.querySelector('.sheet');
     if (state === 'reveal') { cam.tShiftX = 0; cam.tShiftY = view.land ? 0 : 0.08; } else if (state === 'ask' && view.land) { cam.tShiftX = 0.235; cam.tShiftY = 0; } else if (state === 'ask') { cam.tShiftX = 0; cam.tShiftY = clamp((sheet ? sheet.offsetHeight : view.h * 0.46) / view.h / 2, 0.12, 0.3); } else { cam.tShiftX = 0; cam.tShiftY = view.land ? 0 : 0.1; } }
   if (snap) { cam.pos.copy(cam.tPos); cam.look.copy(cam.tLook); cam.shiftX = cam.tShiftX; cam.shiftY = cam.tShiftY; }
@@ -720,9 +766,10 @@ function setAlive(ranking, snap) { // ranking: [[点, 漢字の番号], ...]（�
   const n = ranking ? CONFIG.KEEP[Math.min(picks.length, CONFIG.KEEP.length - 1)] : NK, B = floatBox();
   fl.forEach(f => { f.alive = !ranking; f.rank = NK; }); if (ranking) ranking.slice(0, n).forEach(([, i], j) => { fl[i].alive = true; fl[i].rank = j; });
   const live = fl.map((f, i) => i).filter(i => fl[i].alive).sort((a, b) => fl[a].key - fl[b].key);
-  const fin = n <= 3, gc = Math.max(2, Math.round(Math.sqrt(n * B.hx / B.hy))), size = fin ? 0.9 : n <= 16 ? Math.min(0.72, 2 * B.hx / gc * 0.8, 2 * B.hy / Math.ceil(n / gc) * 0.85) : clamp(0.95 * Math.sqrt(Math.PI * B.hx * B.hy / n), 0.2, 0.72), dim = state === 'title' ? 0.45 : 1;
+  const fin = n <= 3, gc = Math.max(2, Math.round(Math.sqrt(n * B.hx / B.hy))), size = fin ? 0.9 : n <= 16 ? Math.min(0.72, 2 * B.hx / gc * 0.8, 2 * B.hy / Math.ceil(n / gc) * 0.85) : clamp(0.95 * Math.sqrt(Math.PI * B.hx * B.hy / n), 0.2, 0.72), ring = state === 'title' || state === 'pick', dim = ring ? 0.6 : 1;
   live.forEach((i, j) => { const f = fl[i];
     if (fin) { f.tx = B.cx + (j - (n - 1) / 2) * Math.min(0.95, B.hx * 0.6); f.ty = B.cy + 0.25; f.tz = B.cz + 0.6; }
+    else if (ring) { const th = j * 2.39996, rr = 1.2 + 1.0 * ((j * 0.618034) % 1); f.tx = B.cx + rr * Math.cos(th) * 1.05; f.ty = Math.max(0.75, CONFIG.PAPER_POS[1] + rr * Math.sin(th) * 1.25); f.tz = B.cz + (f.key * 2 - 1) * 0.9; } // タイトル：紙のまわりを囲む（書いている字を隠さない）
     else if (n <= 16) { const cols = Math.max(2, Math.round(Math.sqrt(n * B.hx / B.hy))), rows = Math.ceil(n / cols), row = Math.floor(j / cols), inRow = row === rows - 1 ? n - cols * (rows - 1) : cols; // 少ない時は重ならないように並べる
       f.tx = B.cx + ((j % cols) - (inRow - 1) / 2) * (2 * B.hx / cols) * 0.92; f.ty = B.cy + ((rows - 1) / 2 - row) * Math.min(0.95, 2 * B.hy / rows) + (f.key - 0.5) * 0.12; f.tz = B.cz + (f.key * 2 - 1) * 0.5; }
     else { const rr = Math.sqrt((j + 0.5) / n), th = j * 2.39996; f.tx = B.cx + (B.hx - size * 0.5) * rr * Math.cos(th); f.ty = B.cy + (B.hy - size * 0.4) * rr * Math.sin(th); f.tz = B.cz + B.hz * (f.key * 2 - 1) * (0.35 + 0.65 * rr); }
@@ -758,15 +805,32 @@ const Sound = { ctx: null, on: store('kotoshi.mute') !== '1',
   drum() { this.tone(150, 42, 0.9, 0.7); this.noise(0.18, 300, 120, 0.25, 0.6); },
   stroke(d) { this.noise(clamp(d, 0.12, 0.9), 1700, 700, 0.16, 0.9); },
   stamp() { this.tone(210, 70, 0.22, 0.5); this.noise(0.06, 3000, 1500, 0.2); },
+  fanfare() { if (!this.on || !this.ctx) return; [523, 659, 784, 1047].forEach((f, i) => { const c = this.ctx, o = c.createOscillator(), g = c.createGain(), t = c.currentTime + i * 0.11; o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.2, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.55); }); },
 };
 
 // ===== [SEC:GAME] =====
 let state = 'title', picks = [], alt = [], qi = 0, gameT = 0, wait = -1, busy = false, result = null, rv = null, judge = null, mineCh = '', resultShownAt = 0, friendK = -1;
+let mineK = -1, pickSel = -1, demo = null; // mineK＝封じた字の番号（−1は封なし）／pickSel＝一覧で選択中の字／demo＝タイトルで筆が書いて見せている字
 const picksNow = () => picks.map(p => ({ q: p.q, a: p.a, alt: p.alt }));
-function setState(s) { state = s; $('title').classList.toggle('hide', s !== 'title'); $('ask').classList.toggle('hide', s !== 'ask'); $('remain').classList.toggle('hide', s !== 'ask'); $('reveal').classList.toggle('hide', s !== 'reveal'); $('result').classList.toggle('hide', s !== 'result'); $('mute').classList.toggle('hide', s === 'result'); layoutCamera(false); }
-function reset(seed) { // 最初からやり直す（タイトルを飛ばして1問目へ）。リスタートもテストも同じものを使う
+function setState(s) { state = s; $('title').classList.toggle('hide', s !== 'title'); $('ask').classList.toggle('hide', s !== 'ask'); $('remain').classList.toggle('hide', s !== 'ask'); $('reveal').classList.toggle('hide', s !== 'reveal'); $('result').classList.toggle('hide', s !== 'result'); $('mute').classList.toggle('hide', s === 'result' || s === 'pick'); $('pick').classList.toggle('hide', s !== 'pick'); $('fuu').classList.toggle('hide', !(s === 'ask' && mineK >= 0)); layoutCamera(false); }
+function reset(seed, mine) { // 最初からやり直す（タイトルを飛ばして1問目へ）。mine＝封じた字の番号（なければ −1）。リスタートもテストも同じものを使う
+  state = 'ask'; mineK = mine >= 0 && mine < NK ? mine : -1; demo = null;
   picks = []; alt = Array(P.length).fill(false); qi = 0; wait = -1; busy = false; result = null; rv = null; judge = null; mineCh = ''; gameT = 0;
   clearPaper(); initFloat(seed || 1); brushRest(true); setState('ask'); showQuestion(); layoutCamera(true);
+}
+function openPick() { pickSel = -1; paintPick(); setState('pick'); $('kgrid').scrollTop = 0; }
+function paintPick() { [...$('kgrid').children].forEach((b, i) => b.classList.toggle('sel', i === pickSel)); const ok = $('pickOk'); ok.disabled = pickSel < 0; ok.textContent = pickSel < 0 ? '字を選んでください' : `「${KANJI[pickSel].c}」を封じて始める`; }
+function selectPick(i) { if (state !== 'pick' || !(i >= 0 && i < NK)) return; pickSel = i; Sound.tap(); paintPick(); }
+function confirmPick(skip) { if (state !== 'pick' || (!skip && pickSel < 0)) return; if (skip) Sound.tap(); else Sound.stamp(); reset((Date.now() % 2147483646) | 0, skip ? -1 : pickSel); }
+// タイトル：筆が見本の字（リンクから来た人には友だちの字）を書いて見せる
+function startDemo(ki) { const k = Brush.prepare(STROKES[KANJI[ki].c], K_SIZE, { seed: seedOf(ki), paper: CONFIG.PAPER }); clearPaper(); demo = { ki, k, t: 0, prev: 0, T: clamp(k.total * 0.75, 2.0, 3.4), n: demo ? demo.n + 1 : 0 }; }
+function demoPick() { const n = demo ? demo.n + 1 : 0, i = KANJI.findIndex(k => k.c === CONFIG.DEMO[n % CONFIG.DEMO.length]); return i >= 0 ? i : n % NK; }
+function tickDemo(dt) {
+  if (!demo) startDemo(friendK >= 0 ? friendK : demoPick()); const D = demo, t0 = 0.7; D.t += dt;
+  if (D.t <= t0) { const s0 = D.k.strokes[0].pts[0]; brushGo(smooth(D.t / t0), s0[0], s0[1]); }
+  else if (D.prev < D.k.total + 0.001) { const tt = Math.min(D.k.total, (D.t - t0) / D.T * D.k.total); pctx.fillStyle = CONFIG.INK; pctx.shadowColor = CONFIG.INK; pctx.shadowBlur = 1.3;
+    const tip = Brush.advance(pctx, D.k, D.prev, tt, K_OX, K_OY, false); pctx.shadowBlur = 0; D.prev = tt >= D.k.total ? D.k.total + 1 : tt; markPaper(); if (tip) brushAt(tip.x, tip.y, tip.down ? 0 : 0.22, dt); }
+  else { brushRest(false, dt); if (friendK < 0 && D.t > t0 + D.T + CONFIG.DEMO_HOLD) startDemo(demoPick()); }
 }
 function showQuestion() {
   const q = (alt[qi] ? V : P)[qi]; $('qno').textContent = `第${KANSUJI[qi]}問`; $('qtext').textContent = q.text; $('qsub').textContent = q.sub || '';
@@ -787,13 +851,14 @@ function beginReveal() {
   const ps = picksNow(), rk = S.rank(ps), top = rk.slice(0, 3).map(x => x[1]);
   const why = S.why(top[0], ps).map(({ q, v }) => { const p = picks.find(pp => pp.q === q), Q = (p.alt ? V : P)[q]; return { label: Q.label, text: Q.c[p.a].t, v }; }).sort((a, b) => b.v - a.v); // 15問ぜんぶの効き方（強い順）
   const core = S.core(top[0], ps).map(q => { const p = picks.find(pp => pp.q === q), Q = (p.alt ? V : P)[q]; return { label: Q.label, text: Q.c[p.a].t }; }); // その字の中心になった答え（じかの根拠）
-  result = { top, why, core, cand: rk.filter(x => x[2] === 0).length, tier: rk[0][2], shape: S.shape(ps), score: rk[0][0] };
+  let duel = null; if (mineK >= 0) { const pos = rk.findIndex(x => x[1] === mineK); duel = { k: mineK, rank: pos + 1, tier: rk[pos][2], verdict: pos === 0 ? 'hit' : pos <= 2 ? 'near' : 'miss', need: S.missing(mineK, ps) }; } // 封じた字との勝負：1位なら的中、2〜3位はおしい
+  result = { top, why, core, duel, cand: rk.filter(x => x[2] === 0).length, tier: rk[0][2], shape: S.shape(ps), score: rk[0][0] };
   const k = Brush.prepare(STROKES[KANJI[top[0]].c], K_SIZE, { seed: seedOf(top[0]), paper: CONFIG.PAPER }), T = clamp(k.total, CONFIG.WRITE_MIN, CONFIG.WRITE_MAX);
-  rv = { t: 0, k, T, prev: 0, lastStroke: -1, sealed: false, drum: false, done: false, moved: false, tip: null };
-  clearPaper(); setState('reveal'); $('seen').style.opacity = 1; $('paper2d').classList.toggle('hide', GL);
+  rv = { t: 0, k, T, prev: 0, lastStroke: -1, sealed: false, drum: false, done: false, moved: false, opened: false, judged: false, tip: null };
+  $('duel').classList.add('hide'); $('verdict').className = ''; clearPaper(); setState('reveal'); $('seen').style.opacity = 1; $('paper2d').classList.toggle('hide', GL);
 }
 function tickReveal(dt) {
-  const R = rv; R.t += dt; const t0 = CONFIG.T_GATHER, t1 = t0 + CONFIG.T_MOVE, t2 = t1 + R.T, t3 = t2 + CONFIG.T_SEAL, t4 = t3 + CONFIG.T_SHOW;
+  const R = rv; R.t += dt; const t0 = CONFIG.T_GATHER, t1 = t0 + CONFIG.T_MOVE, t2 = t1 + R.T, t3 = t2 + CONFIG.T_SEAL, t4 = revealEnd();
   if (R.t > t0 * 0.75 && !R.moved) { R.moved = true; layoutCamera(false); }
   if (R.t > t0 * 0.75) { fl.forEach(f => { if (f.alive) { f.tx = CONFIG.PAPER_POS[0]; f.ty = CONFIG.PAPER_POS[1]; f.tz = CONFIG.PAPER_POS[2] + 0.5; f.ts = 0.2; f.ta = 0; } }); $('seen').style.opacity = 0; }
   if (R.t > t0 && !R.drum) { R.drum = true; Sound.drum(); }
@@ -804,13 +869,26 @@ function tickReveal(dt) {
     if (tip) { if (tip.down && tip.si !== R.lastStroke) { R.lastStroke = tip.si; Sound.stroke(R.k.strokes[tip.si].dur * R.T / R.k.total); } brushAt(tip.x, tip.y, tip.down ? 0 : 0.22, dt); }
   } else brushRest(false, dt);
   if (R.t > t3 && !R.sealed) { R.sealed = true; seal(pctx, 120, PAPER_PX - 232, 112); markPaper(); Sound.stamp(); }
+  if (result.duel) { if (R.t > t3 + 0.35 && !R.opened) { R.opened = true; openDuel(); } if (R.t > t3 + CONFIG.T_OPEN && !R.judged) { R.judged = true; showVerdict(); } }
   if (R.t > t4 && !R.done) { R.done = true; showResult(); }
 }
-function skipReveal() { if (state !== 'reveal' || !rv || rv.t < 0.4) return; if (!rv.moved) { rv.moved = true; layoutCamera(false); } const t1 = CONFIG.T_GATHER + CONFIG.T_MOVE; if (rv.t < t1 + rv.T) rv.t = t1 + rv.T; else rv.t = Math.max(rv.t, t1 + rv.T + CONFIG.T_SEAL + CONFIG.T_SHOW); }
+const revealEnd = () => CONFIG.T_GATHER + CONFIG.T_MOVE + rv.T + CONFIG.T_SEAL + (result.duel ? CONFIG.T_OPEN + CONFIG.T_VERDICT : CONFIG.T_SHOW);
+function openDuel() { const cv = $('duelCv'), c = cv.getContext('2d'); washi(c, 300, 300, 21); Brush.draw(c, STROKES[KANJI[mineK].c], 26, 22, 248, { seed: seedOf(mineK), color: CONFIG.INK, paper: CONFIG.PAPER, bleed: 0.8 }); $('duel').classList.remove('hide'); Sound.wipe(); }
+function showVerdict() { const d = result.duel, v = $('verdict');
+  v.innerHTML = d.verdict === 'hit' ? '<b>的中</b>当てました' : d.verdict === 'near' ? `<b>おしい</b>あなたの字は${d.rank}位` : `<b>${d.rank}位</b>当てられませんでした`; v.className = 'on' + (d.verdict === 'hit' ? ' hit' : '');
+  if (d.verdict === 'hit') { Sound.drum(); Sound.fanfare(); confetti(); } else if (d.verdict === 'near') Sound.stamp(); else Sound.tone(240, 120, 0.45, 0.25); }
+function confetti() { const host = $('reveal'), cols = ['#c3391f', '#ffd58a', '#f3ecdd', '#c9a45c']; for (let i = 0; i < 70; i++) { const e = document.createElement('i'); e.className = 'cf'; e.style.left = Math.random() * 100 + '%'; e.style.background = cols[i % 4]; e.style.animationDelay = Math.random() * 0.6 + 's'; e.style.animationDuration = 1.8 + Math.random() * 1.4 + 's'; e.addEventListener('animationend', () => e.remove()); host.appendChild(e); } }
+function skipReveal() { if (state !== 'reveal' || !rv || rv.t < 0.4) return; if (!rv.moved) { rv.moved = true; layoutCamera(false); } const t1 = CONFIG.T_GATHER + CONFIG.T_MOVE; if (rv.t < t1 + rv.T) rv.t = t1 + rv.T; else rv.t = Math.max(rv.t, revealEnd()); }
 function rareText(i) { const c = RARE[i], N = CONFIG.RARE_N; if (!N || RARE.length !== NK) return ''; if (!c) return `<b>とてもめずらしい字</b><small>${(N / 10000) | 0}万人ぶん試算しても、一度も出ませんでした</small>`;
   const n = N / c, r = n < 100 ? Math.round(n) : n < 1000 ? Math.round(n / 10) * 10 : Math.round(n / 100) * 100; return `この字が出るのは <b>約${r.toLocaleString()}人に1人</b><small>いろいろな答え方の人を${(N / 10000) | 0}万人ぶん試算した、おおよその数です</small>`; }
 function showResult() {
-  const ki = result.top[0], k = KANJI[ki]; drawCard($('card'), ki, '');
+  const ki = result.top[0], k = KANJI[ki], d = result.duel; drawCard($('card'), ki, cardNote(), !!d && d.verdict === 'hit');
+  $('rDuel').classList.toggle('hide', !d); $('judgeBox').classList.toggle('hide', !!d);
+  if (d) { const m = KANJI[d.k].c, opt = { color: CONFIG.INK, fast: true };
+    [['rvA', ki], ['rvB', d.k]].forEach(([id, i]) => { const c = $(id).getContext('2d'); c.clearRect(0, 0, 172, 172); Brush.draw(c, STROKES[KANJI[i].c], 14, 12, 144, { ...opt, seed: seedOf(i) }); });
+    $('rVerdict').innerHTML = (d.verdict === 'hit' ? ['的中。', '15問で当てました。'] : d.verdict === 'near' ? ['おしい。', 'あなたの字は次点でした。'] : ['当てられませんでした。', 'あなたの勝ちです。']).map(x => `<span>${x}</span>`).join(''); $('rvX').textContent = d.verdict === 'hit' ? '＝' : '×';
+    const need = d.tier > result.tier ? d.need.filter(list => list.length).map(list => list.slice(0, 2).map(([q, a]) => `「${P[q].label}：${P[q].c[a].t}」`).join('か')).join('、さらに') : ''; // 候補に入れなかった時だけ、足りなかった答えを見せる
+    $('rMine').textContent = d.verdict === 'hit' ? `筆が書いた字と、あなたが封じた「${m}」が同じでした。` : `あなたの「${m}」は150字中${d.rank}位でした。` + (need ? `「${m}」は、${need}を選んだ人に出る字です。その答えがなかったので、候補に入りませんでした。` : d.tier > result.tier ? `「${m}」の中心になる答えが足りなかったので、候補に入りませんでした。` : `「${m}」も候補には入っていました。ただ、15問ぜんぶの形は「${k.c}」のほうが近いと見ました。`); }
   $('rWhy').textContent = k.s; $('rRare').innerHTML = rareText(ki);
   const mk = v => v >= 0.3 ? ['p2', '◎'] : v > 0.05 ? ['p1', '○'] : v >= -0.05 ? ['z', '・'] : ['n', '△'], pos = result.why.filter(w => w.v > 0.05).length;
   $('rCnt').innerHTML = `15問のうち <b>${pos}問</b> が、この字のほうを指していました。`;
@@ -825,14 +903,15 @@ function showResult() {
   $('rNext').querySelectorAll('canvas').forEach(c => Brush.draw(c.getContext('2d'), STROKES[KANJI[+c.dataset.k].c], 6, 6, 104, { seed: seedOf(+c.dataset.k), color: CONFIG.INK, fast: true }));
   document.querySelectorAll('.jb').forEach(b => b.classList.remove('sel')); $('mine').classList.add('hide'); $('mineIn').value = ''; $('jmsg').textContent = '';
   setState('result'); $('result').scrollTop = 0; resultShownAt = performance.now();
-  if (document.fonts && document.fonts.load) document.fonts.load('900 40px "Zen Old Mincho"').then(() => { if (state === 'result') drawCard($('card'), ki, mineCh); }).catch(() => {});
+  if (document.fonts && document.fonts.load) document.fonts.load('900 40px "Zen Old Mincho"').then(() => { if (state === 'result') drawCard($('card'), ki, cardNote(), !!d && d.verdict === 'hit'); }).catch(() => {});
 }
+const cardNote = () => { const d = result.duel; return d ? (d.verdict === 'hit' ? '封じた一字と同じでした' : `封じた一字は「${KANJI[d.k].c}」（150字中${d.rank}位）`) : mineCh ? `自分で選ぶなら「${mineCh}」` : ''; }; // カードの字の下に足す一行
 function setJudge(j) {
   judge = j; document.querySelectorAll('.jb').forEach(b => b.classList.toggle('sel', b.dataset.j === j)); $('mine').classList.toggle('hide', j !== 'miss'); const c = KANJI[result.top[0]].c;
   $('jmsg').textContent = j === 'hit' ? `当てました。「${c}」は、あなたの答えから出た字です。` : j === 'near' ? 'おしい。次点の字のほうが近いかもしれません。' : '自分で選ぶなら、どの字ですか？';
-  if (j !== 'miss' && mineCh) { mineCh = ''; drawCard($('card'), result.top[0], ''); }
+  if (j !== 'miss' && mineCh) { mineCh = ''; drawCard($('card'), result.top[0], cardNote()); }
 }
-function setMine() { const v = [...$('mineIn').value.trim()][0] || ''; if (!v) return; mineCh = v; $('mineIn').value = v; $('mineIn').blur(); drawCard($('card'), result.top[0], mineCh); $('jmsg').textContent = `診断は「${KANJI[result.top[0]].c}」、自分で選ぶなら「${v}」。カードにも書きました。`; }
+function setMine() { const v = [...$('mineIn').value.trim()][0] || ''; if (!v) return; mineCh = v; $('mineIn').value = v; $('mineIn').blur(); drawCard($('card'), result.top[0], cardNote()); $('jmsg').textContent = `診断は「${KANJI[result.top[0]].c}」、自分で選ぶなら「${v}」。カードにも書きました。`; }
 
 // ===== [SEC:BRUSHOBJ] ===== 3Dの筆の動き
 const bpos = V3(1.95, 0.72, -1.15), _d = V3(0, 1, 0), _t = V3(0, 0, 0), UP = V3(0, 1, 0);
@@ -845,7 +924,8 @@ function brushAt(x, y, lift, dt) { const w = paperToWorld(x, y, lift); bpos.x = 
 
 // ===== [SEC:SHARE] =====
 const shareURL = () => `${CONFIG.URL}k/${hexOf(KANJI[result.top[0]].c)}/`;
-function shareText() { const c = KANJI[result.top[0]].c;
+function shareText() { const c = KANJI[result.top[0]].c, d = result.duel;
+  if (d) { const m = KANJI[d.k].c; return (d.verdict === 'hit' ? `15問で当てられました。わたしの今年の一字は「${c}」。` : d.verdict === 'near' ? `おしい。筆が書いたのは「${c}」、わたしが封じたのは「${m}」（${d.rank}位）。` : `当てられずに勝ちました。筆が書いたのは「${c}」、わたしが封じたのは「${m}」（150字中${d.rank}位）。`) + `あなたは？\n${CONFIG.TAG}`; }
   const head = judge === 'hit' ? `当てられました。わたしの今年の一字は「${c}」。` : judge === 'miss' && mineCh ? `診断は「${c}」、自分で選ぶなら「${mineCh}」。` : judge === 'near' ? `おしい。診断で出た今年の一字は「${c}」でした。` : `わたしの今年の一字は「${c}」でした。`;
   return `${head}あなたは？\n${CONFIG.TAG}`; }
 const resultReady = () => state !== 'result' || performance.now() - resultShownAt > CONFIG.RESULT_GUARD * 1000;
@@ -858,7 +938,10 @@ async function saveImage() {
 }
 
 // ===== [SEC:UI] =====
-function begin() { if (!resultReady()) return; Sound.init(); Sound.resume(); Sound.tap(); reset((Date.now() % 2147483646) | 0); }
+function begin() { if (!resultReady()) return; Sound.init(); Sound.resume(); Sound.tap(); openPick(); }
+$('kgrid').innerHTML = KANJI.map((k, i) => `<button class="kg" data-i="${i}">${k.c}</button>`).join('');
+$('kgrid').addEventListener('click', e => { const b = e.target.closest('.kg'); if (b) selectPick(+b.dataset.i); });
+$('pickOk').addEventListener('click', () => confirmPick(false)); $('pickSkip').addEventListener('click', () => confirmPick(true));
 $('startBtn').addEventListener('click', begin); $('againBtn').addEventListener('click', begin);
 $('choices').addEventListener('click', e => { const b = e.target.closest('.ch'); if (b) choose(+b.dataset.a); });
 $('swapBtn').addEventListener('click', swap); $('backBtn').addEventListener('click', back);
@@ -870,16 +953,16 @@ document.querySelectorAll('a.sup').forEach(a => { a.href = a.dataset.k === 'foll
 const muteBtn = $('mute'), paintMute = () => { muteBtn.textContent = Sound.on ? '♪' : '×'; muteBtn.style.opacity = Sound.on ? 1 : 0.6; }; paintMute();
 muteBtn.addEventListener('click', () => { Sound.on = !Sound.on; store('kotoshi.mute', Sound.on ? '0' : '1'); paintMute(); if (Sound.on) { Sound.init(); Sound.resume(); Sound.tap(); } });
 $('yr').textContent = CONFIG.YEAR;
-{ const m = /[?&]k=([0-9a-f]{4,5})/.exec(location.search); if (m) { friendK = KANJI.findIndex(k => hexOf(k.c) === m[1]); if (friendK >= 0) { $('friend').textContent = `友だちの一字は「${KANJI[friendK].c}」でした。あなたは？`; $('friend').classList.remove('hide'); } } }
+{ const m = /[?&]k=([0-9a-f]{4,5})/.exec(location.search); if (m) { friendK = KANJI.findIndex(k => hexOf(k.c) === m[1]); if (friendK >= 0) { $('friend').textContent = `友だちは「${KANJI[friendK].c}」でした。あなたの一字は？`; $('friend').classList.remove('hide'); $('demoCap').textContent = '友だちの今年の一字'; document.querySelector('.lead').classList.add('hide'); } } }
 
 // ===== [SEC:LOOP] =====
 let acc = 0, last = performance.now(), manual = false, paused = false;
 function tick(dt) {
   gameT += dt;
   if (wait >= 0) { wait -= dt; if (wait < 0) { wait = -1; afterWait(); } }
-  if (state === 'reveal' && rv) tickReveal(dt); else if (state !== 'result') brushRest(false, dt);
+  if (state === 'title') tickDemo(dt); else if (state === 'reveal' && rv) tickReveal(dt); else if (state !== 'result') brushRest(false, dt);
   tickFloat(dt);
-  const k = state === 'reveal' ? 1.7 : 3; cam.pos.x = damp(cam.pos.x, cam.tPos.x + (state === 'title' ? Math.sin(gameT * 0.25) * 0.5 : 0), k, dt); cam.pos.y = damp(cam.pos.y, cam.tPos.y, k, dt); cam.pos.z = damp(cam.pos.z, cam.tPos.z, k, dt);
+  const k = state === 'reveal' ? 1.7 : 3; cam.pos.x = damp(cam.pos.x, cam.tPos.x + (state === 'title' ? Math.sin(gameT * 0.25) * 0.25 : 0), k, dt); cam.pos.y = damp(cam.pos.y, cam.tPos.y, k, dt); cam.pos.z = damp(cam.pos.z, cam.tPos.z, k, dt);
   cam.look.x = damp(cam.look.x, cam.tLook.x, k, dt); cam.look.y = damp(cam.look.y, cam.tLook.y, k, dt); cam.look.z = damp(cam.look.z, cam.tLook.z, k, dt); cam.shiftX = damp(cam.shiftX, cam.tShiftX, 4, dt); cam.shiftY = damp(cam.shiftY, cam.tShiftY, 4, dt);
 }
 function update(frameDt) { acc += Math.min(frameDt, CONFIG.MAX_FRAME); while (acc >= CONFIG.FIXED) { tick(CONFIG.FIXED); acc -= CONFIG.FIXED; } }
@@ -888,7 +971,7 @@ function render() {
   camera.fov = cam.fov; camera.aspect = view.aspect; camera.position.copy(cam.pos); camera.lookAt(cam.look);
   if (Math.abs(cam.shiftX) > 1e-4 || Math.abs(cam.shiftY) > 1e-4) camera.setViewOffset(view.w, view.h, cam.shiftX * view.w, cam.shiftY * view.h, view.w, view.h); else camera.clearViewOffset();
   camera.updateProjectionMatrix(); camera.updateMatrixWorld();
-  const fk = 1 + Math.sin(gameT * 7.3) * 0.04 + Math.sin(gameT * 13.1) * 0.03; lanternLights.forEach((l, i) => { l.intensity = 26 * (i ? fk : 2 - fk); }); const lit = state === 'result' || state === 'reveal' && rv && rv.t > CONFIG.T_GATHER; spot.intensity = lit ? 150 : 60; paperLit = damp(paperLit, lit ? 1 : state === 'title' ? 0.42 : 0.68, 0.06, 1); paperMat.color.setScalar(paperLit);
+  const fk = 1 + Math.sin(gameT * 7.3) * 0.04 + Math.sin(gameT * 13.1) * 0.03; lanternLights.forEach((l, i) => { l.intensity = 26 * (i ? fk : 2 - fk); }); const lit = state === 'result' || state === 'reveal' && rv && rv.t > CONFIG.T_GATHER; spot.intensity = lit ? 150 : 60; paperLit = damp(paperLit, lit ? 1 : state === 'title' || state === 'pick' ? 0.92 : 0.68, 0.06, 1); paperMat.color.setScalar(paperLit);
   drawFloat(); renderer.render(scene, camera);
 }
 function frame(now) { if (!paused && !manual) update((now - last) / 1000); last = now; render(); requestAnimationFrame(frame); }
@@ -902,13 +985,14 @@ window.__TEST__ = {
   keys: [],
   randomInput(r) { // タップだけのゲームなので、今の画面でできる操作を1つ選ぶ
     if (state === 'title') begin();
+    else if (state === 'pick') { if (r < 0.2) confirmPick(true); else { selectPick(Math.floor(r * NK)); confirmPick(false); } }
     else if (state === 'ask' && !busy) { if (r > 0.93) swap(); else if (r > 0.88) back(); else choose(Math.floor(r / 0.88 * 4)); }
     else if (state === 'reveal' && r > 0.97) skipReveal();
-    else if (state === 'result') { if (r < 0.3) setJudge(['hit', 'near', 'miss'][Math.floor(r / 0.1)]); }
+    else if (state === 'result') { if (r < 0.3 && !result.duel) setJudge(['hit', 'near', 'miss'][Math.floor(r / 0.1)]); }
   },
-  reset(seed) { manual = true; acc = 0; reset(seed); },
+  reset(seed, mine) { manual = true; acc = 0; reset(seed, mine === undefined ? (seed % 2 ? (seed * 37) % NK : -1) : mine); }, // 奇数の種は「封あり」、偶数は「封なし」で始める（mine で封じる字を指定もできる）
   step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); render(); },
-  state() { return { state, qi, picks: picks.map(p => p.a + (p.alt ? 'v' : '')).join(''), remain: fl.filter(f => f.alive).length, top: result ? result.top.map(i => KANJI[i].c).join('') : '', rv: rv ? +rv.t.toFixed(2) : 0, over: state === 'result' }; },
+  state() { return { state, qi, picks: picks.map(p => p.a + (p.alt ? 'v' : '')).join(''), remain: fl.filter(f => f.alive).length, top: result ? result.top.map(i => KANJI[i].c).join('') : '', mine: mineK >= 0 ? KANJI[mineK].c : '', duel: result && result.duel ? result.duel.verdict + result.duel.rank : '', rv: rv ? +rv.t.toFixed(2) : 0, over: state === 'result' }; },
   check() { const v = [], fin = n => Number.isFinite(n), [px, py, pz] = CONFIG.PAPER_POS, hs = CONFIG.PAPER_SIZE / 2;
     fl.forEach((f, i) => { if (![f.x, f.y, f.z, f.s, f.a].every(fin)) v.push('字' + KANJI[i].c + 'の位置が数でない'); if (f.y < CONFIG.FLOOR_GAP - 0.02) v.push('字' + KANJI[i].c + 'が床に近すぎる y=' + f.y.toFixed(2)); if (f.z < pz + 0.38) v.push('字' + KANJI[i].c + 'が紙にめり込む z=' + f.z.toFixed(2)); if (f.s > 1.3) v.push('字' + KANJI[i].c + 'が大きすぎる'); });
     if (![cam.pos.x, cam.pos.y, cam.pos.z, cam.look.x, cam.look.y, cam.look.z, bpos.x, bpos.y, bpos.z].every(fin)) v.push('カメラか筆の位置が数でない');
@@ -917,7 +1001,9 @@ window.__TEST__ = {
     if (state === 'reveal' && rv && rv.tip && rv.tip.down && (Math.abs(bpos.x - px) > hs || Math.abs(bpos.y - py) > hs)) v.push('筆先が紙の外で書いている');
     if (picks.length > P.length || qi > P.length) v.push('答えの数が多すぎる'); if (state === 'ask' && picks.length !== qi + (busy ? 1 : 0)) v.push('質問の番号と答えの数が合わない');
     const want = state === 'ask' ? CONFIG.KEEP[Math.min(picks.length, CONFIG.KEEP.length - 1)] : null; if (want !== null && fl.filter(f => f.alive).length !== want) v.push('のこりの字数が合わない ' + fl.filter(f => f.alive).length + '≠' + want);
-    if (state === 'result') { if (!result || result.top.length !== 3) v.push('結果がない'); else if (result.why.length !== P.length || !result.why.every(w => fin(w.v)) || !result.shape.every(fin)) v.push('15問の効き方か一年の形が数でない'); else { const r = S.rank(picksNow()); if (r[0][1] !== result.top[0]) v.push('結果の字が採点と合わない'); if (r[0][2] === 0 && !result.core.length) v.push('中心の答えが出ていない'); if (!fin(r[0][0])) v.push('点が数でない'); if (picks.length !== P.length) v.push('15問そろわずに結果が出た'); } }
+    if (state === 'result') { if (!result || result.top.length !== 3) v.push('結果がない'); else if (result.why.length !== P.length || !result.why.every(w => fin(w.v)) || !result.shape.every(fin)) v.push('15問の効き方か一年の形が数でない'); else { const r = S.rank(picksNow()); if (r[0][1] !== result.top[0]) v.push('結果の字が採点と合わない'); if (r[0][2] === 0 && !result.core.length) v.push('中心の答えが出ていない'); if (!fin(r[0][0])) v.push('点が数でない'); if (picks.length !== P.length) v.push('15問そろわずに結果が出た');
+      const d = result.duel; if ((mineK >= 0) !== !!d) v.push('封じた字と勝負の有無が合わない'); else if (d) { const pos = r.findIndex(x => x[1] === mineK) + 1; if (pos !== d.rank) v.push('封じた字の順位が採点と合わない'); if (d.verdict !== (pos === 1 ? 'hit' : pos <= 3 ? 'near' : 'miss')) v.push('勝負の判定が順位と合わない'); if ((d.verdict === 'hit') !== (d.k === result.top[0])) v.push('的中なのに字がちがう'); } } }
+    if (state === 'title' && demo && !(fin(demo.t) && demo.t >= 0)) v.push('タイトルの見本の時間が数でない'); if (state === 'pick' && pickSel >= NK) v.push('選んだ字の番号がおかしい');
     return v; },
   rank: ans => S.rank(ans.map((a, q) => ({ q, a, alt: false }))).slice(0, 5).map(x => KANJI[x[1]].c + x[0].toFixed(2)),
   draw: { washi, seal, wrapText, drawCard, Brush, KANJI, STROKES, seedOf, CONFIG }, // シェア用の画像を作る道具から使う
