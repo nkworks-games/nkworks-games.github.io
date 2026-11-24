@@ -74,6 +74,12 @@ h1{margin:2px 0 6px;font-size:clamp(28px,8.6vw,50px);white-space:nowrap;letter-s
 .rank{font-size:22px;font-weight:900;margin:6px 0;color:#ffb199}
 .stats{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 14px;font-size:14px;margin:6px 0}
 .foot{font-size:11px;opacity:.6;margin-top:10px}
+/* ジャンプボタンを左にする（左右反転） */
+.handBtn{display:inline-block;margin-top:10px;padding:8px 14px;font-size:14px;font-weight:800;border-radius:999px;border:2px solid #ffffff60;background:#ffffff18;color:#fff;font-family:inherit;cursor:pointer}
+body.lefty #jumpBtn{right:auto;left:calc(16px + env(safe-area-inset-left))}
+body.lefty #gw{right:auto;left:calc(56px + env(safe-area-inset-left))}
+body.lefty #gMark::after{right:auto;left:28px}
+body.lefty #steerHint{left:auto;right:calc(14px + env(safe-area-inset-right))}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 </head>
@@ -102,7 +108,7 @@ h1{margin:2px 0 6px;font-size:clamp(28px,8.6vw,50px);white-space:nowrap;letter-s
     <div class="sub">ふるさとの川をのぼって、産卵場所まで。<br>どれだけ速くのぼれるか、タイムアタック！</div>
     <div class="how">
       <div>🐟 前へは<b>自動で泳ぐ</b>。あやつるのは左右とジャンプ</div>
-      <div id="howTouch">👆 画面を<b>左右にドラッグ</b>：左右に泳ぐ<br>🔴 右下の<b>ジャンプボタンを長押し→はなす</b>：ジャンプ（長いほど高い）</div>
+      <div id="howTouch">👆 画面を<b>左右にドラッグ</b>：左右に泳ぐ<br>🔴 <span class="sideTxt">右下</span>の<b>ジャンプボタンを長押し→はなす</b>：ジャンプ（長いほど高い）</div>
       <div id="howKey">⌨ <b>← →</b>：左右　<b>スペース長押し→はなす</b>：ジャンプ</div>
       <div>🌊 <b>滝</b>：ぎりぎりの高さでこえると「ジャスト！」で加速</div>
       <div>🪨 <b>岩</b>：ぶつかると減速。低い岩はとびこえられる</div>
@@ -112,6 +118,7 @@ h1{margin:2px 0 6px;font-size:clamp(28px,8.6vw,50px);white-space:nowrap;letter-s
     </div>
     <div id="tBest"></div>
     <button class="btn" id="startBtn">スタート</button>
+    <button class="handBtn" type="button"></button>
     <a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a>
     <div class="foot">N.K. Works</div>
   </div>
@@ -123,6 +130,7 @@ h1{margin:2px 0 6px;font-size:clamp(28px,8.6vw,50px);white-space:nowrap;letter-s
     <button class="btn" id="resumeBtn">つづける</button>
     <button class="btn blue" id="restartBtn">最初からやり直す</button>
     <button class="btn blue" id="homeBtn">ホームにもどる</button>
+    <button class="handBtn" type="button"></button>
   </div>
 </div>
 <div id="result" class="screen hide">
@@ -154,9 +162,10 @@ const CONFIG = {
   JUMP_MIN_H: 0.6, JUMP_MAX_H: 3.8,  // ジャンプの高さ(m) 最小・最大
   JUMP_MIN_VS: 4,            // 止まった状態から跳んでも、これだけは前へ進む(m/秒)
   GRAVITY: 22,
-  LAT_SPEED: 11, AIR_LAT_MUL: 0.6,   // 左右の最高速、空中の倍率
+  LAT_SPEED: 13, AIR_LAT_MUL: 0.6,   // 左右の最高速、空中の倍率
   KEY_STEER: 8,              // キーで左右に動く速さ
-  DRAG_GAIN: 11,             // 画面幅いっぱいドラッグで動く距離(m)
+  DRAG_GAIN: 11,             // ゆっくり画面幅いっぱいドラッグで動く距離(m)
+  DRAG_BOOST: 1.6, DRAG_FAST: 1.2,   // 速くスワイプした時は最大(1+1.6)倍動く。1.2px/ミリ秒で最大
   LIP_TOL: 0.2,              // 滝のふちの判定のゆるさ(m)
   JUST_MARGIN: 0.7,          // この高さ以内でこえたら「ジャスト」
   BOOST_TIME: 1.4, BOOST_MUL: 1.3,
@@ -590,15 +599,25 @@ addEventListener('keydown',e=>{const k=KEYMAP[e.code];if(k){input[k]=true;e.prev
 addEventListener('keyup',e=>{const k=KEYMAP[e.code];if(k){input[k]=false;e.preventDefault();}});
 addEventListener('blur',()=>{input.left=input.right=input.jump=input.jumpTouch=false;});
 addEventListener('contextmenu',e=>e.preventDefault());
-const touchEl=$('touch');let steerId=null,steerX=0,jumpId=null;
+const touchEl=$('touch');let steerId=null,steerX=0,steerT=0,jumpId=null;
 touchEl.addEventListener('pointerdown',e=>{e.preventDefault();AU.resume();if(state!=='play'&&state!=='countdown')return;
-  if(inJumpBtn(e.clientX,e.clientY)){if(jumpId===null){jumpId=e.pointerId;input.jumpTouch=true;}}else if(steerId===null){steerId=e.pointerId;steerX=e.clientX;}
+  // 新しく触った指が、いつも操作を引きつぐ（前の指を離したことを取りこぼしても、操作が止まらないように）
+  if(inJumpBtn(e.clientX,e.clientY)){jumpId=e.pointerId;input.jumpTouch=true;}else{steerId=e.pointerId;steerX=e.clientX;steerT=performance.now();}
   try{touchEl.setPointerCapture(e.pointerId);}catch(_){}});
-touchEl.addEventListener('pointermove',e=>{if(e.pointerId===steerId){hideHints();input.dragDU+=(e.clientX-steerX)/innerWidth*CONFIG.DRAG_GAIN;steerX=e.clientX;}});
+touchEl.addEventListener('pointermove',e=>{if(e.pointerId!==steerId)return;hideHints();const now=performance.now(),dx=e.clientX-steerX;
+  const v=Math.abs(dx)/Math.max(8,now-steerT);const k=1+CONFIG.DRAG_BOOST*clamp(v/CONFIG.DRAG_FAST,0,1);  // 速いスワイプほど大きく動く
+  input.dragDU+=dx/innerWidth*CONFIG.DRAG_GAIN*k;steerX=e.clientX;steerT=now;});
 const endP=e=>{if(e.pointerId===steerId)steerId=null;if(e.pointerId===jumpId){jumpId=null;input.jumpTouch=false;}};
 for(const ev of['pointerup','pointercancel','lostpointercapture'])touchEl.addEventListener(ev,endP);
 const IS_TOUCH=matchMedia('(pointer:coarse)').matches||('ontouchstart' in window);
 // ジャンプはボタンの丸い枠の中を押した時だけ
+// ジャンプボタンの位置（右／左）。スマホに覚えておく
+let lefty=false;try{lefty=localStorage.getItem('sake-noborimasu-hand')==='left';}catch(e){}
+function applyHand(){document.body.classList.toggle('lefty',lefty);
+  document.querySelectorAll('.sideTxt').forEach(t=>{t.textContent=lefty?'左下':'右下';});
+  document.querySelectorAll('.handBtn').forEach(b=>{b.textContent=lefty?'ジャンプボタン：左（タップで右に）':'ジャンプボタン：右（タップで左に）';b.classList.toggle('hide',!IS_TOUCH);});}
+document.querySelectorAll('.handBtn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();lefty=!lefty;try{localStorage.setItem('sake-noborimasu-hand',lefty?'left':'right');}catch(_){}applyHand();}));
+applyHand();
 function inJumpBtn(x,y){const b=$('jumpBtn');if(!IS_TOUCH||b.classList.contains('hide'))return false;const r=b.getBoundingClientRect();if(r.width<=0)return false;
   return Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2))<=r.width/2;}
 
@@ -639,7 +658,7 @@ function tip(text,dur=3){const e=$('tip');e.textContent=text;e.classList.add('on
 function uiTimers(dt){if(msgT>0){msgT-=dt;if(msgT<=0)$('msg').classList.remove('on');}if(tipT>0){tipT-=dt;if(tipT<=0)$('tip').classList.remove('on');}
   if(cdHideT>0){cdHideT-=dt;if(cdHideT<=0)$('cd').textContent='';}}
 function checkTips(){const s=fish.s,first=store.best==null;
-  const T=[[12,'r','岩にぶつかると減速。左右によけよう'],[70,'f',IS_TOUCH?'滝だ！ 右下のジャンプボタンを長押しでタメて、はなしてジャンプ。ゲージの「滝」の線までタメるとちょうどいい':'滝だ！ スペース長押しでタメて、はなしてジャンプ。ゲージの「滝」の線までタメるとちょうどいい'],
+  const T=[[12,'r','岩にぶつかると減速。左右によけよう'],[70,'f',IS_TOUCH?(lefty?'滝だ！ 左下':'滝だ！ 右下')+'のジャンプボタンを長押しでタメて、はなしてジャンプ。ゲージの「滝」の線までタメるとちょうどいい':'滝だ！ スペース長押しでタメて、はなしてジャンプ。ゲージの「滝」の線までタメるとちょうどいい'],
     [132,'a','青く光る矢印の帯に乗ると加速！ 水の輪もくぐろう'],[245,'k','急流！ 白い流れは押し戻される。白くない「すき間」を泳げ'],
     [352,'l','丸太が流れてくる！ 小さく跳び越えるか、よけよう'],[425,'b','クマだ！ 赤い範囲は手がとどく所。手を上げたら危ない。ふり下ろした直後をねらって跳べ'],
     [476,'i','分かれ道！ 左は速い道（追い流れ・丸太・岩）、右は安全な道',1],[645,'h','高い水の輪はジャンプでくぐろう'],[872,'c','段々の滝！ 小さく跳び続けて、ジャストでコンボ加速！']];
