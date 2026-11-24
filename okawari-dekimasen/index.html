@@ -259,6 +259,7 @@ const CONFIG = {
   HINT_AFTER: 6,           // 何も置かないままこの秒数たつと操作の案内を出す
   JUDGE: { WAIT: 0.8, LIFT: 1.4, SHAKE: 1.7, HOLD: 1.0, LIFT_H: 1.0, SHAKE_DEG: 2.6, SHAKE_HZ: 1.9 },
   CAM: { FOV: 38, YAW: 0.45, PITCH: 0.74, DIST: 7.3, PITCH_MIN: 0.28, PITCH_MAX: 1.4, ZOOM_MIN: 0.75, ZOOM_MAX: 1.5 },
+  SPECIAL: { CRASH: 3, SPILL: 5, SQUASH: 5, SQUASH_RATE: 0.4 },   // 失敗の称号：✕✕の大事故の数／こぼした数／つぶれた数（お皿の料理のこの割合以上も必要）
   RANKS: [                 // 点数÷料金 がこの値以上ならその称号
     [3.2, '伝説の一皿（出禁）'], [2.6, '出禁まであと一歩'], [2.1, '店長が二度見'], [1.6, '盛りつけ上手'],
     [1.2, '元は取った人'], [1.0, 'ぎりぎり元を取った人'], [0.7, 'あと一歩で元が取れた人'], [0.35, 'お店にやさしいお客さま'], [0, 'ほぼ寄付'],
@@ -906,10 +907,19 @@ function tickJudge(dt) {
 function finish() {
   scan(true);
   const counts = new Map(); for (const it of items) if (it.onPlate) { const o = counts.get(it.T.name) || { n: 0, yen: 0 }; o.n++; o.yen += it.T.price; counts.set(it.T.name, o); }
-  const ratio = live.score / CONFIG.FEE, rank = CONFIG.RANKS.find(r => ratio >= r[0])[1];
+  const ratio = live.score / CONFIG.FEE; let rank = CONFIG.RANKS.find(r => ratio >= r[0])[1], why = '';
+  // 失敗の称号：お皿が空・デザートだけはいつでも。ほかは元が取れなかった時に、目立つ失敗があれば点数の称号より優先する
+  const onItems = items.filter(it => it.onPlate), spillN = items.filter(it => !it.onPlate && it.spilled).length, crashN = [...live.combos.values()].filter(c => c.lv <= -2).length, SP = CONFIG.SPECIAL;
+  if (!onItems.length) { rank = '何しに来たんですか'; why = 'お皿が空でした'; }
+  else if (onItems.every(it => it.T.g === 'D')) { rank = '別腹しかない人'; why = 'デザートだけの一皿'; }
+  else if (ratio < 1) {
+    if (crashN >= SP.CRASH) { rank = '味の実験台'; why = '✕✕の大事故 ' + crashN + 'つ'; }
+    else if (spillN >= SP.SPILL) { rank = '床に食べさせた人'; why = 'こぼした料理 ' + spillN + '個'; }
+    else if (live.sqn >= SP.SQUASH && live.sqn >= onItems.length * SP.SQUASH_RATE) { rank = 'お皿の上で圧縮した人'; why = 'つぶれた料理 ' + live.sqn + '個'; }
+  }
   let best = 0; try { best = +localStorage.getItem(CONFIG.SAVE_KEY) || 0; } catch (e) {}
   const isBest = live.score > best; if (isBest) { try { localStorage.setItem(CONFIG.SAVE_KEY, String(live.score)); } catch (e) {} }
-  result = { moto: live.moto, score: live.score, taste: live.taste, ratio, rank, counts, combos: [...live.combos.values()], spilled: Math.max(0, placedYen - live.moto), sqn: live.sqn, betsuN: live.betsuN, best: Math.max(best, live.score), isBest };
+  result = { moto: live.moto, score: live.score, taste: live.taste, ratio, rank, why, counts, combos: [...live.combos.values()], spilled: Math.max(0, placedYen - live.moto), sqn: live.sqn, betsuN: live.betsuN, best: Math.max(best, live.score), isBest };
   resultAt = performance.now(); setState('result'); cam.offYT = (viewRect.width / viewRect.height < 1.2) ? 0.25 : 0; showReceipt(result); sfx.result(ratio);
 }
 function tick(dt) {   // 1刻みぶん進める
@@ -1059,7 +1069,7 @@ function showReceipt(R) {
     ${combo ? `<div class="r-combo">${combo}</div>` : ''}<div class="r-dash"></div>
     <div class="r-score"><em>味わえた満足（元取り額 × おいしさ）</em><b id="score-num">0</b><span>点</span></div>
     <div class="r-rank">「${R.rank}」</div>
-    <div class="r-best">${R.isBest ? '★ 自己ベスト更新！' : '自己ベスト ' + R.best.toLocaleString('ja-JP') + '点'}</div>
+    <div class="r-best">${R.why ? R.why + '　' : ''}${R.isBest ? '★ 自己ベスト更新！' : '自己ベスト ' + R.best.toLocaleString('ja-JP') + '点'}</div>
     <div class="r-btns"><button data-act="again">もう一皿</button><button class="x" data-act="share">Xで共有</button></div>
     <div class="sups"><a class="sup" data-k="follow" target="_blank" rel="noopener"><b>𝕏 作者をフォロー</b></a><a class="sup" data-k="ofuse" target="_blank" rel="noopener"><b>作者を応援する（100円〜）</b></a></div>
     <button class="r-home" data-act="home">タイトルへ</button></div>`;
@@ -1135,7 +1145,7 @@ window.__TEST__ = {
   },
   reset(seed) { manual = true; acc = 0; resultAt = -1e9; openMenu(false); startGame(seed); _tPrevTime = Infinity; _tDeep.clear(); },
   step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); render(Math.min(0.1, frameDt)); },
-  state() { return { state, timeLeft: +timeLeft.toFixed(2), items: items.length, moto: live.moto, score: live.score, taste: +live.taste.toFixed(2), plateY: +plateBody.translation().y.toFixed(3), yaw: +cam.yawT.toFixed(3), hold: !!hold, holdOk: !!(hold && hold.ok), rot: rotSteps, stand: standing, note: noteT > 0 ? $('note').textContent : '', betsu: live.betsuN, badges: items.filter(it => it.badge.visible).length, stock: stock.join(','), sq: items.filter(it => it.sqLv > 0).map(it => it.T.id + it.sqLv).join(' '), marks: items.filter(it => it.mark > 0).length + '/' + items.filter(it => it.mark < 0).length, over: state === 'result' }; },
+  state() { return { state, timeLeft: +timeLeft.toFixed(2), items: items.length, moto: live.moto, score: live.score, taste: +live.taste.toFixed(2), plateY: +plateBody.translation().y.toFixed(3), rank: result ? result.rank + (result.why ? '（' + result.why + '）' : '') : '', yaw: +cam.yawT.toFixed(3), hold: !!hold, holdOk: !!(hold && hold.ok), rot: rotSteps, stand: standing, note: noteT > 0 ? $('note').textContent : '', betsu: live.betsuN, badges: items.filter(it => it.badge.visible).length, stock: stock.join(','), sq: items.filter(it => it.sqLv > 0).map(it => it.T.id + it.sqLv).join(' '), marks: items.filter(it => it.mark > 0).length + '/' + items.filter(it => it.mark < 0).length, over: state === 'result' }; },
   check() {
     const v = [], n = items.length, pos = items.map(it => it.body.translation()), deepNow = new Map();
     if (nanCount > 0) v.push('位置か速さが数値でなくなった料理があった（' + nanCount + '個）');
