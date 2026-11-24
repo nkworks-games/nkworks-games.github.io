@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>おかわりは、できません。 | N.K. Works</title>
+<meta name="description" content="おかわり禁止、一皿かぎりのバイキング。料理をつまんでお皿に積み、盛れた分だけ食べられます。高い料理で元を取りつつ、相性のいい料理どうしをくっつけておいしく盛る3Dゲーム。">
+<meta property="og:title" content="おかわりは、できません。">
+<meta property="og:description" content="一皿かぎりのバイキング。3,000円の元、取れますか？">
+<meta property="og:url" content="https://nkworks-games.com/okawari-dekimasen/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://nkworks-games.com/okawari-dekimasen/card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nkworks-games.com/okawari-dekimasen/card.png">
+<meta name="google-adsense-account" content="ca-pub-2073267239630350">
+<link rel="canonical" href="https://nkworks-games.com/okawari-dekimasen/">
+<meta name="theme-color" content="#24160d">
+<style>
+:root{--paper:#f7f0e1;--ink:#3a2a1f;--red:#c5372c;--gold:#e7ad3c;--wood:#24160d;--sub:#7a6250}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#1d130d;color:var(--ink);
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:none}
+button{font:inherit;color:inherit;border:none;cursor:pointer;touch-action:none}
+#app{position:fixed;inset:0;display:grid;grid-template-rows:minmax(0,1fr) auto;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#view{position:relative;min-height:0;min-width:0;overflow:hidden}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* ---- 上の表示 ---- */
+#hud{position:absolute;left:8px;right:8px;top:8px;display:flex;gap:6px;justify-content:center;pointer-events:none;transition:opacity .3s}
+.pill{background:#f7f0e1f0;border-radius:12px;padding:4px 10px 5px;box-shadow:0 2px 0 #0006;min-width:78px;text-align:center}
+.pill .lab{display:block;font-size:10px;letter-spacing:.12em;color:var(--sub);font-weight:700}
+.pill b{font-size:21px;font-variant-numeric:tabular-nums;line-height:1.1}
+.pill .sub{font-size:10px;color:var(--sub);margin-left:2px}
+.bar{height:5px;background:#d9cdb8;border-radius:3px;overflow:hidden;margin-top:2px}
+.bar i{display:block;height:100%;width:0;background:var(--red);transition:width .25s}
+.bar i.ok{background:var(--gold)}
+#h-time.low b{color:var(--red)}
+#h-taste.up b{color:#3f8a2a}#h-taste.down b{color:#7a3b93}
+.prs{display:block;font-size:11px;font-weight:800;line-height:1.2;min-height:13px}.prs .g{color:#a37800}.prs .b{color:#7a3b93;margin-left:5px}.prs .s{color:#6b5644;margin-left:5px}
+#btn-pause{position:absolute;right:8px;top:62px;width:34px;height:34px;border-radius:50%;background:#f7f0e1cc;font-size:12px;font-weight:900;letter-spacing:-1px;box-shadow:0 2px 0 #0005}
+#btn-mute{position:absolute;right:8px;top:104px;width:34px;height:34px;border-radius:50%;background:#f7f0e1cc;font-size:15px;box-shadow:0 2px 0 #0005}
+
+/* ---- 下のボタン ---- */
+#ctrl{position:absolute;left:8px;right:8px;bottom:8px;display:flex;gap:8px;align-items:flex-end;pointer-events:none;transition:opacity .3s}
+#ctrl button{pointer-events:auto;font-weight:800;font-size:14px;border-radius:14px;padding:11px 12px;min-width:66px;background:var(--paper);box-shadow:0 3px 0 #0007}
+#ctrl button:active{transform:translateY(2px);box-shadow:0 1px 0 #0007}
+#ctrl button.on{background:var(--gold)}
+#btn-end{margin-left:auto;background:var(--red)!important;color:#fff}
+body:not([data-state=play]) #ctrl,body:not([data-state=play]):not([data-state=judge]) #hud,body:not([data-state=play]) #btn-mute,body:not([data-state=play]) #btn-pause{opacity:0;pointer-events:none}
+body:not([data-state=play]) #ctrl button{pointer-events:none}
+
+#note{position:absolute;left:50%;top:var(--note-top,78px);transform:translateX(-50%);width:max-content;max-width:calc(100% - 96px);font-weight:800;font-size:13px;line-height:1.3;text-align:center;
+  padding:3px 13px;border-radius:14px;opacity:0;transition:opacity .15s;pointer-events:none;box-shadow:0 2px 5px #0006;background:#444d;color:#fff}
+#note.show{opacity:1}
+#note.bn{background:#24160df0;color:#fff6e0;border:1.5px solid #e7ad3c99}
+#note.g2{background:#ffd84a;color:#5a3200}#note.b2{background:#3d2352;color:#ffd1f0}#note.sp{background:#444d;color:#fff}#note.sq{background:#6b5644;color:#fff}
+#hintbox{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#hint{position:absolute;transform:translate(-50%,-100%);font-weight:900;font-size:13px;padding:2px 9px;border-radius:12px;white-space:nowrap;display:none;box-shadow:0 2px 5px #0006}
+#hint.g{display:block;background:#ffd84a;color:#5a3200}#hint.b{display:block;background:#4a2a66;color:#ffe0f5}
+
+/* ---- 料理の棚 ---- */
+#panel{background:linear-gradient(#3a2618,#24160d);padding:8px 8px 9px;border-top:3px solid #5a3b22;transition:filter .3s}
+body:not([data-state=play]) #panel{filter:brightness(.55) saturate(.7)}
+#tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:560px;margin:0 auto}
+.tile{position:relative;background:var(--paper);border-radius:10px;padding:1px 2px 3px;text-align:center;box-shadow:0 2px 0 #0008;border-top:4px solid var(--g);touch-action:none}
+.tile img{width:100%;height:clamp(26px,5.4dvh,50px);object-fit:contain;display:block;pointer-events:none;background:radial-gradient(ellipse at 50% 60%,#e3d7bd 0,#f7f0e100 68%)}
+.tile .nm{font-size:9.5px;line-height:1.15;white-space:nowrap;overflow:hidden;color:#5a4636;font-weight:700}
+.tile .pr{font-size:13px;font-weight:900;line-height:1.15;font-variant-numeric:tabular-nums}
+.tile .st{position:absolute;top:1px;right:2px;font-size:10px;font-weight:800;background:var(--ink);color:#fff;border-radius:8px;padding:0 5px;line-height:1.5}
+.tile.out{filter:grayscale(1);opacity:.4}
+.tile.on{outline:3px solid var(--gold);transform:scale(.95)}
+#ghost{position:fixed;width:84px;height:60px;object-fit:contain;transform:translate(-50%,-70%);pointer-events:none;display:none;z-index:15;filter:drop-shadow(0 6px 6px #0008)}
+
+@media (min-aspect-ratio:6/5){
+  #app{grid-template-rows:none;grid-template-columns:minmax(0,1fr) 320px}
+  #panel{border-top:none;border-left:3px solid #5a3b22;display:flex;align-items:center;overflow:auto}
+  #tiles{grid-template-columns:repeat(4,1fr);width:100%}
+  .tile img{height:clamp(30px,8.2dvh,64px)}
+}
+
+/* ---- タイトル ---- */
+.ov{position:fixed;inset:0;display:none;z-index:20}
+body[data-state=title] #title{display:grid}
+body.menu #pause{display:grid}
+#pause{place-items:center;background:#120a06b3;padding:14px;z-index:25}
+.card.mini{max-width:300px;padding:18px 18px 16px}.plab{font-weight:900;font-size:18px;margin-bottom:12px}
+.pbtn{display:block;width:100%;margin-top:9px;background:#fff;border:2px solid #d9cdb8;font-weight:800;font-size:15px;padding:11px;border-radius:12px;color:var(--ink)}
+.pbtn:active{transform:translateY(2px)}
+#title{place-items:center;background:radial-gradient(ellipse at 50% 35%,#1a100a99 0,#120a06e6 100%);padding:14px}
+.card{background:var(--paper);border-radius:18px;max-width:430px;width:100%;max-height:96dvh;overflow:auto;touch-action:pan-y;padding:22px 20px 16px;
+  box-shadow:0 20px 60px #000b,inset 0 0 0 5px var(--paper),inset 0 0 0 6.5px #c5372c66;text-align:center}
+.card .tag{display:inline-block;background:var(--red);color:#fff;font-size:12px;font-weight:800;letter-spacing:.2em;padding:3px 12px 3px 14px;border-radius:4px;transform:rotate(-3deg)}
+.card h1{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-weight:800;font-size:clamp(30px,9.4vw,42px);line-height:1.22;margin:10px 0 6px;letter-spacing:.02em}
+.card .lead{font-size:13px;color:var(--sub);font-weight:700;margin-bottom:12px}
+.how{list-style:none;text-align:left;font-size:13px;line-height:1.5;display:grid;gap:7px;margin-bottom:10px}
+.how li{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start}
+.how i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+.how b{display:block;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:2px 0 12px}
+.chips span{font-size:11.5px;font-weight:800;padding:3px 8px;border-radius:10px;background:#fff;border:1.5px solid #d9cdb8}
+.chips .g{border-color:#e0b93c;background:#fff6d2}.chips .b{border-color:#9a78b4;background:#f1e6f7}.chips .s{border-color:#b8a48f;background:#f1e9df}
+.big{display:block;width:100%;background:var(--red);color:#fff;font-weight:900;font-size:19px;padding:14px;border-radius:14px;box-shadow:0 4px 0 #7d1f17;letter-spacing:.08em}
+.big:active{transform:translateY(3px);box-shadow:0 1px 0 #7d1f17}
+#best{margin-top:9px;font-size:12px;color:var(--sub);font-weight:700;min-height:1em}
+/* 作者をフォロー・作者を応援する */
+.sups{display:grid;grid-template-columns:1fr;gap:6px;margin-top:10px;font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic UI",sans-serif}
+.sheet .sups{grid-template-columns:1fr 1fr;margin-top:8px}
+.sup{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;text-decoration:none;color:var(--ink);background:#fff;border:2px solid #e8d9bf;border-radius:12px;padding:6px 8px 6px 11px}
+.sup b{display:block;font-size:13px}.sup small{display:block;font-size:10.5px;color:var(--sub);margin-top:1px;font-weight:600}
+.sup .go{flex:none;background:#111;color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:6px 11px;white-space:nowrap}
+.sup[data-k="ofuse"] .go{background:#ffd400;color:#3a2a10}
+.sheet .sup{justify-content:center;padding:8px 6px;border:none;border-radius:10px;background:#111;color:#fff;box-shadow:0 2px 0 #000}
+.sheet .sup[data-k="ofuse"]{background:#ffd400;color:#3a2a10;box-shadow:0 2px 0 #b89a00}
+.sheet .sup b{font-size:12.5px;white-space:nowrap}
+.r-home{display:block;margin:8px auto 0;background:none;font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic UI",sans-serif;font-weight:800;font-size:13px;color:#6b5a4c;text-decoration:underline;padding:4px 10px}
+
+/* ---- 結果（レシート） ---- */
+body[data-state=result] #result{display:block}
+#result{pointer-events:none}
+.sheet{pointer-events:auto;position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(430px,96vw);max-height:70dvh;display:flex;flex-direction:column;
+  background:#fffdf7;color:#2a2018;font-family:"Courier New",ui-monospace,"Hiragino Sans","Yu Gothic UI",monospace;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  box-shadow:0 -10px 40px #0009;animation:up .55s cubic-bezier(.2,.9,.3,1.08)}
+.sheet::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px;background:linear-gradient(-45deg,#fffdf7 7px,transparent 0),linear-gradient(45deg,#fffdf7 7px,transparent 0);background-size:14px 14px;background-repeat:repeat-x;background-position:left bottom}
+@keyframes up{from{transform:translate(-50%,105%)}to{transform:translate(-50%,0)}}
+.r-in{display:flex;flex-direction:column;min-height:0;flex:1 1 auto;overflow:auto;touch-action:pan-y}
+.r-head{text-align:center;font-weight:900;font-size:15px;letter-spacing:.05em}.r-head small{display:block;font-size:10.5px;font-weight:400;letter-spacing:.2em;color:#6b5a4c}
+.r-dash{border-top:1.5px dashed #b9ab98;margin:7px 0}
+.r-list{overflow:auto;touch-action:pan-y;min-height:44px;flex:1 1 auto;font-size:12.5px}
+.rr{display:flex;justify-content:space-between;gap:8px;line-height:1.55;font-size:12.5px}
+.rr.s{font-size:13.5px;font-weight:800}.rr .g{color:#8a6a00}.rr .b{color:#6c3d8a}
+.r-combo{font-size:12px;line-height:1.5}.r-combo div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.r-combo .g{color:#8a6a00;font-weight:800}.r-combo .b{color:#6c3d8a;font-weight:800}
+.r-score{text-align:center;line-height:1}.r-score b{font-size:44px;font-weight:900;letter-spacing:-.01em;font-family:"Hiragino Sans","Helvetica Neue",Arial,sans-serif;font-variant-numeric:tabular-nums}.r-score span{font-size:14px;font-weight:800;margin-left:3px}
+.r-score em{display:block;font-style:normal;font-size:11px;color:#6b5a4c;margin-bottom:3px}
+.r-rank{text-align:center;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-weight:800;font-size:20px;color:var(--red);margin:5px 0 2px}
+.r-best{text-align:center;font-size:11.5px;color:#6b5a4c;font-weight:700}
+.r-btns{display:grid;grid-template-columns:1.25fr 1fr;gap:8px;margin-top:9px;font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic UI",sans-serif}
+.r-btns button{font-weight:900;font-size:15px;padding:12px 6px;border-radius:12px;background:var(--red);color:#fff;box-shadow:0 3px 0 #7d1f17}
+.r-btns button.x{background:#1c1c1c;box-shadow:0 3px 0 #000}
+.r-btns button:active{transform:translateY(2px)}
+@media (max-height:720px) and (max-aspect-ratio:6/5){.r-head small{display:none}.r-dash{margin:5px 0}.r-score b{font-size:36px}.r-rank{font-size:17px;margin:3px 0 1px}.r-btns{margin-top:7px}.r-btns button{padding:10px 6px}.r-home{margin-top:4px}.r-list{min-height:38px}}
+@media (min-aspect-ratio:6/5){
+  .sheet{left:auto;right:10px;top:22px;bottom:10px;transform:none;max-height:none;width:330px;animation:up2 .5s cubic-bezier(.2,.9,.3,1.05)}
+  @keyframes up2{from{transform:translateY(105%)}to{transform:none}}
+}
+#loading{position:fixed;inset:0;z-index:50;background:#1d130d;color:#f7f0e1;display:grid;place-items:center;font-weight:800;font-size:15px;text-align:center;padding:20px;line-height:1.8}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+  "rapier":"https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/rapier.es.js"
+}}
+</script>
+</head>
+<body data-state="boot">
+<div id="app">
+  <div id="view">
+    <canvas id="c"></canvas>
+    <div id="hud">
+      <div class="pill" id="h-time"><span class="lab">のこり</span><b id="t-time">90</b><span class="sub">秒</span></div>
+      <div class="pill" id="h-moto"><span class="lab">元取り</span><b id="t-moto">¥0</b><span class="sub" id="t-fee"></span><div class="bar"><i id="b-moto"></i></div></div>
+      <div class="pill" id="h-taste"><span class="lab">おいしさ</span><b id="t-taste">100%</b><span class="prs" id="t-pairs"></span></div>
+    </div>
+    <button id="btn-pause" aria-label="一時停止">II</button>
+    <button id="btn-mute" aria-label="音">🔊</button>
+    <div id="hintbox"><div id="hint"></div></div>
+    <div id="note"></div>
+    <div id="ctrl">
+      <button id="btn-rot">⟳ 回す</button>
+      <button id="btn-stand">⇅ 立てる</button>
+      <button id="btn-end">ここまで</button>
+    </div>
+  </div>
+  <div id="panel"><div id="tiles"></div></div>
+</div>
+<img id="ghost" alt="">
+
+<div id="title" class="ov">
+  <div class="card">
+    <span class="tag">一皿かぎり</span>
+    <h1>おかわりは、<br>できません。</h1>
+    <p class="lead">バイキング おひとり様 <span id="fee-title"></span><br>盛れた分だけ、食べられます</p>
+    <ol class="how">
+      <li><i>1</i><div><b>つまんで、のせる</b>料理を指で押さえたままお皿の上へ。離すと落ちます。</div></li>
+      <li><i>2</i><div><b>高い料理ほど元が取れる</b>ただし数が少なく、積みにくい形です。</div></li>
+      <li><i>3</i><div><b>ふれ合う料理で味が変わる</b>料理を持つと、お皿の料理に ◎（合う）✕（合わない）が出ます。</div></li>
+    </ol>
+    <div class="chips">
+      <span class="g">◎ ごはん・パン × おかず・カレー</span><span class="g">◎ 別腹：しょっぱい物にふれないデザート ＋50%</span>
+      <span class="b">✕ デザート × しょっぱい物</span><span class="b">✕ なま物 × あつい物</span>
+      <span class="s">▼ やわらかい料理は、上に物が乗るとつぶれて味が落ちる</span>
+    </div>
+    <button class="big" id="btn-start">いただきます</button>
+    <p id="best"></p>
+    <div class="sups"><a class="sup" data-k="follow" target="_blank" rel="noopener"><span class="t"><b>作者をフォロー</b><small>新作のお知らせをしています</small></span><span class="go">𝕏 フォロー</span></a></div>
+  </div>
+</div>
+
+<div id="result" class="ov"><div class="sheet" id="sheet"></div></div>
+<div id="pause" class="ov"><div class="card mini">
+  <p class="plab">ひと休み中</p>
+  <button class="big" id="btn-resume">つづける</button>
+  <button class="pbtn" id="btn-restart">最初からやり直す</button>
+  <button class="pbtn" id="btn-home">タイトルに戻る</button>
+</div></div>
+<div id="loading">じゅんび中…</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import RAPIER from 'rapier';
+
+// ===== [SEC:CONFIG] =====
+// 調整する数値はここに全部まとめる（長さの単位：1 = 10cm）
+const CONFIG = {
+  FIXED: 1 / 120,          // 物理の1刻み（秒）
+  MAX_FRAME: 0.1,          // 1フレームで進める上限（秒）
+  FEE: 3000,               // 料金（円）
+  TIME: 90,                // 制限時間（秒）
+  GRAVITY: 22,             // 重力
+  SOLVER_ITERS: 12,        // 物理の計算回数（多いほど積んだ物が安定）
+  PLATE_R: 1.5,            // お皿の平らな部分の半径
+  RIM_R: 1.78,             // お皿のふちの外側の半径
+  RIM_H: 0.11,             // ふちの高さ
+  PLATE_FR: 0.7,           // お皿のすべりにくさ
+  TABLE_Y: -0.2,           // テーブルの高さ
+  DROP_RADIUS: 2.35,       // お皿の中心からこの距離まで置ける
+  HOVER_GAP: 0.09,         // 持っている料理と下の物とのすき間
+  TOUCH_LIFT_PX: 70,       // タッチの時、指より上に料理を出す量（px）
+  TOUCH_DIST: 0.035,       // この距離より近ければ「ふれている」
+  SCAN_DT: 0.1,            // ふれ合いを調べる間隔（秒）
+  MAX_SPEED: 14,           // 料理の速さの上限
+  LIN_DAMP: 0.25, ANG_DAMP: 0.8,
+  SKIN: 0.008,             // 料理どうしの見えないすき間（めり込み防止）
+  CONTACT_HZ: 120,         // 接触のかたさ（大きいほど重い山でも沈みこまない）
+  REST_V: 0.4, REST_W: 3.5, REST_DAMP: 8,   // ゆっくり動く料理を止めるブレーキ（この速さ・回転より遅い時だけ効く）
+  MASS_POW: 0.4,           // 重さの差をゆるめる指数（1=体積どおり、0=全部同じ重さ）
+  HULL_SCALE: 1.02,        // 当たり判定の包みを少しだけ大きくする倍率
+  TASTE: { 2: 0.25, 1: 0.1, '-1': -0.2, '-2': -0.4 },   // 相性ごとのおいしさの増減
+  TASTE_MIN: 0.2, TASTE_MAX: 1.8,
+  SQ_LEVELS: 3,            // つぶれの段階の数
+  SQ_LOAD: 0.66,           // 上にこの重さが乗ると最大までつぶれる（料理1個の重さは0.2〜0.7）
+  SQ_DELAY: 0.3,           // この秒数、重さがかかり続けたらつぶれる
+  SQ_TASTE: 0.2,           // 最大までつぶれた料理のおいしさの下がり幅（0.2＝−20%）
+  BETSUBARA: 0.5,          // 別腹：しょっぱい物に1つもふれていないデザートのおいしさの上がり幅（0.5＝＋50%）
+  SQ_BULGE: 0.25,          // つぶれた時に横へふくらむ強さ
+  SQ_SPEED: 14,            // つぶれる見た目の速さ
+  WOB_BASE: 0.03, WOB_SOFT: 0.45,   // 置いた時の「ぷるん」の大きさ（全部の料理の分＋やわらかさに比例する分）
+  MARK_GOOD2: 1.25, MARK_BAD2: 0.6, // おいしさがこの値以上で◎、以下で✕✕の印になる
+  BADGE_SIZE: 0.26,        // 料理の上に出る相性の印の大きさ
+  NOTE_TIME: 1.3,          // 上の1行に出来事の文字を出しておく秒数
+  NOTE_HOLD: 0.5,          // 大事な文字は、この秒数は弱い文字に上書きされない
+  END_CONFIRM: 2.0,        // 「ここまで」の確認待ち（秒）
+  HINT_AFTER: 6,           // 何も置かないままこの秒数たつと操作の案内を出す
+  JUDGE: { WAIT: 0.8, LIFT: 1.4, SHAKE: 1.7, HOLD: 1.0, LIFT_H: 1.0, SHAKE_DEG: 2.6, SHAKE_HZ: 1.9 },
+  CAM: { FOV: 38, YAW: 0.45, PITCH: 0.74, DIST: 7.3, PITCH_MIN: 0.28, PITCH_MAX: 1.4, ZOOM_MIN: 0.75, ZOOM_MAX: 1.5 },
+  RANKS: [                 // 点数÷料金 がこの値以上ならその称号
+    [3.2, '伝説の一皿（出禁）'], [2.6, '出禁まであと一歩'], [2.1, '店長が二度見'], [1.6, '盛りつけ上手'],
+    [1.2, '元は取った人'], [1.0, 'ぎりぎり元を取った人'], [0.7, 'あと一歩で元が取れた人'], [0.35, 'お店にやさしいお客さま'], [0, 'ほぼ寄付'],
+  ],
+  SHARE_URL: 'https://nkworks-games.com/okawari-dekimasen/',
+  FOLLOW_URL: 'https://x.com/intent/follow?screen_name=vyaPudzd1E54661', OFUSE_URL: 'https://ofuse.me/nkworks_games',   // 作者をフォロー（X）／作者を応援する（OFUSE）
+  RESULT_GUARD: 0.8,       // 結果が出てからこの秒数は、結果画面のボタンを押せない（押しまちがい防止）
+  SHARE_TAG: 'おかわりはできません',
+  SAVE_KEY: 'okawari-dekimasen-best',
+};
+
+// ===== [SEC:UTIL] =====
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const yen = n => '¥' + Math.round(n).toLocaleString('ja-JP');
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hash3(x, y, z, s) { const h = Math.sin(x * 127.1 + y * 311.7 + z * 74.7 + s * 13.37) * 43758.5453; return h - Math.floor(h); }
+function vnoise(x, y, z, s = 0) {  // なめらかな乱数（0〜1）
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z), xf = x - xi, yf = y - yi, zf = z - zi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), w = zf * zf * (3 - 2 * zf), L = (a, b, t) => a + (b - a) * t;
+  return L(L(L(hash3(xi, yi, zi, s), hash3(xi + 1, yi, zi, s), u), L(hash3(xi, yi + 1, zi, s), hash3(xi + 1, yi + 1, zi, s), u), v),
+           L(L(hash3(xi, yi, zi + 1, s), hash3(xi + 1, yi, zi + 1, s), u), L(hash3(xi, yi + 1, zi + 1, s), hash3(xi + 1, yi + 1, zi + 1, s), u), v), w);
+}
+
+// ===== [SEC:GEO] =====
+// 料理の形を作るための小道具
+const C = h => new THREE.Color(h);
+const _mc = new THREE.Color();
+const mix = (a, b, t) => _mc.copy(a).lerp(b, clamp(t, 0, 1)).clone();
+function smooth(g) { g.deleteAttribute('uv'); g.deleteAttribute('normal'); const m = mergeVertices(g, 1e-4); m.computeVertexNormals(); return m; }
+function fixWinding(g) {   // 面が内向きなら裏返す
+  const p = g.attributes.position, idx = g.index, a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  let vol = 0; const n = idx.count;
+  for (let i = 0; i < n; i += 3) { a.fromBufferAttribute(p, idx.getX(i)); b.fromBufferAttribute(p, idx.getX(i + 1)); c.fromBufferAttribute(p, idx.getX(i + 2)); vol += a.dot(b.cross(c)); }
+  if (vol < 0) { const arr = idx.array; for (let i = 0; i < arr.length; i += 3) { const t = arr[i + 1]; arr[i + 1] = arr[i + 2]; arr[i + 2] = t; } idx.needsUpdate = true; g.computeVertexNormals(); }
+  return g;
+}
+function lathe(prof, seg) { return fixWinding(smooth(new THREE.LatheGeometry(prof.map(p => new THREE.Vector2(p[0], p[1])), seg))); }
+function domeProfile(r, h, n = 12, e = 0.75) { const p = [[0, 0], [r * 0.86, 0]]; for (let i = 1; i <= n; i++) { const a = i / n * Math.PI / 2; p.push([i === n ? 0 : r * Math.pow(Math.cos(a), e), h * Math.sin(a)]); } return p; }
+function roundBox(w, h, d, r, cell = 0.04) {   // 角の丸い箱（面の中にも点があるので模様を塗れる）
+  const g = new THREE.BoxGeometry(w, h, d, Math.max(2, Math.round(w / cell)), Math.max(2, Math.round(h / cell)), Math.max(2, Math.round(d / cell)));
+  const p = g.attributes.position, n = g.attributes.normal, hx = w / 2 - r, hy = h / 2 - r, hz = d / 2 - r, v = new THREE.Vector3(), c = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i); c.set(clamp(v.x, -hx, hx), clamp(v.y, -hy, hy), clamp(v.z, -hz, hz)); v.sub(c);
+    const L = v.length(); if (L > 1e-7) { v.divideScalar(L); p.setXYZ(i, c.x + v.x * r, c.y + v.y * r, c.z + v.z * r); n.setXYZ(i, v.x, v.y, v.z); }
+  }
+  g.deleteAttribute('uv'); return g;
+}
+function lump(g, amp, freq, seed = 0, mask = null) {   // 表面をでこぼこにする
+  g.computeVertexNormals(); const p = g.attributes.position, n = g.attributes.normal;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i); let d = (vnoise(x * freq, y * freq, z * freq, seed) - 0.5) * 2 * amp;
+    if (mask) d *= mask(x, y, z); p.setXYZ(i, x + n.getX(i) * d, y + n.getY(i) * d, z + n.getZ(i) * d);
+  }
+  g.computeVertexNormals(); return g;
+}
+function paint(g, fn) {   // 点ごとに色を塗る
+  if (!g.attributes.normal) g.computeVertexNormals();
+  const p = g.attributes.position, n = g.attributes.normal, col = new Float32Array(p.count * 3);
+  for (let i = 0; i < p.count; i++) { const c = fn(p.getX(i), p.getY(i), p.getZ(i), n.getX(i), n.getY(i), n.getZ(i)); col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3)); return g;
+}
+const paint1 = (g, hex) => { const c = C(hex); return paint(g, () => c); };
+function tf(g, { p, r, s }) {
+  if (s) g.scale(s[0], s[1], s[2]);
+  if (r) g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(r[0], r[1], r[2])));
+  if (p) g.translate(p[0], p[1], p[2]); return g;
+}
+function fin(g) { const o = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(o.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'color') o.deleteAttribute(k); return o; }
+const MATS = {
+  matte: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8 }),
+  gloss: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.28 }),
+  fried: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 }),
+};
+const MATS_G = {}, MATS_B = {};   // 相性が良い時（あたたかく光る）・悪い時（紫にくすむ）の色ちがい
+for (const k in MATS) { MATS_G[k] = MATS[k].clone(); MATS_G[k].emissive.set(0x4a3200); MATS_B[k] = MATS[k].clone(); MATS_B[k].color.set(0x9c86c8); MATS_B[k].emissive.set(0x170029); }
+function assemble(parts) {
+  const geos = [], keys = [];
+  for (const key of ['matte', 'gloss', 'fried']) {
+    const gs = parts.filter(p => p.mat === key).map(p => fin(p.geo)); if (!gs.length) continue;
+    geos.push(gs.length > 1 ? mergeGeometries(gs, false) : gs[0]); keys.push(key);
+  }
+  const pick = M => keys.length > 1 ? keys.map(k => M[k]) : M[keys[0]];
+  return { geo: geos.length > 1 ? mergeGeometries(geos, true) : geos[0], mats: pick(MATS), matsG: pick(MATS_G), matsB: pick(MATS_B) };
+}
+function supportPoints(geo) {   // 見た目の点から、当たり判定（外側の包み）用の点を選ぶ。粗く規則的なほうが物理が安定する
+  const p = geo.attributes.position, dirs = [[0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]], seen = new Set(), out = [], S = CONFIG.HULL_SCALE;
+  for (const [el, n, off] of [[-60, 5, 0], [-25, 8, 0.5], [25, 8, 0], [60, 5, 0.5]]) { const e = el * Math.PI / 180; for (let i = 0; i < n; i++) { const a = (i + off) / n * Math.PI * 2; dirs.push([Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)]); } }
+  for (const d of dirs) {
+    let best = -1e9, bi = 0; for (let i = 0; i < p.count; i++) { const v = p.getX(i) * d[0] + p.getY(i) * d[1] + p.getZ(i) * d[2]; if (v > best) { best = v; bi = i; } }
+    const x = p.getX(bi), y = p.getY(bi), z = p.getZ(bi), k = Math.round(x * 500) + ',' + Math.round(y * 500) + ',' + Math.round(z * 500);
+    if (!seen.has(k)) { seen.add(k); out.push(x * S, y * S, z * S); }
+  }
+  return new Float32Array(out);
+}
+
+// ===== [SEC:FOODS] =====
+// g=味のグループ（S主食 M おかず V野菜 C カレー R なま物 D デザート） col=当たり判定の形 soft=やわらかさ（上に物が乗ると最大でこの割合だけ低くつぶれる）
+const GCOL = { S: '#e2b03a', M: '#b5651d', V: '#5aa02c', C: '#c77a12', R: '#d6453d', D: '#e58fb1' };
+const FOODS = [
+  { id: 'rice', name: 'ごはん', g: 'S', price: 40, stock: 6, col: { t: 'hull' }, fr: 0.9, soft: 0.36 },
+  { id: 'toast', name: 'トースト', g: 'S', price: 30, stock: 6, col: { t: 'box', x: 0.95, y: 0.13, z: 0.9 }, fr: 0.9, soft: 0.3 },
+  { id: 'pasta', name: 'ナポリタン', g: 'S', price: 70, stock: 4, col: { t: 'hull' }, fr: 0.9, soft: 0.4 },
+  { id: 'potato', name: 'ポテト', g: 'V', price: 15, stock: 12, col: { t: 'box', x: 0.9, y: 0.13, z: 0.13 }, fr: 0.9 },
+  { id: 'broccoli', name: 'ブロッコリー', g: 'V', price: 20, stock: 8, col: { t: 'hull' }, fr: 0.9 },
+  { id: 'tomato', name: 'ミニトマト', g: 'V', price: 20, stock: 8, col: { t: 'ball', r: 0.2 }, fr: 0.6 },
+  { id: 'karaage', name: 'からあげ', g: 'M', price: 60, stock: 8, col: { t: 'hull' }, fr: 0.95, soft: 0.12 },
+  { id: 'wiener', name: 'ウインナー', g: 'M', price: 50, stock: 8, col: { t: 'cap', hh: 0.25, r: 0.13 }, fr: 0.6 },
+  { id: 'tamago', name: 'たまご焼き', g: 'M', price: 45, stock: 6, col: { t: 'box', x: 0.62, y: 0.34, z: 0.4 }, fr: 0.9, soft: 0.2 },
+  { id: 'croquette', name: 'コロッケ', g: 'M', price: 70, stock: 6, col: { t: 'hull' }, fr: 0.95, soft: 0.22 },
+  { id: 'ebi', name: 'エビフライ', g: 'M', price: 180, stock: 5, col: { t: 'hull' }, fr: 0.95 },
+  { id: 'hamburg', name: 'ハンバーグ', g: 'M', price: 160, stock: 4, col: { t: 'cyl', hh: 0.148, r: 0.5 }, fr: 0.7, soft: 0.12 },
+  { id: 'steak', name: 'ステーキ', g: 'M', price: 300, stock: 3, col: { t: 'box', x: 0.82, y: 0.2, z: 0.55 }, fr: 0.7 },
+  { id: 'roast', name: 'ローストビーフ', g: 'M', price: 250, stock: 4, col: { t: 'box', x: 0.88, y: 0.09, z: 0.62 }, fr: 0.3, recenter: true },
+  { id: 'curry', name: 'カレー', g: 'C', price: 120, stock: 4, col: { t: 'cyl', hh: 0.105, r: 0.6 }, fr: 0.3, recenter: true, soft: 0.3 },
+  { id: 'maguro', name: 'マグロ', g: 'R', price: 200, stock: 4, col: { t: 'box', x: 0.56, y: 0.13, z: 0.3 }, fr: 0.5 },
+  { id: 'kani', name: 'カニ', g: 'R', price: 400, stock: 3, col: { t: 'cap', hh: 0.85, r: 0.1 }, fr: 0.6 },
+  { id: 'cake', name: 'ショートケーキ', g: 'D', price: 150, stock: 4, col: { t: 'hull' }, fr: 0.8, soft: 0.48 },
+  { id: 'pudding', name: 'プリン', g: 'D', price: 100, stock: 5, col: { t: 'hull' }, fr: 0.6, re: 0.4, soft: 0.33, wob: 0.32, jelly: true },
+  { id: 'melon', name: 'メロン', g: 'D', price: 220, stock: 3, col: { t: 'hull' }, fr: 0.6 },
+];
+const BUILD = {
+  rice() {
+    const g = lathe(domeProfile(0.5, 0.37, 14, 0.7), 36), up = (x, y) => y > 0.012 ? 1 : 0;
+    lump(g, 0.02, 7, 11, up); lump(g, 0.008, 34, 12, up);
+    const a = C('#fcf9f0'), b = C('#e4dcc6');
+    paint(g, (x, y, z) => mix(a, b, Math.pow(vnoise(x * 30, y * 30, z * 30, 5), 2) * 0.95));
+    return [{ geo: g, mat: 'matte' }];
+  },
+  toast() {
+    const g = roundBox(0.95, 0.13, 0.9, 0.035, 0.04), cr = C('#8f5220'), cr2 = C('#b06c2c'), lite = C('#f3dca6'), tst = C('#c98b3c');
+    paint(g, (x, y, z, nx, ny) => {
+      const e = Math.min(0.475 - Math.abs(x), 0.45 - Math.abs(z));
+      if (Math.abs(ny) < 0.6 || e < 0.045) return mix(cr, cr2, vnoise(x * 9, y * 9, z * 9, 2));
+      return mix(lite, tst, (0.2 + 0.8 * vnoise(x * 3.2, z * 3.2, ny, 7)) * Math.min(1, e / 0.22 + 0.35));
+    });
+    const b = roundBox(0.24, 0.011, 0.22, 0.005, 0.06); tf(b, { r: [0, 0.4, 0], p: [0.05, 0.066, -0.03] }); paint1(b, '#f8e686');
+    return [{ geo: g, mat: 'matte' }, { geo: b, mat: 'gloss' }];
+  },
+  pasta() {
+    const R = 0.5, H = 0.24, rnd = mulberry32(77), base = lathe(domeProfile(R, H, 8, 0.8), 24); paint1(base, '#c4521d');
+    const parts = [{ geo: base, mat: 'gloss' }], c1 = C('#ea7c30'), c2 = C('#d4561f'), c3 = C('#f2a047');
+    const surf = (rho, phi, lift) => new THREE.Vector3(Math.cos(phi) * rho * R, H * Math.sqrt(Math.max(0, 1 - rho * rho)) + lift, Math.sin(phi) * rho * R);
+    for (let k = 0; k < 15; k++) {
+      const pts = []; let phi = rnd() * 6.28, rho = 0.2 + rnd() * 0.7; const n = 6 + Math.floor(rnd() * 3);
+      for (let i = 0; i < n; i++) { pts.push(surf(rho, phi, 0.02 + rnd() * 0.035)); phi += 0.55 + rnd() * 0.5; rho = clamp(rho + (rnd() - 0.5) * 0.5, 0.1, 0.93); }
+      const t = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 28, 0.03, 5, false), cc = mix(c1, k % 3 ? c2 : c3, rnd());
+      t.deleteAttribute('uv'); paint(t, () => cc); parts.push({ geo: t, mat: 'gloss' });
+    }
+    for (let k = 0; k < 4; k++) { const b = roundBox(0.13, 0.026, 0.04, 0.01, 0.05), q = surf(0.25 + rnd() * 0.5, rnd() * 6.28, 0.07); tf(b, { r: [rnd() - 0.5, rnd() * 6, rnd() - 0.5], p: [q.x, q.y, q.z] }); paint1(b, '#4c8a2a'); parts.push({ geo: b, mat: 'gloss' }); }
+    for (let k = 0; k < 3; k++) { const c = new THREE.CylinderGeometry(0.058, 0.058, 0.03, 10), q = surf(0.2 + rnd() * 0.5, rnd() * 6.28, 0.07); c.deleteAttribute('uv'); tf(c, { r: [rnd() * 0.8 - 0.4, 0, rnd() * 0.8 - 0.4], p: [q.x, q.y, q.z] }); paint1(c, '#b2452c'); parts.push({ geo: c, mat: 'gloss' }); }
+    return parts;
+  },
+  potato() {
+    const g = roundBox(0.9, 0.13, 0.13, 0.022, 0.045), a = C('#eec35a'), b = C('#c4852a'), c = C('#f7de92');
+    paint(g, (x, y, z) => mix(mix(a, c, vnoise(x * 12, y * 12, z * 12, 3) * 0.6), b, Math.max(0, (Math.abs(x) - 0.3) / 0.15) * 0.8 + (vnoise(x * 25, y * 25, z * 25, 4) > 0.78 ? 0.45 : 0)));
+    return [{ geo: g, mat: 'matte' }];
+  },
+  broccoli() {
+    const parts = [], st = new THREE.CylinderGeometry(0.085, 0.11, 0.26, 10, 2), s1 = C('#b9d680'), s2 = C('#8fb956'), d = C('#33681b'), l = C('#62a035'), rnd = mulberry32(5);
+    st.translate(0, 0.13, 0); st.deleteAttribute('uv'); paint(st, (x, y) => mix(s1, s2, y / 0.26)); parts.push({ geo: st, mat: 'matte' });
+    const add = (x, y, z, r, s) => { const f = smooth(new THREE.IcosahedronGeometry(r, 2)); lump(f, r * 0.2, 1.6 / r, s); tf(f, { p: [x, y, z] }); paint(f, (px, py, pz) => mix(d, l, vnoise(px * 26, py * 26, pz * 26, s) * 0.9 + (py - y) / r * 0.25)); parts.push({ geo: f, mat: 'matte' }); };
+    add(0, 0.43, 0, 0.16, 1); for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + 0.3; add(Math.cos(a) * 0.15, 0.34 + rnd() * 0.03, Math.sin(a) * 0.15, 0.125 + rnd() * 0.02, i + 2); }
+    return parts;
+  },
+  tomato() {
+    const g = new THREE.SphereGeometry(0.2, 20, 14), a = C('#cf1f18'), b = C('#ef4a2c'); g.deleteAttribute('uv'); paint(g, (x, y) => mix(a, b, y / 0.4 + 0.5));
+    const parts = [{ geo: g, mat: 'gloss' }];
+    for (let i = 0; i < 5; i++) { const c = new THREE.ConeGeometry(0.028, 0.1, 4); c.deleteAttribute('uv'); c.translate(0, 0.05, 0); tf(c, { r: [0, 0, -1.25] }); tf(c, { r: [0, i / 5 * 6.283, 0], p: [0, 0.193, 0] }); paint1(c, '#3a7a20'); parts.push({ geo: c, mat: 'matte' }); }
+    return parts;
+  },
+  karaage() {
+    const g = smooth(new THREE.IcosahedronGeometry(0.3, 6)); g.scale(1.12, 0.84, 1); lump(g, 0.075, 3.1, 21); lump(g, 0.024, 10, 22);
+    const a = C('#b06a26'), d = C('#7a4215'), h = C('#dfab58');
+    paint(g, (x, y, z) => mix(mix(d, a, vnoise(x * 8, y * 8, z * 8, 24) * 1.4), h, Math.max(0, vnoise(x * 26, y * 26, z * 26, 25) - 0.55) * 2.2));
+    return [{ geo: g, mat: 'fried' }];
+  },
+  wiener() {   // 長い向き＝Y（ねかせる向きは baseQ で決める）
+    const g = lathe(Array.from({ length: 29 }, (_, i) => { const y = -0.38 + 0.76 * i / 28, e = Math.min(y + 0.38, 0.38 - y); return [i === 0 || i === 28 ? 0 : 0.13 * (e < 0.13 ? Math.sqrt(1 - Math.pow(1 - e / 0.13, 2)) : 1), y]; }), 18);
+    const a = C('#b6492d'), d = C('#8c311d'), cut = C('#5a2011'), hl = C('#d06e48');
+    paint(g, (x, y, z, nx) => {
+      const s = (y + 0.3) * 5.5 + Math.atan2(z, x) * 0.35, f = Math.abs(s - Math.floor(s) - 0.5);
+      if (nx > 0.25 && Math.abs(y) < 0.26 && f < 0.09) return cut;
+      return mix(mix(d, a, vnoise(x * 9, y * 9, z * 9, 31)), hl, Math.max(0, nx) * 0.3);
+    });
+    return [{ geo: g, mat: 'gloss' }];
+  },
+  tamago() {
+    const g = roundBox(0.62, 0.34, 0.4, 0.05, 0.03), a = C('#f4d052'), l = C('#fbe68c'), ln = C('#cf9526'), br = C('#d9a136');
+    paint(g, (x, y, z, nx, ny) => {
+      if (Math.abs(nx) > 0.7) { const d = Math.max(Math.abs(y) / 0.17, Math.abs(z) / 0.2); return Math.sin(d * 15 + (y > 0 ? 0.6 : 0)) > 0.5 ? ln : mix(a, l, 0.5); }
+      return mix(mix(a, l, vnoise(x * 5, y * 5, z * 5, 41)), br, ny > 0.5 ? Math.max(0, vnoise(x * 3, z * 3, 1, 42) - 0.45) * 1.6 : 0);
+    });
+    return [{ geo: g, mat: 'matte' }];
+  },
+  croquette() {
+    const g = smooth(new THREE.SphereGeometry(0.37, 28, 18)); g.scale(1.1, 0.46, 0.86); lump(g, 0.028, 4, 51); lump(g, 0.012, 24, 52);
+    const a = C('#c68a3a'), d = C('#a06522'), h = C('#e8c170');
+    paint(g, (x, y, z) => mix(mix(d, a, vnoise(x * 6, y * 6, z * 6, 54) * 1.3), h, Math.max(0, vnoise(x * 30, y * 30, z * 30, 53) - 0.5) * 1.8));
+    return [{ geo: g, mat: 'fried' }];
+  },
+  ebi() {
+    const g = smooth(new THREE.SphereGeometry(1, 24, 16)), p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), s = 0.72 + 0.42 * (x + 1) / 2; p.setXYZ(i, x * 0.42, p.getY(i) * 0.16 * s + 0.05 * x * x, p.getZ(i) * 0.17 * s); }
+    lump(g, 0.02, 13, 61); lump(g, 0.008, 34, 62);
+    const a = C('#d59c42'), d = C('#b47626'), h = C('#f0cb7c');
+    paint(g, (x, y, z) => mix(mix(d, a, vnoise(x * 7, y * 7, z * 7, 64) * 1.3), h, Math.max(0, vnoise(x * 32, y * 32, z * 32, 63) - 0.52) * 1.8));
+    const parts = [{ geo: g, mat: 'fried' }], t1 = C('#ee6a44'), t2 = C('#c02f1b');
+    for (const s of [-1, 1]) {
+      const c = new THREE.ConeGeometry(0.1, 0.26, 7, 3); c.deleteAttribute('uv'); c.scale(1, 1, 0.24); c.translate(0, -0.13, 0);
+      tf(c, { r: [0, 0, -Math.PI / 2] }); tf(c, { r: [0, s * 0.36, 0], p: [-0.37, 0.045, 0] });
+      paint(c, x => mix(t1, t2, (-x - 0.37) / 0.26)); parts.push({ geo: c, mat: 'gloss' });
+    }
+    return parts;
+  },
+  hamburg() {   // 丸い軸＝Y
+    const g = lathe([[0, -0.145], [0.4, -0.145], [0.47, -0.11], [0.5, -0.03], [0.5, 0.03], [0.47, 0.09], [0.4, 0.128], [0.2, 0.14], [0, 0.143]], 32);
+    lump(g, 0.01, 10, 71, (x, y) => y > -0.14 ? 1 : 0);
+    const a = C('#5c3319'), d = C('#3a1e0e'), l = C('#7a4721');
+    paint(g, (x, y, z) => mix(mix(d, a, vnoise(x * 8, y * 8, z * 8, 72) * 1.5), l, Math.max(0, vnoise(x * 24, y * 24, z * 24, 73) - 0.6) * 2));
+    const s = lathe([[0, 0.125], [0.33, 0.12], [0.345, 0.128], [0.3, 0.142], [0.2, 0.15], [0, 0.151]], 32), p = s.attributes.position;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); if (Math.hypot(x, z) > 0.15) { const an = Math.atan2(z, x), k = 1 + 0.15 * (vnoise(Math.cos(an) * 2 + 3, Math.sin(an) * 2 + 3, 0, 74) - 0.5) * 2; p.setX(i, x * k); p.setZ(i, z * k); } }
+    s.computeVertexNormals(); paint1(s, '#34140a');
+    return [{ geo: g, mat: 'matte' }, { geo: s, mat: 'gloss' }];
+  },
+  steak() {
+    const g = roundBox(0.82, 0.2, 0.55, 0.045, 0.028), sear = C('#6d3c1e'), sear2 = C('#54290f'), mark = C('#24110a'), pink = C('#cc5d55'), mid = C('#9a4a3a'), fat = C('#ecdcb8');
+    paint(g, (x, y, z, nx, ny) => {
+      if (z > 0.225) return mix(fat, sear, Math.abs(ny) > 0.6 ? 0.45 : 0.1);
+      if (Math.abs(ny) > 0.6) { const u = (x * 0.9 + z) / 0.17, f = Math.abs(u - Math.floor(u) - 0.5); return f < 0.14 ? mark : mix(sear2, sear, vnoise(x * 10, z * 10, ny, 81)); }
+      const t = Math.min(1, Math.abs(y) / 0.085); return mix(pink, mix(mid, sear, t), t * t);
+    });
+    return [{ geo: g, mat: 'gloss' }];
+  },
+  roast() {
+    const hx = 0.44, hz = 0.31; let g = roundBox(hx * 2, 0.07, hz * 2, 0.03, 0.03); const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), u = x / hx, v = z / hz, X = x * (0.5 + 0.5 * Math.sqrt(1 - v * v / 2)), Z = z * (0.5 + 0.5 * Math.sqrt(1 - u * u / 2)); p.setXYZ(i, X, p.getY(i) + 0.01 * Math.sin(X * 7 + 1) * Math.cos(Z * 6), Z); }
+    g = smooth(g); const pk = C('#d0606a'), pk2 = C('#b9454f'), brn = C('#6d3b27'), mar = C('#eaa9a9');
+    paint(g, (x, y, z, nx, ny) => {
+      const e = (x / hx) ** 2 + (z / hz) ** 2, base = mix(mix(pk, pk2, vnoise(x * 6, z * 6, 1, 141)), mar, Math.max(0, vnoise(x * 16, z * 16, 2, 142) - 0.62) * 2.2);
+      return mix(base, brn, Math.max(clamp((e - 0.66) / 0.2, 0, 1), Math.abs(ny) < 0.5 ? 1 : 0));
+    });
+    return [{ geo: g, mat: 'gloss' }];
+  },
+  curry() {
+    const g = lathe([[0, 0], [0.5, 0], [0.59, 0.025], [0.6, 0.07], [0.55, 0.125], [0.42, 0.17], [0.22, 0.195], [0, 0.2]], 36), p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), an = Math.atan2(z, x), k = 1 + 0.05 * (vnoise(Math.cos(an) * 1.6 + 4, Math.sin(an) * 1.6 + 4, 0.5, 91) - 0.5) * 2; p.setX(i, x * k); p.setZ(i, z * k); }
+    g.computeVertexNormals(); const a = C('#a3611a'), b = C('#874a0f'), c = C('#c08329');
+    paint(g, (x, y, z) => mix(mix(b, a, vnoise(x * 4, y * 4, z * 4, 92) * 1.4), c, Math.max(0, vnoise(x * 11, y * 3, z * 11, 93) - 0.55) * 1.6));
+    const parts = [{ geo: g, mat: 'gloss' }];
+    const chunk = (w, h, d, hex, pos, rot) => { const b = roundBox(w, h, d, 0.03, 0.05); tf(b, { r: rot, p: pos }); paint1(b, hex); parts.push({ geo: b, mat: 'gloss' }); };
+    chunk(0.15, 0.1, 0.13, '#e37a1e', [0.22, 0.15, 0.08], [0.3, 0.5, 0.2]); chunk(0.2, 0.11, 0.16, '#ecd591', [-0.2, 0.145, -0.1], [0.1, 1.1, -0.2]);
+    chunk(0.16, 0.1, 0.14, '#5b3216', [0.02, 0.15, -0.26], [-0.2, 0.3, 0.15]); chunk(0.13, 0.09, 0.12, '#e37a1e', [-0.1, 0.155, 0.24], [0.2, 2, 0.1]);
+    return parts;
+  },
+  maguro() {
+    const g = roundBox(0.56, 0.13, 0.3, 0.035, 0.022), p = g.attributes.position, a = C('#ac1a29'), b = C('#cc3440'), ln = C('#e98a93');
+    for (let i = 0; i < p.count; i++) p.setX(i, p.getX(i) + p.getY(i) * 0.3);
+    paint(g, (x, y, z) => { const u = (x + z * 0.7) / 0.12, f = Math.abs(u - Math.floor(u) - 0.5); return f < 0.07 ? ln : mix(a, b, vnoise(x * 8, y * 8, z * 8, 101)); });
+    return [{ geo: g, mat: 'gloss' }];
+  },
+  kani() {   // 長い向き＝Y
+    const N = 56, prof = [];
+    for (let i = 0; i <= N; i++) {
+      const y = -0.95 + 1.9 * i / N, e = Math.min(y + 0.95, 0.95 - y); let r = 0.1 - 0.052 * Math.pow(Math.max(0, (y + 0.1) / 1.05), 1.3);
+      for (const j of [-0.28, 0.36]) r += 0.008 * Math.exp(-Math.pow((y - j) / 0.035, 2));
+      if (e < 0.08) r *= Math.sqrt(Math.max(0, 1 - Math.pow(1 - e / 0.08, 2))); prof.push([i === 0 || i === N ? 0 : r, y]);
+    }
+    const g = lathe(prof, 14), red = C('#e2481b'), red2 = C('#b8320e'), pale = C('#f8d6b8'), joint = C('#fcebdc'), meat = C('#fff7ee');
+    paint(g, (x, y, z, nx) => {
+      if (y < -0.9) return meat; if (Math.abs(y + 0.28) < 0.03 || Math.abs(y - 0.36) < 0.03) return joint;
+      return mix(pale, mix(red2, red, vnoise(x * 14, y * 14, z * 14, 151) * 1.3), clamp(nx * 1.6 + 0.6, 0, 1));
+    });
+    return [{ geo: g, mat: 'gloss' }];
+  },
+  cake() {
+    const sh = new THREE.Shape(); sh.moveTo(-0.42, 0); sh.lineTo(0.36, -0.27); sh.quadraticCurveTo(0.45, 0, 0.36, 0.27); sh.lineTo(-0.42, 0);
+    const g = new THREE.ExtrudeGeometry(sh, { depth: 0.4, bevelEnabled: false, steps: 16, curveSegments: 8 }); g.rotateX(-Math.PI / 2);
+    const cream = C('#fffaf0'), bot = C('#d3a152'), sp = C('#f5db93'), sp2 = C('#e9c672');
+    paint(g, (x, y, z, nx, ny) => {
+      if (ny > 0.9) return cream; if (ny < -0.9) return bot; if (nx > 0.45 || y > 0.345 || (y > 0.168 && y < 0.212)) return cream;
+      return mix(sp, sp2, vnoise(x * 20, y * 20, z * 20, 132) * 0.7);
+    });
+    const parts = [{ geo: g, mat: 'matte' }];
+    const dol = new THREE.SphereGeometry(0.11, 14, 10); dol.deleteAttribute('uv'); tf(dol, { s: [1, 0.45, 1], p: [0.08, 0.41, 0] }); paint1(dol, '#fffdf6'); parts.push({ geo: dol, mat: 'matte' });
+    for (const zz of [-0.16, 0.16]) { const r = new THREE.SphereGeometry(0.06, 10, 8); r.deleteAttribute('uv'); tf(r, { s: [1, 0.8, 1], p: [0.31, 0.425, zz] }); paint1(r, '#fffdf6'); parts.push({ geo: r, mat: 'matte' }); }
+    const sb = new THREE.SphereGeometry(0.095, 14, 10), p = sb.attributes.position, r1 = C('#d9212b'), r2 = C('#f0523f'); sb.deleteAttribute('uv');
+    for (let i = 0; i < p.count; i++) { const y = p.getY(i), t = (y / 0.095 + 1) / 2, k = 1.1 - 0.55 * t; p.setXYZ(i, p.getX(i) * k, y * 1.25, p.getZ(i) * k); }
+    sb.computeVertexNormals(); tf(sb, { p: [0.08, 0.5, 0] }); paint(sb, (x, y) => mix(r1, r2, (y - 0.4) / 0.25)); parts.push({ geo: sb, mat: 'gloss' });
+    return parts;
+  },
+  pudding() {
+    const g = lathe([[0, 0], [0.3, 0], [0.335, 0.02], [0.335, 0.05], [0.31, 0.15], [0.285, 0.25], [0.265, 0.33], [0.25, 0.385], [0.225, 0.41], [0.15, 0.42], [0, 0.42]], 32);
+    const body = C('#f7d76a'), b2 = C('#efc04a'), car = C('#57280b'), car2 = C('#8f4d15');
+    paint(g, (x, y, z) => {
+      if (y > 0.395) return mix(car, car2, vnoise(x * 9, z * 9, 1, 111) * 0.6);
+      const an = Math.atan2(z, x), drip = 0.24 + 0.14 * vnoise(Math.cos(an) * 3 + 2, Math.sin(an) * 3 + 2, 0, 112);
+      if (y > drip + 0.02) return mix(car2, car, 0.3); if (y > drip - 0.03) return mix(body, car2, 0.55); return mix(body, b2, 1 - y / 0.3);
+    });
+    return [{ geo: g, mat: 'gloss' }];
+  },
+  melon() {
+    const R = 0.5, PH = 1.05, rind = new THREE.SphereGeometry(R, 10, 22, 0, PH, 0, Math.PI), g1 = C('#7ca24f'), g2 = C('#5f8a3b'), net = C('#d6dfba'); rind.deleteAttribute('uv');
+    paint(rind, (x, y, z) => { const n = vnoise(x * 10, y * 10, z * 10, 121), m = vnoise(x * 23, y * 23, z * 23, 122); return (Math.abs(n - 0.5) < 0.07 || Math.abs(m - 0.5) < 0.045) ? net : mix(g2, g1, n); });
+    const fl1 = C('#f9cd90'), fl2 = C('#f29b3f'), pal = C('#dbe8a6'), rg = C('#6f9a45');
+    const flesh = (x, y, z) => { const q = Math.hypot(x, y, z) / R; return q > 0.94 ? rg : q > 0.8 ? pal : mix(fl1, fl2, q / 0.75); };
+    const fa = new THREE.RingGeometry(0.0005, R, 22, 7, -Math.PI / 2, Math.PI); fa.deleteAttribute('uv'); fa.rotateY(Math.PI); paint(fa, flesh);
+    const fb = new THREE.RingGeometry(0.0005, R, 22, 7, Math.PI / 2, Math.PI); fb.deleteAttribute('uv'); fb.rotateY(PH); paint(fb, flesh);
+    const parts = [{ geo: rind, mat: 'matte' }, { geo: fa, mat: 'gloss' }, { geo: fb, mat: 'gloss' }];
+    for (const q of parts) { q.geo.rotateZ(Math.PI / 2); q.geo.rotateX(PH / 2); }
+    return parts;
+  },
+};
+
+// ===== [SEC:TASTE] =====
+// 相性：2=◎名コンビ 1=○ 0=ふつう -1=✕ -2=✕✕
+const GROUP_LV = { SS: 0, SM: 1, SV: 1, SC: 2, SR: 0, SD: -1, MM: 0, MV: 1, MC: 1, MR: -1, MD: -1, VV: 0, VC: 1, VR: 0, VD: -1, CC: 0, CR: -2, CD: -2, RR: 1, RD: -2, DD: 1 };
+const SPECIAL = {
+  'rice+curry': [2, 'カレーライス'], 'rice+maguro': [2, '鉄火丼'], 'rice+kani': [2, 'カニめし'], 'rice+roast': [2, 'ローストビーフ丼'],
+  'rice+karaage': [2, 'からあげ定食'], 'rice+steak': [2, 'ステーキ丼'], 'rice+hamburg': [2, 'ハンバーグ定食'], 'rice+ebi': [2, 'エビフライ定食'],
+  'toast+wiener': [2, 'ホットドッグ'], 'toast+tamago': [2, 'たまごサンド'], 'toast+croquette': [2, 'コロッケパン'], 'toast+hamburg': [2, 'ハンバーガー'],
+  'toast+curry': [2, 'カレーパン'], 'toast+maguro': [-1], 'pasta+maguro': [-1], 'pasta+curry': [1],
+  'pasta+hamburg': [2, 'お子様ランチ'], 'pasta+wiener': [2, 'ウインナーナポリタン'],
+  'croquette+curry': [2, 'コロッケカレー'], 'karaage+curry': [2, 'からあげカレー'], 'ebi+curry': [2, 'エビフライカレー'], 'hamburg+curry': [2, 'ハンバーグカレー'],
+  'potato+steak': [2, 'ステーキセット'], 'potato+hamburg': [2, 'ハンバーグセット'], 'broccoli+tomato': [1, 'サラダ'],
+  'pudding+melon': [2, 'プリンアラモード'], 'maguro+kani': [2, '海鮮盛り'],
+  'curry+cake': [-2, 'カレーケーキ事件'], 'curry+pudding': [-2, 'カレープリン事件'], 'maguro+cake': [-2, 'マグロケーキ事件'],
+};
+function compat(A, B) {
+  if (A.id === B.id) return { lv: 0 };
+  const s = SPECIAL[A.id + '+' + B.id] || SPECIAL[B.id + '+' + A.id]; if (s) return { lv: s[0], name: s[1] };
+  return { lv: GROUP_LV[A.g + B.g] ?? GROUP_LV[B.g + A.g] ?? 0 };
+}
+const comboText = (c, A, B) => c.lv === 2 ? '◎ ' + (c.name || '名コンビ') + '！' : c.lv === 1 ? '○ ' + (c.name || '相性よし') : c.lv === -1 ? '✕ 味がまざった' : '✕✕ ' + (c.name || '大事故…');
+
+// ===== [SEC:TYPES] =====
+// 料理ごとに、見た目・当たり判定・大きさを用意する
+const TYPES = [];
+const Q_STAND = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2), Y_AX = new THREE.Vector3(0, 1, 0);
+function colliderDesc(T) {
+  const c = T.col; let d;
+  if (c.t === 'box') d = RAPIER.ColliderDesc.cuboid(c.x / 2, c.y / 2, c.z / 2);
+  else if (c.t === 'ball') d = RAPIER.ColliderDesc.ball(c.r);
+  else if (c.t === 'cap') d = RAPIER.ColliderDesc.capsule(c.hh, c.r);
+  else if (c.t === 'cyl') d = RAPIER.ColliderDesc.cylinder(c.hh, c.r);
+  else d = RAPIER.ColliderDesc.convexHull(T.hullPts);
+  if (!d) throw new Error('当たり判定を作れない: ' + T.name);
+  d.setFriction(T.fr).setRestitution(T.re || 0.02).setContactSkin(CONFIG.SKIN);
+  return T.mass ? d.setMass(T.mass) : d.setDensity(1);
+}
+function buildTypes() {
+  for (const F of FOODS) {
+    const T = { ...F }, { geo, mats, matsG, matsB } = assemble(BUILD[F.id]()); if (!geo) throw new Error('形を作れない: ' + F.name);
+    geo.computeBoundingBox(); const bb = geo.boundingBox, ctr = bb.getCenter(new THREE.Vector3()), size = bb.getSize(new THREE.Vector3());
+    if (T.col.t === 'hull' || T.recenter) { geo.translate(-ctr.x, -ctr.y, -ctr.z); ctr.set(0, 0, 0); }
+    if (T.col.t === 'hull') T.hullPts = supportPoints(geo);
+    geo.computeBoundingBox(); geo.computeBoundingSphere();
+    const p = geo.attributes.position; let br = 0; for (let i = 0; i < p.count; i++) br = Math.max(br, Math.hypot(p.getX(i), p.getY(i), p.getZ(i)));
+    // 当たり判定の大きさ（見た目と10%以上ちがわないか、あとで調べる）
+    const c = T.col; let cs;
+    if (c.t === 'box') cs = [c.x, c.y, c.z]; else if (c.t === 'ball') cs = [c.r * 2, c.r * 2, c.r * 2];
+    else if (c.t === 'cap') cs = [c.r * 2, (c.hh + c.r) * 2, c.r * 2]; else if (c.t === 'cyl') cs = [c.r * 2, c.hh * 2, c.r * 2];
+    else { const mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9]; for (let i = 0; i < T.hullPts.length; i += 3) for (let k = 0; k < 3; k++) { mn[k] = Math.min(mn[k], T.hullPts[i + k]); mx[k] = Math.max(mx[k], T.hullPts[i + k]); } cs = [mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]]; }
+    const vs = [size.x, size.y, size.z], cc = [ctr.x, ctr.y, ctr.z];
+    T.sizeErr = Math.max(...cs.map((v, k) => Math.abs(vs[k] - v) / v + Math.abs(cc[k]) / v));
+    T.geo = geo; T.mats = mats; T.matsG = matsG; T.matsB = matsB; T.br = br; T.minHalf = Math.min(...cs) / 2;
+    T.half = [geo.boundingBox.max.x, geo.boundingBox.max.y, geo.boundingBox.max.z].map((v, k) => Math.max(v, -geo.boundingBox.min.getComponent(k)));
+    T.soft = T.soft || 0; T.canSq = T.soft > 0 && (c.t === 'box' || c.t === 'cyl' || c.t === 'hull'); T.sqShapes = {}; T.wob = T.wob || (CONFIG.WOB_BASE + CONFIG.WOB_SOFT * T.soft);
+    T.baseQ = (c.t === 'cap') ? Q_STAND.clone() : new THREE.Quaternion();
+    T.shape = colliderDesc(T).shape; TYPES.push(T);
+    // 重さ：体積どおりだと軽い料理が重い山に押しつぶされるので、差をゆるめる
+    const tw = new RAPIER.World({ x: 0, y: 0, z: 0 }), tc = tw.createCollider(colliderDesc(T), tw.createRigidBody(RAPIER.RigidBodyDesc.dynamic()));
+    T.mass = 0.5 * Math.pow(tc.mass() / 0.1, CONFIG.MASS_POW); tw.free();
+  }
+}
+function squashShape(T, axis, lv) {   // つぶれた時の当たり判定（段階ごとに作って使い回す）
+  const key = axis * 10 + lv; if (T.sqShapes[key]) return T.sqShapes[key];
+  const f = 1 - T.soft * lv / CONFIG.SQ_LEVELS, g = Math.pow(f, -CONFIG.SQ_BULGE), sc = [g, g, g], c = T.col; sc[axis] = f; let sh;
+  if (c.t === 'box') sh = new RAPIER.Cuboid(c.x / 2 * sc[0], c.y / 2 * sc[1], c.z / 2 * sc[2]);
+  else if (c.t === 'cyl') sh = new RAPIER.Cylinder(c.hh * f, c.r * g);
+  else { const p = new Float32Array(T.hullPts.length); for (let i = 0; i < p.length; i++) p[i] = T.hullPts[i] * sc[i % 3]; sh = RAPIER.ColliderDesc.convexHull(p).shape; }
+  return (T.sqShapes[key] = sh);
+}
+function poseQuat(ti, rs, st) { const q = new THREE.Quaternion().setFromAxisAngle(Y_AX, rs * Math.PI / 4); if (st) q.multiply(Q_STAND); return q.multiply(TYPES[ti].baseQ); }
+
+// ===== [SEC:SCENE] =====
+const canvas = $('c'), view = $('view');
+let renderer, scene, camera, sun, plateGroup, marker, viewRect = { left: 0, top: 0, width: 1, height: 1 };
+const cam = { yaw: CONFIG.CAM.YAW, pitch: CONFIG.CAM.PITCH, yawT: CONFIG.CAM.YAW, pitchT: CONFIG.CAM.PITCH, dist: 9, zoom: 1, fit: 1, tgt: new THREE.Vector3(0, 0.3, 0), offY: 0, offYT: 0 };
+function canvasTex(w, h, draw, srgb = true) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; }
+function initScene() {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.setClearColor(0x000000, 0);
+  scene = new THREE.Scene();
+  const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55;
+  scene.background = canvasTex(512, 512, (x) => {
+    const g = x.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, '#2c1b10'); g.addColorStop(0.55, '#50321c'); g.addColorStop(1, '#1c120b'); x.fillStyle = g; x.fillRect(0, 0, 512, 512);
+    const r = mulberry32(9);
+    for (let i = 0; i < 28; i++) { const px = r() * 512, py = r() * 250, rad = 14 + r() * 40, col = ['255,196,110', '255,150,80', '255,226,170'][i % 3], gg = x.createRadialGradient(px, py, 0, px, py, rad); gg.addColorStop(0, `rgba(${col},${0.1 + r() * 0.16})`); gg.addColorStop(0.7, `rgba(${col},0.05)`); gg.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gg; x.beginPath(); x.arc(px, py, rad, 0, 7); x.fill(); }
+  });
+  camera = new THREE.PerspectiveCamera(CONFIG.CAM.FOV, 1, 0.5, 80);
+  scene.add(new THREE.HemisphereLight(0xfff1dc, 0x6b4a33, 0.7));
+  sun = new THREE.DirectionalLight(0xfff4e2, 2.4); sun.position.set(1.5, 9, 2.2); sun.castShadow = true;
+  const sm = (matchMedia('(pointer:coarse)').matches ? 1024 : 2048); sun.shadow.mapSize.set(sm, sm);
+  Object.assign(sun.shadow.camera, { left: -4.6, right: 4.6, top: 4.6, bottom: -4.6, near: 1, far: 22 }); sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.025; sun.shadow.radius = 3;
+  scene.add(sun, sun.target);
+  const fill = new THREE.DirectionalLight(0xffd9b0, 0.45); fill.position.set(-4, 3, -3); scene.add(fill);
+
+  // テーブル（木目）
+  const wood = canvasTex(1024, 1024, (x) => {
+    const r = mulberry32(21), pw = 1024 / 5; x.fillStyle = '#7a4d2b'; x.fillRect(0, 0, 1024, 1024);
+    for (let i = 0; i < 5; i++) {
+      x.fillStyle = `hsl(${24 + r() * 6},${42 + r() * 10}%,${27 + r() * 8}%)`; x.fillRect(i * pw, 0, pw, 1024);
+      for (let k = 0; k < 70; k++) { let dx = i * pw + r() * pw; x.strokeStyle = `rgba(${r() < 0.5 ? '40,20,8' : '190,140,90'},${0.05 + r() * 0.1})`; x.lineWidth = 0.6 + r() * 1.8; x.beginPath(); x.moveTo(dx, 0); for (let y = 40; y <= 1040; y += 40) { dx += (r() - 0.5) * 5; x.lineTo(dx, y); } x.stroke(); }
+      x.fillStyle = 'rgba(20,10,4,0.55)'; x.fillRect(i * pw - 1.5, 0, 3, 1024);
+    }
+  });
+  wood.wrapS = wood.wrapT = THREE.RepeatWrapping; wood.repeat.set(2.5, 2.5); wood.anisotropy = 8;
+  const table = new THREE.Mesh(new THREE.BoxGeometry(18, 1, 18), new THREE.MeshStandardMaterial({ map: wood, roughness: 0.55 })); table.position.y = CONFIG.TABLE_Y - 0.5; table.receiveShadow = true; scene.add(table);
+  // ランチョンマット
+  const ms = new THREE.Shape(), mw = 2.9, mh = 2.5, mr = 0.25;
+  ms.moveTo(-mw + mr, -mh); ms.lineTo(mw - mr, -mh); ms.quadraticCurveTo(mw, -mh, mw, -mh + mr); ms.lineTo(mw, mh - mr); ms.quadraticCurveTo(mw, mh, mw - mr, mh); ms.lineTo(-mw + mr, mh); ms.quadraticCurveTo(-mw, mh, -mw, mh - mr); ms.lineTo(-mw, -mh + mr); ms.quadraticCurveTo(-mw, -mh, -mw + mr, -mh);
+  const weave = canvasTex(128, 128, (x) => { x.fillStyle = '#2e4058'; x.fillRect(0, 0, 128, 128); const r = mulberry32(4); for (let i = 0; i < 128; i += 2) { x.fillStyle = `rgba(255,255,255,${0.02 + r() * 0.05})`; x.fillRect(i, 0, 1, 128); x.fillStyle = `rgba(0,0,0,${0.03 + r() * 0.07})`; x.fillRect(0, i, 128, 1); } });
+  weave.wrapS = weave.wrapT = THREE.RepeatWrapping; weave.repeat.set(2, 2);
+  const mat = new THREE.Mesh(new THREE.ShapeGeometry(ms, 6), new THREE.MeshStandardMaterial({ map: weave, roughness: 0.95 })); mat.rotation.x = -Math.PI / 2; mat.position.y = CONFIG.TABLE_Y + 0.006; mat.receiveShadow = true; scene.add(mat);
+  // お皿
+  plateGroup = new THREE.Group();
+  const pg = lathe([[0, 0], [1.5, 0], [1.6, 0.025], [1.7, 0.075], [1.775, 0.108], [1.8, 0.105], [1.79, 0.085], [1.66, 0], [1.45, -0.085], [1.0, -0.13], [0.95, -0.2], [0.86, -0.2], [0.82, -0.14], [0, -0.14]], 72);
+  const plate = new THREE.Mesh(pg, new THREE.MeshPhysicalMaterial({ color: 0xfbfaf5, roughness: 0.2, clearcoat: 0.7, clearcoatRoughness: 0.12 })); plate.castShadow = plate.receiveShadow = true; plateGroup.add(plate);
+  const line = new THREE.Mesh(new THREE.TorusGeometry(1.735, 0.007, 6, 72), new THREE.MeshStandardMaterial({ color: 0xc9a24a, roughness: 0.3, metalness: 0.8 })); line.rotation.x = Math.PI / 2; line.position.y = 0.094; plateGroup.add(line);
+  scene.add(plateGroup);
+  // 卓上の札
+  const signTex = canvasTex(512, 384, (x) => {
+    x.fillStyle = '#f7f0e1'; x.fillRect(0, 0, 512, 384); x.strokeStyle = '#c5372c'; x.lineWidth = 8; x.strokeRect(14, 14, 484, 356); x.lineWidth = 2; x.strokeRect(28, 28, 456, 328);
+    x.fillStyle = '#3a2a1f'; x.textAlign = 'center'; x.font = '800 74px "Hiragino Mincho ProN","Yu Mincho",serif'; x.fillText('おかわりは、', 256, 140); x.fillText('できません。', 256, 232);
+    x.fillStyle = '#c5372c'; x.font = '700 34px "Hiragino Sans","Yu Gothic UI",sans-serif'; x.fillText('一皿かぎり ' + yen(CONFIG.FEE), 256, 310);
+  });
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.975, 0.06), [0, 1, 2, 3].map(() => new THREE.MeshStandardMaterial({ color: 0xe9dfca, roughness: 0.8 })).concat([new THREE.MeshStandardMaterial({ map: signTex, roughness: 0.75 }), new THREE.MeshStandardMaterial({ color: 0xe9dfca, roughness: 0.8 })]));
+  sign.position.set(SIGN.x, CONFIG.TABLE_Y + 0.47, SIGN.z); sign.rotation.set(-0.2, SIGN.ry, 0, 'YXZ'); sign.castShadow = sign.receiveShadow = true; scene.add(sign);
+  // 置く場所の印
+  marker = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, depthTest: false, toneMapped: false })); marker.renderOrder = 10; marker.visible = false; scene.add(marker);
+}
+const SIGN = { x: -3.3, z: -2.9, ry: 0.55 };
+function resize() {
+  const r = view.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return;
+  viewRect = { left: r.left, top: r.top, width: r.width, height: r.height };
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setSize(r.width, r.height, false);
+  camera.aspect = r.width / r.height; const hf = Math.atan(Math.tan(CONFIG.CAM.FOV * Math.PI / 360) * camera.aspect);
+  cam.fit = Math.max(1, (2.3 / Math.tan(hf)) / CONFIG.CAM.DIST); applyViewOffset(true);
+  const hb = $('hud').getBoundingClientRect(); if (hb.height > 0) view.style.setProperty('--note-top', Math.round(hb.bottom - r.top + 6) + 'px');
+}
+let _offApplied = -1;
+function applyViewOffset(force) { if (!force && Math.abs(cam.offY - _offApplied) < 0.002) return; _offApplied = cam.offY; const w = viewRect.width, h = viewRect.height; camera.setViewOffset(w, h, 0, cam.offY * h, w, h); camera.updateProjectionMatrix(); }
+function makeThumbs() {   // 棚に並べる料理の絵を、3Dから作る
+  const s = new THREE.Scene(), c = new THREE.PerspectiveCamera(30, 1.4, 0.1, 50), l = new THREE.DirectionalLight(0xffffff, 2.4);
+  s.environment = scene.environment; s.environmentIntensity = 0.5; l.position.set(-2.5, 5, 3); s.add(l, new THREE.HemisphereLight(0xffffff, 0x8a7a66, 0.5));
+  renderer.setPixelRatio(1); renderer.setSize(196, 140, false);
+  for (const T of TYPES) {
+    const m = new THREE.Mesh(T.geo, T.mats), piv = new THREE.Group(); m.quaternion.copy(T.baseQ); piv.add(m); piv.rotation.y = -0.6; s.add(piv);
+    const d = T.br / Math.sin(15 * Math.PI / 180) * 1.04; c.position.set(0, d * 0.62, d * 0.78); c.lookAt(0, 0, 0); renderer.render(s, c); T.thumb = canvas.toDataURL('image/png'); s.remove(piv);
+  }
+}
+
+// ===== [SEC:PHYSICS] =====
+let world, plateBody, plateBase, rimCols = [], tableCol, signCol, nanCount = 0;
+const items = [], itemByHandle = new Map(); let nextId = 1;
+const RIM_N = 24;
+function initPhysics() {
+  world = new RAPIER.World({ x: 0, y: -CONFIG.GRAVITY, z: 0 }); world.timestep = CONFIG.FIXED; world.numSolverIterations = CONFIG.SOLVER_ITERS; world.integrationParameters.contact_natural_frequency = CONFIG.CONTACT_HZ;
+  const tb = world.createRigidBody(RAPIER.RigidBodyDesc.fixed());
+  tableCol = world.createCollider(RAPIER.ColliderDesc.cuboid(9, 0.5, 9).setTranslation(0, CONFIG.TABLE_Y - 0.5, 0).setFriction(0.7), tb);
+  const sq = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.2, SIGN.ry, 0, 'YXZ'));
+  signCol = world.createCollider(RAPIER.ColliderDesc.cuboid(0.65, 0.4875, 0.03).setTranslation(SIGN.x, CONFIG.TABLE_Y + 0.47, SIGN.z).setRotation(sq).setFriction(0.6), tb);
+  plateBody = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased());
+  plateBase = world.createCollider(RAPIER.ColliderDesc.cylinder(0.1, CONFIG.PLATE_R).setTranslation(0, -0.1, 0).setFriction(CONFIG.PLATE_FR), plateBody);
+  // ふち：ななめの板を輪にならべる
+  const dr = CONFIG.RIM_R - CONFIG.PLATE_R, th = Math.atan2(CONFIG.RIM_H, dr), len = Math.hypot(dr, CONFIG.RIM_H), hy = 0.06;
+  const midR = CONFIG.PLATE_R + dr / 2, cr = midR + Math.sin(th) * hy, cy = CONFIG.RIM_H / 2 - Math.cos(th) * hy, hz = Math.PI * cr / RIM_N + 0.02;
+  for (let k = 0; k < RIM_N; k++) {
+    const phi = k / RIM_N * Math.PI * 2, q = new THREE.Quaternion().setFromAxisAngle(Y_AX, -phi).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), th));
+    rimCols.push(world.createCollider(RAPIER.ColliderDesc.cuboid(len / 2 + 0.01, hy, hz).setTranslation(Math.cos(phi) * cr, cy, Math.sin(phi) * cr).setRotation(q).setFriction(CONFIG.PLATE_FR), plateBody));
+  }
+}
+function spawnItem(ti, pos, q) {
+  const T = TYPES[ti];
+  const body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(pos.x, pos.y, pos.z).setRotation({ x: q.x, y: q.y, z: q.z, w: q.w }).setLinearDamping(CONFIG.LIN_DAMP).setAngularDamping(CONFIG.ANG_DAMP).setCcdEnabled(true));
+  const col = world.createCollider(colliderDesc(T), body), mesh = new THREE.Mesh(T.geo, T.mats);
+  mesh.castShadow = mesh.receiveShadow = true; mesh.position.set(pos.x, pos.y, pos.z); mesh.quaternion.copy(q); scene.add(mesh);
+  const badge = new THREE.Sprite(BADGE_MAT[1]); badge.visible = false; badge.renderOrder = 20; scene.add(badge);
+  const it = { id: nextId++, ti, T, body, col, mesh, badge, br: T.br, onPlate: false, taste: 1, tasteC: 1, betsuShown: false, betsuLost: false, landed: false, spilled: false, nb: [], dn: [], dw: [], nbPrev: 0, tp: false, tt: false, mark: 0, bmark: 0, sqLv: 0, sq: 0, sqWait: 0, load: 0, sqAxis: 1, wobT: -9, wobA: 0 };
+  items.push(it); itemByHandle.set(col.handle, it); placedYen += T.price; return it;
+}
+function removeItem(it) { itemByHandle.delete(it.col.handle); world.removeRigidBody(it.body); scene.remove(it.mesh); scene.remove(it.badge); }
+const _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _sc = new THREE.Vector3();
+function upAxis(it) {   // 料理のどの向き（0=X 1=Y 2=Z）が、今いちばん上下を向いているか
+  const r = it.body.rotation(); _q.set(r.x, r.y, r.z, r.w); let best = 1, bv = -1;
+  for (let a = 0; a < 3; a++) { _v.set(a === 0 ? 1 : 0, a === 1 ? 1 : 0, a === 2 ? 1 : 0).applyQuaternion(_q); if (Math.abs(_v.y) > bv) { bv = Math.abs(_v.y); best = a; } }
+  return best;
+}
+function applySquash(it, lv) {   // やわらかい料理を1段階つぶす（当たり判定も同じ形にする。一度つぶれたら戻らない）
+  const T = it.T; if (it.sqLv === 0) { const a = upAxis(it); if (T.col.t === 'cyl' && a !== 1) return; it.sqAxis = a; }
+  it.sqLv = lv; it.col.setShape(squashShape(T, it.sqAxis, lv)); it.body.wakeUp();
+  it.br = T.br * Math.pow(1 - T.soft * lv / CONFIG.SQ_LEVELS, -CONFIG.SQ_BULGE);
+  for (const j of it.nb) if (items[j]) items[j].body.wakeUp();
+  if (state === 'play') { popQ.push({ text: '▼ つぶれた −' + Math.round(CONFIG.SQ_TASTE * lv / CONFIG.SQ_LEVELS * 100) + '%', cls: 'sq', pri: 1 }); sfx.squash(); }
+}
+function wobble(it, k) {   // ぷるんと揺らす（見た目だけ）
+  if (gameTime - it.wobT < 0.35) return; it.wobT = gameTime; it.wobA = it.T.wob * k; if (it.sqLv === 0) it.sqAxis = upAxis(it);
+}
+function restPose(ti, x, z, q) {   // その場所にそっと置いた時の高さを調べる（上から形ごと下ろす）
+  const T = TYPES[ti], sy = 24, h = world.castShape({ x, y: sy, z }, { x: q.x, y: q.y, z: q.z, w: q.w }, { x: 0, y: -1, z: 0 }, T.shape, 0, sy + 12, true);
+  return h ? { y: sy - h.time_of_impact + CONFIG.HOVER_GAP, hit: h } : { y: CONFIG.TABLE_Y + T.br + CONFIG.HOVER_GAP, hit: null };
+}
+function syncVisuals() {   // 物理の位置を見た目へ写す（ここ1か所だけ）
+  for (const it of items) {
+    const t = it.body.translation(), r = it.body.rotation(); it.mesh.position.set(t.x, t.y, t.z); it.mesh.quaternion.set(r.x, r.y, r.z, r.w);
+    let w = 0; const wt = gameTime - it.wobT; if (it.wobA > 0 && wt < 1.6) { const J = it.T.jelly; w = it.wobA * Math.exp(-wt * (J ? 3.2 : 8)) * Math.cos(wt * (J ? 21 : 27)); }
+    const g = Math.pow(1 - it.sq, -CONFIG.SQ_BULGE) * (1 + w * 0.5); _sc.set(g, g, g).setComponent(it.sqAxis, (1 - it.sq) * (1 - w)); it.mesh.scale.copy(_sc);
+    if (it.badge.visible) { const b = markHold ? CONFIG.BADGE_SIZE * 1.3 * (1 + 0.1 * Math.sin(gameTime * 10 + it.id)) : CONFIG.BADGE_SIZE; _q.set(r.x, r.y, r.z, r.w); let up = 0; for (let a = 0; a < 3; a++) up += Math.abs(_v.set(a === 0 ? 1 : 0, a === 1 ? 1 : 0, a === 2 ? 1 : 0).applyQuaternion(_q).y) * it.T.half[a] * _sc.getComponent(a);
+      it.badge.position.set(t.x, t.y + up + 0.16, t.z); it.badge.scale.set(b, b, 1); }
+  }
+  const t = plateBody.translation(), r = plateBody.rotation(); plateGroup.position.set(t.x, t.y, t.z); plateGroup.quaternion.set(r.x, r.y, r.z, r.w);
+}
+
+// ===== [SEC:SCAN] =====
+// ふれ合いを調べて、お皿に乗っている料理・おいしさ・点数を出す
+let live = { moto: 0, score: 0, taste: 1, top: 0, count: 0 }, placedYen = 0;
+const seenPairs = new Set(), popQ = [];
+function touchesPlate(it, t, py) {
+  const br = it.br, rad = Math.hypot(t.x, t.z); if (t.y - br > py + CONFIG.RIM_H + 0.06 || t.y + br < py - 0.25 || rad > CONFIG.RIM_R + br) return false;
+  let c = it.col.contactCollider(plateBase, CONFIG.TOUCH_DIST); if (c && c.distance <= CONFIG.TOUCH_DIST) return true;
+  if (rad + br < CONFIG.PLATE_R - 0.05) return false;
+  const k0 = Math.round(Math.atan2(t.z, t.x) / (Math.PI * 2 / RIM_N)), span = Math.min(RIM_N >> 1, 2 + Math.ceil(br / 0.42));
+  for (let d = -span; d <= span; d++) { c = it.col.contactCollider(rimCols[((k0 + d) % RIM_N + RIM_N) % RIM_N], CONFIG.TOUCH_DIST); if (c && c.distance <= CONFIG.TOUCH_DIST) return true; }
+  return false;
+}
+function scan(final) {
+  const n = items.length, pos = new Array(n), TD = CONFIG.TOUCH_DIST, py = plateBody.translation().y;
+  for (let i = 0; i < n; i++) { const it = items[i], t = it.body.translation(); pos[i] = t; it.nb.length = 0; it.dn.length = 0; it.dw.length = 0; it.tp = touchesPlate(it, t, py); it.tt = false;
+    if (t.y - it.br < CONFIG.TABLE_Y + TD) { const c = it.col.contactCollider(tableCol, TD); it.tt = !!(c && c.distance <= TD); } }
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    const a = pos[i], b = pos[j], r = items[i].br + items[j].br + TD, dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
+    if (dx * dx + dy * dy + dz * dz > r * r) continue;
+    const c = items[i].col.contactCollider(items[j].col, TD); if (!c || c.distance > TD) continue;
+    items[i].nb.push(j); items[j].nb.push(i); const ny = c.normal1.y; if (ny > 0.45) { items[j].dn.push(i); items[j].dw.push(ny); } else if (ny < -0.45) { items[i].dn.push(j); items[i].dw.push(-ny); }   // dn＝自分を下で支えている料理、dw＝どれだけ真下で支えているか
+  }
+  // 上に乗っている重さを、上から順に下へ伝える。重さがかかったやわらかい料理はつぶれる
+  if (!final && n) {
+    const ord = pos.map((_, i) => i).sort((a, b) => pos[b].y - pos[a].y), load = new Float32Array(n);
+    for (const i of ord) {   // 自分の重さ＋背負っている重さを、支えている料理へ分ける（お皿やテーブルにも乗っていれば、そちらにも1つ分わたす）
+      const it = items[i], d = it.dn; if (!d.length) continue; let W = (it.tp || it.tt) ? 1 : 0; for (const w of it.dw) W += w;
+      const tot = it.T.mass + load[i]; for (let k = 0; k < d.length; k++) load[d[k]] += tot * it.dw[k] / W;
+    }
+    for (let i = 0; i < n; i++) { const it = items[i]; it.load = load[i]; if (!it.T.canSq || !it.landed) continue; const lv = Math.min(CONFIG.SQ_LEVELS, Math.floor(load[i] / CONFIG.SQ_LOAD * CONFIG.SQ_LEVELS + 1e-6));
+      if (lv <= it.sqLv) { it.sqWait = 0; continue; } it.sqWait += CONFIG.SCAN_DT; if (it.sqWait >= CONFIG.SQ_DELAY) { it.sqWait = 0; applySquash(it, lv); }   // 一瞬ぶつかっただけではつぶれない
+    }
+  }
+  // お皿からつながっている料理をたどる（テーブルにふれた料理は数えない）
+  const on = new Array(n).fill(false), q = [];
+  for (let i = 0; i < n; i++) if (items[i].tp && !items[i].tt && (!final || pos[i].y > py - 0.3)) { on[i] = true; q.push(i); }
+  while (q.length) { const i = q.pop(); for (const j of items[i].nb) if (!on[j] && !items[j].tt && (!final || pos[j].y > py - 0.3)) { on[j] = true; q.push(j); } }
+  let moto = 0, score = 0, top = 0, count = 0, good = 0, bad = 0, sqn = 0, betsuN = 0; const combos = new Map();
+  for (let i = 0; i < n; i++) {
+    const it = items[i]; it.onPlate = on[i];
+    if (!it.landed && (it.nb.length || it.tp || it.tt)) { it.landed = true; sfx.thud(); wobble(it, 1); }
+    else if (it.landed && it.nb.length > it.nbPrev) wobble(it, 0.6);   // 何かが当たったら、また少し揺れる
+    it.nbPrev = it.nb.length;
+    if (it.tt && !it.spilled && it.landed) { it.spilled = true; if (state === 'play' || state === 'judge') { popQ.push({ text: state === 'judge' ? '落ちた…' : 'こぼした…', cls: 'sp', pri: 3 }); sfx.spill(); buzz(25); } }
+    if (!on[i]) { it.taste = it.tasteC = 1; continue; }
+    const types = new Set(); let sum = 0, salty = false;
+    for (const j of it.nb) { if (!on[j]) continue; const B = items[j].T; if (B.g !== 'D') salty = true; if (types.has(B.id)) continue; types.add(B.id); sum += CONFIG.TASTE[compat(it.T, B).lv] || 0; }
+    const betsu = it.T.g === 'D' && !salty; if (betsu) { sum += CONFIG.BETSUBARA; betsuN++; }   // 別腹：しょっぱい物にふれていないデザート
+    if (state === 'play' && it.landed) {   // 別腹になった・だいなしになった時の合図（1個につき1回ずつ）
+      if (betsu && !it.betsuShown) { it.betsuShown = true; popQ.push({ text: '◎ 別腹！ デザート ＋' + Math.round(CONFIG.BETSUBARA * 100) + '%', cls: 'g2', lv: 2, pri: 5 }); }
+      else if (!betsu && it.betsuShown && !it.betsuLost) { it.betsuLost = true; popQ.push({ text: '✕ 別腹がだいなし…', cls: 'b2', pri: 5 }); }
+    }
+    it.tasteC = clamp(1 + sum, CONFIG.TASTE_MIN, CONFIG.TASTE_MAX);   // 相性だけのおいしさ（印の色はこちらで決める）
+    it.taste = clamp(1 + sum - CONFIG.SQ_TASTE * it.sqLv / CONFIG.SQ_LEVELS, CONFIG.TASTE_MIN, CONFIG.TASTE_MAX); if (it.sqLv > 0) sqn++;
+    moto += it.T.price; score += it.T.price * it.taste; count++;
+    top = Math.max(top, pos[i].y + it.br * 0.6 - py);
+    for (const j of it.nb) {
+      if (j < i || !on[j]) continue; const B = items[j], c = compat(it.T, B.T); if (!c.lv) continue; if (c.lv > 0) good++; else bad++;
+      const key = it.id * 100000 + B.id;
+      if (!seenPairs.has(key)) { seenPairs.add(key); if (state === 'play') popQ.push({ text: comboText(c), cls: c.lv > 0 ? 'g2' : 'b2', lv: c.lv, pri: Math.abs(c.lv) === 2 ? 4 : 0 }); }
+      const ck = [it.T.id, B.T.id].sort().join('+'); if (!combos.has(ck)) combos.set(ck, { lv: c.lv, text: c.name || (it.T.name + '×' + B.T.name) });
+    }
+  }
+  live = { moto, score: Math.round(score), taste: moto > 0 ? score / moto : 1, top, count, combos, good, bad, sqn, betsuN };
+  let best = null, snd = 0;   // 文字は上の1行に、いちばん大事な1つだけ出す（お皿の上には出さない）
+  for (const p of popQ) { if (p.lv && snd < 2) { snd++; if (p.lv > 0) sfx.good(p.lv); else sfx.bad(p.lv); } if (p.pri && (!best || p.pri > best.pri)) best = p; }
+  popQ.length = 0; if (best && (noteT <= 0 || best.pri >= notePri || noteAge > CONFIG.NOTE_HOLD)) note(best.text, best.cls, best.pri, CONFIG.NOTE_TIME);
+  else if (best && best.pri >= 4) { best.lv = 0; popQ.push(best); }   // 大事な文字は、出せるようになるまで待たせる（消さない）
+  if (state === 'play' && !motoFlag && moto >= CONFIG.FEE) { motoFlag = true; banner('元は取れた！ここからは全部おトク', 2); sfx.good(2); }
+  refreshMarks(); updateHUD();
+}
+// 相性の印：ふだんは料理の色（合わないと紫にくすむ）と、合わない料理の上の小さい✕だけ。料理を持っている間は「持っている料理との相性」に切りかわり、名コンビになる相手に◎が出る
+const BADGE_MAT = {}; let markHold = false;
+function initBadges() {
+  const mk = (txt, bg, fg) => new THREE.SpriteMaterial({ transparent: true, depthTest: true, depthWrite: false, toneMapped: false, map: canvasTex(128, 128, x => {
+    x.fillStyle = bg; x.beginPath(); x.arc(64, 64, 54, 0, 7); x.fill(); x.lineWidth = 9; x.strokeStyle = '#fff'; x.stroke();
+    x.fillStyle = fg; x.font = '900 ' + (txt.length > 1 ? 50 : 78) + 'px "Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(txt, 64, 69);
+  }) });
+  BADGE_MAT[2] = mk('◎', '#ffcf2e', '#5a3200'); BADGE_MAT[1] = mk('○', '#fff0b3', '#6a4a00'); BADGE_MAT[-1] = mk('✕', '#7a4fa0', '#ffffff'); BADGE_MAT[-2] = mk('✕✕', '#3d2352', '#ffd1f0');
+}
+function refreshMarks() {
+  const hT = hold ? TYPES[hold.ti] : null; markHold = !!hT;
+  for (const it of items) {
+    let m = 0;
+    if (it.onPlate) m = hT ? compat(hT, it.T).lv : it.tasteC >= CONFIG.MARK_GOOD2 ? 2 : it.tasteC > 1.001 ? 1 : it.tasteC <= CONFIG.MARK_BAD2 ? -2 : it.tasteC < 0.999 ? -1 : 0;
+    if (m !== it.mark) { it.mark = m; it.mesh.material = m > 0 ? it.T.matsG : m < 0 ? it.T.matsB : it.T.mats; }
+    const b = (m < 0 || (hT && m === 2)) ? m : 0;   // 丸い印を出すのは「合わない料理」と、持っている料理と名コンビになる相手だけ
+    if (b !== it.bmark) { it.bmark = b; it.badge.visible = b !== 0; if (b) it.badge.material = BADGE_MAT[b]; }
+  }
+}
+
+// ===== [SEC:STATE] =====
+let state = 'boot', gameTime = 0, timeLeft = CONFIG.TIME, judgeT = 0, scanAcc = 0, endArmed = 0, noteT = 0, notePri = 0, noteAge = 0, shakePhase = 0, lostYen = 0, lastTickSec = -1, result = null;
+let rng = mulberry32(1), stock = [], hinted = false, motoFlag = false;
+function setState(s) { state = s; document.body.dataset.state = s; }
+function reset(seed) {   // 最初からやり直す（リスタートもテストも同じ）
+  cancelHold(); for (const it of items) removeItem(it); items.length = 0; itemByHandle.clear(); seenPairs.clear(); popQ.length = 0;
+  rng = mulberry32(seed || 1); stock = TYPES.map(T => T.stock); gameTime = 0; timeLeft = CONFIG.TIME; judgeT = 0; scanAcc = 0; endArmed = 0; lostYen = 0; placedYen = 0; lastTickSec = -1; result = null; nanCount = 0; hinted = false; motoFlag = false;
+  shakePhase = rng() * Math.PI * 2; live = { moto: 0, score: 0, taste: 1, top: 0, count: 0, combos: new Map(), good: 0, bad: 0, sqn: 0, betsuN: 0 };
+  plateBody.setTranslation({ x: 0, y: 0, z: 0 }, true); plateBody.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
+  plateBody.setNextKinematicTranslation({ x: 0, y: 0, z: 0 }); plateBody.setNextKinematicRotation({ x: 0, y: 0, z: 0, w: 1 });
+  rotSteps = 0; standing = false; $('btn-stand').classList.remove('on'); $('btn-end').textContent = 'ここまで'; banner('', 0);
+  cam.yawT = cam.yaw = CONFIG.CAM.YAW; cam.pitchT = CONFIG.CAM.PITCH; cam.zoom = 1; cam.offYT = 0;
+  updateTiles(); updateHUD(); syncVisuals();
+}
+function startGame(seed) { reset(seed); setState('play'); banner('いらっしゃいませ！' + CONFIG.TIME + '秒でどうぞ', 2.2); sfx.start(); }
+function startJudge() {
+  if (state !== 'play') return; cancelHold(); setState('judge'); judgeT = 0; banner('お会計です。お皿、お預かりします', 2.6); sfx.bell();
+  for (const it of items) it.body.wakeUp();
+}
+function tickJudge(dt) {
+  judgeT += dt; const J = CONFIG.JUDGE, t1 = J.WAIT, t2 = t1 + J.LIFT, t3 = t2 + J.SHAKE, t4 = t3 + J.HOLD; let y = 0, rx = 0, rz = 0;
+  if (judgeT > t1) { const u = clamp((judgeT - t1) / J.LIFT, 0, 1); y = J.LIFT_H * u * u * (3 - 2 * u); }
+  if (judgeT > t2 && judgeT < t3) { const u = (judgeT - t2) / J.SHAKE, amp = J.SHAKE_DEG * Math.PI / 180 * Math.sin(u * Math.PI), ph = (judgeT - t2) * J.SHAKE_HZ * Math.PI * 2 + shakePhase; rx = amp * Math.sin(ph); rz = amp * Math.cos(ph * 0.83); }
+  const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, 0, rz));
+  plateBody.setNextKinematicTranslation({ x: 0, y, z: 0 }); plateBody.setNextKinematicRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
+  for (const it of items) if (it.body.isSleeping()) it.body.wakeUp();
+  if (judgeT >= t4) finish();
+}
+function finish() {
+  scan(true);
+  const counts = new Map(); for (const it of items) if (it.onPlate) { const o = counts.get(it.T.name) || { n: 0, yen: 0 }; o.n++; o.yen += it.T.price; counts.set(it.T.name, o); }
+  const ratio = live.score / CONFIG.FEE, rank = CONFIG.RANKS.find(r => ratio >= r[0])[1];
+  let best = 0; try { best = +localStorage.getItem(CONFIG.SAVE_KEY) || 0; } catch (e) {}
+  const isBest = live.score > best; if (isBest) { try { localStorage.setItem(CONFIG.SAVE_KEY, String(live.score)); } catch (e) {} }
+  result = { moto: live.moto, score: live.score, taste: live.taste, ratio, rank, counts, combos: [...live.combos.values()], spilled: Math.max(0, placedYen - live.moto), sqn: live.sqn, betsuN: live.betsuN, best: Math.max(best, live.score), isBest };
+  resultAt = performance.now(); setState('result'); cam.offYT = (viewRect.width / viewRect.height < 1.2) ? 0.25 : 0; showReceipt(result); sfx.result(ratio);
+}
+function tick(dt) {   // 1刻みぶん進める
+  gameTime += dt;
+  if (noteT > 0) { noteT -= dt; noteAge += dt; if (noteT <= 0) { notePri = 0; $('note').className = ''; } }
+  if (state === 'play') {
+    timeLeft = Math.max(0, timeLeft - dt);
+    if (endArmed > 0) { endArmed -= dt; if (endArmed <= 0) $('btn-end').textContent = 'ここまで'; }
+    const sec = Math.ceil(timeLeft); if (sec !== lastTickSec) { lastTickSec = sec; $('t-time').textContent = sec; $('h-time').classList.toggle('low', sec <= 10); if (sec <= 10 && sec > 0) sfx.tick(); }
+    if (!hinted && placedYen === 0 && CONFIG.TIME - timeLeft > CONFIG.HINT_AFTER) { hinted = true; banner('料理を押さえたまま、お皿まで運ぶ', 4); }
+    if (timeLeft <= 0) startJudge();
+  }
+  if (state === 'judge') tickJudge(dt);
+  world.step();
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i], b = it.body, v = b.linvel(), t = b.translation(), s = Math.hypot(v.x, v.y, v.z);
+    if (!isFinite(s) || !isFinite(t.x + t.y + t.z)) { nanCount++; removeItem(it); items.splice(i, 1); continue; }
+    if (s > CONFIG.MAX_SPEED) { const k = CONFIG.MAX_SPEED / s; b.setLinvel({ x: v.x * k, y: v.y * k, z: v.z * k }, true); }
+    else if (s < CONFIG.REST_V && state !== 'judge' && !b.isSleeping()) {   // ころころ転がり続けるのを止める
+      const w = b.angvel(), ws = Math.hypot(w.x, w.y, w.z);
+      if (ws < CONFIG.REST_W && s + ws > 1e-5) { const k = Math.max(0, 1 - CONFIG.REST_DAMP * dt); b.setLinvel({ x: v.x * k, y: v.y * k, z: v.z * k }, false); b.setAngvel({ x: w.x * k, y: w.y * k, z: w.z * k }, false); }
+    }
+    if (t.y < -8) { removeItem(it); items.splice(i, 1); continue; }
+    const sqT = it.T.soft * it.sqLv / CONFIG.SQ_LEVELS; if (it.sq !== sqT) { it.sq += (sqT - it.sq) * Math.min(1, CONFIG.SQ_SPEED * dt); if (Math.abs(sqT - it.sq) < 1e-4) it.sq = sqT; }
+  }
+  if (state === 'play' || state === 'judge') { scanAcc += dt; if (scanAcc >= CONFIG.SCAN_DT) { scanAcc -= CONFIG.SCAN_DT; scan(false); } }
+}
+
+// ===== [SEC:INPUT] =====
+let hold = null, orbit = null, rotSteps = 0, standing = false; const tiles = [], ghost = $('ghost');
+const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function tileDown(e, ti) {
+  e.preventDefault(); ensureAudio(); if (state !== 'play' || hold || stock[ti] <= 0) return;
+  const m = new THREE.Mesh(TYPES[ti].geo, TYPES[ti].mats); m.castShadow = true; m.visible = false; scene.add(m);
+  hold = { ti, pid: e.pointerId, x: e.clientX, y: e.clientY, touch: e.pointerType === 'touch', mesh: m, pos: new THREE.Vector3(), q: new THREE.Quaternion(), ok: false, first: true };
+  tiles[ti].el.classList.add('on'); ghost.src = TYPES[ti].thumb; sfx.pick(); refreshMarks();
+}
+function cancelHold(silent) {
+  if (!hold) return; scene.remove(hold.mesh); tiles[hold.ti].el.classList.remove('on'); hold = null; ghost.style.display = 'none'; marker.visible = false; setHint(null); if (!silent) sfx.cancel(); refreshMarks();
+}
+function dropHeld() {
+  const h = hold; spawnItem(h.ti, h.pos, h.q); stock[h.ti]--; updateTiles(); sfx.drop(); buzz(8); cancelHold(true);
+}
+function computeHold() {   // 指の位置から、料理を置く場所と高さを決める
+  const h = hold, px = h.x, py = h.y - (h.touch ? CONFIG.TOUCH_LIFT_PX : 0), r = viewRect;
+  const inside = px >= r.left && px <= r.left + r.width && py >= r.top && py <= r.top + r.height;
+  h.ok = false; h.below = null; h.mark = null; if (!inside || state !== 'play') { h.inside = false; return; }
+  h.inside = true; ndc.set((px - r.left) / r.width * 2 - 1, -((py - r.top) / r.height) * 2 + 1); raycaster.setFromCamera(ndc, camera);
+  const o = raycaster.ray.origin, d = raycaster.ray.direction; let tx, tz;
+  const hit = world.castRayAndGetNormal(new RAPIER.Ray({ x: o.x, y: o.y, z: o.z }, { x: d.x, y: d.y, z: d.z }), 80, true);
+  if (hit) { const t = hit.timeOfImpact; tx = o.x + d.x * t; tz = o.z + d.z * t; if (hit.normal.y < 0.5) { tx -= hit.normal.x * 0.14; tz -= hit.normal.z * 0.14; } }
+  else if (d.y < -1e-4) { const t = (CONFIG.TABLE_Y - o.y) / d.y; tx = o.x + d.x * t; tz = o.z + d.z * t; } else return;
+  const rad = Math.hypot(tx, tz); if (rad > CONFIG.DROP_RADIUS + 1.5) { const k = (CONFIG.DROP_RADIUS + 1.5) / rad; tx *= k; tz *= k; }
+  h.q.copy(poseQuat(h.ti, rotSteps, standing)); const rp = restPose(h.ti, tx, tz, h.q);
+  h.pos.set(tx, rp.y, tz); h.ok = Math.hypot(tx, tz) <= CONFIG.DROP_RADIUS;
+  if (rp.hit) { h.mark = rp.hit.witness1; const it = itemByHandle.get(rp.hit.collider.handle); if (it && it.onPlate) h.below = it; }
+}
+function updateHold(dt) {
+  if (!hold) return; computeHold(); const h = hold, T = TYPES[h.ti];
+  if (!h.inside) { h.mesh.visible = false; marker.visible = false; setHint(null); ghost.style.display = 'block'; ghost.style.left = h.x + 'px'; ghost.style.top = h.y + 'px'; h.first = true; return; }
+  ghost.style.display = 'none'; h.mesh.visible = true;
+  if (h.first) { h.mesh.position.copy(h.pos); h.first = false; } else h.mesh.position.lerp(h.pos, 1 - Math.exp(-dt * 32));
+  h.mesh.quaternion.slerp(h.q, 1 - Math.exp(-dt * 24)); h.mesh.scale.setScalar(h.ok ? 1 : 0.85);
+  let c = null; if (h.below) c = compat(T, h.below.T);
+  marker.visible = h.ok && !!h.mark;
+  if (marker.visible) { marker.position.set(h.pos.x, h.mark.y + 0.012, h.pos.z); marker.scale.setScalar(clamp(T.br * 0.62, 0.2, 0.6)); marker.material.color.setHex(c && c.lv > 0 ? 0xffd84a : c && c.lv < 0 ? 0xb06be0 : 0xffffff); }
+  setHint(h.ok && c && c.lv ? c : null, h.pos, T.br);
+}
+let hintKey = '';
+function setHint(c, p, br) {
+  const el = $('hint'); if (!c) { if (hintKey) { el.className = ''; hintKey = ''; } return; }
+  const text = c.lv === 2 ? '◎ ' + (c.name || '名コンビ') : c.lv === 1 ? '○ 相性よし' : c.lv === -1 ? '✕ 味がまざる' : '✕✕ ' + (c.name || '大事故');
+  if (hintKey !== text) { hintKey = text; el.textContent = text; el.className = c.lv > 0 ? 'g' : 'b'; }
+  const v = new THREE.Vector3(p.x, p.y + br + 0.15, p.z).project(camera); el.style.left = ((v.x + 1) / 2 * viewRect.width) + 'px'; el.style.top = ((1 - v.y) / 2 * viewRect.height) + 'px';
+}
+function bindUI() {
+  window.addEventListener('pointermove', e => {
+    if (hold && e.pointerId === hold.pid) { hold.x = e.clientX; hold.y = e.clientY; }
+    else if (orbit && e.pointerId === orbit.pid) { cam.yawT -= (e.clientX - orbit.x) * 0.008; cam.pitchT = clamp(cam.pitchT + (e.clientY - orbit.y) * 0.006, CONFIG.CAM.PITCH_MIN, CONFIG.CAM.PITCH_MAX); orbit.x = e.clientX; orbit.y = e.clientY; }
+  });
+  const up = (e, cancel) => {
+    if (hold && e.pointerId === hold.pid) { hold.x = e.clientX; hold.y = e.clientY; if (!cancel) computeHold(); if (!cancel && hold.ok) dropHeld(); else cancelHold(); }
+    if (orbit && e.pointerId === orbit.pid) orbit = null;
+  };
+  window.addEventListener('pointerup', e => up(e, false)); window.addEventListener('pointercancel', e => up(e, true));
+  canvas.addEventListener('pointerdown', e => { ensureAudio(); if (e.button === 2) { if (hold) toggleStand(); return; } if (!orbit && !(hold && e.pointerId === hold.pid) && state !== 'title') orbit = { pid: e.pointerId, x: e.clientX, y: e.clientY }; });
+  window.addEventListener('contextmenu', e => e.preventDefault());
+  window.addEventListener('wheel', e => { if (hold) rotate(e.deltaY > 0 ? 1 : -1); else cam.zoom = clamp(cam.zoom * (e.deltaY > 0 ? 1.08 : 0.93), CONFIG.CAM.ZOOM_MIN, CONFIG.CAM.ZOOM_MAX); }, { passive: true });
+  window.addEventListener('keydown', e => { if (e.code === 'Escape' || e.code === 'KeyP') { if (state === 'play') openMenu(!menuOpen); } else if (menuOpen) return; else if (e.code === 'KeyR') rotate(1); else if (e.code === 'KeyT' || e.code === 'Space') toggleStand(); });
+  const press = (id, fn) => $(id).addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); ensureAudio(); fn(); });
+  press('btn-rot', () => rotate(1)); press('btn-stand', toggleStand);
+  press('btn-end', () => { if (state !== 'play') return; if (endArmed > 0) startJudge(); else { endArmed = CONFIG.END_CONFIRM; $('btn-end').textContent = 'もう一度で終了'; sfx.pick(); } });
+  press('btn-mute', () => { muted = !muted; $('btn-mute').textContent = muted ? '🔇' : '🔊'; });
+  $('btn-start').addEventListener('click', () => { ensureAudio(); startGame((Date.now() & 0xffff) + 1); });
+  $('sheet').addEventListener('click', e => {
+    const a = e.target.closest('[data-act], a.sup'); if (!a) return; if (!resultReady()) { e.preventDefault(); return; }
+    if (a.dataset.act === 'again') startGame((Date.now() & 0xffff) + 1); else if (a.dataset.act === 'share') share(); else if (a.dataset.act === 'home') goTitle();
+  });
+  document.querySelectorAll('#title a.sup').forEach(setSupLink);
+  press('btn-pause', () => openMenu(true)); $('btn-resume').addEventListener('click', () => openMenu(false));
+  $('btn-restart').addEventListener('click', () => { openMenu(false); startGame((Date.now() & 0xffff) + 1); });
+  $('btn-home').addEventListener('click', () => { openMenu(false); goTitle(); });
+  window.addEventListener('resize', resize); if (window.ResizeObserver) new ResizeObserver(resize).observe(view);
+  document.addEventListener('visibilitychange', () => { paused = document.hidden; lastT = performance.now(); if (document.hidden) cancelHold(true); });
+}
+function buzz(ms) { try { if (!muted && navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+function setSupLink(a) { a.href = a.dataset.k === 'follow' ? CONFIG.FOLLOW_URL : CONFIG.OFUSE_URL; }
+let menuOpen = false, resultAt = 0;
+const resultReady = () => state !== 'result' || performance.now() - resultAt > CONFIG.RESULT_GUARD * 1000;
+function openMenu(on) { if (on && state !== 'play') return; menuOpen = on; document.body.classList.toggle('menu', on); if (on) { cancelHold(true); orbit = null; } lastT = performance.now(); }
+function rotate(d) { rotSteps = ((rotSteps + d) % 8 + 8) % 8; sfx.pick(); }
+function toggleStand() { standing = !standing; $('btn-stand').classList.toggle('on', standing); sfx.pick(); }
+
+// ===== [SEC:HUD] =====
+function buildTiles() {
+  const box = $('tiles');
+  TYPES.forEach((T, i) => {
+    const el = document.createElement('div'); el.className = 'tile'; el.style.setProperty('--g', GCOL[T.g]);
+    el.innerHTML = `<img alt="" draggable="false" src="${T.thumb}"><div class="nm">${T.name}</div><div class="pr">${yen(T.price)}</div><div class="st"></div>`;
+    el.addEventListener('pointerdown', e => tileDown(e, i)); box.appendChild(el); tiles.push({ el, st: el.querySelector('.st') });
+  });
+  $('t-fee').textContent = '/ ' + yen(CONFIG.FEE); $('fee-title').textContent = yen(CONFIG.FEE);
+}
+function updateTiles() { tiles.forEach((t, i) => { t.st.textContent = '×' + stock[i]; t.el.classList.toggle('out', stock[i] <= 0); }); }
+function updateHUD() {
+  $('t-moto').textContent = yen(live.moto); const b = $('b-moto'); b.style.width = clamp(live.moto / CONFIG.FEE * 100, 0, 100) + '%'; b.classList.toggle('ok', live.moto >= CONFIG.FEE);
+  const p = Math.round(live.taste * 100); $('t-taste').textContent = p + '%'; $('h-taste').className = 'pill' + (p > 100 ? ' up' : p < 100 ? ' down' : '');
+  $('t-pairs').innerHTML = (live.good || live.bad || live.sqn) ? `<span class="g">◎${live.good}</span><span class="b">✕${live.bad}</span>` + (live.sqn ? `<span class="s">▼${live.sqn}</span>` : '') : '';
+}
+function note(text, cls, pri, sec) {   // 上の表示のすぐ下の1行に文字を出す（sec が0以下なら消す）
+  const el = $('note'); if (!(sec > 0)) { noteT = 0; notePri = 0; el.className = ''; return; }
+  el.textContent = text; el.className = 'show ' + cls; noteT = sec; notePri = pri; noteAge = 0;
+}
+function banner(text, sec) { note(text, 'bn', 9, sec); }
+function showReceipt(R) {
+  const rows = [...R.counts].sort((a, b) => b[1].yen - a[1].yen).map(([name, o]) => `<div class="rr"><span>${name} ×${o.n}</span><span>${yen(o.yen)}</span></div>`).join('') || '<div class="rr"><span>（お皿は空でした）</span><span>¥0</span></div>';
+  const good = R.combos.filter(c => c.lv === 2).slice(0, 4).map(c => c.text), bad = R.combos.filter(c => c.lv < 0).sort((a, b) => a.lv - b.lv).slice(0, 3).map(c => c.text);
+  const combo = (good.length ? `<div><span class="g">◎</span> ${good.join('・')}</div>` : '') + (bad.length ? `<div><span class="b">✕</span> ${bad.join('・')}</div>` : '');
+  $('sheet').innerHTML = `<div class="r-in">
+    <div class="r-head">おかわりは、できません。<small>お会計</small></div><div class="r-dash"></div>
+    <div class="r-list">${rows}</div><div class="r-dash"></div>
+    <div class="rr s"><span>元取り額（料金 ${yen(CONFIG.FEE)}）</span><span>${yen(R.moto)}・${Math.round(R.moto / CONFIG.FEE * 100)}%</span></div>
+    <div class="rr s"><span>おいしさ</span><span class="${R.taste >= 1 ? 'g' : 'b'}">×${Math.round(R.taste * 100)}%</span></div>
+    ${R.betsuN > 0 ? `<div class="rr"><span class="g">◎ 別腹デザート（＋${Math.round(CONFIG.BETSUBARA * 100)}%）</span><span>${R.betsuN}個</span></div>` : ''}
+    ${R.sqn > 0 ? `<div class="rr"><span>▼ つぶれた料理（味が落ちた）</span><span>${R.sqn}個</span></div>` : ''}
+    ${R.spilled > 0 ? `<div class="rr"><span>こぼした料理</span><span>${yen(R.spilled)}</span></div>` : ''}
+    ${combo ? `<div class="r-combo">${combo}</div>` : ''}<div class="r-dash"></div>
+    <div class="r-score"><em>味わえた満足（元取り額 × おいしさ）</em><b id="score-num">0</b><span>点</span></div>
+    <div class="r-rank">「${R.rank}」</div>
+    <div class="r-best">${R.isBest ? '★ 自己ベスト更新！' : '自己ベスト ' + R.best.toLocaleString('ja-JP') + '点'}</div>
+    <div class="r-btns"><button data-act="again">もう一皿</button><button class="x" data-act="share">Xで共有</button></div>
+    <div class="sups"><a class="sup" data-k="follow" target="_blank" rel="noopener"><b>𝕏 作者をフォロー</b></a><a class="sup" data-k="ofuse" target="_blank" rel="noopener"><b>作者を応援する（100円〜）</b></a></div>
+    <button class="r-home" data-act="home">タイトルへ</button></div>`;
+  document.querySelectorAll('#sheet a.sup').forEach(setSupLink);
+  const el = $('score-num'), t0 = performance.now();   // 点数を数え上げて見せる（飾りなので本物の時計でよい）
+  const step = now => { if (!el.isConnected) return; const u = clamp((now - t0) / 900, 0, 1), e = 1 - Math.pow(1 - u, 3); el.textContent = Math.round(R.score * e).toLocaleString('ja-JP'); if (u < 1) requestAnimationFrame(step); };
+  if (manual) el.textContent = R.score.toLocaleString('ja-JP'); else requestAnimationFrame(step);
+}
+function share() {
+  const R = result; if (!R) return;
+  const text = `「おかわりは、できません。」\n${yen(CONFIG.FEE)}の一皿バイキングで ${R.score.toLocaleString('ja-JP')}点！\n元取り ${Math.round(R.moto / CONFIG.FEE * 100)}%・おいしさ ${Math.round(R.taste * 100)}%\n称号「${R.rank}」\n#${CONFIG.SHARE_TAG}`;
+  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(CONFIG.SHARE_URL), '_blank', 'noopener');
+}
+function showBest() { let b = 0; try { b = +localStorage.getItem(CONFIG.SAVE_KEY) || 0; } catch (e) {} $('best').textContent = b > 0 ? '自己ベスト ' + b.toLocaleString('ja-JP') + '点' : ''; }
+
+// ===== [SEC:AUDIO] =====
+let AC = null, master = null, muted = false, noiseBuf = null;
+function ensureAudio() {
+  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+  try { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = 0.55; master.connect(AC.destination);
+    noiseBuf = AC.createBuffer(1, AC.sampleRate * 0.3, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } catch (e) { AC = null; }
+}
+function tone(f, d, type = 'sine', v = 0.25, f2 = null, delay = 0) {
+  if (!AC || muted) return; const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g).connect(master); o.start(t); o.stop(t + d + 0.03);
+}
+function noiseHit(d, v, fc) {
+  if (!AC || muted) return; const t = AC.currentTime, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = noiseBuf; f.type = 'lowpass'; f.frequency.value = fc; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); s.connect(f).connect(g).connect(master); s.start(t); s.stop(t + d + 0.02);
+}
+const sfx = {
+  start() { tone(523, 0.12, 'triangle', 0.2); tone(659, 0.12, 'triangle', 0.2, null, 0.1); tone(784, 0.2, 'triangle', 0.2, null, 0.2); },
+  pick() { tone(520, 0.07, 'triangle', 0.16, 780); }, cancel() { tone(320, 0.07, 'triangle', 0.1, 220); },
+  drop() { tone(300, 0.06, 'sine', 0.12, 200); }, thud() { noiseHit(0.09, 0.22, 650); tone(130, 0.1, 'sine', 0.22, 75); },
+  good(lv) { tone(660, 0.12, 'triangle', 0.18); tone(lv > 1 ? 990 : 830, 0.18, 'triangle', 0.18, null, 0.09); if (lv > 1) tone(1320, 0.26, 'triangle', 0.15, null, 0.18); },
+  bad(lv) { tone(220, 0.24, 'sawtooth', 0.09, lv < -1 ? 85 : 140); }, spill() { tone(330, 0.2, 'sine', 0.14, 110); },
+  squash() { tone(250, 0.18, 'sine', 0.16, 105); },
+  tick() { tone(1000, 0.045, 'square', 0.06); }, bell() { tone(1568, 1.0, 'sine', 0.22); tone(2093, 0.8, 'sine', 0.1, null, 0.01); },
+  result(r) { const n = r >= 1.6 ? [523, 659, 784, 1047, 1319] : r >= 1 ? [523, 659, 784, 1047] : [392, 349, 294]; n.forEach((f, i) => tone(f, i === n.length - 1 ? 0.5 : 0.14, 'triangle', 0.2, null, i * 0.12)); },
+};
+
+// ===== [SEC:LOOP] =====
+let acc = 0, lastT = performance.now(), manual = false, paused = false;
+function update(frameDt) {   // 本番もテストもこの関数だけを使う
+  acc += Math.min(frameDt, CONFIG.MAX_FRAME);
+  while (acc >= CONFIG.FIXED) { tick(CONFIG.FIXED); acc -= CONFIG.FIXED; }
+  syncVisuals();
+}
+function updateCamera(dt) {
+  const k = 1 - Math.exp(-dt * 9), py = plateBody.translation().y, auto = (state === 'title' || state === 'result');
+  if (auto && !orbit) cam.yawT += dt * 0.22;
+  cam.yaw += (cam.yawT - cam.yaw) * k; cam.pitch += (cam.pitchT - cam.pitch) * k; cam.offY += (cam.offYT - cam.offY) * k; applyViewOffset(false);
+  const ty = py + 0.2 + live.top * 0.42, dist = (CONFIG.CAM.DIST + live.top * 0.95) * cam.fit * cam.zoom * (state === 'result' ? 1.1 : 1);
+  cam.tgt.y += (ty - cam.tgt.y) * k; cam.dist += (dist - cam.dist) * k;
+  const cp = Math.cos(cam.pitch); camera.position.set(cam.tgt.x + Math.sin(cam.yaw) * cp * cam.dist, cam.tgt.y + Math.sin(cam.pitch) * cam.dist, cam.tgt.z + Math.cos(cam.yaw) * cp * cam.dist); camera.lookAt(cam.tgt);
+  camera.updateMatrixWorld(); sun.target.position.set(0, py, 0);
+}
+function render(dt) { updateCamera(dt); updateHold(dt); renderer.render(scene, camera); }
+function frame(now) { const dt = Math.min(0.1, (now - lastT) / 1000); if (!paused && !manual && !menuOpen) update(dt); lastT = now; render(dt); requestAnimationFrame(frame); }
+
+// ===== [SEC:TEST] =====
+// 自動チェック用の口（画面には何も出さない）
+function testDrop(ti, x, z, rs, st) { if (stock[ti] <= 0) return null; const q = poseQuat(ti, rs, st), rp = restPose(ti, x, z, q); stock[ti]--; return spawnItem(ti, { x, y: rp.y, z }, q); }
+let _tPrevTime = Infinity, _tDeep = new Map();
+window.__TEST__ = {
+  keys: [],
+  randomInput(r) {
+    if (state !== 'play') return; const h = k => { const v = Math.sin((r + 0.123) * 9973.13 * k) * 43758.5453; return v - Math.floor(v); };
+    if (h(1) > 0.992) { startJudge(); return; }
+    const avail = []; stock.forEach((s, i) => { if (s > 0) avail.push(i); }); if (!avail.length) return;
+    const rad = Math.sqrt(h(3)) * 1.75, a = h(4) * 6.283; testDrop(avail[Math.floor(h(2) * avail.length)], Math.cos(a) * rad, Math.sin(a) * rad, Math.floor(h(5) * 8), h(6) > 0.75); updateTiles();
+  },
+  reset(seed) { manual = true; acc = 0; resultAt = -1e9; openMenu(false); startGame(seed); _tPrevTime = Infinity; _tDeep.clear(); },
+  step(sec, frameDt) { for (let t = 0; t < sec - 1e-9; t += frameDt) update(frameDt); render(Math.min(0.1, frameDt)); },
+  state() { return { state, timeLeft: +timeLeft.toFixed(2), items: items.length, moto: live.moto, score: live.score, taste: +live.taste.toFixed(2), plateY: +plateBody.translation().y.toFixed(3), yaw: +cam.yawT.toFixed(3), hold: !!hold, holdOk: !!(hold && hold.ok), rot: rotSteps, stand: standing, note: noteT > 0 ? $('note').textContent : '', betsu: live.betsuN, badges: items.filter(it => it.badge.visible).length, stock: stock.join(','), sq: items.filter(it => it.sqLv > 0).map(it => it.T.id + it.sqLv).join(' '), marks: items.filter(it => it.mark > 0).length + '/' + items.filter(it => it.mark < 0).length, over: state === 'result' }; },
+  check() {
+    const v = [], n = items.length, pos = items.map(it => it.body.translation()), deepNow = new Map();
+    if (nanCount > 0) v.push('位置か速さが数値でなくなった料理があった（' + nanCount + '個）');
+    const deep = (key, label, c, tol) => { if (c && c.distance < -tol) { deepNow.set(key, 1); if (_tDeep.has(key)) v.push(`めり込み: ${label} 深さ${(-c.distance).toFixed(3)}（許容${tol.toFixed(3)}）`); } };
+    for (let i = 0; i < n; i++) {
+      const it = items[i], t = pos[i], lv = it.body.linvel(), s = Math.hypot(lv.x, lv.y, lv.z), tolI = clamp(it.br * 0.05, 0.02, 0.05);
+      if (s > CONFIG.MAX_SPEED * 1.5) v.push(`速すぎ: ${it.T.name} ${s.toFixed(1)}`);
+      if (Math.abs(t.x) < 8.6 && Math.abs(t.z) < 8.6 && t.y < CONFIG.TABLE_Y - 0.25) v.push(`テーブルをすり抜けた: ${it.T.name} y=${t.y.toFixed(2)}`);
+      if (t.y - it.br < CONFIG.TABLE_Y + 0.05) deep('t' + it.id, it.T.name + '×テーブル', it.col.contactCollider(tableCol, 0), tolI);
+      if (Math.hypot(t.x, t.z) < CONFIG.RIM_R + it.br) { deep('p' + it.id, it.T.name + '×お皿', it.col.contactCollider(plateBase, 0), tolI); for (let k = 0; k < RIM_N; k++) deep('r' + k + '_' + it.id, it.T.name + '×お皿のふち', it.col.contactCollider(rimCols[k], 0), tolI); }
+      for (let j = i + 1; j < n; j++) {
+        const b = pos[j], r = it.br + items[j].br, dx = t.x - b.x, dy = t.y - b.y, dz = t.z - b.z; if (dx * dx + dy * dy + dz * dz > r * r) continue;
+        deep(it.id + '_' + items[j].id, it.T.name + '×' + items[j].T.name, it.col.contactCollider(items[j].col, 0), Math.min(tolI, clamp(items[j].br * 0.05, 0.02, 0.05)));
+      }
+    }
+    _tDeep = deepNow;
+    for (const it of items) { const sc = it.mesh.scale; if (it.sqLv < 0 || it.sqLv > CONFIG.SQ_LEVELS || !(it.sq >= 0 && it.sq <= it.T.soft + 1e-6) || (it.sqLv > 0 && !it.T.canSq)) v.push('つぶれ具合がおかしい: ' + it.T.name); if (!(sc.x > 0.3 && sc.x < 1.8 && sc.y > 0.3 && sc.y < 1.8 && sc.z > 0.3 && sc.z < 1.8)) v.push('見た目の伸びちぢみが大きすぎる: ' + it.T.name); }
+    for (const T of TYPES) if (T.sizeErr > 0.1) v.push(`見た目と当たり判定の大きさがちがう: ${T.name} ${(T.sizeErr * 100).toFixed(0)}%`);
+    if (!(live.score >= 0) || !(live.moto >= 0) || !isFinite(live.taste)) v.push('点数がおかしい');
+    if (live.taste < CONFIG.TASTE_MIN - 1e-6 || live.taste > CONFIG.TASTE_MAX + 1e-6) v.push('おいしさが範囲の外');
+    if (state === 'play' && timeLeft > _tPrevTime + 1e-6) v.push('残り時間が増えた'); _tPrevTime = state === 'play' ? timeLeft : Infinity;
+    if (stock.some(s => s < 0)) v.push('在庫がマイナス');
+    if (state === 'play' && Math.abs(plateBody.translation().y) > 1e-4) v.push('プレイ中なのにお皿が動いている');
+    const cp = camera.position; if (!isFinite(cp.x + cp.y + cp.z) || cp.y < CONFIG.TABLE_Y + 0.3) v.push('カメラの位置がおかしい');
+    return v;
+  },
+  drop: testDrop, end: () => startJudge(), types: () => TYPES.map(T => ({ id: T.id, br: +T.br.toFixed(3), err: +T.sizeErr.toFixed(3) })),
+  ready: false,
+};
+
+// ===== [SEC:BOOT] =====
+function goTitle() {   // タイトル画面へ（飾りの盛りつけをのせる）
+  reset(1); world.step(); acc = 0;
+  for (const [ti, x, z, rs] of [[0, -0.5, 0.1, 0], [14, 0.4, 0.25, 0], [6, 0.2, -0.7, 2], [5, -0.95, -0.5, 0], [4, -1.0, 0.5, 0], [12, 0.95, -0.4, 1], [18, -0.1, 1.0, 0], [10, 0.85, 0.95, 3]]) { const q = poseQuat(ti, rs, false), rp = restPose(ti, x, z, q); spawnItem(ti, { x, y: rp.y, z }, q); world.step(); }
+  cam.offYT = 0; setState('title'); showBest();
+}
+async function boot() {
+  await RAPIER.init(); buildTypes(); initScene(); initBadges(); initPhysics(); makeThumbs(); buildTiles(); bindUI(); resize();
+  goTitle(); $('loading').remove(); requestAnimationFrame(frame); window.__TEST__.ready = true;
+}
+boot().catch(e => { console.error(e); const l = $('loading'); if (l) l.innerHTML = '読み込みに失敗しました。<br>通信を確かめて、もう一度開いてください。'; });
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "747b6a03970a41c9aae7804501eb411a"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
