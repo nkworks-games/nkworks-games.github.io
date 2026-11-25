@@ -207,7 +207,8 @@ const CONFIG = {
   RING_R: 2.3, START_X: 0.95, HEEL: 0.18, DOHYO_HALF: 3.3,
   // 立ち合い
   CPU_WAIT_MIN: 1.4, CPU_WAIT_MAX: 3.4,    // 仕切りから片手をつくまで（秒）
-  CPU_HAND2_MIN: 0.35, CPU_HAND2_MAX: 1.2,  // 片手 → 両手
+  CPU_HAND2_MIN: 0.55, CPU_HAND2_MAX: 1.2,  // 片手 → 両手
+  FIST_DELAY: 0.3, FIST_RATE: 12, FIST_DIR: [0.12, -0.7, 0.7],           // 手をつき始めてから握り始めるまで（秒）・握る速さ（手のひらでついてから、こぶしにする）・こぶしの時の手の向き（横・上下・前）
   MATTA_EARLY: 0.10,   // 両手の時刻よりこれ以上早いと「待った」
   PERFECT: 0.09,       // ぴったりの幅（秒）
   GOOD: 0.25,          // これより遅いと出遅れ
@@ -506,7 +507,7 @@ class Rikishi{
     }
     this.look={hs:1,fat:0.5,arm:0.5,leg:0.5,skin:0.4,maw:0x223366};this.lookT={...this.look};
     this.p={hip:0.88,lean:0.05,headSide:0,fallA:0,spin:0};this.t={hip:0.88,lean:0.05,headSide:0};
-    this.fallType=null;this.fallSide=1;this.mode='stand';this.handDown=[0,0];this.frontBody=0.4;
+    this.fallType=null;this.fallSide=1;this.mode='stand';this.handDown=[0,0];this.fist=[0,0];this.handT=[0,0];this.frontBody=0.4;
     this.x=0;this.z=0;this.yaw=0;this.yawT=0;this.minY=0;this.visible=true;
     this.px=0;this.pz=0;this.vx=0;this.vz=0;this.stepOn=false;this.effort=0;this.jolt=0;this.shove=0;this.thr=0;this.style='yotsu';this.onStep=null;this.onThrust=null;
   }
@@ -539,6 +540,8 @@ class Rikishi{
     // 腕：押し相撲の力士は、攻めている時に左右交互に突っ張る
     const thrust=m==='push'&&this.style==='oshi'&&this.effort>0.2;if(thrust)this.thr+=dt*3.4;
     for(let i=0;i<2;i++){const am=this.arms[i];K.hand(m,am.sd,hipY,fb,L,this.handDown[i],am.tgt);let rate=m==='shikiri'?16:9;
+      const dn=m==='shikiri'&&this.handDown[i];this.handT[i]=dn?this.handT[i]+dt:0;   // 手のひらでついてから、少しして握る
+      this.fist[i]=damp(this.fist[i],dn&&this.handT[i]>CONFIG.FIST_DELAY?1:0,CONFIG.FIST_RATE,dt);
       if(thrust){const ext=Math.sin(this.thr*Math.PI*2+i*Math.PI)>0.15;if(K.thrust)K.thrust(am.sd,hipY,fb,ext,am.tgt);else am.tgt.set(am.sd*0.18,hipY+(ext?0.42:0.3),fb+(ext?0.12:-0.12));rate=22;
         if(ext&&!am.ext&&this.onThrust)this.onThrust();am.ext=ext}else am.ext=false;
       am.pos.lerp(am.tgt,1-Math.exp(-rate*dt))}
@@ -620,16 +623,23 @@ function aimBone(bone,childW,targetW){bone.getWorldPosition(_o);_c1.subVectors(c
   _qd.setFromUnitVectors(_c1,_c2);bone.getWorldQuaternion(_qw);_qw.premultiply(_qd);bone.parent.getWorldQuaternion(_qp).invert();bone.quaternion.copy(_qp.multiply(_qw));bone.updateMatrixWorld(true)}
 function rotW(bone,axisW,ang){if(!ang)return;bone.getWorldQuaternion(_qw);_qd.setFromAxisAngle(axisW,ang);_qw.premultiply(_qd);bone.parent.getWorldQuaternion(_qp).invert();bone.quaternion.copy(_qp.multiply(_qw));bone.updateMatrixWorld(true)}
 // 2本の骨の先(c)が目標Tに届くように、ひじ・ひざを pole の向きに曲げる
-function solve2(a,b,c,T,P){a.getWorldPosition(_A);b.getWorldPosition(_Bp);c.getWorldPosition(_C);
-  const l1=_A.distanceTo(_Bp),l2=_Bp.distanceTo(_C);_d.subVectors(T,_A);let D=_d.length();if(D>1e-6)_d.multiplyScalar(1/D);else _d.set(0,-1,0);
+function solve2(a,b,c,T,P,sh){a.getWorldPosition(_A);b.getWorldPosition(_Bp);c.getWorldPosition(_C);
+  const l1=_A.distanceTo(_Bp);let l2=_Bp.distanceTo(_C);_d.subVectors(T,_A);let D=_d.length();if(D>1e-6)_d.multiplyScalar(1/D);else _d.set(0,-1,0);
+  if(sh){   // 上の骨を「太さ」と「長さ」で別々に伸ばしていると、ひじの曲げ具合で前腕の長さが変わる。曲げ具合ごとの長さで三角形を解く
+    const q=b.position,k=Math.abs(q.x)>Math.abs(q.y)?(Math.abs(q.x)>Math.abs(q.z)?0:2):(Math.abs(q.y)>Math.abs(q.z)?1:2),sa=a.scale.getComponent(k),sp=(a.scale.x+a.scale.y+a.scale.z-sa)/2;
+    const len=f=>{const ps=Math.atan2(sa*Math.sin(f),sp*Math.cos(f));return Math.hypot(sa*Math.cos(ps),sp*Math.sin(ps))};
+    _c1.subVectors(_Bp,_A).normalize();_c2.subVectors(_C,_Bp).normalize();const LW=l2/len(Math.acos(clamp(_c1.dot(_c2),-1,1)));
+    const g=f=>{const m=LW*len(f);return l1*l1+m*m+2*l1*m*Math.cos(f)-D*D};let lo=0,hi=Math.PI-0.05;
+    if(g(lo)<=0)hi=0;else if(g(hi)>=0)lo=hi;else for(let n=0;n<18;n++){const md=(lo+hi)/2;if(g(md)>0)lo=md;else hi=md}
+    l2=LW*len((lo+hi)/2)}
   D=clamp(D,Math.abs(l1-l2)+1e-4,l1+l2-1e-4);_n.crossVectors(_d,P);if(_n.lengthSq()<1e-10)_n.set(1,0,0);_n.normalize();
   const a1=Math.acos(clamp((l1*l1+D*D-l2*l2)/(2*l1*D),-1,1));_J.copy(_d).applyAxisAngle(_n,a1).multiplyScalar(l1).add(_A);
   aimBone(a,_Bp,_J);b.getWorldPosition(_Bp);c.getWorldPosition(_C);aimBone(b,_C,T)}
 // 骨の太さを変えているとずれが出るので、先端の位置を見て目標を少しずつ直す
 const _T0=new THREE.Vector3(),_Tk=new THREE.Vector3(),_Tb=new THREE.Vector3(),_F=new THREE.Vector3();
-function solve2x(a,b,c,T,P){_T0.copy(T);_Tk.copy(T);_Tb.copy(T);let best=1e9;   // いちばんずれが小さかった目標で最後に解く
-  for(let k=0;k<8;k++){solve2(a,b,c,_Tk,P);c.getWorldPosition(_F);const e=_F.distanceToSquared(_T0);if(e<best){best=e;_Tb.copy(_Tk)}if(e<1e-6)return;_F.subVectors(_T0,_F);_Tk.add(_F)}
-  solve2(a,b,c,_Tb,P)}
+function solve2x(a,b,c,T,P,sh){_T0.copy(T);_Tk.copy(T);_Tb.copy(T);let best=1e9;   // いちばんずれが小さかった目標で最後に解く
+  for(let k=0;k<8;k++){solve2(a,b,c,_Tk,P,sh);c.getWorldPosition(_F);const e=_F.distanceToSquared(_T0);if(e<best){best=e;_Tb.copy(_Tk)}if(e<1e-6)return;_F.subVectors(_T0,_F);_Tk.add(_F)}
+  solve2(a,b,c,_Tb,P,sh)}
 const scl=(b,ai,f)=>b.scale.set(ai===0?1:f,ai===1?1:f,ai===2?1:f);
 function makeKGLB(rs){const H=rs.hip.y,A=rs.ankle,fz=rs.footZ,ux=rs.upX;
   return {hip:{stand:H-0.02,shikiri:H*0.39,charge:H*0.66,push:H*0.72,win:H*0.86,fall:H*0.8,lose_yori:H*0.8,lose_sit:H*0.27,lose_kneel:H*0.55,lose_back:H*0.78,lose_side:H*0.62,lose_belly:H*0.86},lean:{shikiri:1.38,lose_kneel:1.45},
@@ -662,6 +672,10 @@ class RikishiGLB extends Rikishi{
     this.legs=[1,-1].map(sd=>({sd,pos:new THREE.Vector3(sd*0.2,this.rest.ankle,this.rest.footZ),tgt:new THREE.Vector3()}));
     B.mid=['Left','Right'].map(sd=>g(`mixamorig${sd}HandMiddle1`));
     B.tips=['Left','Right'].map(sd=>['Index','Middle','Ring','Pinky','Thumb'].map(f=>g(`mixamorig${sd}Hand${f}4`)).filter(Boolean));
+    const ch=(sd,f)=>{const c=[1,2,3,4].map(n=>g(`mixamorig${sd}Hand${f}${n}`));return c.every(Boolean)?c:null};
+    B.fing=['Left','Right'].map(sd=>['Index','Middle','Ring','Pinky'].map(f=>ch(sd,f)).filter(Boolean));B.thumb=['Left','Right'].map(sd=>ch(sd,'Thumb'));
+    B.grd=[0,1].map(i=>[...new Set([...B.tips[i],...B.fing[i].flatMap(c=>[c[1],c[2]]),...(B.thumb[i]?[B.thumb[i][2]]:[])])]);   // 手の中で地面に近づく点（指先とこぶしの関節）
+    const fb=[0,1].flatMap(i=>[...B.fing[i].flat(),...(B.thumb[i]||[])]);for(const b of fb){b.userData.rq=b.quaternion.clone();b.userData.rp=b.position.clone()}this.bones.push(...fb);   // 指も毎回まっすぐに戻す
     this.head=B.head;this.p.hip=this.t.hip=this.K.hip.stand;
     this.ell=GLB.ell.map(e=>({bone:g(e.name),c:e.c,r:e.r,own:e.name!==BN.sp[2]}));this.opp=null;
   }
@@ -712,26 +726,49 @@ class RikishiGLB extends Rikishi{
     for(let i=0;i<2;i++){const sd=this.arms[i].sd;
       this._tg.copy(this.arms[i].pos);this.skel.localToWorld(this._tg);_pl.set(sd,-0.4,-0.35).applyQuaternion(_qs);
       const fm=this.mode,flat=B.mid[i]&&((fm==='shikiri'&&this.handDown[i])||fm==='lose_kneel'||fm==='lose_sit'),back=fm==='lose_sit';
-      for(let it=0;it<6;it++){_T.copy(this._tg);solve2x(B.arm[i],B.fore[i],B.hand[i],_T,_pl);
-        if(flat){B.hand[i].getWorldPosition(_o);_c2.set(sd*(back?0.4:0.3),-0.22,back?-1:1).normalize().applyQuaternion(_qs).multiplyScalar(0.12).add(_o);B.mid[i].getWorldPosition(_J);aimBone(B.hand[i],_J,_c2)}   // 手のひらを地面につける
+      const settle=flat&&fm==='shikiri'&&!!B.fing,fi=settle?this.fist[i]:0;   // 仕切りで手をついている時は、手のひらもこぶしも地面にぴったりつける
+      let pT=0,pE=0;
+      for(let it=0;it<8;it++){_T.copy(this._tg);solve2x(B.arm[i],B.fore[i],B.hand[i],_T,_pl,true);
+        if(flat){B.hand[i].getWorldPosition(_o);_c2.set(sd*(back?0.4:0.3),-0.22,back?-1:1).normalize().applyQuaternion(_qs).multiplyScalar(0.12).add(_o);B.mid[i].getWorldPosition(_J);aimBone(B.hand[i],_J,_c2)   // 手のひらを地面につける
+          if(fi>0.002)this.makeFist(i,fi,sd)}   // 握ってこぶしにする
         if(this.p.fallA>0.02)break;
         const gEx=0.012*this.look.hs-this.tipY(i),pen=this.armPen(i,this._out,this._acc);   // 指先が土俵より下／体にめり込み
+        if(settle&&pen<0.008){   // 浮きも沈みもしない高さを探す（腕を曲げると手首が大きく動くので、前回との差から歩幅を決める）
+          if(gEx<=0.004&&gEx>=-0.006)break;
+          let st=gEx*0.4;if(it>0&&Math.abs(gEx-pE)>1e-4){const k=(this._tg.y-pT)/(gEx-pE);if(k<0)st=-gEx*k}
+          pT=this._tg.y;pE=gEx;this._tg.y+=clamp(st,-0.06,0.06);continue}
         if(gEx<=0&&pen<0.008)break;
         if(gEx>0)this._tg.y+=gEx+0.003;
         if(pen>=0.008){this._tg.addScaledVector(this._acc,1.3);_pl.addScaledVector(this._acc,4)}}}
     root.updateMatrixWorld(true);
     if((this.p.fallA>0.02||this.mode.startsWith('lose'))&&this.visible){const mn=this.lowestY();if(mn<0){root.position.y-=mn;root.updateMatrixWorld(true)}}
   }
-  tipY(i){let y=1e9;for(const t of this.B.tips[i]){t.getWorldPosition(_v);if(_v.y<y)y=_v.y}return y}
+  // こぶし：手のひらの向きを測ってから、手首を立てて指を手のひら側へ曲げる（f=0 手のひら → 1 こぶし）
+  makeFist(i,f,sd){const B=this.B,h=B.hand[i],F=B.fing[i];if(!F.length)return;
+    for(const c of [...F,B.thumb[i]||[]])for(const b of c)b.quaternion.copy(b.userData.rq);   // 指をまっすぐに戻してから曲げる（くり返しで曲がりすぎない）
+    const [n,ax,d,w,tt]=this._fv||(this._fv=[0,0,0,0,0].map(()=>new THREE.Vector3()));h.getWorldPosition(_o);
+    F[0][0].getWorldPosition(_A);F[F.length-1][0].getWorldPosition(_Bp);B.mid[i].getWorldPosition(_J);
+    n.crossVectors(_A.sub(_Bp),_J.sub(_o)).normalize();if(n.y>0)n.negate();   // いま地面を向いている側＝手のひら
+    h.getWorldQuaternion(_qw);n.applyQuaternion(_qw.invert());   // 手の骨から見た向きにしておく
+    _c2.set(sd*0.3,-0.22,1).normalize().lerp(_T.set(sd*CONFIG.FIST_DIR[0],CONFIG.FIST_DIR[1],CONFIG.FIST_DIR[2]).normalize(),f).normalize().applyQuaternion(_qs).multiplyScalar(0.12).add(_o);B.mid[i].getWorldPosition(_J);aimBone(h,_J,_c2);   // 手首を立てる
+    h.getWorldPosition(_o);B.mid[i].getWorldPosition(_J);d.subVectors(_J,_o).normalize();   // 手首のひねり：こぶしでは手のひらが自分の体のほうを向く
+    h.getWorldQuaternion(_qw);ax.copy(n).applyQuaternion(_qw);w.set(0,-0.25,-1).applyQuaternion(_qs);ax.addScaledVector(d,-ax.dot(d));w.addScaledVector(d,-w.dot(d));
+    if(ax.lengthSq()>1e-6&&w.lengthSq()>1e-6)rotW(h,d,Math.atan2(_C.crossVectors(ax,w).dot(d),ax.dot(w))*f);
+    h.getWorldQuaternion(_qw);n.applyQuaternion(_qw);const A=[1.45,1.75,1.15];   // 手のひらの向き（世界）へ指を曲げる
+    for(const c of F){c[0].getWorldPosition(_A);c[1].getWorldPosition(_Bp);d.subVectors(_Bp,_A).normalize();ax.crossVectors(d,n).normalize();for(let k=0;k<3;k++)rotW(c[k],ax,A[k]*f)}
+    const t=B.thumb[i];if(t&&F.length>1){tt.set(0,0,0);for(const c of [F[0],F[1]])for(const b of [c[1],c[2]]){b.getWorldPosition(_A);tt.add(_A)}   // 親指は、曲げた人さし指と中指の上にかぶせる
+      w.copy(tt).multiplyScalar(0.25).addScaledVector(n,0.015*this.look.hs);t[3].getWorldPosition(_J);tt.copy(_J).lerp(w,f);
+      aimBone(t[0],_J,tt);ax.copy(n).negate();solve2(t[1],t[2],t[3],tt,ax)}}
+  tipY(i){let y=1e9;for(const t of (this.B.grd||this.B.tips)[i]){t.getWorldPosition(_v);if(_v.y<y)y=_v.y}return y}
   lowestY(){const B=this.B,hs=this.look.hs,f=0.8+0.4*this.look.fat;let mn=Math.min(this.tipY(0),this.tipY(1))-0.005*hs;
     for(const [b,r] of [[B.head,0.13],[B.top,0.03],[B.sp[2],0.26*f],[B.sp[1],0.3*f],[B.hips,0.24*f],[B.hand[0],0.05],[B.hand[1],0.05],[B.leg[0],0.08],[B.leg[1],0.08],[B.foot[0],0.07],[B.foot[1],0.07]]){
       b.getWorldPosition(_v);mn=Math.min(mn,_v.y-r*hs)}return mn}
   footY(i){this.B.foot[i].getWorldPosition(_v);return _v.y-this.rest.ankle*this.look.hs}
   // 押し合いの姿勢での、胴体（お腹・胸・腰）の前の端
   bodyFront(dir){const me=this.mesh;me.updateMatrixWorld(true);let mx=-1e9;for(const i of GLB.torso){me.getVertexPosition(i,_v);_v.applyMatrix4(me.matrixWorld);const s=_v.x*dir;if(s>mx)mx=s}return mx-dir*this.x}
-  measureFront(){const sv={mode:this.mode,p:{...this.p},yaw:this.yaw,lg:this.legs.map(l=>l.pos.clone()),am:this.arms.map(a=>a.pos.clone()),hd:[...this.handDown],so:this.stepOn,px:this.px,pz:this.pz,j:this.jolt,e:this.effort};
+  measureFront(){const sv={mode:this.mode,p:{...this.p},yaw:this.yaw,lg:this.legs.map(l=>l.pos.clone()),am:this.arms.map(a=>a.pos.clone()),hd:[...this.handDown],fi:[...this.fist],ht:[...this.handT],so:this.stepOn,px:this.px,pz:this.pz,j:this.jolt,e:this.effort};
     this.stepOn=false;this.jolt=0;this.effort=0;const shv=this.shove;this.shove=0;this.mode='push';this.animate(5);this.applyLook();this.applyPose();const f=this.bodyFront(this.yawT>0?1:-1);
-    this.mode=sv.mode;Object.assign(this.p,sv.p);this.yaw=sv.yaw;this.legs.forEach((l,i)=>l.pos.copy(sv.lg[i]));this.arms.forEach((a,i)=>a.pos.copy(sv.am[i]));this.handDown=sv.hd;this.stepOn=sv.so;this.px=sv.px;this.pz=sv.pz;this.jolt=sv.j;this.effort=sv.e;this.shove=shv;this.applyPose();return f}
+    this.mode=sv.mode;Object.assign(this.p,sv.p);this.yaw=sv.yaw;this.legs.forEach((l,i)=>l.pos.copy(sv.lg[i]));this.arms.forEach((a,i)=>a.pos.copy(sv.am[i]));this.handDown=sv.hd;this.fist=sv.fi;this.handT=sv.ht;this.stepOn=sv.so;this.px=sv.px;this.pz=sv.pz;this.jolt=sv.j;this.effort=sv.e;this.shove=shv;this.applyPose();return f}
 }
 let R;
 try{await loadModel();R=[new RikishiGLB(),new RikishiGLB()]}
@@ -916,8 +953,8 @@ function fl(s){if(s.fl)return s.fl;const top=ST.slice().sort((a,b)=>s[b[0]]-s[a[
   else nick=top[1]+'の'+(s.weight>=200?'巨漢':s.weight<=110?'小兵':s.height>=193?'大男':{S:'怪物',A:'大器',B:'若武者',C:'努力家',D:'新弟子'}[s.rank]);
   return s.fl={nick,move:top[2],pct:pctText(s.total)}}
 // 自分の力士だけを、ふつうに立たせて写真を撮る（撮ったら元に戻す）
-const saveR=r=>({x:r.x,z:r.z,px:r.px,pz:r.pz,yaw:r.yaw,yawT:r.yawT,mode:r.mode,p:{...r.p},ft:r.fallType,so:r.stepOn,lg:r.legs.map(l=>l.pos.clone()),am:r.arms.map(a=>a.pos.clone()),hd:[...r.handDown],j:r.jolt,e:r.effort,sh:r.shove,vis:r.visible});
-function restoreR(r,sv){Object.assign(r,{x:sv.x,z:sv.z,px:sv.px,pz:sv.pz,yaw:sv.yaw,yawT:sv.yawT,mode:sv.mode,fallType:sv.ft,stepOn:sv.so,handDown:sv.hd,jolt:sv.j,effort:sv.e,shove:sv.sh,visible:sv.vis});
+const saveR=r=>({x:r.x,z:r.z,px:r.px,pz:r.pz,yaw:r.yaw,yawT:r.yawT,mode:r.mode,p:{...r.p},ft:r.fallType,so:r.stepOn,lg:r.legs.map(l=>l.pos.clone()),am:r.arms.map(a=>a.pos.clone()),hd:[...r.handDown],fi:[...r.fist],ht:[...r.handT],j:r.jolt,e:r.effort,sh:r.shove,vis:r.visible});
+function restoreR(r,sv){Object.assign(r,{x:sv.x,z:sv.z,px:sv.px,pz:sv.pz,yaw:sv.yaw,yawT:sv.yawT,mode:sv.mode,fallType:sv.ft,stepOn:sv.so,handDown:sv.hd,fist:sv.fi,handT:sv.ht,jolt:sv.j,effort:sv.e,shove:sv.sh,visible:sv.vis});
   Object.assign(r.p,sv.p);r.legs.forEach((l,i)=>{l.pos.copy(sv.lg[i]);l.wp=null;l.st=-1});r.arms.forEach((a,i)=>a.pos.copy(sv.am[i]))}
 // list:[[力士,x,向き],...] の力士だけを立たせて写真を撮る（撮ったら元に戻す）
 function portraitShot(list,w,h,camSet){const svs=R.map(saveR);
@@ -1092,7 +1129,7 @@ window.__TEST__={
       if(r.p.fallA<0.02&&!r.mode.startsWith('lose')){for(let k=0;k<2;k++){if(r.legs[k].st>=0)continue;const y=r.footY(k);if(y<-0.03||y>0.06)v.push(`足が地面からずれた（${i?'相手':'自分'} y=${y.toFixed(3)}）`)}}
       else if(r.lowestY()<-0.03)v.push('倒れた体が床にめり込んだ')
       if(r.mode.startsWith('lose')&&r.p.fallA<0.02&&r.root.position.y>0.25)v.push('負けた体が宙に浮いた')}
-    if(state==='shikiri'&&R[1].B&&R[1].mode==='shikiri'){for(let k=0;k<2;k++){if(!R[1].handDown[k]||R[1].arms[k].pos.distanceTo(R[1].arms[k].tgt)>0.01)continue;R[1].B.hand[k].getWorldPosition(_v);if(_v.y>0.16*R[1].look.hs)v.push('手が地面に届いていない y='+_v.y.toFixed(3))}}
+    if(state==='shikiri'&&R[1].B&&R[1].mode==='shikiri'){for(let k=0;k<2;k++){if(!R[1].handDown[k]||R[1].arms[k].pos.distanceTo(R[1].arms[k].tgt)>0.01)continue;const ty=R[1].tipY(k);if(ty>0.04*R[1].look.hs)v.push('手が地面に届いていない y='+ty.toFixed(3)+' 握り='+R[1].fist[k].toFixed(2)+' 時間='+R[1].handT[k].toFixed(2)+' 手首='+R[1].B.hand[k].getWorldPosition(_v).y.toFixed(3));if(R[1].handT[k]>CONFIG.FIST_DELAY+0.5&&R[1].fist[k]<0.9)v.push('手をついたのに握っていない')}}
     for(let i=0;i<2;i++){const r=R[i];if(!r.ell||!r.visible||r.p.fallA>0.02)continue;const o=new THREE.Vector3(),a=new THREE.Vector3();for(let k=0;k<2;k++){const d=r.armPen(k,o,a);if(d>0.05*r.look.hs)v.push(`腕がめり込んだ（${i?'相手':'自分'} 深さ${d.toFixed(3)}）`);const ty=r.tipY(k);if(ty<-0.02)v.push(`指が土俵にめり込んだ（${i?'相手':'自分'} y=${ty.toFixed(3)}）`)}}
     if(B&&B.w.some(w=>w.st<0||w.st>1))v.push('体力が範囲外');
     for(const z of ZB)if(z.on&&z.m.visible&&(z.m.position.y<0.04||!Number.isFinite(z.m.position.y)))v.push('座布団が土俵にめり込んだ');
