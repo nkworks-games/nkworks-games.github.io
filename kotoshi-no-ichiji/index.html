@@ -71,8 +71,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 #pick{align-items:flex-end;justify-content:center;background:rgba(7,11,20,.5)}
 .psheet{width:100%;max-width:560px;max-height:93%;display:flex;flex-direction:column;background:var(--washi);background-image:radial-gradient(rgba(120,96,60,.08) 1px,transparent 1.2px),linear-gradient(180deg,#f7f1e4,#efe6d2);background-size:7px 7px,100% 100%;border-radius:18px 18px 0 0;border-top:3px solid var(--shu);padding:14px 14px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(0,0,0,.45)}
 .psheet h2{margin:0;font-size:20px;font-weight:900}.psheet p{margin:6px 0 10px;font-size:13.5px;line-height:1.6;color:#4d4233}
-.kgrid{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;padding:2px;align-content:start}
-.kg{aspect-ratio:1;min-width:0;min-height:0;overflow:hidden;line-height:1;padding:0;border:1px solid #cbbfa3;border-radius:6px;background:#fffaf0;font-size:min(5.4vw,25px);font-weight:700;display:grid;place-items:center}
+.kgrid{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));grid-auto-rows:max-content;gap:4px;padding:2px;align-content:start}
+.kg{aspect-ratio:1;min-width:0;overflow:hidden;line-height:1;padding:0;border:1px solid #cbbfa3;border-radius:6px;background:#fffaf0;font-size:min(5.4vw,25px);font-weight:700;display:grid;place-items:center}
 .kg.sel{background:var(--shu);border-color:var(--shu);color:#fff}
 .pfoot{display:flex;gap:10px;align-items:center;margin-top:10px}.pfoot .btn{flex:1;font-size:min(16.5px,4.3vw);white-space:nowrap;padding:13px 6px}.pfoot .btn:disabled{background:#b9ad93;box-shadow:0 4px 0 #9a8f78;color:#f3ecdd}.pfoot .lnk{flex:none}
 #fuu{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:4;width:40px;height:40px;border-radius:6px;background:var(--shu);color:#fff7e6;font-weight:900;font-size:21px;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.5);transform:rotate(5deg);pointer-events:none}
@@ -87,11 +87,17 @@ button{font:inherit;color:inherit;cursor:pointer}
 .vhead{margin:0 0 9px;font-size:22px;font-weight:900;color:var(--shu);line-height:1.4}.vhead span{display:inline-block}
 .dvs{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px}.dvs div{text-align:center;font-size:11.5px;font-weight:700;color:#6b5e49}.dvs canvas{width:86px;height:86px;display:block;background:#fffaf0;border:1px solid #d9cdb3;border-radius:8px;margin-bottom:3px}.dvs b{font-size:22px}
 @media (orientation:portrait) and (max-height:640px){.dcard canvas{width:84px;height:84px}#duel{bottom:calc(50px + env(safe-area-inset-bottom));gap:10px}#verdict b{font-size:36px}.lead{font-size:13.5px}}
+#more{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));z-index:6;transform:translateX(-50%);padding:8px 16px;border-radius:999px;background:rgba(243,236,221,.94);color:#3a3128;font-size:13.5px;font-weight:700;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.45);pointer-events:none;animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translate(-50%,-5px)}}
+/* 一字の一覧の検索 */
+.ksearch{display:flex;gap:6px;margin:0 0 8px}.ksearch input{flex:1;min-width:0;height:42px;padding:0 12px;font:inherit;font-size:16px;border:1.5px solid #b9ad93;border-radius:10px;background:#fffaf0;color:var(--sumi);-webkit-user-select:text;user-select:text;-webkit-appearance:none;appearance:none}
+.ksearch input:focus{outline:none;border-color:var(--shu)}.ksearch input::-webkit-search-cancel-button{-webkit-appearance:none;display:none}.ksearch button{flex:none;width:42px;height:42px;border:1.5px solid #b9ad93;border-radius:10px;background:#fffaf0;font-size:18px;padding:0}
+.knone{margin:6px 2px;font-size:13.5px;line-height:1.6;color:#6b5e49}
 #seen{color:#f8f1e1;font-size:26px;font-weight:900;letter-spacing:.3em;text-shadow:0 2px 10px #000;transition:opacity .5s}
 #skip{color:#cfc6b2;font-size:12.5px;letter-spacing:.2em;opacity:.8}
 #paper2d{max-width:min(86vw,60vh);border-radius:4px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 /* 結果 */
-#result{overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(7,10,17,.86);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);justify-content:center;align-items:flex-start}
+#result{pointer-events:auto;overscroll-behavior:contain;overflow-y:auto;background:rgba(7,10,17,.9);justify-content:center;align-items:flex-start}
 .rin{width:100%;max-width:520px;padding:calc(16px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
 #card{width:100%;height:auto;border-radius:6px;box-shadow:0 10px 34px rgba(0,0,0,.55);display:block}
 .box{background:var(--washi);border-radius:10px;padding:13px 14px}
@@ -172,11 +178,14 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div class="psheet">
     <h2>まず、あなたの一字を封じます</h2>
     <p>今年の自分を一字で表すなら、どれですか。150字から1つ選んでください。15問のあと、筆が書く字と勝負します。</p>
+    <div class="ksearch"><input id="kq" type="search" placeholder="字・読み・ことばで探す（例：たび）" autocomplete="off" enterkeyhint="search" aria-label="一字を探す"><button id="kqx" class="hide" aria-label="検索を消す">×</button></div>
+    <p class="knone hide" id="knone">見つかりませんでした。読み（たび）や、ことば（旅行・仕事）でも探せます。</p>
     <div class="kgrid" id="kgrid"></div>
     <div class="pfoot"><button class="lnk" id="pickSkip">決めずに始める</button><button class="btn" id="pickOk" disabled>字を選んでください</button></div>
   </div>
 </div>
 <div id="fuu" class="hide" aria-label="一字を封じてあります">封</div>
+<div id="more" class="hide">▼ 次点の字・シェアは下にあります</div>
 
 <div id="remain" class="hide"><span>のこり<b id="remN">150</b>字</span></div>
 <div id="ask" class="screen hide">
@@ -812,15 +821,32 @@ const Sound = { ctx: null, on: store('kotoshi.mute') !== '1',
 let state = 'title', picks = [], alt = [], qi = 0, gameT = 0, wait = -1, busy = false, result = null, rv = null, judge = null, mineCh = '', resultShownAt = 0, friendK = -1;
 let mineK = -1, pickSel = -1, demo = null; // mineK＝封じた字の番号（−1は封なし）／pickSel＝一覧で選択中の字／demo＝タイトルで筆が書いて見せている字
 const picksNow = () => picks.map(p => ({ q: p.q, a: p.a, alt: p.alt }));
-function setState(s) { state = s; $('title').classList.toggle('hide', s !== 'title'); $('ask').classList.toggle('hide', s !== 'ask'); $('remain').classList.toggle('hide', s !== 'ask'); $('reveal').classList.toggle('hide', s !== 'reveal'); $('result').classList.toggle('hide', s !== 'result'); $('mute').classList.toggle('hide', s === 'result' || s === 'pick'); $('pick').classList.toggle('hide', s !== 'pick'); $('fuu').classList.toggle('hide', !(s === 'ask' && mineK >= 0)); layoutCamera(false); }
+function setState(s) { state = s; $('title').classList.toggle('hide', s !== 'title'); $('ask').classList.toggle('hide', s !== 'ask'); $('remain').classList.toggle('hide', s !== 'ask'); $('reveal').classList.toggle('hide', s !== 'reveal'); $('result').classList.toggle('hide', s !== 'result'); $('mute').classList.toggle('hide', s === 'result' || s === 'pick'); $('pick').classList.toggle('hide', s !== 'pick'); $('more').classList.toggle('hide', s !== 'result'); $('fuu').classList.toggle('hide', !(s === 'ask' && mineK >= 0)); layoutCamera(false); }
 function reset(seed, mine) { // 最初からやり直す（タイトルを飛ばして1問目へ）。mine＝封じた字の番号（なければ −1）。リスタートもテストも同じものを使う
   state = 'ask'; mineK = mine >= 0 && mine < NK ? mine : -1; demo = null;
   picks = []; alt = Array(P.length).fill(false); qi = 0; wait = -1; busy = false; result = null; rv = null; judge = null; mineCh = ''; gameT = 0;
   clearPaper(); initFloat(seed || 1); brushRest(true); setState('ask'); showQuestion(); layoutCamera(true);
 }
-function openPick() { pickSel = -1; paintPick(); setState('pick'); $('kgrid').scrollTop = 0; }
+function openPick() { pickSel = -1; $('kq').value = ''; filterPick(); paintPick(); setState('pick'); $('kgrid').scrollTop = 0; }
 function paintPick() { [...$('kgrid').children].forEach((b, i) => b.classList.toggle('sel', i === pickSel)); const ok = $('pickOk'); ok.disabled = pickSel < 0; ok.textContent = pickSel < 0 ? '字を選んでください' : `「${KANJI[pickSel].c}」を封じて始める`; }
-function selectPick(i) { if (state !== 'pick' || !(i >= 0 && i < NK)) return; pickSel = i; Sound.tap(); paintPick(); }
+function selectPick(i) { if (state !== 'pick' || !(i >= 0 && i < NK)) return; pickSel = i; Sound.tap(); paintPick(); $('kq').blur(); }
+// 一覧の検索：字そのもの・読み（ひらがな/カタカナ）・説明文・その字につながる答えのことばで探す
+const hira = t => t.replace(/[\u30a1-\u30f6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+const SEEK_MORE = { mv: '引っ越し 引越し 一人暮らし ひっこし', nw: '入学 進学 就職 転職 転校 異動 新生活 しゅうしょく てんしょく', en: '卒業 退職 引退 そつぎょう', wk: '仕事 バイト 残業 しごと', sd: '勉強 受験 資格 試験 テスト べんきょう じゅけん', lv: '恋人 恋愛 彼氏 彼女 結婚 こいびと かれし かのじょ', os: '推し 推し活 オタク おし', tv: '旅行 遠出 海外 りょこう', et: 'ごはん グルメ', sl: '睡眠 寝る', ex: '運動 スポーツ 筋トレ', sv: '節約 貯金', sp: '買い物 出費', tr: '疲れ 寝不足', pt: '別れ', mt: '出会い' }; // ことばの追加（特徴ごと）
+const SEEK = KANJI.map(k => { const core = Object.entries(parseW(k.w)).filter(([, v]) => v >= 2).map(([t]) => t), words = core.map(t => SEEK_MORE[t] || '');
+  [...P, ...V].forEach(q => q.c.forEach(c => { const w = parseW(c.w); if (core.some(t => w[t] >= 2)) words.push(c.t); }));
+  return { yomi: hira(k.y).split('・').filter(Boolean), kun: k.y.split('・').filter(y => /^[\u3041-\u309f]+$/.test(y)), text: hira(k.s + ' ' + words.join(' ')) }; });
+const REN = { う: 'い', く: 'き', ぐ: 'ぎ', す: 'し', つ: 'ち', ぬ: 'に', ぶ: 'び', む: 'み', る: 'り' }; // 「おす」→「おし」のように、動詞の形が変わっても見つける
+function seekScore(i, qv) { // 0＝当てはまらない。大きいほど上に出す
+  if (qv.includes(KANJI[i].c)) return 3; const S2 = SEEK[i], kana = /^[\u3041-\u309f]+$/.test(qv);
+  if (S2.yomi.some(y => y.startsWith(qv) || (y.length >= 2 && qv.startsWith(y))) || S2.kun.some(y => (y.length >= 3 && /[うくすつぬむるぐぶい]$/.test(y) && qv.startsWith(y.slice(0, -1))) || (y.length >= 2 && qv.startsWith(y.slice(0, -1) + (REN[y.slice(-1)] || '×'))))) return 2; // 形が変わった読み（かわった・おし）は訓読みだけで見る
+  if ((!kana || qv.length >= 2) && S2.text.includes(qv)) return 1; return 0; }
+function filterPick() { const qv = hira($('kq').value.replace(/[\s　]/g, '')), btns = [...$('kgrid').children]; let n = 0;
+  const sh = document.querySelector('.psheet'); if (qv && !sh.style.minHeight && sh.offsetHeight) sh.style.minHeight = `min(${sh.offsetHeight}px, 100%)`; if (!qv) sh.style.minHeight = ''; // しぼっても一覧の高さが急に縮まないように（隠す前に測る）
+  btns.forEach((b, i) => { const sc = qv ? seekScore(i, qv) : 1; b.classList.toggle('hide', !sc); b.style.order = qv && sc ? String(3 - sc) : ''; if (sc) n++; });
+  $('knone').classList.toggle('hide', !!n); $('kqx').classList.toggle('hide', !qv); if (qv) $('kgrid').scrollTop = 0; return n; }
+function fitPick() { const v = window.visualViewport, el = $('pick'); if (!v) return; const kb = innerHeight - v.height; // スマホのキーボードが出ている間は、一覧をキーボードの上に収める
+  if (kb > 80 && state === 'pick') { el.style.top = v.offsetTop + 'px'; el.style.height = v.height + 'px'; el.style.bottom = 'auto'; } else { el.style.top = el.style.height = el.style.bottom = ''; } }
 function confirmPick(skip) { if (state !== 'pick' || (!skip && pickSel < 0)) return; if (skip) Sound.tap(); else Sound.stamp(); reset((Date.now() % 2147483646) | 0, skip ? -1 : pickSel); }
 // タイトル：筆が見本の字（リンクから来た人には友だちの字）を書いて見せる
 function startDemo(ki) { const k = Brush.prepare(STROKES[KANJI[ki].c], K_SIZE, { seed: seedOf(ki), paper: CONFIG.PAPER }); clearPaper(); demo = { ki, k, t: 0, prev: 0, T: clamp(k.total * 0.75, 2.0, 3.4), n: demo ? demo.n + 1 : 0 }; }
@@ -902,7 +928,7 @@ function showResult() {
   $('rNext').innerHTML = result.top.slice(1).map(i => `<div class="nx"><canvas width="116" height="116" data-k="${i}"></canvas><div><b>${KANJI[i].y}</b><span>${KANJI[i].s.split('。')[0]}。</span></div></div>`).join('');
   $('rNext').querySelectorAll('canvas').forEach(c => Brush.draw(c.getContext('2d'), STROKES[KANJI[+c.dataset.k].c], 6, 6, 104, { seed: seedOf(+c.dataset.k), color: CONFIG.INK, fast: true }));
   document.querySelectorAll('.jb').forEach(b => b.classList.remove('sel')); $('mine').classList.add('hide'); $('mineIn').value = ''; $('jmsg').textContent = '';
-  setState('result'); $('result').scrollTop = 0; resultShownAt = performance.now();
+  setState('result'); $('result').scrollTop = 0; resultShownAt = performance.now(); $('more').classList.toggle('hide', $('result').scrollHeight <= $('result').clientHeight + 60); // 下に続きがある時だけ合図を出す
   if (document.fonts && document.fonts.load) document.fonts.load('900 40px "Zen Old Mincho"').then(() => { if (state === 'result') drawCard($('card'), ki, cardNote(), !!d && d.verdict === 'hit'); }).catch(() => {});
 }
 const cardNote = () => { const d = result.duel; return d ? (d.verdict === 'hit' ? '封じた一字と同じでした' : `封じた一字は「${KANJI[d.k].c}」（150字中${d.rank}位）`) : mineCh ? `自分で選ぶなら「${mineCh}」` : ''; }; // カードの字の下に足す一行
@@ -941,6 +967,10 @@ async function saveImage() {
 function begin() { if (!resultReady()) return; Sound.init(); Sound.resume(); Sound.tap(); openPick(); }
 $('kgrid').innerHTML = KANJI.map((k, i) => `<button class="kg" data-i="${i}">${k.c}</button>`).join('');
 $('kgrid').addEventListener('click', e => { const b = e.target.closest('.kg'); if (b) selectPick(+b.dataset.i); });
+$('kq').addEventListener('input', filterPick); $('kq').addEventListener('keydown', e => { if (e.key !== 'Enter') return; e.preventDefault(); const vis = [...$('kgrid').children].filter(b => !b.classList.contains('hide')); if (vis.length === 1) selectPick(+vis[0].dataset.i); else $('kq').blur(); });
+$('kqx').addEventListener('click', () => { $('kq').value = ''; filterPick(); });
+if (window.visualViewport) { visualViewport.addEventListener('resize', fitPick); visualViewport.addEventListener('scroll', fitPick); }
+$('result').addEventListener('scroll', () => { if ($('result').scrollTop > 60) $('more').classList.add('hide'); }, { passive: true });
 $('pickOk').addEventListener('click', () => confirmPick(false)); $('pickSkip').addEventListener('click', () => confirmPick(true));
 $('startBtn').addEventListener('click', begin); $('againBtn').addEventListener('click', begin);
 $('choices').addEventListener('click', e => { const b = e.target.closest('.ch'); if (b) choose(+b.dataset.a); });
@@ -985,7 +1015,7 @@ window.__TEST__ = {
   keys: [],
   randomInput(r) { // タップだけのゲームなので、今の画面でできる操作を1つ選ぶ
     if (state === 'title') begin();
-    else if (state === 'pick') { if (r < 0.2) confirmPick(true); else { selectPick(Math.floor(r * NK)); confirmPick(false); } }
+    else if (state === 'pick') { if (r < 0.1) { $('kq').value = ['たび', '忙', 'しごと', 'かわった', 'zz'][Math.floor(r * 50)]; filterPick(); } else if (r < 0.25) confirmPick(true); else { $('kq').value = ''; filterPick(); selectPick(Math.floor(r * NK)); confirmPick(false); } }
     else if (state === 'ask' && !busy) { if (r > 0.93) swap(); else if (r > 0.88) back(); else choose(Math.floor(r / 0.88 * 4)); }
     else if (state === 'reveal' && r > 0.97) skipReveal();
     else if (state === 'result') { if (r < 0.3 && !result.duel) setJudge(['hit', 'near', 'miss'][Math.floor(r / 0.1)]); }
@@ -1003,7 +1033,7 @@ window.__TEST__ = {
     const want = state === 'ask' ? CONFIG.KEEP[Math.min(picks.length, CONFIG.KEEP.length - 1)] : null; if (want !== null && fl.filter(f => f.alive).length !== want) v.push('のこりの字数が合わない ' + fl.filter(f => f.alive).length + '≠' + want);
     if (state === 'result') { if (!result || result.top.length !== 3) v.push('結果がない'); else if (result.why.length !== P.length || !result.why.every(w => fin(w.v)) || !result.shape.every(fin)) v.push('15問の効き方か一年の形が数でない'); else { const r = S.rank(picksNow()); if (r[0][1] !== result.top[0]) v.push('結果の字が採点と合わない'); if (r[0][2] === 0 && !result.core.length) v.push('中心の答えが出ていない'); if (!fin(r[0][0])) v.push('点が数でない'); if (picks.length !== P.length) v.push('15問そろわずに結果が出た');
       const d = result.duel; if ((mineK >= 0) !== !!d) v.push('封じた字と勝負の有無が合わない'); else if (d) { const pos = r.findIndex(x => x[1] === mineK) + 1; if (pos !== d.rank) v.push('封じた字の順位が採点と合わない'); if (d.verdict !== (pos === 1 ? 'hit' : pos <= 3 ? 'near' : 'miss')) v.push('勝負の判定が順位と合わない'); if ((d.verdict === 'hit') !== (d.k === result.top[0])) v.push('的中なのに字がちがう'); } } }
-    if (state === 'title' && demo && !(fin(demo.t) && demo.t >= 0)) v.push('タイトルの見本の時間が数でない'); if (state === 'pick' && pickSel >= NK) v.push('選んだ字の番号がおかしい');
+    if (state === 'title' && demo && !(fin(demo.t) && demo.t >= 0)) v.push('タイトルの見本の時間が数でない'); if (state === 'pick' && pickSel >= NK) v.push('選んだ字の番号がおかしい'); if (state === 'pick' && !$('kq').value && $('kgrid').querySelectorAll('.hide').length) v.push('検索が空なのに隠れた字がある');
     return v; },
   rank: ans => S.rank(ans.map((a, q) => ({ q, a, alt: false }))).slice(0, 5).map(x => KANJI[x[1]].c + x[0].toFixed(2)),
   draw: { washi, seal, wrapText, drawCard, Brush, KANJI, STROKES, seedOf, CONFIG }, // シェア用の画像を作る道具から使う
