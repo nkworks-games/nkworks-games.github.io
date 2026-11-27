@@ -164,7 +164,27 @@ body{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-c
 #adGap{height:75px}
 .adLbl{margin:0 0 4px;font-size:11px;opacity:.6;text-align:left}
 #adBox{min-height:100px;background:rgba(0,0,0,.18);border-radius:10px;overflow:hidden}
-@media (max-height:520px) and (min-width:640px){#tut{top:96px;width:min(60vw,480px);padding:6px 12px 8px}#fbar{top:44px;width:min(70vw,640px)}#ctrl{width:min(60vw,480px)}.cb{height:50px}#hint{bottom:118px}#cutin{top:22%}}
+#scene{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 108px);transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;border:2px solid #000;background:linear-gradient(90deg,#7a0a14,#c01828,#7a0a14);box-shadow:0 3px 0 #000;max-width:92vw;text-align:center;white-space:nowrap}
+#scene.warn{background:rgba(0,0,0,.72);animation:blink .5s infinite}
+#sc-name{font-size:clamp(16px,4.4vw,22px);font-weight:900;-webkit-text-stroke:2px #000;paint-order:stroke fill;color:var(--gold)}
+#sc-desc{font-size:clamp(11px,3.2vw,13px);font-weight:800;white-space:normal}
+#beat{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:5px solid var(--gold);box-shadow:0 0 0 3px #000,inset 0 0 0 3px #000;box-sizing:border-box}
+#beat.just{background:rgba(80,255,140,.35);border-color:#5f5}
+#sumo{position:absolute;left:50%;top:24%;transform:translateX(-50%);width:min(86vw,420px);text-align:center}
+.sm-t{font-size:clamp(28px,8vw,48px);font-weight:900;color:var(--gold);-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:4px 4px 0 #b3121f;transform:skewX(-8deg)}
+.sm-bar{height:22px;border:3px solid #000;background:linear-gradient(#ffb07a,#f0581a);margin:6px 0;overflow:hidden;transform:skewX(-12deg)}
+#sm-you{height:100%;width:50%;background:linear-gradient(#7fb6ff,#2a6cf0)}
+.sm-m{font-size:clamp(18px,5vw,26px);font-weight:900;-webkit-text-stroke:2px #000;paint-order:stroke fill;animation:blink .3s infinite}
+.ds{color:#ff3a3a;font-weight:900;font-size:11px;animation:blink .5s infinite;-webkit-text-stroke:1px #000;paint-order:stroke fill;white-space:nowrap}
+.vs-scene{text-align:center;margin-top:10px;font-weight:900;font-size:clamp(12px,3.4vw,15px);-webkit-text-stroke:2px #000;paint-order:stroke fill;padding:0 10px}
+.vs-scene b{color:var(--gold)}
+#result{align-items:flex-start}#result .card{margin:auto}   /* 縦に長い時も上までスクロールできるように */
+#res-card{display:block;width:100%;border-radius:10px;border:2px solid #000;margin-bottom:10px;aspect-ratio:1/1;background:#111}
+.power{font-size:clamp(28px,8vw,42px);font-weight:900;color:#fff;-webkit-text-stroke:2px #000;paint-order:stroke fill;line-height:1.1}
+.power small{display:block;font-size:12px;color:var(--gold);-webkit-text-stroke:0;font-weight:900}
+#res-style{font-size:14px;font-weight:800;margin-top:4px;color:#ffcf6a}
+a.btn-sub{text-decoration:none;display:inline-block}
+@media (max-height:520px) and (min-width:640px){#scene{top:92px}#sumo{top:18%}#tut{top:96px;width:min(60vw,480px);padding:6px 12px 8px}#fbar{top:44px;width:min(70vw,640px)}#ctrl{width:min(60vw,480px)}.cb{height:50px}#hint{bottom:118px}#cutin{top:22%}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
 </head>
@@ -197,15 +217,18 @@ body{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-c
     <div class="side you">
       <div class="hp"><div class="hpfill" id="hp-you"></div></div>
       <div class="nm"><span id="nm-you"></span><small id="tt-you"></small></div>
-      <div class="sub"><span class="rw" id="rw-you"></span><span class="nz"><i id="nz-you"></i></span><span class="sk" id="sk-you"></span></div>
+      <div class="sub"><span class="rw" id="rw-you"></span><span class="nz"><i id="nz-you"></i></span><span class="sk" id="sk-you"></span><span class="ds" id="ds-you" hidden></span></div>
     </div>
     <div id="timer">45</div>
     <div class="side opp">
       <div class="hp"><div class="hpfill" id="hp-opp"></div></div>
       <div class="nm"><span id="nm-opp"></span><small id="tt-opp"></small></div>
-      <div class="sub"><span class="rw" id="rw-opp"></span><span class="nz"><i id="nz-opp"></i></span><span class="sk" id="sk-opp"></span><span class="ogs"><i id="og-opp"></i></span></div>
+      <div class="sub"><span class="rw" id="rw-opp"></span><span class="nz"><i id="nz-opp"></i></span><span class="sk" id="sk-opp"></span><span class="ds" id="ds-opp" hidden></span><span class="ogs"><i id="og-opp"></i></span></div>
     </div>
   </div>
+  <div id="scene" hidden><b id="sc-name"></b><span id="sc-desc"></span></div>
+  <div id="beat" hidden></div>
+  <div id="sumo" hidden><div class="sm-t" id="sm-t"></div><div class="sm-bar"><div id="sm-you"></div></div><div class="sm-m" id="sm-m"></div></div>
   <div id="callouts"></div>
   <div id="bubble" class="bubble" hidden></div>
   <div id="vs" hidden>
@@ -215,6 +238,7 @@ body{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-c
       <div class="vs-mid">VS</div>
       <div class="vs-card opp"><small id="vs-ott"></small><b id="vs-on"></b><span id="vs-otr"></span></div>
     </div>
+    <div class="vs-scene"><b id="vs-scn"></b> <span id="vs-scd"></span></div>
     <div class="vs-tap" data-i18n="vsTap">タップで開始</div>
   </div>
   <div id="cutin" hidden><div class="ci-face" id="ci-face"></div><div class="ci-text"><small id="ci-title"></small><b id="ci-name"></b></div></div>
@@ -238,7 +262,7 @@ body{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-c
       <div><b class="k-push">→</b> <span data-i18n="how1">押す は 構える に受け止められる</span></div>
       <div><b class="k-guard">↓</b> <span data-i18n="how2">構える は 上取り に押さえこまれる</span></div>
       <div><b class="k-up">↑</b> <span data-i18n="how3">上取り は 押す で崩される</span></div>
-      <div class="tiny" data-i18n="how4">押すを長押しで溜め押し。ゲージ満タンで必殺技。相手の肘を落とせば勝ち</div>
+      <div class="tiny" data-i18n="how4">押すを長押しで溜め押し。押し同士は連打の肘相撲。読み勝ったら追い打ち。相手の肘を落とせば勝ち</div>
     </div>
     <div class="tiny" data-i18n="howPc">パソコン：↓ ↑ → キー、スペースキーで必殺</div>
     <div class="btns"><button id="btn-start" class="btn-main" type="button" data-i18n="start">上映開始</button><button id="btn-practice" class="btn-sub" type="button" data-i18n="btnPractice">練習する</button></div>
@@ -246,7 +270,10 @@ body{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-c
 </div>
 <div id="result" class="ov" hidden>
   <div class="card">
+    <img id="res-card" alt="">
     <div id="res-head" class="big"></div>
+    <div class="power"><small id="res-pw-lbl"></small><span id="res-pw"></span></div>
+    <div id="res-style"></div>
     <div class="hr"></div>
     <div class="small" data-i18n="resRank">称号</div>
     <div id="res-rank" class="rank"></div>
@@ -255,6 +282,8 @@ body{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-c
     <div class="btns">
       <button id="btn-again" class="btn-main" type="button" data-i18n="again">もう一度</button>
       <button id="btn-share" class="btn-sub" type="button" data-i18n="share">Xでシェア</button>
+      <button id="btn-shareimg" class="btn-sub" type="button" data-i18n="shareImg" hidden>画像でシェア</button>
+      <a id="btn-saveimg" class="btn-sub" href="#" download="hijikake.jpg" data-i18n="saveImg">画像を保存</a>
     </div>
     <div class="support"><a class="fol" href="https://x.com/intent/follow?screen_name=vyaPudzd1E54661" target="_blank" rel="noopener"><span data-i18n="follow">作者をフォロー</span><small data-i18n="followSub">新作のお知らせ</small></a><a class="ofu" href="https://ofuse.me/nkworks_games" target="_blank" rel="noopener"><span data-i18n="ofuse">作者を応援する</span><small data-i18n="ofuseSub">100円から送れます（OFUSE）</small></a></div>
     <div id="adArea"><div id="adGap"></div><p class="adLbl" data-i18n="adLabel">広告</p><div id="adBox"></div></div>
@@ -294,16 +323,23 @@ const CONFIG = {
   NOISE_DECAY: 0.1, NOISE_AFTER: 0.3, SHUSH_MAX: 3,
   // --- 手応え ---
   HS_LIGHT: 0.07, HS_COUNTER: 0.12, HS_HEAVY: 0.16, HS_KO: 0.3, SLOWMO_SEC: 1.1, SLOWMO_RATE: 0.25,
+  // --- 上映中のしかけ（映画ごとに戦い方が変わる） ---
+  SCENE_FIRST: 8, SCENE_GAP: [11, 15], SCENE_WARN: 1.3,
+  SCENES: { comedy: { dur: 6 }, horror: { dur: 6 }, romance: { dur: 6, slip: 1.6 }, action: { dur: 7.5, beat: 1.5, just: 0.13, justMul: 2.2 }, master: { dur: 8, noiseMul: 2 } },
+  // --- 肘相撲（押し同士がぶつかったら連打勝負）・追い打ち・背水 ---
+  SUMO_SEC: 2.4, SUMO_TAP: 0.09, SUMO_DMG: 0.2,
+  CHAIN_WIN: 0.6, CHAIN_MAX: 3, CHAIN_MUL: 1.3, CHAIN_SU: 0.06, CHAIN_REC: 0.12, STUN_CHAIN: 0.42,
+  DESP_SHARE: 0.25, DESP_DMG: 1.3, DESP_GAIN: 2,
   // --- 点数 ---
   SCORE_ROUND: 100, SCORE_KO: 50, SCORE_SP: 50, SCORE_FOUL: 50,
   // --- 刺客（w:技の好み / think:次の技までの間 / react:こちらの動きに反応する確率 / delay:反応の遅さ / readPush:押してばかりの相手に構える確率 / dmg:威力 / gap:映画のすきの間隔 / tele:すきの前ぶれ / dist:すきの長さ / sp:必殺を使う確率 / adapt:くせを読む確率） ---
   READ_WINDOW: 2.5,       // 「押してばかり」を見る時間（秒）
   OPPS: [
-    { id: 'comedy',  w: { push: 0.6,  guard: 0.12, up: 0.1,  charge: 0.18 },  think: [0.4, 0.9],  react: 0.3,  delay: 0.38, readPush: 0.2,  dmg: 0.9,  gap: [5, 8],  tele: 0.9, dist: 1.8, sp: 0.3 },
-    { id: 'horror',  w: { push: 0.3,  guard: 0.45, up: 0.1,  charge: 0.15 }, think: [0.3, 0.7],  react: 0.45, delay: 0.33, readPush: 0.65, dmg: 1.05, gap: [5, 8],  tele: 1.0, dist: 1.4, sp: 0.35 },
-    { id: 'romance', w: { push: 0.3,  guard: 0.15, up: 0.42, charge: 0.13 }, think: [0.28, 0.65], react: 0.6, delay: 0.3,  readPush: 0.55, dmg: 1.15, gap: [6, 9],  tele: 1.0, dist: 1.6, sp: 0.4 },
-    { id: 'action',  w: { push: 0.32, guard: 0.13, up: 0.12, charge: 0.43 },  think: [0.25, 0.6], react: 0.62, delay: 0.27, readPush: 0.6,  dmg: 1.4,  gap: [5, 8],  tele: 0.7, dist: 1.1, sp: 0.5 },
-    { id: 'master',  w: { push: 0.4,  guard: 0.25, up: 0.2,  charge: 0.15 },  think: [0.2, 0.5],  react: 0.75, delay: 0.22, readPush: 0.8,  dmg: 1.25, gap: [8, 11], tele: 1.2, dist: 0.9, sp: 0.6, adapt: 0.65 },
+    { id: 'comedy',  w: { push: 0.6,  guard: 0.12, up: 0.1,  charge: 0.18 },  think: [0.4, 0.9],  react: 0.3,  delay: 0.38, readPush: 0.2,  dmg: 0.9,  gap: [5, 8],  tele: 0.9, dist: 1.8, mash: 5, sp: 0.3 },
+    { id: 'horror',  w: { push: 0.3,  guard: 0.45, up: 0.1,  charge: 0.15 }, think: [0.3, 0.7],  react: 0.45, delay: 0.33, readPush: 0.65, dmg: 1.05, gap: [5, 8],  tele: 1.0, dist: 1.4, mash: 5.5, sp: 0.35 },
+    { id: 'romance', w: { push: 0.3,  guard: 0.15, up: 0.42, charge: 0.13 }, think: [0.28, 0.65], react: 0.6, delay: 0.3,  readPush: 0.55, dmg: 1.15, gap: [6, 9],  tele: 1.0, dist: 1.6, mash: 6, sp: 0.4 },
+    { id: 'action',  w: { push: 0.32, guard: 0.13, up: 0.12, charge: 0.43 },  think: [0.25, 0.6], react: 0.62, delay: 0.27, readPush: 0.6,  dmg: 1.4,  gap: [5, 8],  tele: 0.7, dist: 1.1, mash: 6.5, sp: 0.5 },
+    { id: 'master',  w: { push: 0.4,  guard: 0.25, up: 0.2,  charge: 0.15 },  think: [0.2, 0.5],  react: 0.75, delay: 0.22, readPush: 0.8,  dmg: 1.25, gap: [8, 11], tele: 1.2, dist: 0.9, mash: 7, sp: 0.6, adapt: 0.65 },
   ],
   // --- 見た目（m） ---
   ARM_W: 0.24, ARM_TOP: 0.68, FOV: 38, CAM_TILT: 0.34, OUTLINE: 0.007,
@@ -315,7 +351,7 @@ const I18N = {
         confirmHome: 'ゲームをやめて、ホームに戻りますか？', confirmRestart: '最初からやり直しますか？',
         subtitle: '映画館で、肘と肘がぶつかる。',
         how1: '押す は 構える に受け止められる', how2: '構える は 上取り に押さえこまれる', how3: '上取り は 押す で崩される',
-        how4: '押すを長押しで溜め押し。ゲージ満タンで必殺技。相手の肘を落とせば勝ち', howPc: 'パソコン：↓ ↑ → キー、スペースキーで必殺', start: '上映開始',
+        how4: '押すを長押しで溜め押し。押し同士は連打の肘相撲。読み勝ったら追い打ち。相手の肘を落とせば勝ち', howPc: 'パソコン：↓ ↑ → キー、スペースキーで必殺', start: '上映開始',
         btnGuard: '構える', btnUp: '上取り', btnPush: '押す', btnSp: '必殺', gauge: '必殺',
         you: 'あなた', tt_you: '肘掛けを求める者', trait_you: '名もなき観客。今日こそ肘掛けを手に入れる。',
         matchLabel: '第{n}上映', filmLine: '{genre}{film}', vsTap: 'タップで開始',
@@ -337,7 +373,13 @@ const I18N = {
         resClear: '全5上映、肘掛けを守りきった！', resLose: '第{n}上映で敗退', resScore: 'スコア {n}', resRank: '称号',
         rank0: '肘掛けを知らない人', rank1: '遠慮がちな観客', rank2: 'ひじ一本ぶんの意地', rank3: '肘掛けの用心棒', rank4: '静かなる猛者', rank5: '新・肘掛けの主',
         won: '勝ち', lost: '負け', again: 'もう一度', share: 'Xでシェア',
-        shareText: '映画館で肘掛けを奪い合って、称号「{rank}」をもらいました！スコア{n} #肘掛けゆずりません',
+        shareText: '映画館で肘掛けを奪い合いました。肘掛け戦闘力{p}、肘スタイル「{s}」、称号「{rank}」 #肘掛けゆずりません',
+        sc_comedy: '爆笑タイム！', scd_comedy: 'うるさいから大技でもシーッされない', sc_horror: '停電！', scd_horror: '真っ暗。肘の光の色だけで読み合え',
+        sc_romance: '涙の肘掛け！', scd_romance: '涙ですべって、押しが1.6倍効く', sc_action: '爆発シーン！', scd_action: 'ドカンに合わせて押すとジャスト押し',
+        sc_master: '静かな場面…', scd_master: 'ざわざわ2倍。大技はすぐシーッ', scWarn: 'まもなく {name}', vsScene: '上映中のしかけ「{name}」',
+        cSumo: '肘相撲！', sumoMash: '連打！連打！', cSumoWin: '肘相撲、制した！', cJust: 'ジャスト押し!!', cChain: '{n}連！', hChain: '追い打ちチャンス！ → 押す',
+        desp: '背水！', power: '肘掛け戦闘力', stampLose: '肘、落とされた…', cardStyle: '肘スタイル「{s}」', cardRank: '称号「{r}」', shareImg: '画像でシェア', saveImg: '画像を保存',
+        styPush: '押しの一手', styGuard: '鉄壁の構え', styUp: '上取りの達人', styCharge: '溜めの職人', styChain: '連撃の肘', stySumo: '肘相撲の鬼', styJust: 'ジャスト押しの申し子',
         btnPractice: '練習する', tutSkip: 'スキップ', tutStep: '練習ラウンド {n}/6', tutNice: 'いいね！', tutDone: '練習おわり！ さあ、本番だ',
         tut1: '→ 押す をタップしてみよう', tut1s: '相手の肘を押して、陣地をうばう',
         tut2: '相手が構えた（青く光る）！ ↑ 上取り で上から押さえよう', tut2s: '構えている相手を押すと、受け止められてしまう',
@@ -350,7 +392,7 @@ const I18N = {
         confirmHome: 'Quit the game and go back home?', confirmRestart: 'Start over from the beginning?',
         subtitle: 'At the movies, elbow meets elbow.',
         how1: 'Push is caught by Guard', how2: 'Guard gets pinned by Over-Top', how3: 'Over-Top gets broken by Push',
-        how4: 'Hold Push for a Power Push. Full gauge = Special. Knock their elbow off to win', howPc: 'PC: ↓ ↑ → keys, Space for Special', start: 'Start',
+        how4: 'Hold Push for a Power Push. Push vs push = Elbow Sumo (mash!). Win a read, then follow up. Knock their elbow off to win', howPc: 'PC: ↓ ↑ → keys, Space for Special', start: 'Start',
         btnGuard: 'Guard', btnUp: 'Over-Top', btnPush: 'Push', btnSp: 'Special', gauge: 'Special',
         you: 'You', tt_you: 'Seeker of the Armrest', trait_you: 'A nameless moviegoer. Today, the armrest will be yours.',
         matchLabel: 'Show {n}', filmLine: '{genre}: {film}', vsTap: 'Tap to start',
@@ -372,7 +414,13 @@ const I18N = {
         resClear: 'Held the armrest through all 5 shows!', resLose: 'Out at show {n}', resScore: 'Score {n}', resRank: 'Title',
         rank0: 'Never Touched an Armrest', rank1: 'Polite Moviegoer', rank2: 'One Elbow of Pride', rank3: 'Armrest Bodyguard', rank4: 'The Silent Brawler', rank5: 'The New Armrest Master',
         won: 'Win', lost: 'Lose', again: 'Play again', share: 'Share on X',
-        shareText: 'Fought over the armrest at the movies and earned the title "{rank}"! Score: {n} #TheArmrestIsMine',
+        shareText: 'Fought for the armrest at the movies. Armrest Power {p}, elbow style "{s}", title "{rank}" #TheArmrestIsMine',
+        sc_comedy: 'Laugh Riot!', scd_comedy: "It's too loud to shush your big moves", sc_horror: 'Blackout!', scd_horror: 'Pitch dark. Read them by the color of their glow',
+        sc_romance: 'Tear-Slick Armrest!', scd_romance: 'Slippery with tears: pushes hit 1.6x', sc_action: 'Explosion Scene!', scd_action: 'Push on the BOOM for a Just Push',
+        sc_master: 'Quiet Scene…', scd_master: 'Noise builds 2x. Big moves get shushed fast', scWarn: 'Coming up: {name}', vsScene: 'Special event: {name}',
+        cSumo: 'Elbow Sumo!', sumoMash: 'MASH! MASH!', cSumoWin: 'Won the Elbow Sumo!', cJust: 'JUST PUSH!!', cChain: '{n}-hit!', hChain: 'Follow-up chance! → Push',
+        desp: 'Last stand!', power: 'Armrest Power', stampLose: 'Your elbow fell…', cardStyle: 'Elbow style: {s}', cardRank: 'Title: {r}', shareImg: 'Share image', saveImg: 'Save image',
+        styPush: 'All Push, No Brakes', styGuard: 'Iron Wall', styUp: 'Over-Top Virtuoso', styCharge: 'Charge Artisan', styChain: 'Combo Elbow', stySumo: 'Elbow-Sumo Demon', styJust: 'Child of the Just Push',
         btnPractice: 'Practice', tutSkip: 'Skip', tutStep: 'Practice {n}/6', tutNice: 'Nice!', tutDone: "Practice done! Now it's for real",
         tut1: 'Tap → Push', tut1s: 'Push their elbow to take more of the armrest',
         tut2: "They're guarding (blue glow)! Use ↑ Over-Top", tut2s: 'Pushing a guarding opponent just gets you caught',
@@ -385,7 +433,7 @@ const I18N = {
         confirmHome: '게임을 그만두고 홈으로 돌아갈까요?', confirmRestart: '처음부터 다시 할까요?',
         subtitle: '영화관에서, 팔꿈치와 팔꿈치가 부딪친다.',
         how1: '밀기는 버티기에 막혀요', how2: '버티기는 위잡기에 위에서 눌려요', how3: '위잡기는 밀기에 무너져요',
-        how4: '밀기를 길게 누르면 모아 밀기. 게이지가 차면 필살기. 상대 팔꿈치를 떨어뜨리면 승리', howPc: 'PC: ↓ ↑ → 키, 스페이스 키로 필살기', start: '상영 시작',
+        how4: '밀기를 길게 누르면 모아 밀기. 밀기끼리 부딪치면 연타로 팔꿈치 씨름. 읽기에 이기면 추가타. 상대 팔꿈치를 떨어뜨리면 승리', howPc: 'PC: ↓ ↑ → 키, 스페이스 키로 필살기', start: '상영 시작',
         btnGuard: '버티기', btnUp: '위잡기', btnPush: '밀기', btnSp: '필살', gauge: '필살',
         you: '나', tt_you: '팔걸이를 찾는 자', trait_you: '이름 없는 관객. 오늘이야말로 팔걸이를 차지한다.',
         matchLabel: '{n}번째 상영', filmLine: '{genre} {film}', vsTap: '탭해서 시작',
@@ -407,7 +455,13 @@ const I18N = {
         resClear: '5번의 상영 내내 팔걸이를 지켜냈어요!', resLose: '{n}번째 상영에서 탈락', resScore: '점수 {n}', resRank: '칭호',
         rank0: '팔걸이를 모르는 사람', rank1: '조심스러운 관객', rank2: '팔꿈치 하나만큼의 고집', rank3: '팔걸이 경호원', rank4: '조용한 강자', rank5: '새로운 팔걸이의 주인',
         won: '승리', lost: '패배', again: '다시 하기', share: 'X에 공유',
-        shareText: '영화관에서 팔걸이 쟁탈전을 벌여 「{rank}」 칭호를 받았어요! 점수 {n} #팔걸이는양보못해요',
+        shareText: '영화관에서 팔걸이를 두고 싸웠어요. 팔걸이 전투력 {p}, 팔꿈치 스타일 「{s}」, 칭호 「{rank}」 #팔걸이는양보못해요',
+        sc_comedy: '폭소 타임!', scd_comedy: '시끄러워서 큰 기술을 써도 쉿! 안 당해요', sc_horror: '정전!', scd_horror: '깜깜해요. 팔꿈치 빛 색깔만 보고 읽어요',
+        sc_romance: '눈물의 팔걸이!', scd_romance: '눈물로 미끄러워 밀기가 1.6배', sc_action: '폭발 장면!', scd_action: '쾅! 할 때 맞춰 밀면 저스트 밀기',
+        sc_master: '조용한 장면…', scd_master: '웅성 2배. 큰 기술은 금방 쉿!', scWarn: '곧 {name}', vsScene: '상영 중 이벤트 「{name}」',
+        cSumo: '팔꿈치 씨름!', sumoMash: '연타! 연타!', cSumoWin: '팔꿈치 씨름 승리!', cJust: '저스트 밀기!!', cChain: '{n}연타!', hChain: '추가타 찬스! → 밀기',
+        desp: '배수진!', power: '팔걸이 전투력', stampLose: '팔꿈치가 떨어졌다…', cardStyle: '팔꿈치 스타일 「{s}」', cardRank: '칭호 「{r}」', shareImg: '이미지 공유', saveImg: '이미지 저장',
+        styPush: '오직 밀기', styGuard: '철벽 버티기', styUp: '위잡기 달인', styCharge: '모으기 장인', styChain: '연격의 팔꿈치', stySumo: '팔꿈치 씨름의 귀신', styJust: '저스트 밀기의 천재',
         btnPractice: '연습하기', tutSkip: '건너뛰기', tutStep: '연습 라운드 {n}/6', tutNice: '좋아요!', tutDone: '연습 끝! 이제 실전이에요',
         tut1: '→ 밀기를 탭해 보세요', tut1s: '상대 팔꿈치를 밀어서 자리를 빼앗아요',
         tut2: '상대가 버티고 있어요(파랗게 빛남)! ↑ 위잡기로 위에서 눌러요', tut2s: '버티는 상대를 밀면 막혀 버려요',
@@ -420,7 +474,7 @@ const I18N = {
         confirmHome: '要退出游戏并返回主页吗？', confirmRestart: '要从头重新开始吗？',
         subtitle: '电影院里，胳膊肘与胳膊肘的碰撞。',
         how1: '挤 会被 顶住 挡下', how2: '顶住 会被 压上 从上面按住', how3: '压上 会被 挤 破解',
-        how4: '长按“挤”可蓄力挤。必杀槽满了能放必杀技。把对方胳膊肘挤下扶手就赢了', howPc: '电脑：↓ ↑ → 键，空格键放必杀', start: '开始放映',
+        how4: '长按“挤”可蓄力挤。挤和挤相撞就狂点比肘相扑。读赢了就追击。把对方胳膊肘挤下去就赢了', howPc: '电脑：↓ ↑ → 键，空格键放必杀', start: '开始放映',
         btnGuard: '顶住', btnUp: '压上', btnPush: '挤', btnSp: '必杀', gauge: '必杀',
         you: '你', tt_you: '追寻扶手之人', trait_you: '无名观众。今天一定要拿下扶手。',
         matchLabel: '第{n}场', filmLine: '{genre}{film}', vsTap: '点击开始',
@@ -442,7 +496,13 @@ const I18N = {
         resClear: '5场电影，扶手全都守住了！', resLose: '在第{n}场败下阵来', resScore: '得分 {n}', resRank: '称号',
         rank0: '不知扶手为何物', rank1: '客气的观众', rank2: '一个胳膊肘的倔强', rank3: '扶手保镖', rank4: '沉默的狠角色', rank5: '新一代扶手之主',
         won: '胜', lost: '负', again: '再玩一次', share: '分享到 X',
-        shareText: '在电影院抢扶手，获得称号「{rank}」！得分{n} #扶手绝不让',
+        shareText: '在电影院抢扶手。扶手战斗力{p}，肘部风格「{s}」，称号「{rank}」 #扶手绝不让',
+        sc_comedy: '爆笑时间！', scd_comedy: '太吵了，放大招也不会被嘘', sc_horror: '停电！', scd_horror: '一片漆黑，只能看胳膊肘的光色来判断',
+        sc_romance: '泪湿扶手！', scd_romance: '眼泪让扶手变滑，挤的效果×1.6', sc_action: '爆炸场面！', scd_action: '跟着“轰”的一声挤，就是完美挤',
+        sc_master: '安静场面……', scd_master: '嘈杂值×2。放大招马上被嘘', scWarn: '即将：{name}', vsScene: '放映中的机关「{name}」',
+        cSumo: '肘相扑！', sumoMash: '狂点！狂点！', cSumoWin: '肘相扑获胜！', cJust: '完美挤!!', cChain: '{n}连！', hChain: '追击机会！ → 挤',
+        desp: '背水一战！', power: '扶手战斗力', stampLose: '胳膊肘被挤掉了……', cardStyle: '肘部风格「{s}」', cardRank: '称号「{r}」', shareImg: '分享图片', saveImg: '保存图片',
+        styPush: '一味猛挤', styGuard: '铁壁顶守', styUp: '压上达人', styCharge: '蓄力匠人', styChain: '连击之肘', stySumo: '肘相扑之鬼', styJust: '完美挤天才',
         btnPractice: '练习', tutSkip: '跳过', tutStep: '练习回合 {n}/6', tutNice: '很好！', tutDone: '练习结束！正式开始',
         tut1: '点一下 → 挤', tut1s: '挤对方的胳膊肘，抢地盘',
         tut2: '对方在顶住（蓝光）！用 ↑ 压上 从上面按住', tut2s: '去挤正在顶住的对方，会被挡下',
@@ -548,7 +608,7 @@ const lerp = (a, b, k) => a + (b - a) * k;
 const $ = (id) => document.getElementById(id);
 const other = (w) => (w === 'you' ? 'opp' : 'you');
 const sideSign = (w) => (w === 'you' ? 1 : -1);   // 陣地 b を自分の得にする向き
-function newF() { return { st: 'idle', t: 0, dur: 0, chargeT: 0, gauge: 0, noise: 0, strikes: 0, buf: null, power: 0 }; }
+function newF() { return { st: 'idle', t: 0, dur: 0, chargeT: 0, gauge: 0, noise: 0, strikes: 0, buf: null, chain: 0, chainT: 0, combo: false }; }
 function freshState() {
   return {
     phase: 'title', pt: 0, rt: 0, animT: G ? G.animT : 0, match: 0, round: 0,
@@ -556,6 +616,8 @@ function freshState() {
     rw: { you: 0, opp: 0 }, hitstop: 0, slowmo: 0, shushT: 0, shushWho: 'you',
     koWin: '', koReason: '', lastSp: '', oppTele: false, evNext: 5,
     cut: null, results: [], matchScore: 0, total: 0, matchWon: false, hist: [], pushTimes: [], stats: {},
+    sumo: null, sumoTaps: 0, scene: { st: 'off', t: 0, next: 8, beatT: 0, lastBeat: -99, beatN: 0 },
+    counts: { push: 0, guard: 0, up: 0, charge: 0, chain: 0, sumo: 0, just: 0 }, snapCv: null, snapWin: '', snapPending: false, snapReq: false, power: 0,
   };
 }
 const curOpp = () => CONFIG.OPPS[G.match];
@@ -614,6 +676,7 @@ const SFX = {   // 効果音（アタック強め・残響ほどほど）
   ko() { tone(70, 1.4, 'sine', 0.8, 30); noise(1.0, 'lowpass', 600, 0.6, 0.6); [523, 392, 262].forEach((f, i) => tone(f, 0.6, 'triangle', 0.15, null, 0.2 + i * 0.18)); },
   gong() { tone(110, 1.2, 'sine', 0.4, 100); tone(220, 1.0, 'triangle', 0.15); noise(0.3, 'bandpass', 600, 2, 0.15); },
   fight() { noise(0.25, 'lowpass', 300, 0.7, 0.7); tone(65, 0.4, 'sine', 0.8, 40); },
+  boom() { noise(0.5, 'lowpass', 400, 0.7, 0.5, 0.005); tone(60, 0.45, 'sine', 0.55, 32); },
   shush() { noise(0.95, 'highpass', 3000, 0.7, 0.35, 0.06); noise(0.9, 'bandpass', 5200, 1.5, 0.2, 0.08); },
   win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.3, 'triangle', 0.22, null, i * 0.11)); },
   lose() { tone(392, 0.5, 'sawtooth', 0.1, 180); tone(262, 0.8, 'triangle', 0.15, 110, 0.25); },
@@ -652,7 +715,7 @@ scene.fog = new THREE.Fog(0x07050b, 5, 12);
 const camera = new THREE.PerspectiveCamera(CONFIG.FOV, 1, 0.05, 60);
 const cutCam = new THREE.PerspectiveCamera(26, 1, 0.05, 20);
 const CAM = { d: 2, lookY: 0.95, nearD: 1.3 };
-scene.add(new THREE.HemisphereLight(0x8090c0, 0x140a0a, 0.55));
+const hemi = new THREE.HemisphereLight(0x8090c0, 0x140a0a, 0.55); scene.add(hemi);
 const screenLight = new THREE.DirectionalLight(0xffffff, 2);
 screenLight.position.set(0, 2.4, 6); screenLight.target.position.set(0, 0.9, -1.5);
 screenLight.castShadow = true; screenLight.shadow.mapSize.set(1024, 1024);
@@ -869,11 +932,11 @@ function startAction(w, k) {
   if (G.phase !== 'fight' && G.phase !== 'tut') return;
   if (f.st !== 'idle') { if (w === 'you') f.buf = { k, t: G.rt }; return; }
   f.buf = null;
-  if (k === 'push') setSt(f, 'push_su');
+  if (k === 'push') { f.combo = f.chainT > 0 && f.chain > 0 && f.chain < CONFIG.CHAIN_MAX; setSt(f, 'push_su'); }
   else if (k === 'guard') setSt(f, 'guard');
   else if (k === 'up') setSt(f, 'up_su');
   else if (k === 'sp') { if (f.gauge < 1) return; f.gauge = 0; setSt(f, 'sp_su'); G.cut = { who: w, t: 0 }; G.hitstop = CONFIG.SP_FREEZE; FXS.gk[w] = 1.6; FXS.lines = 1; SFX.special(); }
-  if (w === 'you' && k !== 'sp') { G.hist.push(k); if (G.hist.length > 8) G.hist.shift(); if (k === 'push') G.pushTimes.push(G.rt); }
+  if (w === 'you' && k !== 'sp') { G.hist.push(k); if (G.hist.length > 8) G.hist.shift(); if (k === 'push') G.pushTimes.push(G.rt); if (G.counts[k] !== undefined) G.counts[k]++; }
 }
 function tryBuffer(w) {
   const f = F(w);
@@ -883,9 +946,19 @@ function tryBuffer(w) {
   if (b.k === 'guard' && !held(w, 'guard')) return;
   startAction(w, b.k);
 }
-function move(w, amt) { G.b = clamp(G.b + sideSign(w) * amt, -1, 1); }   // w の得になる向きに陣地を動かす
-function gain(f, v) { f.gauge = clamp(f.gauge + v, 0, 1); }
+const shareOf = (w) => (w === 'you' ? (G.b + 1) / 2 : (1 - G.b) / 2);
+const desp = (w) => (G.phase === 'fight' || G.phase === 'ko') && shareOf(w) <= CONFIG.DESP_SHARE;   // 背水：陣地が少ないと強くなる
+const sceneOn = (id) => G.phase === 'fight' && G.scene.st === 'on' && curOpp().id === id;
+const dmgMul = (w) => (w === 'opp' ? curOpp().dmg : 1) * (desp(w) ? CONFIG.DESP_DMG : 1);
+function move(w, amt) { if (sceneOn('romance')) amt *= CONFIG.SCENES.romance.slip; G.b = clamp(G.b + sideSign(w) * amt, -1, 1); }   // w の得になる向きに陣地を動かす
+function gain(f, v) { if (v > 0 && desp(f === G.you ? 'you' : 'opp')) v *= CONFIG.DESP_GAIN; f.gauge = clamp(f.gauge + v, 0, 1); }
+function justHit() {   // 爆発シーン：ドカンに合わせた押し
+  if (!sceneOn('action')) return false;
+  const sc = G.scene; return Math.min(G.rt - sc.lastBeat, sc.beatT) <= CONFIG.SCENES.action.just;
+}
 function addNoise(w, v) {
+  if (sceneOn('comedy')) return;   // 爆笑タイムは場内がうるさい
+  if (sceneOn('master')) v *= CONFIG.SCENES.master.noiseMul;   // 静かな場面は響く
   const f = F(w); f.noise += v;
   if (f.noise >= 1 && G.phase === 'fight') {
     f.strikes++; f.noise = CONFIG.NOISE_AFTER; setSt(f, 'shushed', CONFIG.STUN_SHUSH); f.buf = null;
@@ -903,35 +976,45 @@ function impact(kind, w, text) {   // 手応え：ヒットストップ・火花
   spawnSparks(6 + big * 5);
   if (text) callout(text, w, kind);
 }
-function stun(w, d) { const f = F(w); setSt(f, 'stun', d); f.buf = null; if (w === 'opp') AI.holdPush = AI.holdGuard = false; }
+function stun(w, d) { const f = F(w); setSt(f, 'stun', d); f.buf = null; f.chain = 0; f.chainT = 0; f.combo = false; if (w === 'opp') AI.holdPush = AI.holdGuard = false; }
+function openChain(f) { f.chain = 1; f.chainT = CONFIG.CHAIN_WIN; }   // 読み勝ったら追い打ちのチャンス
 function resolve(w, k) {
-  const A = F(w), o = other(w), D = F(o), ds = D.st, mult = w === 'opp' ? curOpp().dmg : 1, inv = o === 'opp' ? curOpp().dmg : 1;
+  const A = F(w), o = other(w), D = F(o), ds = D.st, mult = dmgMul(w), inv = dmgMul(o);
   const C = CONFIG;
   const dPushing = ds === 'push_act' || (ds === 'push_su' && D.t >= C.PUSH_SU - 0.03);
   if (k === 'push') {
-    if (ds === 'guard') { move(o, C.DMG_BLOCK * inv); stun(w, C.STUN_BLOCKED); gain(D, C.GAIN_COUNTER); gain(A, C.GAIN_TAKEN); addNoise(o, C.NOISE_BLOCK); SFX.block(); impact('counter', o, 'cBlock'); }
-    else if (dPushing) clash(C.NOISE_CLASH);
+    if (ds === 'guard') { move(o, C.DMG_BLOCK * inv); stun(w, C.STUN_BLOCKED); gain(D, C.GAIN_COUNTER); gain(A, C.GAIN_TAKEN); addNoise(o, C.NOISE_BLOCK); openChain(D); SFX.block(); impact('counter', o, 'cBlock'); }
+    else if (dPushing) startSumo();
     else if (ds === 'cpush_act' || ds === 'sp_act') { stun(w, C.STUN_HIT); SFX.hit(); impact('light', o, ''); }
     else {
-      const crush = ds === 'charge', open = ds === 'dist', counter = crush || open || ds === 'up_su' || ds === 'up_act';
-      move(w, (counter ? C.DMG_COUNTER : C.DMG_PUSH) * mult); stun(o, crush ? C.STUN_CRUSHED : counter ? C.STUN_COUNTER : C.STUN_HIT);
-      gain(A, counter ? C.GAIN_COUNTER : C.GAIN_HIT); gain(D, C.GAIN_TAKEN); addNoise(w, C.NOISE_PUSH);
-      counter ? SFX.counter() : SFX.hit(); impact(counter ? 'counter' : 'light', w, crush ? 'cCrush' : open ? 'cOpening' : counter ? 'cCounter' : 'cPush');
+      const combo = A.combo, crush = ds === 'charge', open = ds === 'dist', counter = !combo && (crush || open || ds === 'up_su' || ds === 'up_act'), just = justHit();
+      let dmg = (combo ? C.DMG_PUSH * C.CHAIN_MUL : counter ? C.DMG_COUNTER : C.DMG_PUSH) * mult;
+      if (just) dmg *= C.SCENES.action.justMul;
+      move(w, dmg); stun(o, combo ? C.STUN_CHAIN : crush ? C.STUN_CRUSHED : counter || just ? C.STUN_COUNTER : C.STUN_HIT);
+      gain(A, counter || combo || just ? C.GAIN_COUNTER : C.GAIN_HIT); gain(D, C.GAIN_TAKEN); addNoise(w, C.NOISE_PUSH);
+      if (combo) { A.chain++; A.chainT = A.chain < C.CHAIN_MAX ? C.CHAIN_WIN : 0; if (w === 'you') G.counts.chain++; }
+      else if (counter || just) openChain(A);
+      if (just && w === 'you') G.counts.just++;
+      if (just) { SFX.boom(); impact('heavy', w, 'cJust'); }
+      else if (combo) { SFX.counter(); impact('counter', w, ''); callout(t('cChain', { n: A.chain }), w, 'counter', true); }
+      else { counter ? SFX.counter() : SFX.hit(); impact(counter ? 'counter' : 'light', w, crush ? 'cCrush' : open ? 'cOpening' : counter ? 'cCounter' : 'cPush'); }
     }
   } else if (k === 'cpush') {
     const q = clamp((A.chargeT - C.CHARGE_MIN) / (C.CHARGE_MAX - C.CHARGE_MIN), 0, 1), dmg = lerp(C.DMG_CPUSH_MIN, C.DMG_CPUSH_MAX, q) * mult;
-    if (ds === 'cpush_act') clash(C.NOISE_CLASH * 1.5);
+    if (ds === 'cpush_act') startSumo();
     else if (ds === 'sp_act') { stun(w, C.STUN_HIT); impact('light', o, ''); }
     else {
-      const brk = ds === 'guard', counter = ds === 'up_su' || ds === 'up_act' || ds === 'charge' || ds === 'dist';
-      move(w, dmg * (brk ? 0.85 : 1)); stun(o, brk ? C.STUN_BREAK : C.STUN_COUNTER); gain(A, C.GAIN_HIT + (counter ? 0.05 : 0)); gain(D, C.GAIN_TAKEN);
-      SFX.heavy(); impact('heavy', w, brk ? 'cBreak' : counter ? 'cCounter' : 'cCharge');
+      const brk = ds === 'guard', counter = ds === 'up_su' || ds === 'up_act' || ds === 'charge' || ds === 'dist', just = justHit();
+      move(w, dmg * (brk ? 0.85 : 1) * (just ? C.SCENES.action.justMul : 1)); stun(o, brk ? C.STUN_BREAK : C.STUN_COUNTER); gain(A, C.GAIN_HIT + (counter ? 0.05 : 0)); gain(D, C.GAIN_TAKEN);
+      if (brk || counter || just) openChain(A);
+      if (just && w === 'you') G.counts.just++;
+      just ? SFX.boom() : SFX.heavy(); impact('heavy', w, just ? 'cJust' : brk ? 'cBreak' : counter ? 'cCounter' : 'cCharge');
     }
     if (G.phase === 'fight' && A.st === 'cpush_act') addNoise(w, C.NOISE_CPUSH);   // 大技はまわりに聞こえる
   } else if (k === 'up') {
     if (dPushing || ds === 'cpush_act' || ds === 'sp_act') { stun(w, C.STUN_COUNTER); move(o, C.DMG_PUSH * inv * 0.5); SFX.hit(); impact('light', o, 'cCounter'); }
-    else if (ds === 'up_act' || (ds === 'up_su' && D.t >= C.UP_SU - 0.03)) clash(C.NOISE_CLASH);
-    else { move(w, C.DMG_UP * mult); stun(o, C.STUN_PINNED); gain(A, C.GAIN_COUNTER); gain(D, C.GAIN_TAKEN); addNoise(w, C.NOISE_UP); SFX.up(); impact('counter', w, 'cUp'); A.pin = true; }
+    else if (ds === 'up_act' || (ds === 'up_su' && D.t >= C.UP_SU - 0.03)) startSumo();
+    else { move(w, C.DMG_UP * mult); stun(o, C.STUN_PINNED); gain(A, C.GAIN_COUNTER); gain(D, C.GAIN_TAKEN); addNoise(w, C.NOISE_UP); SFX.up(); impact('counter', w, 'cUp'); A.pin = true; openChain(A); }
   } else if (k === 'sp') {
     move(w, C.DMG_SP * mult); stun(o, C.STUN_SP); gain(D, C.GAIN_TAKEN); SFX.heavy(); G.lastSp = w;
     impact('sp', w, ''); callout(t('sp_' + (w === 'you' ? 'you' : curOpp().id)), w, 'sp', true);
@@ -944,6 +1027,40 @@ function clash(nz) {
   gain(G.you, CONFIG.GAIN_CLASH); gain(G.opp, CONFIG.GAIN_CLASH); SFX.clash(); impact('clash', 'you', 'cClash'); FXS.lines = 1;
   addNoise('you', nz); if (G.phase === 'fight') addNoise('opp', nz);
 }
+// --- 肘相撲：押し同士がぶつかったら、連打で押し合う ---
+function startSumo() {
+  if (G.phase !== 'fight') return clash(CONFIG.NOISE_CLASH);
+  G.sumo = { t: 0, p: 0, ai: 0 }; G.sumoTaps = 0;
+  for (const w of ['you', 'opp']) { const f = F(w); setSt(f, 'sumo'); f.buf = null; f.combo = false; f.chain = 0; f.chainT = 0; }
+  G.inp.push = G.inp.guard = false; AI.holdPush = AI.holdGuard = false;
+  G.hitstop = Math.max(G.hitstop, 0.12); FXS.zoomT = CONFIG.SUMO_SEC + 0.4; FXS.gk.you = FXS.gk.opp = CONFIG.SUMO_SEC + 0.6; FXS.lines = 1; FXS.shake = 0.03;
+  SFX.clash(); spawnSparks(12); callout('cSumo', 'you', 'clash');
+}
+function sumoTick(dt) {
+  const s = G.sumo, O = curOpp(); s.t += dt;
+  s.p += G.sumoTaps * CONFIG.SUMO_TAP; G.sumoTaps = 0;
+  s.ai += O.mash * dt; while (s.ai >= 1) { s.ai -= 1; s.p -= CONFIG.SUMO_TAP; }
+  s.p = clamp(s.p, -1, 1);
+  if (Math.abs(s.p) >= 1 || s.t >= CONFIG.SUMO_SEC) endSumo();
+}
+function endSumo() {
+  const s = G.sumo; G.sumo = null;
+  if (Math.abs(s.p) < 0.06) { setSt(G.you, 'recover', CONFIG.CLASH_REC); setSt(G.opp, 'recover', CONFIG.CLASH_REC); SFX.clash(); impact('clash', 'you', 'cClash'); return; }
+  const w = s.p > 0 ? 'you' : 'opp', o = other(w), A = F(w);
+  setSt(A, 'recover', 0.12);
+  move(w, CONFIG.SUMO_DMG * dmgMul(w) * (0.6 + 0.4 * Math.abs(s.p))); stun(o, CONFIG.STUN_COUNTER);
+  gain(A, CONFIG.GAIN_COUNTER); openChain(A); if (w === 'you') G.counts.sumo++;
+  SFX.heavy(); impact('heavy', w, 'cSumoWin'); addNoise(w, CONFIG.NOISE_CLASH); checkEnd();
+}
+// --- 上映中のしかけ ---
+function sceneTick(dt) {
+  const sc = G.scene, id = curOpp().id, S = CONFIG.SCENES[id];
+  if (sc.st === 'off') { sc.next -= dt; if (sc.next <= 0) { sc.st = 'warn'; sc.t = 0; SFX.tele(id); } return; }
+  sc.t += dt;
+  if (sc.st === 'warn') { if (sc.t >= CONFIG.SCENE_WARN) { sc.st = 'on'; sc.t = 0; sc.beatT = S.beat || 0; sc.lastBeat = -99; sc.beatN = 0; SFX.dist(id); } return; }
+  if (id === 'action') { sc.beatT -= dt; if (sc.beatT <= 0) { sc.beatT += S.beat; sc.lastBeat = G.rt; sc.beatN++; SFX.boom(); FXS.flash = Math.max(FXS.flash, 0.3); FXS.shake = Math.max(FXS.shake, 0.02); } }
+  if (sc.t >= S.dur) { sc.st = 'off'; sc.t = 0; sc.next = rr(CONFIG.SCENE_GAP[0], CONFIG.SCENE_GAP[1]); }
+}
 function checkEnd() {
   if (G.phase !== 'fight') return;
   if (G.b >= 1) endRound('you', 'ko'); else if (G.b <= -1) endRound('opp', 'ko');
@@ -952,7 +1069,8 @@ function endRound(win, reason) {
   if (G.phase !== 'fight') return;
   G.phase = 'ko'; G.pt = 0; G.koWin = win; G.koReason = reason; G.rw[win]++;
   G.inp.push = G.inp.guard = false; AI.holdPush = AI.holdGuard = false;
-  if (reason === 'ko') { G.slowmo = CONFIG.SLOWMO_SEC; G.hitstop = CONFIG.HS_KO; FXS.zoomT = 2.2; FXS.lines = 1; FXS.gk.you = FXS.gk.opp = 2.2; SFX.ko(); }
+  G.sumo = null;
+  if (reason === 'ko') { G.slowmo = CONFIG.SLOWMO_SEC; G.hitstop = CONFIG.HS_KO; FXS.zoomT = 2.2; FXS.lines = 1; FXS.gk.you = FXS.gk.opp = 2.2; SFX.ko(); G.snapPending = true; }
   else SFX.gong();
   if (win === 'you') G.matchScore += CONFIG.SCORE_ROUND + (reason === 'ko' ? CONFIG.SCORE_KO : 0) + (G.lastSp === 'you' && reason === 'ko' ? CONFIG.SCORE_SP : 0);
   else if (reason === 'foul') G.matchScore = Math.max(0, G.matchScore - CONFIG.SCORE_FOUL);
@@ -960,11 +1078,12 @@ function endRound(win, reason) {
 function fTick(w, dt) {
   const f = F(w), C = CONFIG;
   f.t += dt;
+  if (f.chainT > 0) { f.chainT -= dt; if (f.chainT <= 0) { f.chainT = 0; if (!f.combo) f.chain = 0; } }
   switch (f.st) {
     case 'idle': tryBuffer(w); break;
-    case 'push_su': if (f.t >= C.PUSH_SU) { if (held(w, 'push')) { setSt(f, 'charge'); if (w === 'you') { G.hist[G.hist.length - 1] = 'charge'; } SFX.charge(); } else { setSt(f, 'push_act'); resolve(w, 'push'); } } break;
+    case 'push_su': if (f.t >= (f.combo ? C.CHAIN_SU : C.PUSH_SU)) { if (held(w, 'push') && !f.combo) { setSt(f, 'charge'); if (w === 'you') { G.hist[G.hist.length - 1] = 'charge'; G.counts.push--; G.counts.charge++; } SFX.charge(); } else { setSt(f, 'push_act'); resolve(w, 'push'); } } break;
     case 'charge': f.chargeT += dt; if (!held(w, 'push') || f.chargeT >= C.CHARGE_MAX) { if (f.chargeT >= C.CHARGE_MIN) { setSt(f, 'cpush_act'); resolve(w, 'cpush'); } else { setSt(f, 'push_act'); resolve(w, 'push'); } } break;
-    case 'push_act': if (f.t >= C.PUSH_ACT) setSt(f, 'recover', C.PUSH_REC); break;
+    case 'push_act': if (f.t >= C.PUSH_ACT) { setSt(f, 'recover', f.combo ? C.CHAIN_REC : C.PUSH_REC); f.combo = false; } break;
     case 'cpush_act': if (f.t >= C.CPUSH_ACT) setSt(f, 'recover', C.CPUSH_REC); break;
     case 'guard': if (!held(w, 'guard') || f.t >= C.GUARD_MAX) setSt(f, 'recover', f.t >= C.GUARD_MAX ? C.GUARD_REC : C.GUARD_REL); break;
     case 'up_su': if (f.t >= C.UP_SU) { setSt(f, 'up_act'); f.pin = false; resolve(w, 'up'); } break;
@@ -998,11 +1117,15 @@ function aiTick(dt) {
     else if (p.st === 'guard') r = 'up';
     else if ((p.st === 'stun' || p.st === 'shushed') && p.dur - p.t > 0.25) r = rand() < 0.6 ? 'push' : 'charge';
     else if (p.st === 'recover' && p.dur - p.t > 0.15) r = 'push';   // 技の後のすきをつく
-    if (r && rand() < O.react) { aiDo(r); return; }
+    if (r && rand() < O.react * (sceneOn('horror') ? 0.5 : 1)) { aiDo(r); return; }   // 停電中は見えにくい
   }
+  const sc = G.scene;
+  if (sceneOn('action') && sc.aiBeat !== sc.beatN && sc.beatT < CONFIG.PUSH_SU + 0.06) { sc.aiBeat = sc.beatN; if (rand() < O.react * 0.35) { aiDo('push'); return; } }   // ドカンに合わせてくる
   if (AI.cool > 0) return;
   AI.cool = rr(O.think[0], O.think[1]);
-  if (o.gauge >= 1 && rand() < O.sp) { aiDo('sp'); return; }
+  const quiet = sceneOn('master');
+  if (o.gauge >= 1 && !quiet && rand() < O.sp) { aiDo('sp'); return; }
+  if (sceneOn('comedy') && rand() < 0.5) { aiDo('charge'); return; }   // 爆笑タイムは大技を狙う
   G.pushTimes = G.pushTimes.filter((x) => G.rt - x < CONFIG.READ_WINDOW);
   if (G.pushTimes.length >= 2 && rand() < O.readPush) { aiDo('guard'); return; }   // 押してばかりなら構える
   if (O.adapt && G.hist.length >= 3 && rand() < O.adapt) {   // くせを読む
@@ -1027,6 +1150,13 @@ function movieTick(dt) {   // 映画の場面で相手にすきができる
 function fightTick(dt) {
   if (dt <= 0) return;
   G.rt += dt;
+  sceneTick(dt);
+  if (G.sumo) {
+    sumoTick(dt); if (G.phase !== 'fight') return;
+    for (const w of ['you', 'opp']) { const f = F(w); f.noise = Math.max(0, f.noise - CONFIG.NOISE_DECAY * dt); }
+    if (G.rt >= CONFIG.ROUND_SEC) endRound(G.b >= 0 ? 'you' : 'opp', 'time');
+    return;
+  }
   aiTick(dt);
   fTick('you', dt); if (G.phase !== 'fight') return;
   fTick('opp', dt); if (G.phase !== 'fight') return;
@@ -1040,7 +1170,8 @@ function startVS() {
 }
 function startCall() {
   const gy = G.you.gauge, go = G.opp.gauge;
-  Object.assign(G, { phase: 'call', pt: 0, rt: 0, b: 0, lastSp: '', pushTimes: [], oppTele: false, teleSnd: false, evNext: rr(curOpp().gap[0], curOpp().gap[1]), shushT: 0, cut: null });
+  Object.assign(G, { phase: 'call', pt: 0, rt: 0, b: 0, lastSp: '', pushTimes: [], oppTele: false, teleSnd: false, evNext: rr(curOpp().gap[0], curOpp().gap[1]), shushT: 0, cut: null, sumo: null,
+    scene: { st: 'off', t: 0, next: CONFIG.SCENE_FIRST, beatT: 0, lastBeat: -99, beatN: 0, aiBeat: -1 } });
   G.you = newF(); G.opp = newF(); G.you.gauge = gy; G.opp.gauge = go; aiReset(); SFX.gong();
 }
 function afterKO() {
@@ -1054,7 +1185,49 @@ function afterMatch() {
   if (G.matchWon && G.match < CONFIG.OPPS.length - 1) { G.match++; startVS(); }
   else finish();
 }
-function finish() { GAME_STATE = 'result'; nkwUpdateUI(); G.inp.push = G.inp.guard = false; refreshResult(); $('result').hidden = false; showAd(); }
+function finish() {
+  GAME_STATE = 'result'; nkwUpdateUI(); G.inp.push = G.inp.guard = false;
+  G.power = computePower(); G.resT0 = performance.now(); $('res-card').removeAttribute('src');
+  if (!G.snapCv) { G.snapReq = true; G.snapWin = G.results.length && G.results[G.results.length - 1].won ? 'you' : 'opp'; G.cardPending = true; }   // 決着の瞬間がない時は今の画面を使う
+  refreshResult(); $('result').hidden = false; showAd();
+}
+// --- シェアしたくなる結果：肘掛け戦闘力・肘スタイル・決定的瞬間の画像 ---
+function computePower() { const c = G.counts; return Math.round(G.total * 20 + c.chain * 300 + c.sumo * 400 + c.just * 400 + rankIndex() * 1000); }
+function styleKey() {
+  const c = G.counts;
+  if (c.chain >= 6) return 'styChain'; if (c.sumo >= 3) return 'stySumo'; if (c.just >= 3) return 'styJust';
+  const k = ['push', 'guard', 'up', 'charge'].sort((a, b) => c[b] - c[a])[0];
+  return { push: 'styPush', guard: 'styGuard', up: 'styUp', charge: 'styCharge' }[k];
+}
+function captureSnap() {   // 3D画面と集中線をいっしょに、決着の瞬間を正方形で切りとる
+  const W = canvas.width, H = canvas.height, side = Math.min(W, H), pr = W / innerWidth, c = proj(_v.set(0, 1.0, 0));
+  const sx = clamp(c[0] * pr - side / 2, 0, W - side), sy = clamp(c[1] * pr - side / 2, 0, H - side);
+  const out = G.snapCv || (G.snapCv = document.createElement('canvas')); out.width = out.height = 720;
+  const g = out.getContext('2d'); g.drawImage(canvas, sx, sy, side, side, 0, 0, 720, 720);
+  const fx = fxCv.width / W; g.drawImage(fxCv, sx * fx, sy * fx, side * fx, side * fx, 0, 0, 720, 720);
+}
+function buildCard() {
+  const S = 1080, cv = G.cardCv || (G.cardCv = document.createElement('canvas')); cv.width = cv.height = S;
+  const g = cv.getContext('2d'); g.drawImage(G.snapCv, 0, 0, S, S);
+  let gr = g.createLinearGradient(0, S * 0.5, 0, S); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.4, 'rgba(0,0,0,.78)'); gr.addColorStop(1, 'rgba(0,0,0,.94)'); g.fillStyle = gr; g.fillRect(0, S * 0.5, S, S * 0.5);
+  gr = g.createLinearGradient(0, 0, 0, 190); gr.addColorStop(0, 'rgba(0,0,0,.8)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, S, 190);
+  const txt = (str, x, y, px, col, stroke, w = '900', align = 'left', maxW = S - 80) => {
+    let f = px; g.font = nkwFont(f, w); while (g.measureText(str).width > maxW && f > 16) { f -= 2; g.font = nkwFont(f, w); }
+    g.textAlign = align; g.lineJoin = 'round'; g.lineWidth = stroke; g.strokeStyle = '#000'; g.strokeText(str, x, y); g.fillStyle = col; g.fillText(str, x, y);
+  };
+  txt(t('title'), 40, 84, 56, '#fff', 12);
+  txt('nkworks-games.com/hijikake', S - 40, 136, 26, 'rgba(255,255,255,.9)', 6, '700', 'right', 520);
+  const won = G.snapWin === 'you';
+  g.save(); g.translate(S / 2, S * 0.5); g.rotate(-0.1); txt(won ? t('ko') : t('stampLose'), 0, 0, 120, won ? '#ffd23f' : '#9fd8ff', 20, '900', 'center', S - 140); g.restore();
+  txt(t('power'), 40, S - 232, 36, '#ffd23f', 8);
+  txt(fmtN(G.power), 40, S - 140, 104, '#fff', 16);
+  txt(t('cardStyle', { s: t(styleKey()) }), 40, S - 80, 40, '#fff', 9, '800');
+  txt(t('cardRank', { r: t('rank' + rankIndex()) }), 40, S - 30, 34, '#ffcf6a', 8, '800');
+  G.cardUrl = cv.toDataURL('image/jpeg', 0.88); $('res-card').src = G.cardUrl;
+  const sv = $('btn-saveimg'); sv.href = G.cardUrl; sv.hidden = nkwIsPortal();
+  const btn = $('btn-shareimg'); btn.hidden = true; G.cardFile = null;
+  if (navigator.canShare && cv.toBlob && !nkwIsPortal()) cv.toBlob((b) => { if (!b) return; try { const f = new File([b], 'hijikake.jpg', { type: 'image/jpeg' }); if (navigator.canShare({ files: [f] })) { G.cardFile = f; btn.hidden = false; } } catch (e) {} }, 'image/jpeg', 0.88);
+}
 // 結果画面だけのバナー広告（nkworks-games.com の上だけ。配信サイトや埋め込みでは枠ごと出さない）
 function showAd() {
   const area = $('adArea'), box = $('adBox');
@@ -1076,7 +1249,7 @@ function tick(dt) {
   if (G.phase === 'vs') { if ((skip && G.pt >= CONFIG.VS_MIN) || G.pt >= CONFIG.VS_AUTO) startCall(); }
   else if (G.phase === 'call') { if (G.pt >= CONFIG.CALL_SEC) { G.phase = 'fight'; G.pt = 0; SFX.fight(); } }
   else if (G.phase === 'fight') fightTick(sdt);
-  else if (G.phase === 'ko') { for (const w of ['you', 'opp']) { const f = F(w); if (f.st !== 'idle') { f.t += sdt; if (f.dur && f.t >= f.dur) setSt(f, 'idle'); } } if (G.pt >= CONFIG.KO_SEC) afterKO(); }
+  else if (G.phase === 'ko') { if (G.snapPending && G.pt >= 0.32) { G.snapPending = false; G.snapReq = true; G.snapWin = G.koWin; } for (const w of ['you', 'opp']) { const f = F(w); if (f.st !== 'idle') { f.t += sdt; if (f.dur && f.t >= f.dur) setSt(f, 'idle'); } } if (G.pt >= CONFIG.KO_SEC) afterKO(); }
   else if (G.phase === 'mend') { if ((skip && G.pt >= 0.8) || G.pt >= CONFIG.MEND_SEC) afterMatch(); }
   else if (G.phase === 'tut') tutTick(sdt);
   else if (G.phase === 'tutEnd') { if (G.pt >= 1.6) restartGame(); }
@@ -1141,6 +1314,7 @@ function press(k) {
   if (GAME_STATE !== 'play' || PAUSED) return;
   audioInit();
   if (G.phase === 'vs' || G.phase === 'mend') { G.skip++; return; }
+  if (G.sumo && G.phase === 'fight') { G.sumoTaps++; return; }   // 肘相撲中はどのボタンでも連打
   if (k === 'push' || k === 'guard') G.inp[k] = true;
   startAction('you', k);
 }
@@ -1153,7 +1327,7 @@ for (const [id, k] of Object.entries(BTN)) {
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up);
   el.addEventListener('click', (e) => { e.stopPropagation(); el.blur(); });
 }
-$('game').addEventListener('pointerdown', (e) => { e.preventDefault(); if (GAME_STATE === 'play' && !PAUSED && (G.phase === 'vs' || G.phase === 'mend')) { audioInit(); G.skip++; } });
+$('game').addEventListener('pointerdown', (e) => { e.preventDefault(); if (GAME_STATE !== 'play' || PAUSED) return; if (G.phase === 'vs' || G.phase === 'mend') { audioInit(); G.skip++; } else if (G.sumo && G.phase === 'fight') { G.sumoTaps++; ripple(e.clientX, e.clientY); } });   // 肘相撲は画面のどこを連打してもいい
 const KEYS = { ArrowDown: 'guard', ArrowUp: 'up', ArrowRight: 'push', Space: 'sp', KeyS: 'guard', KeyW: 'up', KeyD: 'push' };
 window.addEventListener('keydown', (e) => {
   const k = KEYS[e.code]; if (!k || GAME_STATE !== 'play') return;
@@ -1172,12 +1346,15 @@ $('btn-practice').addEventListener('click', () => { audioInit(); startTutorial()
 $('tut-skip').addEventListener('pointerdown', (e) => e.stopPropagation());
 $('tut-skip').addEventListener('click', (e) => { e.stopPropagation(); if (G && G.phase === 'tut') tutFinish(true); });
 $('btn-again').addEventListener('click', () => { audioInit(); restartGame(); });
+const fmtN = (n) => Math.round(n).toLocaleString(HTML_LANG[LANG]);
+const shareText = () => t('shareText', { rank: t('rank' + rankIndex()), p: fmtN(G.power), s: t(styleKey()) });
+$('btn-shareimg').addEventListener('click', async () => { if (!G.cardFile) return; try { await navigator.share({ files: [G.cardFile], text: shareText() + ' ' + CONFIG.GAME_URL }); } catch (e) {} });
 $('btn-share').addEventListener('click', () => {
-  const text = t('shareText', { rank: t('rank' + rankIndex()), n: G.total });
+  const text = shareText();
   window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(CONFIG.GAME_URL), '_blank', 'noopener');
 });
 // ボタンを押した後にフォーカスが残ると、キー操作でもう一度押されてしまうので外す
-['nkw-home', 'nkw-restart', 'nkw-yes', 'nkw-no', 'btn-start', 'btn-practice', 'btn-again', 'btn-share', 'tut-skip'].forEach((id) => $(id).addEventListener('click', (e) => e.currentTarget.blur()));
+['nkw-home', 'nkw-restart', 'nkw-yes', 'nkw-no', 'btn-start', 'btn-practice', 'btn-again', 'btn-share', 'btn-shareimg', 'btn-saveimg', 'tut-skip'].forEach((id) => $(id).addEventListener('click', (e) => e.currentTarget.blur()));
 
 // ===== [SEC:HUD] =====
 function setTxt(el, s) { if (el._t !== s) { el._t = s; el.textContent = s; } }
@@ -1203,6 +1380,7 @@ function refreshVS() {
   setTxt($('vs-top'), t('matchLabel', { n: G.match + 1 }) + '  ' + t('filmLine', { genre: t('genre_' + id), film: t('film_' + id) }));
   setTxt($('vs-ytt'), t('tt_you')); setTxt($('vs-yn'), t('you')); setTxt($('vs-ytr'), t('trait_you'));
   setTxt($('vs-ott'), t('tt_' + id)); setTxt($('vs-on'), t('name_' + id)); setTxt($('vs-otr'), t('trait_' + id));
+  setTxt($('vs-scn'), t('vsScene', { name: t('sc_' + id) })); setTxt($('vs-scd'), t('scd_' + id));
 }
 function refreshResult() {
   if (!G || GAME_STATE !== 'result') return;
@@ -1210,6 +1388,8 @@ function refreshResult() {
   setTxt($('res-head'), clear ? t('resClear') : t('resLose', { n: G.results.length }));
   setTxt($('res-rank'), t('rank' + wins));
   setTxt($('res-score'), t('resScore', { n: G.total }));
+  setTxt($('res-pw-lbl'), t('power')); setTxt($('res-style'), t('cardStyle', { s: t(styleKey()) }));
+  if (G.snapCv) buildCard();
   const box = $('res-rows'); box.textContent = '';
   G.results.forEach((r, i) => {
     const row = document.createElement('div'); row.className = 'rrow';
@@ -1230,7 +1410,8 @@ function hudUpdate() {
   const O = curOpp(), ph = G.phase, you = G.you, opp = G.opp;
   setShow($('vs'), ph === 'vs'); setShow($('fbar'), ph !== 'vs'); setShow($('ctrl'), ph !== 'vs');
   const tut = ph === 'tut'; setShow($('tut'), tut);
-  const hlId = tut && G.tutWait <= 0 ? TUT[G.tutStep].btn : '';
+  const chainOk = ph === 'fight' && you.chainT > 0 && you.chain > 0 && you.chain < CONFIG.CHAIN_MAX;
+  const hlId = tut ? (G.tutWait <= 0 ? TUT[G.tutStep].btn : '') : (ph === 'fight' && (G.sumo || chainOk)) ? 'b-push' : '';
   if (hudUpdate._hl !== hlId) { hudUpdate._hl = hlId; document.querySelectorAll('.hl').forEach((e) => e.classList.remove('hl')); if (hlId) $(hlId).classList.add('hl'); }
   if (tut) { const n = G.tutStep + 1; setTxt($('tut-step'), t('tutStep', { n })); setTxt($('tut-main'), t('tut' + n)); setTxt($('tut-sub'), t('tut' + n + 's')); }
   const ys = (G.b + 1) / 2;
@@ -1250,9 +1431,21 @@ function hudUpdate() {
   const sh = G.shushT > 0; setShow($('bubble'), sh);
   if (sh) { setTxt($('bubble'), t('shushBubble')); shusher.g.updateMatrixWorld(); place($('bubble'), proj(shusher.g.localToWorld(_v.set(0, 1.42, 0))), $('fbar').getBoundingClientRect().bottom + 46); }
   // ヒント（序盤ほど多めに）
+  // 上映中のしかけ
+  const sc = G.scene, scOn = ph === 'fight' && (sc.st === 'on' || sc.st === 'warn');
+  setShow($('scene'), scOn);
+  if (scOn) { const nm = t('sc_' + O.id), sw = sc.st === 'warn', se = $('scene'); setTxt($('sc-name'), sw ? t('scWarn', { name: nm }) : nm); setTxt($('sc-desc'), t('scd_' + O.id)); if (se._w !== sw) { se._w = sw; se.classList.toggle('warn', sw); } }
+  const bt = sceneOn('action'); setShow($('beat'), bt);
+  if (bt) { const S = CONFIG.SCENES.action, be = $('beat'), xy = proj(FXS.contact); be.style.left = xy[0].toFixed(0) + 'px'; be.style.top = xy[1].toFixed(0) + 'px'; be.style.transform = 'scale(' + (0.35 + 1.4 * sc.beatT / S.beat).toFixed(3) + ')'; const j = Math.min(G.rt - sc.lastBeat, sc.beatT) <= S.just; if (be._j !== j) { be._j = j; be.classList.toggle('just', j); } }
+  // 肘相撲
+  const sm = !!G.sumo && ph === 'fight'; setShow($('sumo'), sm);
+  if (sm) { setTxt($('sm-t'), t('cSumo')); setTxt($('sm-m'), t('sumoMash')); setW($('sm-you'), (G.sumo.p + 1) / 2); }
+  // 背水
+  for (const w of ['you', 'opp']) { const d = ph === 'fight' && desp(w); setShow($('ds-' + w), d); if (d) setTxt($('ds-' + w), t('desp')); }
   let hint = '', cls = '';
   if (ph === 'fight') {
     const teach = G.match <= 1;
+    if (chainOk && !G.sumo) { hint = 'hChain'; cls = 'c-gold'; } else
     if (teach && opp.st === 'up_su') { hint = 'hUpSu'; cls = 'c-push'; }
     else if (teach && opp.st === 'charge') { hint = 'hCharge'; cls = 'c-push'; }
     else if (teach && opp.st === 'guard' && opp.t > 0.15) { hint = 'hGuard'; cls = 'c-up'; }
@@ -1295,7 +1488,7 @@ function drawLines(cx, cy, a) {
 // ===== [SEC:RENDER] =====
 const GENRE = { comedy: [0xffe2a8, 1.9], horror: [0x86a0ff, 1.4], romance: [0xffb6cf, 1.7], action: [0xffa860, 1.8], master: [0xffd48a, 1.7] };
 const RED = new THREE.Color(0xff3020), WHITE = new THREE.Color(0xffffff), TMPC = new THREE.Color();
-const AURA_COL = { push_su: 0xff5a20, charge: 0xff5a20, cpush_act: 0xff5a20, guard: 0x3aa0ff, up_su: 0x2fd17a, up_act: 0x2fd17a, sp_su: 0xffd23f, sp_act: 0xffd23f };
+const AURA_COL = { sumo: 0xffd23f, push_su: 0xff5a20, charge: 0xff5a20, cpush_act: 0xff5a20, guard: 0x3aa0ff, up_su: 0x2fd17a, up_act: 0x2fd17a, sp_su: 0xffd23f, sp_act: 0xffd23f };
 const newP = () => ({ onW: 1, distW: 0, outW: 0, back: 0, lift: 0, lean: 0, tilt: 0, bob: 0, headYaw: 0, headPitch: 0, brow: 0, open: 0, wideM: 0, wide: 0, side: 0, blush: 0, red: 0, sweat: 0, anger: 0, aura: 0, guardW: 0, pinW: 0 });
 const VIS = { b: 0, you: newP(), opp: newP(), shush: 0, tele: 0, battle: 0, match: -1 };
 const DIST_ANIM = {
@@ -1322,6 +1515,7 @@ function targetPose(w) {
     case 'stun': Object.assign(P, { back: 0.05, tilt: -0.14, headYaw: -0.25, headPitch: -0.1, brow: -0.8, wide: 0.9, open: 0.6, sweat: 1 }); break;
     case 'recover': Object.assign(P, { brow: 0.4 }); break;
     case 'shushed': Object.assign(P, { onW: 0, blush: 1, headPitch: 0.22, brow: -0.9, tilt: -0.05 }); break;
+    case 'sumo': Object.assign(P, { tilt: 0.26, lean: 0.06, brow: 1, open: 0.35, wideM: 1, red: 0.9, sweat: 1, bob: Math.sin(t * 45) * 0.004, aura: 0.8 }); break;
     case 'dist': P.distW = 1; DIST_ANIM[curOpp().id](P, t); break;
     default: Object.assign(P, { brow: 0.35, side: 0.4 });
   }
@@ -1335,6 +1529,7 @@ function targetPose(w) {
     else Object.assign(P, { brow: 0.6, open: 0.5, wideM: 1, headPitch: -0.12, aura: 0.3 });
   }
   if (w === 'opp' && G.shushT > 0 && G.shushWho === 'you' && st !== 'stun') Object.assign(P, { anger: 1, headYaw: 0.6 });
+  if (G.phase === 'fight' && desp(w) && st !== 'shushed') { P.red = Math.max(P.red, 0.35); P.sweat = 1; }
   return P;
 }
 function lerpP(cur, tg, k, kArm) {
@@ -1396,7 +1591,13 @@ function updateLight(rdt) {
   if (id === 'action') I += 2 * dist * (0.5 + 0.5 * Math.sin(t * 9));
   if (id === 'comedy') I += 0.4 * dist;
   I += VIS.battle * 0.25 + FXS.flash * 8;
-  screenLight.intensity = I; screenLight.color.copy(TMPC);
+  const sc = G.scene, blackout = sceneOn('horror'), warnH = GAME_STATE === 'play' && G.phase === 'fight' && sc.st === 'warn' && id === 'horror';
+  if (sceneOn('comedy')) I += 0.35;
+  let dim = blackout ? 0.05 : warnH ? 0.45 + 0.55 * Math.abs(Math.sin(t * 23)) : 1;
+  if (sceneOn('master')) dim *= 0.65;
+  screenLight.intensity = I * dim; screenLight.color.copy(TMPC);
+  hemi.intensity = 0.55 * (blackout ? 0.05 : 1); armSpot.intensity = 7 * (blackout ? 0.03 : 1); backLight.intensity = 0.7 * (blackout ? 0.08 : 1);
+  const wet = sceneOn('romance') ? 0.55 + 0.35 * Math.sin(t * 6) : 0; M.armMain.emissive.setRGB(0.12 * wet, 0.28 * wet, 0.9 * wet);   // 涙でぬれた肘掛け
   beam.material.opacity = 0.03 + 0.01 * I;
 }
 let lastSparkT = performance.now();
@@ -1411,7 +1612,9 @@ function render(rdt = 1 / 60) {
   VIS.shush += ((G.shushT > 0 ? 1 : 0) - VIS.shush) * (1 - Math.exp(-rdt * 12));
   lerpP(VIS.you, targetPose('you'), k, kArm); lerpP(VIS.opp, targetPose('opp'), k, kArm);
   for (const w of ['you', 'opp']) FXS.gk[w] = Math.max(0, FXS.gk[w] - rdt * (ts ? 1 : 0.2));
-  const bx = clamp(VIS.b, -1, 1) * CONFIG.ARM_W / 2;
+  const sumoP = G.sumo ? G.sumo.p : 0; VIS.sumo = (VIS.sumo || 0) + (sumoP - (VIS.sumo || 0)) * (1 - Math.exp(-rdt * 20));
+  if (G.sumo && Math.random() < 0.2) spawnSparks(2);
+  const bx = clamp(VIS.b + VIS.sumo * 0.18 + (G.sumo ? Math.sin(t * 50) * 0.02 : 0), -1, 1) * CONFIG.ARM_W / 2;
   const oppIdleE = new V3(bx + OC.rE, CONFIG.ARM_TOP + OC.rE, -0.04), youIdleE = new V3(bx - YOU.rE, CONFIG.ARM_TOP + YOU.rE, -0.04);
   poseChar(YOU, VIS.you, bx - YOU.rE, OC.elbow.position.clone().setY(oppIdleE.y), OC.rE, 'you');
   poseChar(OC, VIS.opp, bx + OC.rE, YOU.elbow.position.clone().setY(youIdleE.y), YOU.rE, 'opp');
@@ -1422,7 +1625,8 @@ function render(rdt = 1 / 60) {
   if (FXS.hm > 0) { FXS.hm -= sdt; HITMARK.visible = true; HITMARK.position.copy(FXS.contact); const q = clamp(FXS.hm / 0.2, 0, 1); HITMARK.scale.setScalar(FXS.hmSize * (1.4 - 0.5 * q)); HITMARK.material.opacity = Math.min(1, q * 2); HITMARK.material.rotation += sdt * 3; } else HITMARK.visible = false;
   // まわりの客・シーッの人
   const id = curOpp().id, distW = G.opp.st === 'dist' && play ? 1 : 0;
-  for (const e of extras) { if (e === shusher) continue; e.g.position.y = e.baseY + (id === 'comedy' ? Math.sin(t * 28 + e.ph) * 0.01 * distW : 0) + (id === 'horror' ? 0.05 * distW : 0) + Math.sin(t * 0.7 + e.ph) * 0.004; }
+  const laughW = Math.max(distW, sceneOn('comedy') ? 1 : 0);
+  for (const e of extras) { if (e === shusher) continue; e.g.position.y = e.baseY + (id === 'comedy' ? Math.sin(t * 28 + e.ph) * 0.01 * laughW : 0) + (id === 'horror' ? 0.05 * distW : 0) + Math.sin(t * 0.7 + e.ph) * 0.004; }
   shusher.g.position.z = shusher.baseZ + 0.3 * VIS.shush; shusher.g.rotation.x = 0.35 * VIS.shush; shusher.arm.visible = shusher.hand.visible = VIS.shush > 0.15;
   updateLight(rdt);
   FXS.flash = Math.max(0, FXS.flash - sdt * 2);
@@ -1451,6 +1655,8 @@ function render(rdt = 1 / 60) {
     }
   }
   const cxy = proj(FXS.contact); drawLines(cxy[0] * fxCv.width / innerWidth, cxy[1] * fxCv.height / innerHeight, FXS.lines * (play ? 0.85 : 0));
+  if (G.snapReq) { G.snapReq = false; captureSnap(); if (G.cardPending) { G.cardPending = false; buildCard(); } }   // 決定的瞬間を切りとる
+  if (GAME_STATE === 'result' && G.resT0) { const k = clamp((performance.now() - G.resT0) / 1300, 0, 1); setTxt($('res-pw'), fmtN(G.power * (1 - Math.pow(1 - k, 3)))); }   // 戦闘力をカウントアップ
 }
 function resize() {
   const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h;
@@ -1497,7 +1703,7 @@ window.__TEST__ = {
   stepFast(sec, frameDt) { for (let s = 0; s < sec - 1e-9; s += frameDt) update(frameDt); },   // 描画なし（つりあい確認用）
   goMatch(n) { G.match = n; startVS(); startCall(); G.phase = 'fight'; },
   press, release, G: () => G, AI: () => AI, tutorial: startTutorial, cam: () => CAM, fx: () => FXS,
-  state() { return { match: G.match, round: G.round, phase: G.phase, b: +G.b.toFixed(3), you: G.you.st, opp: G.opp.st, rw: G.rw, total: G.total, over: GAME_STATE === 'result' }; },
+  state() { return { match: G.match, round: G.round, phase: G.phase, b: +G.b.toFixed(3), you: G.you.st, opp: G.opp.st, rw: G.rw, total: G.total, sumo: !!G.sumo, scene: G.scene.st, over: GAME_STATE === 'result' }; },
   check() {
     const v = [], fin = Number.isFinite, T = CONFIG.ARM_TOP, hw = CONFIG.ARM_W / 2;
     if (!fin(G.b) || G.b < -1.0001 || G.b > 1.0001) v.push('b out of range: ' + G.b);
