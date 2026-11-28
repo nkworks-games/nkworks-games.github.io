@@ -226,7 +226,7 @@ const CONFIG = {
   FAST_BEAT: 0.27,            // 速い掛け声（誘導）の間隔
   OBS_ROUNDS: 10, FINAL_ROUNDS: 5,
   OBS_QUICK: 3,               // 2回目から（前回を覚えている時）の観察の回数
-  CONF_STAR: [0.5, 0.6],      // 予言の自信：予言した手の確率がこれ以上で★★、★★★（★★★の予言を破って勝つと2勝ぶん）
+  CONF_STAR: [0.5, 0.6],      // 予言の自信：予言した手の確率がこれ以上で★★、★★★（表示だけ。点数は変わらない）
   MEM_KEY: 'tsugi_mem_v1', MEM_MAX: 40,   // 前回のあなたを覚えておく場所と、覚えておく回数
   TYPE_SPEED: 30,             // 1秒に出る文字数
   PIXEL_RATIO_MAX: 1.75,
@@ -264,9 +264,9 @@ const I18N = {
     bBack: 'また来たのね。…前のあなたのクセ、ちゃんと覚えているわ。', bQuickBtn: '続きから（質問なし・観察{n}回）', bFullBtn: '最初から（観察{n}回・質問{q}問）', bQuick1: 'では、軽く{n}回だけ。…それで十分よ。',
     teaserSay: 'まずは1つ、あなたの最初の手を当ててみせるわ。予言は封印したわ。封印コードは「{code}」。', teaserSayMem: '前のあなたを覚えているから…まず最初の手、当ててみせるわ。封印コードは「{code}」。',
     teaserHit: '予言は「{h}」。…ね、言ったでしょう。', teaserMiss: '予言は「{h}」。…ふふ、まだあなたを知らないもの。ここから覚えていくわ。', teaserMissMem: '予言は「{h}」。…前とは変えてきたのね。',
-    conf1: 'この予言の自信は★。…まだ迷っているわ。', conf2: '自信は★★。…まあまあね。', conf3: '自信は★★★。…これは外さないわ。もし外れてあなたが勝ったら、2勝ぶんにしてあげる。',
-    conf3Win: 'あなたの勝ち…★★★の予言を破られるなんて。約束どおり、2勝ぶんよ。', bFinal3: '予言には自信の★もつけるわ。★★★の予言を破ってあなたが勝ったら、2勝ぶんよ。',
-    sealCommitTeaser: 'お試し/予言:{pred}/占い師:{teller}/合言葉:{salt}', sealTeaser: 'お試し', dbl: '2勝ぶん',
+    conf1: 'この予言の自信は★。…まだ迷っているわ。', conf2: '自信は★★。…まあまあね。', conf3: '自信は★★★。…これは外さないわ。',
+    conf3Win: 'あなたの勝ち…★★★の予言を破られるなんて。', bFinal3: '予言には自信の★もつけるわ。★が多いほど、当てる自信があるということよ。',
+    sealCommitTeaser: 'お試し/予言:{pred}/占い師:{teller}/合言葉:{salt}', sealTeaser: 'お試し',
     title: '次の手、読みます。｜じゃんけん占いの館', appName: '次の手、読みます。', home: 'ホーム', restart: 'やり直す', yes: 'はい', no: 'いいえ',
     confirmHome: 'ゲームをやめて、ホームに戻りますか？', confirmRestart: '最初からやり直しますか？',
     hashtag: '次の手読みます', loading: '水晶を磨いています…', soundAria: '音のオン・オフ',
@@ -409,9 +409,9 @@ const I18N = {
     bBack: 'You’re back… I remember your habits from last time.', bQuickBtn: 'Continue (no questions, {n} warm-ups)', bFullBtn: 'Start over ({n} warm-ups, {q} questions)', bQuick1: 'Then just {n} quick rounds. …That’s all I need.',
     teaserSay: 'First, let me predict your opening throw. It’s sealed. Seal code: “{code}.”', teaserSayMem: 'I remember you… so let me predict your opening throw. Seal code: “{code}.”',
     teaserHit: 'My prediction: “{h}.” …See? I told you.', teaserMiss: 'My prediction: “{h}.” …Heh, I don’t know you yet. I’ll learn from here.', teaserMissMem: 'My prediction: “{h}.” …You changed it up since last time.',
-    conf1: 'Confidence: ★. …I’m still unsure.', conf2: 'Confidence: ★★. …Fairly sure.', conf3: 'Confidence: ★★★. …I won’t miss this one. If I do and you win, it counts as 2 wins.',
-    conf3Win: 'You win… You broke a ★★★ prediction. As promised, that’s 2 wins.', bFinal3: 'Each prediction gets a confidence rating in ★. Beat a ★★★ prediction and your win counts double.',
-    sealCommitTeaser: 'Trial/Prediction:{pred}/Teller:{teller}/Password:{salt}', sealTeaser: 'Trial', dbl: '2 wins',
+    conf1: 'Confidence: ★. …I’m still unsure.', conf2: 'Confidence: ★★. …Fairly sure.', conf3: 'Confidence: ★★★. …I won’t miss this one.',
+    conf3Win: 'You win… You broke a ★★★ prediction.', bFinal3: 'Each prediction gets a confidence rating in ★. The more stars, the surer I am.',
+    sealCommitTeaser: 'Trial/Prediction:{pred}/Teller:{teller}/Password:{salt}', sealTeaser: 'Trial',
     title: 'I Know Your Next Move | The Rock-Paper-Scissors Fortune Teller', appName: 'I Know Your Next Move', home: 'Home', restart: 'Restart', yes: 'Yes', no: 'No',
     confirmHome: 'Quit the game and go back home?', confirmRestart: 'Start over from the beginning?',
     hashtag: 'IKnowYourNextMove', loading: 'Polishing the crystal ball…', soundAria: 'Sound on/off',
@@ -554,9 +554,9 @@ const I18N = {
     bBack: '또 왔군요. …지난번 당신의 버릇, 제대로 기억하고 있어요.', bQuickBtn: '이어서 (질문 없이·관찰 {n}번)', bFullBtn: '처음부터 (관찰 {n}번·질문 {q}개)', bQuick1: '그럼 가볍게 {n}번만. …그거면 충분해요.',
     teaserSay: '먼저 하나, 당신의 첫 수를 맞혀 볼게요. 예언은 봉인했어요. 봉인 코드는 “{code}”.', teaserSayMem: '지난번 당신을 기억하니까… 먼저 첫 수를 맞혀 볼게요. 봉인 코드는 “{code}”.',
     teaserHit: '예언은 “{h}”. …봐요, 말했잖아요.', teaserMiss: '예언은 “{h}”. …후후, 아직 당신을 모르니까요. 지금부터 알아 갈게요.', teaserMissMem: '예언은 “{h}”. …지난번과는 바꿔 왔군요.',
-    conf1: '이 예언의 자신감은 ★. …아직 망설여져요.', conf2: '자신감은 ★★. …그럭저럭이에요.', conf3: '자신감은 ★★★. …이건 안 빗나가요. 만약 빗나가서 당신이 이기면 2승으로 쳐 줄게요.',
-    conf3Win: '당신의 승리… ★★★ 예언이 깨지다니. 약속대로 2승이에요.', bFinal3: '예언에는 자신감 ★도 붙일게요. ★★★ 예언을 깨고 당신이 이기면 2승이에요.',
-    sealCommitTeaser: '맛보기/예언:{pred}/점술사:{teller}/암호:{salt}', sealTeaser: '맛보기', dbl: '2승',
+    conf1: '이 예언의 자신감은 ★. …아직 망설여져요.', conf2: '자신감은 ★★. …그럭저럭이에요.', conf3: '자신감은 ★★★. …이건 안 빗나가요.',
+    conf3Win: '당신의 승리… ★★★ 예언이 깨지다니.', bFinal3: '예언에는 자신감 ★도 붙일게요. ★이 많을수록 맞힐 자신이 있다는 뜻이에요.',
+    sealCommitTeaser: '맛보기/예언:{pred}/점술사:{teller}/암호:{salt}', sealTeaser: '맛보기',
     title: '다음 수, 읽어 드립니다 | 가위바위보 점집', appName: '다음 수, 읽어 드립니다', home: '홈', restart: '다시 하기', yes: '네', no: '아니요',
     confirmHome: '게임을 그만두고 홈으로 돌아갈까요?', confirmRestart: '처음부터 다시 할까요?',
     hashtag: '다음수읽어드립니다', loading: '수정 구슬을 닦는 중…', soundAria: '소리 켜기/끄기',
@@ -699,9 +699,9 @@ const I18N = {
     bBack: '你又来了。…上次你的习惯，我都记得。', bQuickBtn: '接着来（不用答题、观察{n}次）', bFullBtn: '从头开始（观察{n}次、问题{q}个）', bQuick1: '那就轻松来{n}次。…这就够了。',
     teaserSay: '先来一个，我猜猜你的第一手。预言已经封印了。封印码是“{code}”。', teaserSayMem: '我记得上次的你…先猜猜你的第一手。封印码是“{code}”。',
     teaserHit: '预言是“{h}”。…看吧，我说过的。', teaserMiss: '预言是“{h}”。…呵呵，我还不了解你呢。从现在开始记住你。', teaserMissMem: '预言是“{h}”。…你和上次不一样了啊。',
-    conf1: '这次预言的把握是★。…还在犹豫。', conf2: '把握是★★。…还算有底。', conf3: '把握是★★★。…这次不会错。万一错了让你赢了，就算你赢两局。',
-    conf3Win: '你赢了…★★★的预言居然被破了。说好的，算你赢两局。', bFinal3: '每个预言都会标上把握的★。破了★★★的预言并且赢了，就算你赢两局。',
-    sealCommitTeaser: '试读/预言:{pred}/占卜师:{teller}/口令:{salt}', sealTeaser: '试读', dbl: '算两局',
+    conf1: '这次预言的把握是★。…还在犹豫。', conf2: '把握是★★。…还算有底。', conf3: '把握是★★★。…这次不会错。',
+    conf3Win: '你赢了…★★★的预言居然被破了。', bFinal3: '每个预言都会标上把握的★。★越多，说明我越有把握。',
+    sealCommitTeaser: '试读/预言:{pred}/占卜师:{teller}/口令:{salt}', sealTeaser: '试读',
     title: '看穿你的下一手｜猜拳占卜馆', appName: '看穿你的下一手', home: '主页', restart: '重新开始', yes: '是', no: '否',
     confirmHome: '要退出游戏并返回主页吗？', confirmRestart: '要从头重新开始吗？',
     hashtag: '看穿你的下一手', loading: '正在擦亮水晶球…', soundAria: '声音开/关',
@@ -2996,14 +2996,14 @@ async function flowB() {
     lastO = res.outcome;
     GB.R.observe(res.player, res.teller, dec.tac, dec.pred);
     seal.player = res.player; seal.outcome = res.outcome;
-    seal.double = conf === 3 && res.outcome === 'W';   // ★★★の予言を破って勝ったら2勝ぶん
-    sc[res.outcome] += seal.double ? 2 : 1;
+    const broke = conf === 3 && res.outcome === 'W';   // ★★★の予言を破られた（点数はほかと同じ1勝）
+    sc[res.outcome] += 1;
     setScore(scoreText(sc, t('finLbl')));
     // カードをめくる
     await revealSeal(); seal.revealed = true;
     const hit = seal.pred === res.player;
-    if (hit) sfx('hit'); else if (seal.double) sfx('win');
-    const msg = seal.double ? t('conf3Win') : t(hit ? 'predHit' : 'predMiss', { h: H[seal.pred] });
+    if (hit) sfx('hit'); else if (broke) sfx('win');
+    const msg = broke ? t('conf3Win') : t(hit ? 'predHit' : 'predMiss', { h: H[seal.pred] });
     await say(msg + trickLine(dec.tac, dec.teller) + t('sealShow', { c: seal.commit }), { auto: 2.4 });
     cardHide(); $('sealPanel').classList.add('hide');
     await wait(0.3);
@@ -3099,7 +3099,7 @@ function showResultB() {
   const line = (o, label) => { const c = a.aft[o], n = c[0] + c[1] + c[2]; if (!n) return `<p class="small">${t('noData', { l: label })}</p>`; const k = argmax(c); return `<p>${t('afterLine', { l: label, k: q(t('afterKinds')[k]), c: c[k], n })}</p>`; };
   let selfLine = '';
   if (a.selfType && a.typeKey !== 'even') selfLine = a.selfType === a.typeKey ? `<p class="small">${t('selfMatch')}</p>` : `<p class="small">${t('selfDiff', { a: q(TYPES[a.selfType].name), b: q(a.type.name) })}</p>`;
-  const seals = (GB.teaser ? [GB.teaser] : []).concat(GB.seals).map(x => `<tr><td style="white-space:nowrap">${x.r ? t('sealRound', { r: x.r }) : t('sealTeaser')}${x.conf ? '<br><span style="color:var(--gold)">' + '★'.repeat(x.conf) + '</span>' : ''}<br><span class="${x.pred === x.player ? 'ok' : ''}">${t(x.pred === x.player ? 'hit' : 'miss')}</span>${x.double ? '<br><b style="color:#8fe3a0">' + t('dbl') + '</b>' : ''}</td><td>${t('sealLbl')} <b style="color:#ffd9c9">${x.code}</b><br><code>${esc(x.commit)}</code><br><button class="copy" data-c="${esc(x.commit)}">${t('copyBtn')}</button> <span class="small">SHA-256：<code>${x.hash}</code></span></td></tr>`).join('');
+  const seals = (GB.teaser ? [GB.teaser] : []).concat(GB.seals).map(x => `<tr><td style="white-space:nowrap">${x.r ? t('sealRound', { r: x.r }) : t('sealTeaser')}${x.conf ? '<br><span style="color:var(--gold)">' + '★'.repeat(x.conf) + '</span>' : ''}<br><span class="${x.pred === x.player ? 'ok' : ''}">${t(x.pred === x.player ? 'hit' : 'miss')}</span></td><td>${t('sealLbl')} <b style="color:#ffd9c9">${x.code}</b><br><code>${esc(x.commit)}</code><br><button class="copy" data-c="${esc(x.commit)}">${t('copyBtn')}</button> <span class="small">SHA-256：<code>${x.hash}</code></span></td></tr>`).join('');
   $('result').innerHTML = `
   <div class="rc hero">
     <div class="who">${t('whoB', { n: NR })}</div>
@@ -3350,7 +3350,7 @@ window.__TEST__ = {
     }
     if (CARD.group && CARD.group.visible && CARD.group.position.y < TY - 0.001) v.push('カードが机より下');
     if (MIST.probs) { const s = MIST.probs.reduce((a, b) => a + b, 0); if (Math.abs(s - 1) > 1e-6 || MIST.probs.some(x => x < 0 || x > 1 || bad(x))) v.push('確率の合計が1でない'); }
-    const sc = GB.score, nd = GB.seals.filter(x => x.double).length; if (sc.W < 0 || sc.L < 0 || sc.T < 0 || sc.W + sc.L + sc.T - nd > CONFIG.FINAL_ROUNDS) v.push('本番の勝敗の数がおかしい');   // ★★★の2勝ぶんは1回に数える
+    const sc = GB.score; if (sc.W < 0 || sc.L < 0 || sc.T < 0 || sc.W + sc.L + sc.T > CONFIG.FINAL_ROUNDS) v.push('本番の勝敗の数がおかしい');
     if (GB.seals.length > CONFIG.FINAL_ROUNDS) v.push('封印が5回より多い');
     for (const s of GB.seals) {
       if (sha256(s.commit) !== s.hash || shortCode(s.hash) !== s.code) v.push(`第${s.r}戦の封印コードが中身と合わない`);
@@ -3363,9 +3363,9 @@ window.__TEST__ = {
       if (sha256(s.commit) !== s.hash || shortCode(s.hash) !== s.code || s.commit !== sealText(s.lang, 0, s.tac, s.pred, s.teller, s.salt)) v.push('お試しの封印が中身と合わない');
       if (s.revealed && s.outcome && outcome(s.player, s.teller) !== s.outcome) v.push('お試しの勝敗の判定がおかしい');
     }
-    {   // 本番の点数：★★★の予言を破って勝った時だけ2勝ぶん
+    {   // 本番の点数：どの勝負も1つずつ（★で点数は変わらない）
       const e = { W: 0, L: 0, T: 0 };
-      for (const s of GB.seals) if (s.outcome) { e[s.outcome] += s.double ? 2 : 1; if (s.double && !(s.conf === 3 && s.outcome === 'W')) v.push(`第${s.r}戦の2勝ぶんの判定がおかしい`); }
+      for (const s of GB.seals) if (s.outcome) { e[s.outcome] += 1; }
       if (RUN.mode === 'B' && GB.seals.length && (e.W !== GB.score.W || e.L !== GB.score.L || e.T !== GB.score.T)) v.push(`本番の点数が合わない (${JSON.stringify(e)} / ${JSON.stringify(GB.score)})`);
       for (const s of GB.seals) if (![1, 2, 3].includes(s.conf)) v.push(`第${s.r}戦の自信の★がない`);
     }
