@@ -55,6 +55,10 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 #title h1 span:last-child{color:var(--gold);padding-left:1.2em}
 #title .lead{margin:6px 0 26px;font-size:15px;line-height:1.8;color:var(--ink);text-shadow:0 1px 6px #000}
 .modeBtns{display:flex;flex-direction:column;gap:14px;width:min(420px,100%)}
+.chBox{width:min(420px,100%);margin:-12px 0 16px;padding:10px 14px;border-radius:14px;border:1px dashed var(--gold);background:#1b0c26d9;display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.5;color:var(--ink)}
+.chBox b{color:var(--gold);letter-spacing:.1em}
+.btn.ch{box-shadow:0 0 0 2px var(--gold),0 0 22px #e2c27a99}
+@media (max-height:700px){#title.hasCh h1{font-size:clamp(30px,8.5vw,52px)}#title.hasCh .lead{margin:2px 0 10px;font-size:14px;line-height:1.65}}
 .btn{border:1px solid var(--gold2);background:linear-gradient(180deg,#3a1a48ee,#1b0c26ee);border-radius:14px;padding:12px 16px;box-shadow:0 4px 18px #000a,inset 0 1px 0 #ffffff22;transition:transform .12s,background .2s}
 .btn:active{transform:scale(.97)}
 .btn.big{padding:16px 18px;text-align:left}
@@ -187,6 +191,7 @@ select.nkw-btn option{color:#000}
   <section id="title" class="screen hide">
     <h1><span data-i18n="h1a">次の手、</span><span data-i18n="h1b">読みます。</span></h1>
     <p class="lead"><span data-i18n="lead1">じゃんけんの研究データと、</span><br><span data-i18n="lead2">あなたのクセから次の一手を読む占いの館</span></p>
+    <div id="chBox" class="chBox hide"></div>
     <div class="modeBtns">
       <button class="btn big" id="btnModeA"><b data-i18n="modeA">あの人に勝ちたい</b><small id="modeADesc" data-i18n-skip="1">あの人のことを15問答えると、最初に出す手・勝てる確率・コツがわかります</small></button>
       <button class="btn big" id="btnModeB"><b data-i18n="modeB">わたしに勝てる？</b><small data-i18n="modeBDesc">占い師と10回じゃんけん。あなたのクセを読んで、封印した予言で勝負します</small></button>
@@ -400,7 +405,8 @@ const I18N = {
     indH: '{n}に効く誘導', indNote: '★は、答えから予想した効きやすさです。誘導は「最初の一手」と組み合わせて使えます。',
     bExp: '実験', bAns: '答え', bPsy: '心理テク', bArticle: '解説記事', copied: 'コピーしました',
     shareA: '{n}に勝つ最初の一手は{h}。勝てる確率{p}%と占われました。あの人は{t}。',
-    shareB: '占い師とじゃんけん{r}本勝負。占い師の{l}勝{w}敗{t}分、予言的中{h}/{r}。わたしは{ty}、読まれ度{s}でした。',
+    shareB: '占い師とじゃんけん{r}本勝負。占い師の{l}勝{w}敗{t}分、予言的中{h}/{r}。わたしは{ty}、読まれ度{s}でした。この記録、超えられる？',
+    chTitle: '友だちからの挑戦状', chLine: '占い師に{w}勝{l}敗{t}分・予言的中{h}/{n}・読まれ度{s}', chDare: 'この記録を超えられる？{m}で勝負！', chH: '友だちとの勝負', chRow: '{who}：{w}勝{l}敗{t}分・予言的中{h}/{n}', chFriend: '友だち', chYou: 'あなた', chWin: '友だちに勝ちました！', chLose: '友だちの勝ち。もう一度挑む？', chDrawV: '友だちと引き分け', chRule: '占い師に勝った数 → 負けた数の少なさ → 予言に読まれた回数の少なさ、の順でくらべます。', chShareWin: '友だちの挑戦状に勝ちました！', chShareLose: '友だちの挑戦状に負けました…', chShareDraw: '友だちの挑戦状と引き分けでした。', chShareHint: 'シェアしたリンクを開いた人には、あなたの記録が挑戦状として出ます。',
     imgPctA: 'この勝負に勝てる確率 {p}%', imgTypeA: 'あの人は{t}　あいこの後は{h}', imgTitleB: '占い師とじゃんけん{n}本勝負',
     imgRead: '読まれた…', imgWon: '勝った！', imgScoreB: '占い師 {w}勝 {l}敗 {t}分', imgTypeB: 'わたしは{t}　読まれ度 {s}', imgCodes: '封印コード {c}',
     saved: '画像を保存しました。Xのポストに添えてください',
@@ -545,7 +551,8 @@ const I18N = {
     indH: 'Mind games that work on {n}', indNote: '★ shows how well each is likely to work, based on your answers. You can combine these with the opening throw.',
     bExp: 'Experiment', bAns: 'Your answers', bPsy: 'Mind trick', bArticle: 'Article', copied: 'Copied',
     shareA: 'My opening throw to beat {n}: {h}. The fortune says a {p}% chance to win. Their type: {t}.',
-    shareB: 'Played {r} rounds of rock-paper-scissors with the Fortune Teller: Teller {l}W {w}L {t}D, predictions hit {h}/{r}. I’m {ty}, readability {s}.',
+    shareB: 'Played {r} rounds of rock-paper-scissors with the Fortune Teller: Teller {l}W {w}L {t}D, predictions hit {h}/{r}. I’m {ty}, readability {s}. Can you beat my record?',
+    chTitle: 'A challenge from a friend', chLine: 'vs. the Fortune Teller: {w}W {l}L {t}D · predictions hit {h}/{n} · readability {s}', chDare: 'Can you beat it? Take them on in {m}!', chH: 'You vs. your friend', chRow: '{who}: {w}W {l}L {t}D · predictions hit {h}/{n}', chFriend: 'Friend', chYou: 'You', chWin: 'You beat your friend!', chLose: 'Your friend wins. Try again?', chDrawV: 'A tie with your friend', chRule: 'Ranked by wins vs. the teller, then fewer losses, then fewer predictions hit.', chShareWin: 'I beat my friend’s challenge!', chShareLose: 'I lost to my friend’s challenge…', chShareDraw: 'I tied my friend’s challenge.', chShareHint: 'Anyone who opens your shared link gets your score as a challenge.',
     imgPctA: 'Chance to win: {p}%', imgTypeA: 'Type: {t} · After a tie: {h}', imgTitleB: '{n} rounds vs. the Fortune Teller',
     imgRead: 'Read like a book…', imgWon: 'I won!', imgScoreB: 'Teller {w}W {l}L {t}D', imgTypeB: 'I’m {t} · Readability {s}', imgCodes: 'Seal codes {c}',
     saved: 'Image saved. Attach it to your post on X.',
@@ -690,7 +697,8 @@ const I18N = {
     indH: '{n}에게 통하는 유도', indNote: '★은 답변으로 예상한 효과예요. 유도는 “첫 수”와 함께 쓸 수 있어요.',
     bExp: '실험', bAns: '답변', bPsy: '심리 기술', bArticle: '해설 기사', copied: '복사했어요',
     shareA: '{n} 상대로 이기는 첫 수는 {h}. 이길 확률 {p}%라는 점괘가 나왔어요. 그 사람은 {t}.',
-    shareB: '점술사와 가위바위보 {r}판 승부. 점술사 {l}승 {w}패 {t}무, 예언 적중 {h}/{r}. 나는 {ty}, 읽힘 지수 {s}였어요.',
+    shareB: '점술사와 가위바위보 {r}판 승부. 점술사 {l}승 {w}패 {t}무, 예언 적중 {h}/{r}. 나는 {ty}, 읽힘 지수 {s}였어요. 이 기록, 넘을 수 있어요?',
+    chTitle: '친구의 도전장', chLine: '점술사 상대로 {w}승 {l}패 {t}무 · 예언 적중 {h}/{n} · 읽힘 지수 {s}', chDare: '이 기록을 넘을 수 있을까요? {m}에서 승부!', chH: '친구와의 승부', chRow: '{who}: {w}승 {l}패 {t}무 · 예언 적중 {h}/{n}', chFriend: '친구', chYou: '당신', chWin: '친구를 이겼어요!', chLose: '친구의 승리. 다시 도전할까요?', chDrawV: '친구와 무승부', chRule: '점술사에게 이긴 수 → 진 수가 적은 쪽 → 예언에 읽힌 횟수가 적은 쪽 순으로 비교해요.', chShareWin: '친구의 도전장에서 이겼어요!', chShareLose: '친구의 도전장에서 졌어요…', chShareDraw: '친구의 도전장과 비겼어요.', chShareHint: '공유한 링크를 연 사람에게는 당신의 기록이 도전장으로 보여요.',
     imgPctA: '이길 확률 {p}%', imgTypeA: '타입: {t} · 비긴 뒤엔 {h}', imgTitleB: '점술사와 가위바위보 {n}판 승부',
     imgRead: '읽혔다…', imgWon: '이겼다!', imgScoreB: '점술사 {w}승 {l}패 {t}무', imgTypeB: '나는 {t} · 읽힘 지수 {s}', imgCodes: '봉인 코드 {c}',
     saved: '이미지를 저장했어요. X 게시물에 첨부해 주세요.',
@@ -835,7 +843,8 @@ const I18N = {
     indH: '对{n}有效的诱导', indNote: '★表示根据回答预测的有效程度。诱导可以和“第一手”搭配使用。',
     bExp: '实验', bAns: '回答', bPsy: '心理技巧', bArticle: '解说文章', copied: '已复制',
     shareA: '赢{n}的第一手是{h}，占卜结果胜率{p}%。对方是{t}。',
-    shareB: '和占卜师猜拳{r}局对决：占卜师{l}胜{w}负{t}平，预言命中{h}/{r}。我是{ty}，被看穿度{s}。',
+    shareB: '和占卜师猜拳{r}局对决：占卜师{l}胜{w}负{t}平，预言命中{h}/{r}。我是{ty}，被看穿度{s}。你能超过这个记录吗？',
+    chTitle: '朋友的挑战书', chLine: '对占卜师{w}胜{l}负{t}平 · 预言命中{h}/{n} · 被看穿度{s}', chDare: '你能超过吗？来{m}一决高下！', chH: '与朋友的对决', chRow: '{who}：{w}胜{l}负{t}平 · 预言命中{h}/{n}', chFriend: '朋友', chYou: '你', chWin: '你赢了朋友！', chLose: '朋友赢了。再挑战一次？', chDrawV: '和朋友打平', chRule: '比较顺序：赢占卜师的局数 → 输的局数少 → 被预言命中的次数少。', chShareWin: '我赢了朋友的挑战书！', chShareLose: '我输给了朋友的挑战书…', chShareDraw: '我和朋友的挑战书打平了。', chShareHint: '打开你分享的链接的人，会看到你的记录作为挑战书。',
     imgPctA: '胜率 {p}%', imgTypeA: '类型：{t}　平局后出{h}', imgTitleB: '和占卜师猜拳{n}局对决',
     imgRead: '被看穿了…', imgWon: '赢了！', imgScoreB: '占卜师 {w}胜 {l}负 {t}平', imgTypeB: '我是{t}　被看穿度 {s}', imgCodes: '封印码 {c}',
     saved: '图片已保存，请附在X的帖子里。',
@@ -939,6 +948,7 @@ function applyTexts() {     // 今の言語の文を、ゲームのデータに�
 function onLangChange() {
   if (!NKW_DATA) return;
   applyTexts();
+  renderChallenge();
   $('modeADesc').textContent = t('modeADesc', { n: QA.length });
   const redraw = () => rebuildCardTextures();
   if (document.fonts && document.fonts.load) document.fonts.load(nkwFont(26), t('cardPred') + t('cardFirst') + t('hands').join('') + t('sealGlyph')).then(redraw, redraw); else redraw();
@@ -2737,6 +2747,7 @@ async function flowTitle() {
   setTellerTarget('R', 'rest'); setTellerTarget('L', 'ball');
   TELLER.handR.setPose('flat'); TELLER.handL.setPose('hover');
   $('title').classList.remove('hide'); $('hudTitle').classList.add('hide');
+  renderChallenge();
   MIST.probs = null;
   APP.state = 'title'; nkwUpdateUI();
 }
@@ -3099,6 +3110,7 @@ function showResultB() {
   const line = (o, label) => { const c = a.aft[o], n = c[0] + c[1] + c[2]; if (!n) return `<p class="small">${t('noData', { l: label })}</p>`; const k = argmax(c); return `<p>${t('afterLine', { l: label, k: q(t('afterKinds')[k]), c: c[k], n })}</p>`; };
   let selfLine = '';
   if (a.selfType && a.typeKey !== 'even') selfLine = a.selfType === a.typeKey ? `<p class="small">${t('selfMatch')}</p>` : `<p class="small">${t('selfDiff', { a: q(TYPES[a.selfType].name), b: q(a.type.name) })}</p>`;
+  const chCard = CH ? challengeCard(sc, hits) : '';
   const seals = (GB.teaser ? [GB.teaser] : []).concat(GB.seals).map(x => `<tr><td style="white-space:nowrap">${x.r ? t('sealRound', { r: x.r }) : t('sealTeaser')}${x.conf ? '<br><span style="color:var(--gold)">' + '★'.repeat(x.conf) + '</span>' : ''}<br><span class="${x.pred === x.player ? 'ok' : ''}">${t(x.pred === x.player ? 'hit' : 'miss')}</span></td><td>${t('sealLbl')} <b style="color:#ffd9c9">${x.code}</b><br><code>${esc(x.commit)}</code><br><button class="copy" data-c="${esc(x.commit)}">${t('copyBtn')}</button> <span class="small">SHA-256：<code>${x.hash}</code></span></td></tr>`).join('');
   $('result').innerHTML = `
   <div class="rc hero">
@@ -3108,6 +3120,7 @@ function showResultB() {
     <div class="chips"><span class="chip">${t('chipHits', { h: hits, n: NR })}</span><span class="chip">${t('chipRead', { s: a.readScore })}</span></div>
     <p class="small" style="margin-top:8px">${t('readNote', { n: GB.obs.length + NR })}</p>
   </div>
+  ${chCard}
   <div class="rc"><h2>${t('yourType')}</h2><p><b style="color:var(--gold);font-size:20px">${a.type.name}</b></p><p>${a.type.self}</p>${selfLine}</div>
   <div class="rc"><h2>${t('yourHabit', { n: GB.obs.length + NR })}</h2>${bars(p, CONFIG.PRIOR_FIRST)}
     <p>${t('repRate', { p: pct(a.rep) })}</p>
@@ -3118,7 +3131,7 @@ function showResultB() {
     <p class="small">${t('sealHow')}</p>
     <table class="seals">${seals}</table></div>
   <div class="rc"><h2>${t('communityH')}</h2><p>${communityLine()}</p></div>
-  <div class="rc"><div class="btnRow"><button class="btn gold" id="rShare">${t('shareImgBtn')}</button><button class="btn" id="rPost">${t('postX')}</button></div><div class="btnRow" style="margin-top:10px"><button class="btn" id="rAgain">${t('againB')}</button><button class="btn" id="rOther">${t('toA')}</button></div></div>
+  <div class="rc"><div class="btnRow"><button class="btn gold" id="rShare">${t('shareImgBtn')}</button><button class="btn" id="rPost">${t('postX')}</button></div><p class="small" style="margin:8px 0 0">${t('chShareHint')}</p><div class="btnRow" style="margin-top:10px"><button class="btn" id="rAgain">${t('againB')}</button><button class="btn" id="rOther">${t('toA')}</button></div></div>
   ${sourcesHTML()}`;
   $('result').classList.remove('hide'); $('result').scrollTop = 0;
   $('rShare').onclick = () => shareResult('B');
@@ -3166,13 +3179,47 @@ function copyText(txt) {
 function fallbackCopy(t, ok) { const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok(); } catch (e) { } ta.remove(); }
 
 // ===== [SEC:SHARE] =====
+// 友だちの挑戦状：?vs=勝.負.分.的中.読まれ度（あなたから見た数。名前などは入れない）
+const CH = (() => {
+  try {
+    const v = new URLSearchParams(location.search).get('vs'); if (!v) return null;
+    const a = v.split('.').map(Number), N = CONFIG.FINAL_ROUNDS;
+    if (a.length !== 5 || a.some(x => !Number.isInteger(x) || x < 0)) return null;
+    const [w, l, d, h, r] = a;
+    if (w + l + d !== N || h > N || r < 1 || r > 99) return null;
+    return { w, l, t: d, h, s: r };
+  } catch (e) { return null; }
+})();
+function chCompare(sc, hits) {   // 1：あなたの勝ち / -1：友だちの勝ち / 0：引き分け（勝ち数 → 負けの少なさ → 読まれた回数の少なさ）
+  for (const d of [sc.W - CH.w, CH.l - sc.L, CH.h - hits]) if (d) return d > 0 ? 1 : -1;
+  return 0;
+}
+function chURL() {   // 自分の記録を挑戦状にしたリンク
+  const sc = GB.score, hits = GB.seals.filter(s => s.pred === s.player).length;
+  return CONFIG.SITE_URL + '?vs=' + [sc.W, sc.L, sc.T, hits, GB.analysis.readScore].join('.');
+}
+function shareURL(mode) { return mode === 'B' && GB.analysis ? chURL() : CONFIG.SITE_URL; }
+function renderChallenge() {   // タイトルの「友だちからの挑戦状」
+  const box = $('chBox'); if (!box) return;
+  $('btnModeB').classList.toggle('ch', !!CH);
+  $('title').classList.toggle('hasCh', !!CH);
+  if (!CH) { box.classList.add('hide'); return; }
+  box.innerHTML = `<b>${t('chTitle')}</b><span>${t('chLine', { w: CH.w, l: CH.l, t: CH.t, h: CH.h, n: CONFIG.FINAL_ROUNDS, s: CH.s })}</span><span>${t('chDare', { m: q(t('modeB')) })}</span>`;
+  box.classList.remove('hide');
+}
+function challengeCard(sc, hits) {   // 結果画面の「友だちとの勝負」
+  const NR = CONFIG.FINAL_ROUNDS, c = chCompare(sc, hits);
+  const row = (who, w, l, d, h) => `<p>${t('chRow', { who, w, l, t: d, h, n: NR })}</p>`;
+  return `<div class="rc"><h2>${t('chH')}</h2>${row(t('chFriend'), CH.w, CH.l, CH.t, CH.h)}${row(t('chYou'), sc.W, sc.L, sc.T, hits)}<p><b style="color:var(--gold);font-size:20px">${t(c > 0 ? 'chWin' : c < 0 ? 'chLose' : 'chDrawV')}</b></p><p class="small">${t('chRule')}</p></div>`;
+}
 function shareText(mode) {
   if (mode === 'A') { const r = GA.res; return t('shareA', { n: GA.name ? t('nameFmt', { n: GA.name }) : t('defName'), h: q(H[r.first.h]), p: pct(r.matchWin), t: r.type.name }); }
   const sc = GB.score, hits = GB.seals.filter(s => s.pred === s.player).length;
-  return t('shareB', { r: CONFIG.FINAL_ROUNDS, l: sc.L, w: sc.W, t: sc.T, h: hits, ty: q(GB.analysis.type.name), s: GB.analysis.readScore });
+  const pre = CH ? t(['chShareLose', 'chShareDraw', 'chShareWin'][chCompare(sc, hits) + 1]) + t('sentSep') : '';
+  return pre + t('shareB', { r: CONFIG.FINAL_ROUNDS, l: sc.L, w: sc.W, t: sc.T, h: hits, ty: q(GB.analysis.type.name), s: GB.analysis.readScore });
 }
 function postX(mode) {
-  const u = 'https://x.com/intent/post?text=' + encodeURIComponent(shareText(mode) + '\n#' + t('hashtag')) + '&url=' + encodeURIComponent(CONFIG.SITE_URL);
+  const u = 'https://x.com/intent/post?text=' + encodeURIComponent(shareText(mode) + '\n#' + t('hashtag')) + '&url=' + encodeURIComponent(shareURL(mode));
   window.open(u, '_blank', 'noopener');
 }
 function drawShareImage(mode) {
@@ -3211,7 +3258,7 @@ async function shareResult(mode) {
   const file = new File([blob], 'tsugi-no-te.png', { type: 'image/png' });
   const text = shareText(mode) + '\n#' + t('hashtag');
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], text, url: CONFIG.SITE_URL }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.share({ files: [file], text, url: shareURL(mode) }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
   }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'tsugi-no-te.png'; document.body.appendChild(a); a.click(); a.remove();
   toast(t('saved'), 2.2);
@@ -3350,6 +3397,7 @@ window.__TEST__ = {
     }
     if (CARD.group && CARD.group.visible && CARD.group.position.y < TY - 0.001) v.push('カードが机より下');
     if (MIST.probs) { const s = MIST.probs.reduce((a, b) => a + b, 0); if (Math.abs(s - 1) > 1e-6 || MIST.probs.some(x => x < 0 || x > 1 || bad(x))) v.push('確率の合計が1でない'); }
+    if (CH && APP.state === 'title' && !$('title').classList.contains('hide') && $('chBox').classList.contains('hide')) v.push('挑戦状が出ていない');
     const sc = GB.score; if (sc.W < 0 || sc.L < 0 || sc.T < 0 || sc.W + sc.L + sc.T > CONFIG.FINAL_ROUNDS) v.push('本番の勝敗の数がおかしい');
     if (GB.seals.length > CONFIG.FINAL_ROUNDS) v.push('封印が5回より多い');
     for (const s of GB.seals) {
@@ -3375,6 +3423,10 @@ window.__TEST__ = {
     if (sha256('abc') !== 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad') v.push('SHA-256 の計算がおかしい');
     return v;
   },
+  challenge() { return CH; },
+  challengeURL() { return GB.analysis ? chURL() : null; },
+  shareURL(mode) { return shareURL(mode); },
+  shareText(mode) { return shareText(mode); },
   shareImage(mode) { return drawShareImage(mode).toDataURL('image/png'); },
   sha(t) { return sha256(t); },
   demoJanken(teller, feint, speed) { newRun(); APP.state = 'play'; jankenRound(teller, { feint, speed }).catch(() => { }); },
